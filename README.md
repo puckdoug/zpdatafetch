@@ -24,4 +24,8 @@ keyring set zwiftpower password
   PYTHONPATH=`pwd`/src python src/zp_data/zp.py
 ```
 
-## More to come
+## Cyclist download example
+
+```shell
+PYTHONPATH=`pwd`/src python src/zp_data/cyclist.py -v -r --zwift_id <zwift_id>
+```
