@@ -41,3 +41,9 @@ PYTHONPATH=`pwd`/src python src/zp_data/team.py -v -r <team_id>
 ```shell
 PYTHONPATH=`pwd`/src python src/zp_data/signup.py -v -r <race_id>
 ```
+
+## Result example
+
+```shell
+PYTHONPATH=`pwd`/src python src/zp_data/result.py -v -r <race_id>
+```
