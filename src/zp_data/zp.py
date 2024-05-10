@@ -2,7 +2,6 @@ import httpx
 from zp_data.setup import Config
 from bs4 import BeautifulSoup
 import json
-import jsonpickle
 
 
 # ===============================================================================
@@ -122,14 +121,6 @@ class ZP:
         return 'D'
       case _:
         return str(div)
-
-  # -------------------------------------------------------------------------------
-  @classmethod
-  def archive(cls, name, obj):
-    filename = f'archive/{name}-{str(os.getpid())}-{str(datetime.timestamp(datetime.now()))}.json'
-    f = open(filename, 'w')
-    f.write(jsonpickle.encode(obj))
-    f.close()
 
 
 # ===============================================================================

@@ -47,12 +47,6 @@ def main():
     const=True,
     help='print all returned data',
   )
-  p.add_argument(
-    '--archive',
-    action='store_const',
-    const=True,
-    help='archive signups to archive/ directory',
-  )
   p.add_argument('team_id', type=int, nargs='+', help='a list of team_ids')
   args = p.parse_args()
 
@@ -65,9 +59,6 @@ def main():
 
   if args.raw:
     print(x.raw)
-
-  if args.archive:
-    ZP.archive('team', team)
 
 
 # ===============================================================================
