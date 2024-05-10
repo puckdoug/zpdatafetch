@@ -33,7 +33,7 @@ class Cyclist:
   # -------------------------------------------------------------------------------
   def fetch(self, *zwift_id):
     zp = ZP()
-    c = []
+    content = []
     if self.verbose:
       zp.verbose = True
 
@@ -46,9 +46,7 @@ class Cyclist:
       # js2py is broken in 3.12 right now. pull request pending to fix it.
       # zp_vars = self.extract_zp_vars(y)
 
-      # c.append(self.blob_to_cyclist(x, zp_vars))
-
-    # return c
+    return self.raw
 
 
 # ===============================================================================
