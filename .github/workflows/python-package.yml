@@ -38,6 +38,7 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    environment: release
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python 3.10
@@ -59,6 +60,9 @@ jobs:
 
   publish:
     name: Publish to PyPI
+    environment: release
+    permissions:
+      id-token: write
     needs:
       - test
       - build
@@ -69,6 +73,3 @@ jobs:
           name: artifact
           path: ./dist/
       - uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN }}
