@@ -1,5 +1,5 @@
 import pytest
-from zpdata import *
+from zpdatafetch import *
 
 
 @pytest.fixture

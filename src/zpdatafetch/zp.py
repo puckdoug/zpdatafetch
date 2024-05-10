@@ -1,5 +1,5 @@
 import httpx
-from zpdata.config import Config
+from zpdatafetch.config import Config
 from bs4 import BeautifulSoup
 import json
 

@@ -1,5 +1,5 @@
 from argparse import ArgumentParser
-from zpdata.zp import ZP
+from zpdatafetch.zp import ZP
 
 
 # ===============================================================================
