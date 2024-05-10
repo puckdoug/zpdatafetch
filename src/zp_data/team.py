@@ -41,7 +41,11 @@ def main():
     help='provide feedback while running',
   )
   p.add_argument(
-    '--raw', action='store_const', const=True, help='print all returned data'
+    '--raw',
+    '-r',
+    action='store_const',
+    const=True,
+    help='print all returned data',
   )
   p.add_argument(
     '--archive',
