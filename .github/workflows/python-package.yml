@@ -53,10 +53,8 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          path: ${{env.working-directory}}/dist
-        run: |
-          pwd
-          ls
+          - name: artifact
+            path: ./dist/
       - uses: pypa/gh-action-pypi-publish@master
         with:
           user: __token__
