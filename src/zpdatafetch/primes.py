@@ -46,8 +46,10 @@ class Primes:
           url = f'{self._url_base}{self._url_race_id}{race}{self._url_category}{cat}{self._url_primetype}{primetype}&_={ts}'
           res = zp.fetch_json(url)
           if self.verbose:
-            if len(res['data']) == 0:
-              print('No Results')
+            if 'data' not in res:
+              print(f'No Results for {primetype} in pen {cat}')
+            elif len(res['data']) == 0:
+              print(f'No Results for {primetype} in pen {cat}')
             else:
               print(f'Results found for {primetype} in pen {cat}')
           p[race][cat][primetype] = res
