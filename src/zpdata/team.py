@@ -1,29 +1,29 @@
 from argparse import ArgumentParser
-from zp_data.zp import ZP
+from zpdata.zp import ZP
 
 
 # ===============================================================================
-class Signup:
-  # race = "https://zwiftpower.com/cache3/results/3590800_signups.json"
-  _url = 'https://zwiftpower.com/cache3/results/'
-  _url_end = '_signups.json'
+class Team:
+  # "https://zwiftpower.com/cache3/teams/{team_id}_riders.json"
+  _url = 'https://zwiftpower.com/cache3/teams/'
+  _url_end = '_riders.json'
   raw = None
   verbose = False
 
   # -------------------------------------------------------------------------------
-  def fetch(self, *race_id_list):
+  def fetch(self, *team_id):
     zp = ZP()
-    signups_by_race_id = {}
+    content = {}
     if self.verbose:
       zp.verbose = True
 
-    for race_id in race_id_list:
-      url = f'{self._url}{race_id}{self._url_end}'
+    for t in team_id:
+      url = f'{self._url}{t}{self._url_end}'
       if zp.verbose:
         print(f'fetching: {url}')
-      signups_by_race_id[race_id] = zp.fetch_json(url)
+      content[t] = zp.fetch_json(url)
 
-    self.raw = signups_by_race_id
+    self.raw = content
 
     return self.raw
 
@@ -31,7 +31,7 @@ class Signup:
 # ===============================================================================
 def main():
   p = ArgumentParser(
-    description='Module for fetching race signup data using the Zwifpower API'
+    description='Module for fetching cyclist data using the Zwifpower API'
   )
   p.add_argument(
     '--verbose',
@@ -47,14 +47,15 @@ def main():
     const=True,
     help='print all returned data',
   )
-  p.add_argument('race_id', type=int, nargs='+', help='one or more race_ids')
+  p.add_argument('team_id', type=int, nargs='+', help='a list of team_ids')
   args = p.parse_args()
 
-  x = Signup()
+  x = Team()
+
   if args.verbose:
     x.verbose = True
 
-  x.fetch(*args.race_id)
+  x.fetch(*args.team_id)
 
   if args.raw:
     print(x.raw)

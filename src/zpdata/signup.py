@@ -1,39 +1,38 @@
 from argparse import ArgumentParser
-from zp_data.zp import ZP
+from zpdata.zp import ZP
 
 
 # ===============================================================================
-class Result:
-  # race = "https://zwiftpower.com/cache3/results/3590800_view.json"
+class Signup:
+  # race = "https://zwiftpower.com/cache3/results/3590800_signups.json"
   _url = 'https://zwiftpower.com/cache3/results/'
-  _url_end = '_view.json'
+  _url_end = '_signups.json'
   raw = None
   verbose = False
 
   # -------------------------------------------------------------------------------
-  def fetch(self, *race_id):
+  def fetch(self, *race_id_list):
     zp = ZP()
-    content = {}
+    signups_by_race_id = {}
     if self.verbose:
       zp.verbose = True
 
-    for r in race_id:
-      url = f'{self._url}{r}{self._url_end}'
+    for race_id in race_id_list:
+      url = f'{self._url}{race_id}{self._url_end}'
       if zp.verbose:
         print(f'fetching: {url}')
-      content[r] = zp.fetch_json(url)
+      signups_by_race_id[race_id] = zp.fetch_json(url)
 
-    self.raw = content
+    self.raw = signups_by_race_id
 
     return self.raw
 
 
 # ===============================================================================
 def main():
-  desc = """
-Module for fetching race data using the Zwifpower API
-  """
-  p = ArgumentParser(description=desc)
+  p = ArgumentParser(
+    description='Module for fetching race signup data using the Zwifpower API'
+  )
   p.add_argument(
     '--verbose',
     '-v',
@@ -51,7 +50,7 @@ Module for fetching race data using the Zwifpower API
   p.add_argument('race_id', type=int, nargs='+', help='one or more race_ids')
   args = p.parse_args()
 
-  x = Result()
+  x = Signup()
   if args.verbose:
     x.verbose = True
 

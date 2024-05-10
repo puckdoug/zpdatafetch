@@ -6,7 +6,7 @@ from getpass import getpass
 
 class Config:
   verbose: bool = False
-  domain: str = 'zp_data'
+  domain: str = 'zpdata'
   username: str = None
   password: str = None
   keyring: keyring.backend.KeyringBackend
@@ -40,13 +40,13 @@ class Config:
     if username:
       self.username = username
     else:
-      self.username = input('zwiftpower username (for use with zp_data): ')
+      self.username = input('zwiftpower username (for use with zpdata): ')
       keyring.set_password(self.domain, 'username', self.username)
 
     if password:
       self.password = password
     else:
-      self.password = getpass('zwiftpower password (for use with zp_data): ')
+      self.password = getpass('zwiftpower password (for use with zpdata): ')
       keyring.set_password(self.domain, 'password', self.password)
 
   # -----------------------------------------------------------------------------

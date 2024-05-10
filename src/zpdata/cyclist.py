@@ -1,6 +1,6 @@
 # import js2py
 from argparse import ArgumentParser
-from zp_data.zp import ZP
+from zpdata.zp import ZP
 
 
 # ===============================================================================
