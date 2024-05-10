@@ -3,7 +3,7 @@ from zp_data.zp import ZP
 
 
 # ===============================================================================
-class SignupLoader:
+class Signup:
   # race = "https://zwiftpower.com/cache3/results/3590800_signups.json"
   _url = 'https://zwiftpower.com/cache3/results/'
   _url_end = '_signups.json'
@@ -50,7 +50,7 @@ def main():
   p.add_argument('race_id', type=int, nargs='+', help='one or more race_ids')
   args = p.parse_args()
 
-  x = SignupLoader()
+  x = Signup()
   if args.verbose:
     x.verbose = True
 

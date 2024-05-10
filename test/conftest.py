@@ -1,5 +1,5 @@
 import pytest
-from zp_data.zp import ZP
+from zp_data import ZP
 
 
 @pytest.fixture
