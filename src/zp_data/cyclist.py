@@ -67,9 +67,7 @@ Module for fetching cyclist data using the Zwifpower API
   p.add_argument(
     '--raw', '-r', action='store_const', const=True, help='raw results'
   )
-  p.add_argument(
-    '--zwift_id', '-z', type=int, nargs='+', help='a list of zwift_ids'
-  )
+  p.add_argument('zwift_id', type=int, nargs='+', help='a list of zwift_ids')
   args = p.parse_args()
 
   x = Cyclist()

@@ -27,7 +27,7 @@ keyring set zp_data password
 ## Cyclist example
 
 ```shell
-PYTHONPATH=`pwd`/src python src/zp_data/cyclist.py -v -r --zwift_id <zwift_id>
+PYTHONPATH=`pwd`/src python src/zp_data/cyclist.py -v -r <zwift_id>
 ```
 
 ## Team example
