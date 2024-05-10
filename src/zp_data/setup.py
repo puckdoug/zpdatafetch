@@ -13,27 +13,27 @@ class Config:
 
   # -----------------------------------------------------------------------------
   def save(self):
-    keyring.set_password('zwiftpower', 'username', self.username)
-    keyring.set_password('zwiftpower', 'password', self.password)
+    keyring.set_password('zp_data', 'username', self.username)
+    keyring.set_password('zp_data', 'password', self.password)
 
   # -----------------------------------------------------------------------------
   def load(self):
-    self.username = keyring.get_password('zwiftpower', 'username')
-    self.password = keyring.get_password('zwiftpower', 'password')
+    self.username = keyring.get_password('zp_data', 'username')
+    self.password = keyring.get_password('zp_data', 'password')
 
   # -----------------------------------------------------------------------------
   def setup(self, username='', password=''):
     if username:
       self.username = username
     else:
-      self.username = input('ZwiftPower username: ')
-      keyring.set_password('zwiftpower', 'username', self.username)
+      self.username = input('zwiftpower username (for use with zp_data): ')
+      keyring.set_password('zp_data', 'username', self.username)
 
     if password:
       self.password = password
     else:
-      self.password = getpass('ZwiftPower password: ')
-      keyring.set_password('zwiftpower', 'password', self.password)
+      self.password = getpass('zwiftpower password (for use with zp_data): ')
+      keyring.set_password('zp_data', 'password', self.password)
 
   # -----------------------------------------------------------------------------
   def dump(self):

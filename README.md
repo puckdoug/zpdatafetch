@@ -14,8 +14,8 @@ pip install -r requirements.txt
 3. Set up your keyring. You may want to use a separate account on zwiftpower for this.
 
 ```sh
-keyring set zwiftpower username
-keyring set zwiftpower password
+keyring set zp_data username
+keyring set zp_data password
 ```
 
 4. Run the downloader
@@ -24,8 +24,14 @@ keyring set zwiftpower password
   PYTHONPATH=`pwd`/src python src/zp_data/zp.py
 ```
 
-## Cyclist download example
+## Cyclist example
 
 ```shell
 PYTHONPATH=`pwd`/src python src/zp_data/cyclist.py -v -r --zwift_id <zwift_id>
+```
+
+## Team example
+
+```shell
+PYTHONPATH=`pwd`/src python src/zp_data/team.py -v -r <team_id>
 ```
