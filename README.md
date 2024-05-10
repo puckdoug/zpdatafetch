@@ -47,3 +47,9 @@ PYTHONPATH=`pwd`/src python src/zp_data/signup.py -v -r <race_id>
 ```shell
 PYTHONPATH=`pwd`/src python src/zp_data/result.py -v -r <race_id>
 ```
+
+## Primes example
+
+```shell
+PYTHONPATH=`pwd`/src python src/zp_data/primes.py -v -r <race_id>
+```
