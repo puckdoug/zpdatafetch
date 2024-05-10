@@ -10,8 +10,8 @@ Module for fetching zwiftpower data using the Zwifpower API
   """
   p = ArgumentParser(description=desc)
   p.add_argument(
-    '--verbose',
     '-v',
+    '--verbose',
     action='store_const',
     const=True,
     help='provide feedback while running',
