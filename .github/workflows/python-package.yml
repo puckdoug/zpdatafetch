@@ -10,7 +10,7 @@ on:
     branches: ["main"]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -36,8 +36,9 @@ jobs:
         run: |
           pytest
 
-  install:
+  build:
     runs-on: ubuntu-latest
+    needs: test
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python 3.10
@@ -60,8 +61,8 @@ jobs:
   publish:
     name: Publish to PyPI
     needs:
+      - test
       - build
-      - install
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
