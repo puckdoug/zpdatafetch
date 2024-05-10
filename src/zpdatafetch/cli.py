@@ -1,6 +1,6 @@
 import sys
 from argparse import ArgumentParser
-from zpdatafetch import *
+from zpdatafetch import Config, Cyclist, Primes, Result, Signup, Team
 
 
 # ===============================================================================

@@ -7,13 +7,12 @@ from getpass import getpass
 class Config:
   verbose: bool = False
   domain: str = 'zpdatafetch'
-  username: str = None
-  password: str = None
-  keyring: keyring.backend.KeyringBackend
+  username: str = ''
+  password: str = ''
 
   # -----------------------------------------------------------------------------
   def __init__(self):
-    self.keyring = keyring.get_keyring()
+    self.kr = keyring.get_keyring()
 
   #   self.load()
 
@@ -32,8 +31,12 @@ class Config:
 
   # -----------------------------------------------------------------------------
   def load(self):
-    self.username = keyring.get_password(self.domain, 'username')
-    self.password = keyring.get_password(self.domain, 'password')
+    u = keyring.get_password(self.domain, 'username')
+    if u:
+      self.username = u
+    p = keyring.get_password(self.domain, 'password')
+    if p:
+      self.password = p
 
   # -----------------------------------------------------------------------------
   def setup(self, username='', password=''):
@@ -46,7 +49,9 @@ class Config:
     if password:
       self.password = password
     else:
-      self.password = getpass('zwiftpower password (for use with zpdatafetch): ')
+      self.password = getpass(
+        'zwiftpower password (for use with zpdatafetch): '
+      )
       keyring.set_password(self.domain, 'password', self.password)
 
   # -----------------------------------------------------------------------------
