@@ -55,7 +55,7 @@ Module for fetching race data using the Zwifpower API
   if args.verbose:
     x.verbose = True
 
-  result = x.fetch(*args.race_id)
+  x.fetch(*args.race_id)
 
   if args.raw:
     print(x.raw)

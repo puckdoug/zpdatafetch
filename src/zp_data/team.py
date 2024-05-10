@@ -55,7 +55,7 @@ def main():
   if args.verbose:
     x.verbose = True
 
-  team = x.fetch(*args.team_id)
+  x.fetch(*args.team_id)
 
   if args.raw:
     print(x.raw)

@@ -24,7 +24,7 @@ class ZP:
     page = self._client.get(
       'https://zwiftpower.com/ucp.php?mode=login&login=external&oauth_service=oauthzpsso'
     )
-    sid = self._client.cookies.get('phpbb3_lswlk_sid')
+    self._client.cookies.get('phpbb3_lswlk_sid')
     soup = BeautifulSoup(page.text, 'lxml')
     login_url = soup.form['action'][0:]
     data = {'username': self.username, 'password': self.password}

@@ -24,7 +24,7 @@ class Primes:
         return 'FAL'
       case 'elapsed':
         return 'FTS'
-      case other:
+      case _:
         return ''
 
   # -------------------------------------------------------------------------------
@@ -85,7 +85,7 @@ Module for fetching primes using the Zwiftpower API
   if args.verbose:
     x.verbose = True
 
-  primes = x.fetch(*args.race_id)
+  x.fetch(*args.race_id)
 
   if args.raw:
     print(x.raw)

@@ -54,7 +54,7 @@ def main():
   if args.verbose:
     x.verbose = True
 
-  signups = x.fetch(*args.race_id)
+  x.fetch(*args.race_id)
 
   if args.raw:
     print(x.raw)

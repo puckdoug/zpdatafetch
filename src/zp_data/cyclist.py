@@ -33,7 +33,6 @@ class Cyclist:
   # -------------------------------------------------------------------------------
   def fetch(self, *zwift_id):
     zp = ZP()
-    content = []
     if self.verbose:
       zp.verbose = True
 
@@ -42,7 +41,7 @@ class Cyclist:
       x = zp.fetch_json(url)
       self.raw[z] = x
       prof = f'{self._profile}{z}'
-      y = zp.fetch_page(prof)
+      zp.fetch_page(prof)
       # js2py is broken in 3.12 right now. pull request pending to fix it.
       # zp_vars = self.extract_zp_vars(y)
 
@@ -69,12 +68,11 @@ Module for fetching cyclist data using the Zwifpower API
   args = p.parse_args()
 
   x = Cyclist()
-  riders = {}
 
   if args.verbose:
     x.verbose = True
 
-  riders = x.fetch(*args.zwift_id)
+  x.fetch(*args.zwift_id)
 
   if args.raw:
     print(x.raw)
