@@ -6,7 +6,7 @@ on:
   push:
     tags: release*
   workflow_run:
-    workflows: ["test"]
+    workflows: ["linux-test", "windows-test"]
     types:
       - completed
 
@@ -39,7 +39,6 @@ jobs:
     permissions:
       id-token: write
     needs:
-      - test
       - build
     runs-on: ubuntu-latest
     steps:
