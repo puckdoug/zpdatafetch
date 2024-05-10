@@ -35,3 +35,9 @@ PYTHONPATH=`pwd`/src python src/zp_data/cyclist.py -v -r --zwift_id <zwift_id>
 ```shell
 PYTHONPATH=`pwd`/src python src/zp_data/team.py -v -r <team_id>
 ```
+
+## Signup example
+
+```shell
+PYTHONPATH=`pwd`/src python src/zp_data/signup.py -v -r <race_id>
+```
