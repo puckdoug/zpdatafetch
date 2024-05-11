@@ -1,6 +1,6 @@
 # zpdatafetch
 
-A python library for fetching data from zwiftpower
+A python library and command-line tool for fetching data from zwiftpower.
 
 ## Installation
 
@@ -12,12 +12,14 @@ pip install zpdatafetch
 
 zpdatafetch comes with a command-line tool named zpdata. This can be used to fetch data directly from zwiftpower. It sends the json response to stdout. It also acts as a guide for how to use the library in your own program.
 
-For both command-line and library usage, you will need to have a zwiftpower account. You will need set up your credentials in the keyring. This can be done using the following commands:
+For both command-line and library usage, you will need to have a zwiftpower account. You will need set up your credentials in your system keyring. This can be done using the following commands from they python keyring library (installed as part of zpdatafetch if not already available on your system):
 
 ```sh
 keyring set zpdatafetch username
 keyring set zpdatafetch password
 ```
+
+In principle, the library can use alternate backend keyrings, but this is not tested so far. At the moment, only the system keyring is used. See [the keyring docs](https://keyring.readthedocs.io/en/latest/) for more details on how to use the keyring and keyring library for your system.
 
 ### Command-line example
 
@@ -44,7 +46,7 @@ from zpdatafetch import Cyclist
 c = Cyclist()
 c.verbose = True
 c.fetch(12345) # fetch data for cyclist with zwift id 12345
-print(c.raw)
+print(c.json())
 ```
 
 The interface for each of the objects is effectively the same as the example above, with the individual class and id number changed as appropriate. The available classes are as follows:
@@ -56,6 +58,20 @@ The interface for each of the objects is effectively the same as the example abo
 - Team: fetch team data by team id
 
 The classes ZP class is the main driver for the library. It is used to fetch the data from zwiftpower. The other classes are used to parse the data into a more useful format.
+
+### Object signature
+
+Each object has a common set of methods available:
+
+- fetch: fetch the data from zwiftpower. As argument, fetch expects a single ID or a list (tuple or array) of IDs.
+- json: return the data as a json object
+- asdict: return the data as a dictionary
+
+In addition, the object can be set to work in verbose mode, which it will pass to the ZP object which drives the interaction with the website, buy simply setting:
+
+```python
+obj.verbose = True
+```
 
 ## development
 
@@ -79,31 +95,33 @@ keyring set zpdatafetch password
   PYTHONPATH=`pwd`/src python src/zpdatafetch/zp.py
 ```
 
-## Cyclist example
+Each object has a callable interface that can be used for simple direct access to experiment without additional code wrapped around it - yours or the provided command-line tool. They each respond to the -h flag to provide help. Basic examples follow.
+
+### Cyclist example
 
 ```shell
 PYTHONPATH=`pwd`/src python src/zpdatafetch/cyclist.py -v -r <zwift_id>
 ```
 
-## Team example
+### Team example
 
 ```shell
 PYTHONPATH=`pwd`/src python src/zpdatafetch/team.py -v -r <team_id>
 ```
 
-## Signup example
+### Signup example
 
 ```shell
 PYTHONPATH=`pwd`/src python src/zpdatafetch/signup.py -v -r <race_id>
 ```
 
-## Result example
+### Result example
 
 ```shell
 PYTHONPATH=`pwd`/src python src/zpdatafetch/result.py -v -r <race_id>
 ```
 
-## Primes example
+### Primes example
 
 ```shell
 PYTHONPATH=`pwd`/src python src/zpdatafetch/primes.py -v -r <race_id>

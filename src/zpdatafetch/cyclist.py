@@ -1,15 +1,14 @@
 # import js2py
 from argparse import ArgumentParser
 from zpdatafetch.zp import ZP
+from zpdatafetch.zp_obj import ZP_obj
 
 
 # ===============================================================================
-class Cyclist:
+class Cyclist(ZP_obj):
   _url = 'https://zwiftpower.com/cache3/profile/'
   _profile = 'https://zwiftpower.com/profile.php?z='
   _url_end = '_all.json'
-  verbose = False
-  raw = {}
 
   # -------------------------------------------------------------------------------
   # def extract_zp_vars(self, y):

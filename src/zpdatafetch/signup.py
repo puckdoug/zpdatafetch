@@ -1,14 +1,13 @@
 from argparse import ArgumentParser
 from zpdatafetch.zp import ZP
+from zpdatafetch.zp_obj import ZP_obj
 
 
 # ===============================================================================
-class Signup:
+class Signup(ZP_obj):
   # race = "https://zwiftpower.com/cache3/results/3590800_signups.json"
   _url = 'https://zwiftpower.com/cache3/results/'
   _url_end = '_signups.json'
-  raw = None
-  verbose = False
 
   # -------------------------------------------------------------------------------
   def fetch(self, *race_id_list):

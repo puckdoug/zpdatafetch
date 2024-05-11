@@ -1,9 +1,10 @@
 from argparse import ArgumentParser
 from zpdatafetch.zp import ZP
+from zpdatafetch.zp_obj import ZP_obj
 
 
 # ===============================================================================
-class Team:
+class Team(ZP_obj):
   # "https://zwiftpower.com/cache3/teams/{team_id}_riders.json"
   _url = 'https://zwiftpower.com/cache3/teams/'
   _url_end = '_riders.json'

@@ -2,10 +2,11 @@ import re
 import datetime
 from argparse import ArgumentParser
 from zpdatafetch.zp import ZP
+from zpdatafetch.zp_obj import ZP_obj
 
 
 # ===============================================================================
-class Primes:
+class Primes(ZP_obj):
   # https://zwiftpower.com/api3.php?do=event_primes&zid={race_id}&category={cat}&prime_type={type}
   _url_base = 'https://zwiftpower.com/api3.php?do=event_primes'
   _url_race_id = '&zid='
@@ -13,8 +14,6 @@ class Primes:
   _url_primetype = '&prime_type='
   _cat = ['A', 'B', 'C', 'D', 'E']
   _type = ['msec', 'elapsed']
-  raw = None
-  verbose = False
 
   # -------------------------------------------------------------------------------
   @classmethod

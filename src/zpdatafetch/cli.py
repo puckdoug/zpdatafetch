@@ -1,5 +1,4 @@
 import sys
-import json
 from argparse import ArgumentParser
 from zpdatafetch import Config, Cyclist, Primes, Result, Signup, Team
 
@@ -49,8 +48,7 @@ Module for fetching zwiftpower data using the Zwifpower API
   if args.verbose:
     x.verbose = True
   x.fetch(*args.id)
-  encoder = json.JSONEncoder(indent=2)
-  print(encoder.encode(x.raw))
+  print(x.json())
 
 
 # ===============================================================================
