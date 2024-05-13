@@ -45,7 +45,7 @@ from zpdatafetch import Cyclist
 
 c = Cyclist()
 c.verbose = True
-c.fetch(12345) # fetch data for cyclist with zwift id 12345
+c.fetch(1234567) # fetch data for cyclist with zwift id 1234567
 print(c.json())
 ```
 
@@ -63,11 +63,14 @@ The classes ZP class is the main driver for the library. It is used to fetch the
 
 Each object has a common set of methods available:
 
-- fetch: fetch the data from zwiftpower. As argument, fetch expects a single ID or a list (tuple or array) of IDs.
-- json: return the data as a json object
-- asdict: return the data as a dictionary
+```python
+obj.fetch(id) or obj.fetch([id1, id2, id3]) # fetch the data from zwiftpower. As argument, fetch expects a single ID or a list (tuple or array) of IDs.
+obj.json() # return the data as a json object
+obj.asdict() # return the data as a dictionary
+print(obj) # effectively the same as obj.asdict()
+```
 
-In addition, the object can be set to work in verbose mode, which it will pass to the ZP object which drives the interaction with the website, buy simply setting:
+In addition, the object can be set to work in verbose mode, which it will pass to the ZP object which drives the interaction with the website, by simply setting:
 
 ```python
 obj.verbose = True
@@ -95,7 +98,9 @@ keyring set zpdatafetch password
   PYTHONPATH=`pwd`/src python src/zpdatafetch/zp.py
 ```
 
-Each object has a callable interface that can be used for simple direct access to experiment without additional code wrapped around it - yours or the provided command-line tool. They each respond to the -h flag to provide help. Basic examples follow.
+This should return a '200' message if you've set everything up correctly, proving that the program can log in correctly to Zwiftpower.
+
+With a few exceptions, each object has a callable interface that can be used for simple direct access to experiment without additional code wrapped around it - yours or the provided command-line tool. They each respond to the -h flag to provide help. Basic examples follow.
 
 ### Cyclist example
 
@@ -126,3 +131,13 @@ PYTHONPATH=`pwd`/src python src/zpdatafetch/result.py -v -r <race_id>
 ```shell
 PYTHONPATH=`pwd`/src python src/zpdatafetch/primes.py -v -r <race_id>
 ```
+
+## To Do & Known Issues
+
+While useful and usable, there's a bit that can be done to improve this package. Anyone interested to contribute is welcome to do so. These are the areas where I could use help:
+
+- [ ] Add more tests and improve coverage
+- [ ] Improve github actions setup
+- [ ] Improve error handling
+- [ ] Check if there are any objects not handled
+- [ ] Update the interface to allow alternate keyrings
