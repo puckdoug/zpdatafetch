@@ -76,13 +76,21 @@ In addition, the object can be set to work in verbose mode, which it will pass t
 obj.verbose = True
 ```
 
-## development
+## Development
+
+I've switched over to using [https://astral.sh/](Astral)'s [https://astral.sh/uv/](uv) for the development toolchain.
+It's technically experimental still (as of the time of this writing) but at the rate they move it may not be by the time
+you read this. Directions below try to cover both options.
 
 1. Install this package
 2. Install the requirements
 
 ```sh
 pip install -r requirements.txt
+```
+or
+```sh
+uv sync
 ```
 
 3. Set up your keyring. You may want to use a separate account on zwiftpower for this.
@@ -97,10 +105,17 @@ keyring set zpdatafetch password
 ```sh
   PYTHONPATH=`pwd`/src python src/zpdatafetch/zp.py
 ```
+or
+```sh
+  uv run zp.py
+```
 
-This should return a '200' message if you've set everything up correctly, proving that the program can log in correctly to Zwiftpower.
 
-With a few exceptions, each object has a callable interface that can be used for simple direct access to experiment without additional code wrapped around it - yours or the provided command-line tool. They each respond to the -h flag to provide help. Basic examples follow.
+This should return a '200' message if you've set everything up correctly, proving that the program can
+log in correctly to Zwiftpower.
+
+With a few exceptions, each object has a callable interface that can be used for simple direct access
+to experiment without additional code wrapped around it - yours or the provided command-line tool. They each respond to the -h flag to provide help. Basic examples follow.
 
 ### Cyclist example
 
@@ -131,13 +146,28 @@ PYTHONPATH=`pwd`/src python src/zpdatafetch/result.py -v -r <race_id>
 ```shell
 PYTHONPATH=`pwd`/src python src/zpdatafetch/primes.py -v -r <race_id>
 ```
+5. Build the project
+
+```sh
+build
+```
+
+or
+
+```sh
+uvx --from build pyproject-build --installer uv
+```
+
+
 
 ## To Do & Known Issues
 
-While useful and usable, there's a bit that can be done to improve this package. Anyone interested to contribute is welcome to do so. These are the areas where I could use help:
+While useful and usable, there's a bit that can be done to improve this package. Anyone interested to
+contribute is welcome to do so. These are the areas where I could use help:
 
 - [ ] Add more tests and improve coverage
 - [ ] Improve github actions setup
 - [ ] Improve error handling
 - [ ] Check if there are any objects not handled
 - [ ] Update the interface to allow alternate keyrings
+- [ ] Sort out cases where zpdata isn't properly installed as executable

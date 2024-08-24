@@ -11,7 +11,28 @@ dynamic = [
   "readme",
   "license",
   "urls",
-  "dependencies",
+]
+requires-python = "~=3.10"
+dependencies = [
+    "anyio",
+    "beautifulsoup4",
+    "certifi",
+    "h11",
+    "httpcore",
+    "httpx",
+    "idna",
+    "iniconfig",
+    "jaraco-classes",
+    "jaraco-context",
+    "jaraco-functools",
+    "keyring",
+    "keyrings-alt",
+    "lxml",
+    "more-itertools",
+    "pip",
+    "pluggy",
+    "sniffio",
+    "soupsieve",
 ]
 
 [project.scripts]
@@ -59,3 +80,12 @@ line-ending = "auto"
 [tool.pyright]
 venv = "3.12"
 venvPath = ".."
+
+[tool.uv]
+dev-dependencies = [
+    "wheel>=0.44.0",
+    "setuptools>=73.0.1",
+    "pytest>=8.3.2",
+    "packaging>=24.1",
+    "ruff>=0.6.2",
+]
