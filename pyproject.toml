@@ -4,35 +4,28 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "zpdatafetch"
-dynamic = [
-  "version",
-  "authors",
-  "description",
-  "readme",
-  "license",
-  "urls",
-]
-requires-python = "~=3.10"
+dynamic = ["version", "authors", "description", "readme", "license", "urls"]
+requires-python = ">=3.10"
 dependencies = [
-    "anyio",
-    "beautifulsoup4",
-    "certifi",
-    "h11",
-    "httpcore",
-    "httpx",
-    "idna",
-    "iniconfig",
-    "jaraco-classes",
-    "jaraco-context",
-    "jaraco-functools",
-    "keyring",
-    "keyrings-alt",
-    "lxml",
-    "more-itertools",
-    "pip",
-    "pluggy",
-    "sniffio",
-    "soupsieve",
+  "anyio",
+  "beautifulsoup4",
+  "certifi",
+  "h11",
+  "httpcore",
+  "httpx",
+  "idna",
+  "iniconfig",
+  "jaraco-classes",
+  "jaraco-context",
+  "jaraco-functools",
+  "keyring",
+  "keyrings-alt",
+  "lxml",
+  "more-itertools",
+  "pip",
+  "pluggy",
+  "sniffio",
+  "soupsieve",
 ]
 
 [project.scripts]
@@ -83,9 +76,10 @@ venvPath = ".."
 
 [tool.uv]
 dev-dependencies = [
-    "wheel>=0.44.0",
-    "setuptools>=73.0.1",
-    "pytest>=8.3.2",
-    "packaging>=24.1",
-    "ruff>=0.6.2",
+  "wheel>=0.44.0",
+  "setuptools>=73.0.1",
+  "pytest>=8.3.2",
+  "packaging>=24.1",
+  "ruff>=0.6.2",
+  "build>=1.2.1",
 ]
