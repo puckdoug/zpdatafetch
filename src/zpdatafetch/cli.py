@@ -1,5 +1,6 @@
 import sys
 from argparse import ArgumentParser
+
 from zpdatafetch import Config, Cyclist, Primes, Result, Signup, Team
 
 
@@ -17,13 +18,22 @@ Module for fetching zwiftpower data using the Zwifpower API
     help='provide feedback while running',
   )
   p.add_argument(
+    '-r',
+    '--raw',
+    action='store_const',
+    const=True,
+    help='print the raw results returned to screen',
+  )
+  p.add_argument(
     'cmd',
     help='which command to run',
     nargs='?',
     choices=('config', 'cyclist', 'primes', 'result', 'signup', 'team'),
   )
   p.add_argument(
-    'id', help='the id to search for, ignored for config', nargs='*'
+    'id',
+    help='the id to search for, ignored for config',
+    nargs='*',
   )
   args = p.parse_args()
 
@@ -48,7 +58,11 @@ Module for fetching zwiftpower data using the Zwifpower API
   if args.verbose:
     x.verbose = True
   x.fetch(*args.id)
-  print(x.json())
+
+  if args.raw:
+    print(x.raw)
+  else:
+    print(x.json())
 
 
 # ===============================================================================
