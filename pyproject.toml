@@ -83,3 +83,10 @@ dev-dependencies = [
   "ruff>=0.6.2",
   "build>=1.2.1",
 ]
+
+[tool.pytest.ini_options]
+filterwarnings = [
+  # HTTPX warnings from libraries
+  "ignore:.*strip_cdata.*HTMLParser().*:DeprecationWarning",
+  "ignore:.*Setting per-request cookies=.*is being deprecated, because the expected behaviour on cookie persistence is ambiguous.*:DeprecationWarning",
+]

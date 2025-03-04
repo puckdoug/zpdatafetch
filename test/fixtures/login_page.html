@@ -1,0 +1,222 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>    Log in to zwift
+</title>
+  <link rel="icon" href="/auth/resources/860nv/login/zwift/dist/img/favicon.ico"/>
+
+  <link href="/auth/resources/860nv/login/zwift/dist/css/rh-sso-theme-0.34.0-202406191925.css" type="text/css" rel="stylesheet"/>
+
+  <script type="text/javascript" src="/auth/resources/860nv/login/zwift/dist/js/rh-sso-theme-lib-0.34.0-202406191925.js"></script>
+  <script src="https://www.google.com/recaptcha/api.js" type="text/javascript"></script>
+  <script src="https://www.datadoghq-browser-agent.com/datadog-rum-us.js" type="text/javascript"></script>
+
+  <!--[if IE 9]>
+  <link href="/auth/resources/860nv/login/zwift/dist/css/rh-sso-theme-0.34.0-202406191925-IE.css" type="text/css" rel="stylesheet"/>
+  <![endif]-->
+
+  <script type="text/javascript">
+    if (typeof window.Zwift === 'undefined') {
+      window.Zwift = {};
+    }
+
+    window.Zwift.Config = {
+      'resourcesPath': '/auth/resources/860nv/login/zwift' + '/dist'
+    }
+
+    window.Zwift.jsMsgs = {
+      'u16errMsg': 'You must be at least 16 years old to sign up.'
+    }
+  </script>
+
+  <!-- Load Datadog & Segment -->
+  <script type="text/javascript">
+    (function() {
+      var currentUrl = window.location.href;
+      var isProd = currentUrl.indexOf('secure.zwift.com') !== -1; //  Check if URL is either a production URL or a development URL
+      var datadogApplicationId = '8d72a532-0ca4-4969-abd6-782cd230ef95';
+      var datadogClientToken = 'pub75efaff970851162f0afff6d5abc55ce';
+      var segmentKey = 'tbdrNzTFga5Orb0C9p3vJT0sg9Ptv1A6';
+
+      if (isProd) {
+        datadogApplicationId = '45135936-003c-48d1-bda5-30cae7ffac72';
+        datadogClientToken = 'pubcce8db583089d8515aaa1a185a52e494';
+        segmentKey = 'O1rtCHaDnAJken0dFyBSf1txk7dgi04i';
+      }
+
+      // Intialize Datadog
+      window.DD_RUM && window.DD_RUM.init({
+        applicationId: datadogApplicationId,
+        clientToken: datadogClientToken
+      });
+
+      // Intialize Segment
+      !function(){var analytics=window.analytics=window.analytics||[];if(!analytics.initialize)if(analytics.invoked)window.console&&console.error&&console.error("Segment snippet included twice.");else{analytics.invoked=!0;analytics.methods=["trackSubmit","trackClick","trackLink","trackForm","pageview","identify","group","track","ready","alias","page","once","off","on"];analytics.factory=function(t){return function(){var e=Array.prototype.slice.call(arguments);e.unshift(t);analytics.push(e);return analytics}};for(var t=0;t<analytics.methods.length;t++){var e=analytics.methods[t];analytics[e]=analytics.factory(e)}analytics.load=function(t){var e=document.createElement("script");e.type="text/javascript";e.async=!0;e.src=("https:"===document.location.protocol?"https://":"http://")+"cdn.segment.com/analytics.js/v1/"+t+"/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(e,n)};analytics.SNIPPET_VERSION="4.1.0";
+        analytics.load(segmentKey);
+      }}();
+    })();
+  </script>
+
+</head>
+
+<body style="display: none;">
+
+  <div class="i18n-menu game-launcher">
+    <div class="dropup">
+      <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+        English
+      </button>
+      <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenu1">
+            <li><a href="/auth/realms/zwift/login-actions/authenticate?client_id=zwiftpower-public&amp;tab_id=s_jr0P6stsU&amp;execution=e54bf734-ecde-48d8-9df5-a856dcaae704&amp;kc_locale=de">Deutsch</a></li>
+            <li><a href="/auth/realms/zwift/login-actions/authenticate?client_id=zwiftpower-public&amp;tab_id=s_jr0P6stsU&amp;execution=e54bf734-ecde-48d8-9df5-a856dcaae704&amp;kc_locale=ja">日本語</a></li>
+            <li><a href="/auth/realms/zwift/login-actions/authenticate?client_id=zwiftpower-public&amp;tab_id=s_jr0P6stsU&amp;execution=e54bf734-ecde-48d8-9df5-a856dcaae704&amp;kc_locale=it">Italian</a></li>
+            <li><a href="/auth/realms/zwift/login-actions/authenticate?client_id=zwiftpower-public&amp;tab_id=s_jr0P6stsU&amp;execution=e54bf734-ecde-48d8-9df5-a856dcaae704&amp;kc_locale=fr">Français</a></li>
+            <li><a href="/auth/realms/zwift/login-actions/authenticate?client_id=zwiftpower-public&amp;tab_id=s_jr0P6stsU&amp;execution=e54bf734-ecde-48d8-9df5-a856dcaae704&amp;kc_locale=es">Español</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <ul class="list-inline logo-container">
+    <li id="zwift-logo-container">
+      <img id="zwift-logo" src="/auth/resources/860nv/login/zwift/dist/img/zwift_horizontal.svg" class="zwift-logo" viewBox="0 0 130 160" width="100%" height="100%">
+    </li>
+    <li id="affiliate-logo-container">
+      <img id="affiliate-logo" alt="affiliate logo">
+    </li>
+  </ul>
+
+  <div class="container-fluid">
+
+    <div id="form-container">
+
+    <div class="wrap">
+        <form id="form" class="zwift-form" action="https://secure.zwift.com/auth/realms/zwift/login-actions/authenticate?session_code=rSfPF_GKVP1KY8D5TgRApOMXErVROdXyiupWDboI4rk&amp;execution=e54bf734-ecde-48d8-9df5-a856dcaae704&amp;client_id=zwiftpower-public&amp;tab_id=s_jr0P6stsU" method="post">
+            <h1 class="header-title">Log in</h1>
+
+            <div class="form-group">
+              <div class="input-wrap">
+                <span class="input-label">Email</span>
+                <input class="form-control border-bottom-0" id="username" name="username" value="" type="text" tabindex="1" autofocus autocomplete="off" placeholder="Email"/>
+                <span class="error-message"></span>
+              </div>
+            </div>
+
+          <div class="form-group">
+            <div class="input-wrap">
+              <span class="input-label">Password</span>
+              <input class="form-control" type="password" id="password" name="password" autocomplete="off" placeholder="Password" tabindex="2"/>
+              <button class="btn btn-eye" id="btn-eye" type="button"><i id="eye-icon" class="icon-eye-off"></i></button>
+            </div>
+          </div>
+
+          <p class="error-message"></p>
+
+            <div class="forgot-password"><a href="/auth/realms/zwift/login-actions/reset-credentials?client_id=zwiftpower-public&amp;tab_id=s_jr0P6stsU">Forgot Password?</a></div>
+
+            <label class="remember-me">
+              <input id="rememberMe" name="rememberMe" type="checkbox" tabindex="3" checked> Remember me
+            </label>
+
+          <ul class="list-inline text-right">
+            <li>
+                <div class="account-link">
+                  <a href="/auth/realms/zwift/login-actions/registration?client_id=zwiftpower-public&amp;tab_id=s_jr0P6stsU">Create an account</a>
+                </div>
+            </li>
+            <li>
+              <button id="submit-button" class="btn btn-lg btn-primary btn-zwift" type="submit" tabindex="4">
+              Log in
+              </button>
+            </li>
+          </ul>
+
+        </form>
+
+    </div>
+
+      <div id="affiliate-footer" style="display: none;">
+<footer class="footer">
+  <div>
+
+    <div class="status-page">
+      <span>&copy; 2025 Zwift, Inc. All rights reserved.
+        <a class="terms-and-conditons" href="http://zwift.com/p/privacy" target="_blank">Privacy</a> /
+        <a class="terms-and-conditons" href="http://zwift.com/p/terms" target="_blank">Terms</a>
+      </span>
+      <a class="status-page-link" href="https://status.zwift.com/" target="_blank">
+        <span class="color-dot"></span>
+        <span class="color-description"></span>
+      </a>
+    </div>
+  </div>
+</footer>      </div>
+    </div>
+
+    <div id="affiliate-container" class="col-md-7" style="display: none">
+      <div class="col-md-8 col-md-offset-2">
+        <div id="zwift_affiliate_letape-content" style="display: none;">
+          &lt;img src=&quot;https://content-cdn.zwift.com/uploads/2019/04/LDTDF-4.jpg&quot;&gt;&lt;h1&gt;L&#39;ÉTAPE DU TOUR DE FRANCE TRAINING CLUB&lt;/h1&gt;&lt;p&gt;Zwift is a training tool that includes endless courses, 1000+ workouts, as well as group rides and races around the clock, tailored to you and your goals. Serious indoor training made fun, you can ride on Zwift anytime rain or shine. To get riding on Zwift, you&#39;ll need a bike, trainer, and supported device — Mac, PC or iPad.&lt;/p&gt;&lt;p&gt;As the L&#39;Étape du Tour official Training Partner we welcome you to the L&#39;Étape du Tour Training Club. Limited to 30,000 riders, the exclusive Zwift club is designed around the rigors of the 2019 L&#39;Étape du Tour event in France and allows you to ride and train with thousands of others with the same goal: finish the L&#39;Étape du Tour with flying colors.&lt;/p&gt;&lt;p&gt;As part of the L&#39;Étape du Tour Training Club, you&#39;ll get access to the training plan designed by World Tour coach, Kevin Poulton, with workouts and rides built specifically for the 2019 L&#39;Étape du Tour Route. Progress through the Training Club and you&#39;ll unlock unique items that are only available to club members.&lt;/p&gt;&lt;p&gt;Start your 7-day free trial today by creating an account on this page.&lt;/p&gt;&lt;p&gt;If you&#39;re already a Zwifter, simply click &#39;login&#39; and we&#39;ll know you&#39;re taking part in L&#39;Étape du Tour 2019!&lt;/p&gt;&lt;p&gt;In a few weeks we&#39;ll share more information about the L&#39;Étape du Tour training club, so keep an eye on your inbox for further details&lt;/p&gt;
+        </div>
+        <div id="zwift_affiliate_british_cycling-content" style="display: none;">
+          &lt;h1&gt;British Cycling Training Club&lt;/h1&gt;&lt;p&gt;Zwift is a training tool that includes endless courses, 1000+ workouts, as well as group rides and races around the clock, tailored to you and your goals. Serious indoor training made fun, you can ride on Zwift anytime rain or shine.&lt;/p&gt;&lt;p&gt;Zwift is the Official Training Community of British Cycling and the best way to prepare for your upcoming season. You can train and race with fellow members of British Cycling. Join group rides led by pro riders, coaches, and special guests. And participate in workouts that are designed to prepare you for the season ahead. You’ll earn in-game unlocks and kits along the way.&lt;/p&gt;&lt;p&gt;Start your 7-day free trial today!&lt;/p&gt;&lt;p&gt;And keep an eye on your inbox for exclusive British Cycling content and other Zwift updates.&lt;/p&gt;
+        </div>
+        <div id="zwift_affiliate_pittsburgh_marathon-content" style="display: none;">
+          &lt;h1&gt;Dick’s Pittsburgh Marathon&lt;/h1&gt;&lt;p&gt;Zwift is the Official Training Partner of the Pittsburgh Marathon and the best way to prepare for this year’s race. Hop on a treadmill and train with fellow runners from all over the world. Meet up with those registered for the Pittsburgh Marathon, Half Marathon or 5k.&lt;/p&gt;&lt;p&gt;Effective, communal, and seriously fun—Zwift helps you stay motivated for miles.  Marathon organizer P3R will lead weekly group runs across virtual worlds. As we approach race day, your training gets only more dialed. Guided long runs will share tips on the Pittsburgh Marathon: which hills to crush, where to expect water stations, and more.&lt;/p&gt;&lt;p&gt;Looking for a training plan? Check out our 3Run 13.1 plan and prep alongside your fellow competitors. In only 3 runs per week, the tailored workouts will prepare you for the demands on the Pittsburgh course—with maximum time efficiency.&lt;/p&gt;&lt;h3&gt;More about Zwift&lt;/h3&gt;&lt;p&gt;Running with athletes across the world is at the heart of the Zwift experience. Choose between hundreds of events — from fun group runs, intense races with real life prizes and training programs tailored to your pace. Whether you’re prepping for a 5K, half marathon, or marathon, your training needs are covered. Find your friends and run laps with them in real-time. The Zwift community keeps you motivated to stay on course and finish at your best.&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://www.youtube.com/watch?v=U3B1XaOyM-M&quot; target=&quot;_blank&quot;&gt;Click here to find out what you need to run on Zwift.&lt;/a&gt;&lt;/p&gt;&lt;h3&gt;Half Marathon&lt;/h3&gt;&lt;p&gt;The UPMC Health Plan Pittsburgh Half Marathon has been a runner favorite since its inception in 2009. Run over Pittsburghs three rivers, across bridges with amazing views of the city skyline, and travel through unique neighborhoods lined with spectators and entertainment that showcases Pittsburgh’s history and diversity.&lt;/p&gt;&lt;h3&gt;Marathon&lt;/h3&gt;&lt;p&gt;The DICK’S Sporting Goods Pittsburgh Marathon provides a 26.2 mile tour of Pittsburgh in the best way we know how . . . on foot! With 24 miles of riverfront trails, beautiful parks, historic attractions and home to 90 neighborhoods, the ’Burgh is a great place to run!&lt;/p&gt;
+        </div>
+        <div id="zwift_glo_all_cycling_affiliate_strava_challenge_yorkshire_other_sep19-content" style="display: none;">
+          &lt;img src=&quot;https://content-cdn.zwift.com/uploads/2019/09/yorkshire-strava-challenge-web.jpg&quot;&gt;&lt;p&gt;Congratulations on completing the Zwift World Champs Challenge. Enter your information to unlock one month of Zwift. That’s right, one month on us.* See for yourself what makes Zwift the ultimate training destination for cyclists.&lt;/p&gt;&lt;p&gt;You&#39;ll also be entered to win the ultimate Zwift setup—Wahoo KICKR, KICKR Climb, KICKR Headwind, and Wahoo Training Mat.&lt;/p&gt;&lt;p&gt;Zwift is the online training game that makes you stronger, faster, and better on the bike. Ride iconic courses. Socialize on group rides. And race against the world. Challenge yourself up huge climbs and build your endurance with every session. Learn more at Zwift.com.&lt;/p&gt;&lt;p&gt;*Free month of Zwift is available only to those who do not currently have Zwift membership. The ultimate Zwift setup prize is open to all.&lt;/p&gt;
+        </div>
+        <div id="zwift_glo_all_running_affiliate_la_marathon_other_aug19-content" style="display: none;">
+          &lt;img src=&quot;https://content-cdn.zwift.com/uploads/2019/09/LARR-banner.jpg&quot;&gt;&lt;p&gt;As the official Training Partner of LA Road Runners (LARR), we&#39;d like to welcome you to the LARR Marathon Training Plan.&lt;/p&gt;&lt;p&gt;This partnership between Zwift and LARR gives you access to the two-part LARR Marathon Training Plan, weekly group workouts on Zwift led by pace leaders, in-game races, and runs with our virtual community—plus, it offers all of this from the convenience of your home or local gym. Limited to LARR members, this exclusive Zwift club is designed around the rigors of the 2020 Pasadena Half-Marathon and the Los Angeles Marathon. Training on Zwift allows LA runners from all over the city to train and prepare for race day together.&lt;/p&gt;&lt;p&gt;Run in the real world and power your avatar across our virtual worlds. Discover our island of Watopia. Explore routes inspired by Central London and New York City. The landscape in Zwift is simply epic.&lt;/p&gt;&lt;p&gt;Whether at home or at the gym, getting up and running is simple. All you need is a treadmill, footpod, and device to run Zwift. As part of the LARR program, you will receive a free Zwift RunPod.&lt;/p&gt;&lt;p&gt;If you’re new to Zwift, start by creating a free account on this page.&lt;/p&gt;&lt;p&gt;If you&#39;re already a Zwifter, simply click “login,” and we&#39;ll know you&#39;re taking part in the LARR program for 2020.&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://www.youtube.com/watch?v=U3B1XaOyM-M&quot; rel=&quot;noopener&quot; target=&quot;_blank&quot;&gt;What&#39;s needed to get started on Zwift&lt;/a&gt;&lt;/p&gt;
+        </div>
+        <div id="zwift_eur_gb_cycling_trial_experience_uci_worlds_brand_sep19-content" style="display: none;">
+          affiliateYorkshireContent
+        </div>
+        <div id="zwift_glo_all_none_affiliate_movember_other_oct19-content" style="display: none;">
+          &lt;img src=&quot;https://content-cdn.zwift.com/uploads/2019/10/movember-zwift-affiliate.jpg&quot;&gt;&lt;p&gt;Welcome to Zwift, where indoor cycling and running is fun. We help athletes level up their fitness and athletes help us support great causes like Movember.&lt;/p&gt;&lt;p&gt;Globally, over 9.9 million people live with prostate cancer. That’s why we’re asking folks like you to Zwift — ride, run or mix it up — for a total of 9.9 hours during November. Once 10,000 complete this challenge, we’ll make a $25,000 donation to support Movember and prostate cancer research.&lt;/p&gt;&lt;p&gt;Sign up for Zwift today*, and receive a month of cycling free (running is currently gratis for all). Whether you free ride in one of our immersive worlds, join a race or group workout, or start a training program, all activity counts towards your 9.9-hour goal.  And you can do it from the convenience of your home or gym, day or night. Not sure what you need to get started on Zwift? &lt;a href=&quot;https://zwift.com/get-zwifting&quot; target=&quot;_blank&quot;&gt;We can help!&lt;/a&gt;&lt;/p&gt;&lt;p&gt;Still have Q’s? We have answers. Whether you’re looking for a Zwift overview, how to get set up for  running or riding on Zwift, we have your back.&lt;/p&gt;&lt;p&gt;Zwift is ready to help Movember make the world better.  Can we count on you? You’ll get fitter while having fun.&lt;/p&gt;&lt;p&gt;*Free month of Zwift is only available to those who have never had a Zwift membership.&lt;/p&gt;
+        </div>
+        <div id="zwift_eur_gb_running_irl_national_running_show_brand_jan20-content" style="display: none;">
+          &lt;img src=&quot;https://content-cdn.zwift.com/uploads/2020/02/zwift_run_titansgrove-1.jpg&quot;&gt;&lt;h1&gt;YOUR PACE, ANY PLACE.&lt;/h1&gt;&lt;p&gt;The free running app that turns indoor training into a game. Run with a fun global community in engaging and immersive worlds. Train day or night, from anywhere in the world. All for free. Download at &lt;a href=&quot;https://zwift.com/download&quot; rel=&quot;noopener&quot; target=&quot;_blank&quot;&gt;zwift.com&lt;/a&gt;, the App Store, or Google Play.&lt;/p&gt;
+        </div>
+        <div id="zwift_glo_all_cycling_affiliate_machines_for_freedom_other_mar20-content" style="display: none;">
+          &lt;img src=&quot;https://content-cdn.zwift.com/uploads/2020/02/MachinesForFreedom_sso.png&quot;&gt;&lt;h1&gt;JOIN THE SWARM&lt;/h1&gt;&lt;p&gt;This March, in a special collaboration with Machines for Freedom, women are taking Zwift by swarm. Join the community for a social ride series, earn an exclusive kit, and participate in a sweet prize giveaway.&lt;/p&gt;&lt;p&gt;Signing up to ride on Zwift is easy and free. Create an account and start your 30-day Zwift trial. Then join our women’s community for events perfect for first-timers. See why Zwift is home to thousands of cyclists.&lt;/p&gt;
+        </div>
+        <div id="zwift_affiliate_rapha_festive_500-content" style="display: none;">
+          &lt;img src=&quot;https://content-cdn.zwift.com/uploads/2020/12/rapha500_utm_header.png&quot;&gt;&lt;p&gt;Congratulations on completing the 2020 Rapha Festive 500 Strava Challenge!&lt;/p&gt;&lt;p&gt;500km in 8 days is a terrific achievement, and with it comes a great reward: unlocking the Festive 500 kit to wear in-game. Use the console on the left to sign in, or to create an account, and the kit will be in your garage ready to wear  the next time you take to the virtual tarmac.&lt;/p&gt;&lt;p&gt;Still not sure if Zwift is for you? Zwift is the app that makes indoor training fun. We help athletes level up their fitness from the convenience of your home or gym—day or night.&lt;/p&gt;&lt;p&gt;Not sure what you need to get started on Zwift?  &lt;a href=&quot;https://zwift.com/get-zwifting&quot;&gt;We can help!&lt;/a&gt;&lt;/p&gt;&lt;p&gt;Ride On!&lt;/p&gt;
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div id="normal-footer" style="display: none;">
+<footer class="footer">
+  <div>
+
+    <div class="status-page">
+      <span>&copy; 2025 Zwift, Inc. All rights reserved.
+        <a class="terms-and-conditons" href="http://zwift.com/p/privacy" target="_blank">Privacy</a> /
+        <a class="terms-and-conditons" href="http://zwift.com/p/terms" target="_blank">Terms</a>
+      </span>
+      <a class="status-page-link" href="https://status.zwift.com/" target="_blank">
+        <span class="color-dot"></span>
+        <span class="color-description"></span>
+      </a>
+    </div>
+  </div>
+</footer>  </div>
+
+  <script type="text/javascript" src="https://cdn.statuspage.io/se-v2.js"></script>
+  <script type="text/javascript" src="/auth/resources/860nv/login/zwift/dist/js/rh-sso-theme-common-0.34.0-202406191925.js"></script>
+
+</body>
+</html>

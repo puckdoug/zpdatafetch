@@ -1,3 +1,28 @@
+import httpx
+import pytest
+
+from zpdatafetch.zp import ZP
+
+
+def test_fetch_login_page(
+  zp,
+  login_page,
+  logged_in_page,
+):
+  def handler(request):
+    match request.method:
+      case 'GET':
+        return httpx.Response(200, text=login_page)
+      case 'POST':
+        return httpx.Response(200, text=logged_in_page)
+
+  zp.init_client(
+    httpx.Client(follow_redirects=True, transport=httpx.MockTransport(handler)),
+  )
+  zp.login()
+  assert zp.login.status_code == 200
+
+
 def test_pen(zp):
   assert zp.set_pen(0) == 'E'
   assert zp.set_pen(1) == 'A'

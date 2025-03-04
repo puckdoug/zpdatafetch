@@ -1,12 +1,18 @@
-import httpx
-from zpdatafetch.config import Config
-from bs4 import BeautifulSoup
 import json
+import sys
+
+import httpx
+from bs4 import BeautifulSoup
+
+from zpdatafetch.config import Config
 
 
 # ===============================================================================
 class ZP:
   _client: httpx.Client = None
+  _login_url: str = (
+    'https://zwiftpower.com/ucp.php?mode=login&login=external&oauth_service=oauthzpsso'
+  )
   verbose: bool = False
 
   # -------------------------------------------------------------------------------
@@ -20,17 +26,51 @@ class ZP:
   def login(self):
     if self.verbose:
       print('Logging in to Zwiftpower')
-    self._client = httpx.Client(follow_redirects=True)
-    page = self._client.get(
-      'https://zwiftpower.com/ucp.php?mode=login&login=external&oauth_service=oauthzpsso'
-    )
+
+    if not self._client:
+      self.init_client()
+
+    if self.verbose:
+      print(f'Fetching url: {self._login_url}')
+    page = self._client.get(self._login_url)
+
     self._client.cookies.get('phpbb3_lswlk_sid')
     soup = BeautifulSoup(page.text, 'lxml')
-    login_url = soup.form['action'][0:]
+    login_url_from_form = soup.form['action'][0:]
     data = {'username': self.username, 'password': self.password}
+    if self.verbose:
+      print(f'Posting to url: {login_url_from_form}')
+
     self.login = self._client.post(
-      login_url, data=data, cookies=self._client.cookies
+      login_url_from_form,
+      data=data,
+      cookies=self._client.cookies,
     )
+
+  # -------------------------------------------------------------------------------
+  def init_client(self, client=None):
+    """
+    Allow another client to be substituted for fetching web pages e.g. to allow
+    testing with httpx_mock.
+    """
+    if self.verbose:
+      print('Initialzing httpx client')
+
+    if client:
+      self._client = client
+    else:
+      self._client = httpx.Client(follow_redirects=True)
+
+  # -------------------------------------------------------------------------------
+  def login_url(self, url=None):
+    """
+    Allow the login URL to be overridden. With no arguments it returns the current
+    URL. With arguments it will update the URL and return the new value.
+    """
+    if url:
+      self._login_url = url
+
+    return self._login_url
 
   # -------------------------------------------------------------------------------
   def fetch_json(self, endpoint):
@@ -62,8 +102,10 @@ class ZP:
   def close(self):
     try:
       self._client.close()
-    except Exception:
-      pass
+    except Exception as e:
+      if self.verbose:
+        sys.stderr.write('Could not close client properly\n')
+        sys.stderr.write(e)
 
   # -------------------------------------------------------------------------------
   def __del__(self):

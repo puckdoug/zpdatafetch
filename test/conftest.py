@@ -1,4 +1,5 @@
 import pytest
+
 from zpdatafetch import *
 
 
@@ -35,3 +36,13 @@ def signup():
 @pytest.fixture
 def team():
   return Team()
+
+
+@pytest.fixture
+def login_page():
+  return open('test/fixtures/login_page.html').read()
+
+
+@pytest.fixture
+def logged_in_page():
+  return open('test/fixtures/logged_in_page.html').read()
