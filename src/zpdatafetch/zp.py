@@ -1,5 +1,6 @@
 import json
 import sys
+from typing import Any, Dict, Optional
 
 import httpx
 from bs4 import BeautifulSoup
@@ -24,18 +25,19 @@ class ZPConfigError(Exception):
 
 # ===============================================================================
 class ZP:
-  _client: httpx.Client = None
+  _client: httpx.Client | None = None
   _login_url: str = (
     'https://zwiftpower.com/ucp.php?mode=login&login=external&oauth_service=oauthzpsso'
   )
   verbose: bool = False
 
   # -------------------------------------------------------------------------------
-  def __init__(self, skip_credential_check=False):
-    self.config = Config()
+  def __init__(self, skip_credential_check: bool = False) -> None:
+    self.config: Config = Config()
     self.config.load()
-    self.username = self.config.username
-    self.password = self.config.password
+    self.username: str = self.config.username
+    self.password: str = self.config.password
+    self.login_response: httpx.Response | None = None
 
     if not skip_credential_check and (not self.username or not self.password):
       raise ZPConfigError(
@@ -43,7 +45,7 @@ class ZP:
       )
 
   # -------------------------------------------------------------------------------
-  def login(self):
+  def login(self) -> None:
     if self.verbose:
       print('Logging in to Zwiftpower')
 
@@ -87,7 +89,7 @@ class ZP:
       # Check if login was actually successful by looking for error indicators
       # If we're redirected back to a login/ucp page, authentication likely failed
       if 'ucp.php' in str(self.login_response.url) and 'mode=login' in str(
-        self.login_response.url
+        self.login_response.url,
       ):
         raise ZPAuthenticationError(
           'Login failed. Please check your username and password.',
@@ -98,7 +100,7 @@ class ZP:
       raise ZPNetworkError(f'Network error during authentication: {e}') from e
 
   # -------------------------------------------------------------------------------
-  def init_client(self, client=None):
+  def init_client(self, client: httpx.Client | None = None) -> None:
     """
     Allow another client to be substituted for fetching web pages e.g. to allow
     testing with httpx_mock.
@@ -112,7 +114,7 @@ class ZP:
       self._client = httpx.Client(follow_redirects=True)
 
   # -------------------------------------------------------------------------------
-  def login_url(self, url=None):
+  def login_url(self, url: str | None = None) -> str:
     """
     Allow the login URL to be overridden. With no arguments it returns the current
     URL. With arguments it will update the URL and return the new value.
@@ -123,7 +125,7 @@ class ZP:
     return self._login_url
 
   # -------------------------------------------------------------------------------
-  def fetch_json(self, endpoint):
+  def fetch_json(self, endpoint: str) -> dict[str, Any]:
     if self._client is None:
       self.login()
 
@@ -146,7 +148,7 @@ class ZP:
       raise ZPNetworkError(f'Network error fetching {endpoint}: {e}') from e
 
   # -------------------------------------------------------------------------------
-  def fetch_page(self, endpoint):
+  def fetch_page(self, endpoint: str) -> str:
     if self._client is None:
       self.login()
 
@@ -164,7 +166,7 @@ class ZP:
       raise ZPNetworkError(f'Network error fetching {endpoint}: {e}') from e
 
   # -------------------------------------------------------------------------------
-  def close(self):
+  def close(self) -> None:
     if self._client:
       try:
         self._client.close()
@@ -173,12 +175,12 @@ class ZP:
           sys.stderr.write(f'Could not close client properly: {e}\n')
 
   # -------------------------------------------------------------------------------
-  def __del__(self):
+  def __del__(self) -> None:
     self.close()
 
   # -------------------------------------------------------------------------------
   @classmethod
-  def set_pen(cls, label):
+  def set_pen(cls, label: int) -> str:
     match label:
       case 0:
         return 'E'
@@ -197,7 +199,7 @@ class ZP:
 
   # -------------------------------------------------------------------------------
   @classmethod
-  def set_rider_category(cls, div):
+  def set_rider_category(cls, div: int) -> str:
     match div:
       case 0:
         return ''
@@ -214,7 +216,7 @@ class ZP:
 
   # -------------------------------------------------------------------------------
   @classmethod
-  def set_category(cls, div):
+  def set_category(cls, div: int) -> str:
     match div:
       case 0:
         return 'E'
@@ -231,14 +233,15 @@ class ZP:
 
 
 # ===============================================================================
-def main():
+def main() -> None:
   """
   Core module for accessing Zwiftpower API endpoints
   """
   zp = ZP()
   zp.verbose = True
   zp.login()
-  print(zp.login_response.status_code)
+  if zp.login_response:
+    print(zp.login_response.status_code)
   zp.close()
 
 

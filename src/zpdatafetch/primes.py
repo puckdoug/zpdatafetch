@@ -1,6 +1,7 @@
 import datetime
 import re
 from argparse import ArgumentParser
+from typing import Any, Dict, List
 
 from zpdatafetch.zp import ZP
 from zpdatafetch.zp_obj import ZP_obj
@@ -9,19 +10,19 @@ from zpdatafetch.zp_obj import ZP_obj
 # ===============================================================================
 class Primes(ZP_obj):
   # https://zwiftpower.com/api3.php?do=event_primes&zid={race_id}&category={cat}&prime_type={type}
-  _url_base = 'https://zwiftpower.com/api3.php?do=event_primes'
-  _url_race_id = '&zid='
-  _url_category = '&category='
-  _url_primetype = '&prime_type='
-  _cat = ['A', 'B', 'C', 'D', 'E']
-  _type = ['msec', 'elapsed']
+  _url_base: str = 'https://zwiftpower.com/api3.php?do=event_primes'
+  _url_race_id: str = '&zid='
+  _url_category: str = '&category='
+  _url_primetype: str = '&prime_type='
+  _cat: list[str] = ['A', 'B', 'C', 'D', 'E']
+  _type: list[str] = ['msec', 'elapsed']
 
-  def __init__(self):
+  def __init__(self) -> None:
     super().__init__()
 
   # -------------------------------------------------------------------------------
   @classmethod
-  def set_primetype(cls, t):
+  def set_primetype(cls, t: str) -> str:
     match t:
       case 'msec':
         return 'FAL'
@@ -31,9 +32,9 @@ class Primes(ZP_obj):
         return ''
 
   # -------------------------------------------------------------------------------
-  def fetch(self, *race_id):
+  def fetch(self, *race_id: int) -> dict[Any, Any]:
     zp = ZP()
-    p = {}
+    p: dict[Any, Any] = {}
 
     ts = int(re.sub(r'\.', '', str(datetime.datetime.now().timestamp())[:-3]))
 
@@ -62,7 +63,7 @@ class Primes(ZP_obj):
 
 
 # ===============================================================================
-def main():
+def main() -> None:
   desc = """
 Module for fetching primes using the Zwiftpower API
   """

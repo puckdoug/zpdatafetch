@@ -1,11 +1,12 @@
 import sys
 from argparse import ArgumentParser
+from typing import Optional, Union
 
 from zpdatafetch import Config, Cyclist, Primes, Result, Signup, Team
 
 
 # ===============================================================================
-def main():
+def main() -> int | None:
   desc = """
 Module for fetching zwiftpower data using the Zwifpower API
   """
@@ -37,6 +38,8 @@ Module for fetching zwiftpower data using the Zwifpower API
   )
   args = p.parse_args()
 
+  x: Cyclist | Primes | Result | Signup | Team
+
   match args.cmd:
     case 'config':
       c = Config()
@@ -63,6 +66,8 @@ Module for fetching zwiftpower data using the Zwifpower API
     print(x.raw)
   else:
     print(x.json())
+
+  return None
 
 
 # ===============================================================================

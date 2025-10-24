@@ -1,5 +1,6 @@
 # import js2py
 from argparse import ArgumentParser
+from typing import Any, Dict
 
 from zpdatafetch.zp import ZP
 from zpdatafetch.zp_obj import ZP_obj
@@ -7,11 +8,11 @@ from zpdatafetch.zp_obj import ZP_obj
 
 # ===============================================================================
 class Cyclist(ZP_obj):
-  _url = 'https://zwiftpower.com/cache3/profile/'
-  _profile = 'https://zwiftpower.com/profile.php?z='
-  _url_end = '_all.json'
+  _url: str = 'https://zwiftpower.com/cache3/profile/'
+  _profile: str = 'https://zwiftpower.com/profile.php?z='
+  _url_end: str = '_all.json'
 
-  def __init__(self):
+  def __init__(self) -> None:
     super().__init__()
 
   # -------------------------------------------------------------------------------
@@ -34,7 +35,7 @@ class Cyclist(ZP_obj):
   #   return zp_vars
 
   # -------------------------------------------------------------------------------
-  def fetch(self, *zwift_id):
+  def fetch(self, *zwift_id: int) -> dict[Any, Any]:
     zp = ZP()
     if self.verbose:
       zp.verbose = True
@@ -52,7 +53,7 @@ class Cyclist(ZP_obj):
 
 
 # ===============================================================================
-def main():
+def main() -> None:
   desc = """
 Module for fetching cyclist data using the Zwifpower API
   """

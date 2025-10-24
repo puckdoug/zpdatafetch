@@ -1,5 +1,6 @@
 import sys
 from getpass import getpass
+from typing import Any, Optional
 
 import keyring
 
@@ -11,11 +12,11 @@ class Config:
   domain: str = 'zpdatafetch'
   username: str = ''
   password: str = ''
-  _test_domain_override: str = None  # Class variable for test domain override
+  _test_domain_override: str | None = None  # Class variable for test domain override
 
   # -----------------------------------------------------------------------------
-  def __init__(self):
-    self.kr = keyring.get_keyring()
+  def __init__(self) -> None:
+    self.kr: Any = keyring.get_keyring()
     # Use test domain if set
     if Config._test_domain_override:
       self.domain = Config._test_domain_override
@@ -23,20 +24,20 @@ class Config:
   #   self.load()
 
   # -----------------------------------------------------------------------------
-  def set_keyring(self, kr):
+  def set_keyring(self, kr: Any) -> None:
     keyring.set_keyring(kr)
 
   # -----------------------------------------------------------------------------
-  def replace_domain(self, domain):
+  def replace_domain(self, domain: str) -> None:
     self.domain = domain
 
   # -----------------------------------------------------------------------------
-  def save(self):
+  def save(self) -> None:
     keyring.set_password(self.domain, 'username', self.username)
     keyring.set_password(self.domain, 'password', self.password)
 
   # -----------------------------------------------------------------------------
-  def load(self):
+  def load(self) -> None:
     u = keyring.get_password(self.domain, 'username')
     if u:
       self.username = u
@@ -45,7 +46,7 @@ class Config:
       self.password = p
 
   # -----------------------------------------------------------------------------
-  def setup(self, username='', password=''):
+  def setup(self, username: str = '', password: str = '') -> None:
     if username:
       self.username = username
     else:
@@ -61,13 +62,13 @@ class Config:
       keyring.set_password(self.domain, 'password', self.password)
 
   # -----------------------------------------------------------------------------
-  def dump(self):
+  def dump(self) -> None:
     print(f'username: {self.username}')
     print(f'password: {self.password}')
 
 
 # ===============================================================================
-def main():
+def main() -> None:
   c = Config()
   c.dump()
 

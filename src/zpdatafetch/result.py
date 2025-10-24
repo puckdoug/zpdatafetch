@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+from typing import Any, Dict
 
 from zpdatafetch.zp import ZP
 from zpdatafetch.zp_obj import ZP_obj
@@ -7,16 +8,16 @@ from zpdatafetch.zp_obj import ZP_obj
 # ===============================================================================
 class Result(ZP_obj):
   # race = "https://zwiftpower.com/cache3/results/3590800_view.json"
-  _url = 'https://zwiftpower.com/cache3/results/'
-  _url_end = '_view.json'
+  _url: str = 'https://zwiftpower.com/cache3/results/'
+  _url_end: str = '_view.json'
 
-  def __init__(self):
+  def __init__(self) -> None:
     super().__init__()
 
   # -------------------------------------------------------------------------------
-  def fetch(self, *race_id):
+  def fetch(self, *race_id: int) -> dict[Any, Any]:
     zp = ZP()
-    content = {}
+    content: dict[Any, Any] = {}
     if self.verbose:
       zp.verbose = True
 
@@ -32,7 +33,7 @@ class Result(ZP_obj):
 
 
 # ===============================================================================
-def main():
+def main() -> None:
   desc = """
 Module for fetching race data using the Zwifpower API
   """
