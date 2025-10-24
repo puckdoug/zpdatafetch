@@ -1,5 +1,6 @@
 # import js2py
 from argparse import ArgumentParser
+
 from zpdatafetch.zp import ZP
 from zpdatafetch.zp_obj import ZP_obj
 
@@ -9,6 +10,9 @@ class Cyclist(ZP_obj):
   _url = 'https://zwiftpower.com/cache3/profile/'
   _profile = 'https://zwiftpower.com/profile.php?z='
   _url_end = '_all.json'
+
+  def __init__(self):
+    super().__init__()
 
   # -------------------------------------------------------------------------------
   # def extract_zp_vars(self, y):
@@ -61,7 +65,11 @@ Module for fetching cyclist data using the Zwifpower API
     help='provide feedback while running',
   )
   p.add_argument(
-    '--raw', '-r', action='store_const', const=True, help='raw results'
+    '--raw',
+    '-r',
+    action='store_const',
+    const=True,
+    help='raw results',
   )
   p.add_argument('zwift_id', type=int, nargs='+', help='a list of zwift_ids')
   args = p.parse_args()

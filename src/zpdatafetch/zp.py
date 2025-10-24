@@ -8,6 +8,21 @@ from zpdatafetch.config import Config
 
 
 # ===============================================================================
+class ZPAuthenticationError(Exception):
+  """Raised when authentication with Zwiftpower fails"""
+
+
+# ===============================================================================
+class ZPNetworkError(Exception):
+  """Raised when network requests to Zwiftpower fail"""
+
+
+# ===============================================================================
+class ZPConfigError(Exception):
+  """Raised when configuration is invalid or missing"""
+
+
+# ===============================================================================
 class ZP:
   _client: httpx.Client = None
   _login_url: str = (
@@ -16,11 +31,16 @@ class ZP:
   verbose: bool = False
 
   # -------------------------------------------------------------------------------
-  def __init__(self):
+  def __init__(self, skip_credential_check=False):
     self.config = Config()
     self.config.load()
     self.username = self.config.username
     self.password = self.config.password
+
+    if not skip_credential_check and (not self.username or not self.password):
+      raise ZPConfigError(
+        'Zwiftpower credentials not found. Please run "zpdata config" to set up your credentials.',
+      )
 
   # -------------------------------------------------------------------------------
   def login(self):
@@ -30,22 +50,52 @@ class ZP:
     if not self._client:
       self.init_client()
 
-    if self.verbose:
-      print(f'Fetching url: {self._login_url}')
-    page = self._client.get(self._login_url)
+    try:
+      if self.verbose:
+        print(f'Fetching url: {self._login_url}')
+      page = self._client.get(self._login_url)
+      page.raise_for_status()
+    except httpx.HTTPStatusError as e:
+      raise ZPNetworkError(f'Failed to fetch login page: {e}') from e
+    except httpx.RequestError as e:
+      raise ZPNetworkError(f'Network error during login: {e}') from e
 
     self._client.cookies.get('phpbb3_lswlk_sid')
-    soup = BeautifulSoup(page.text, 'lxml')
-    login_url_from_form = soup.form['action'][0:]
+
+    try:
+      soup = BeautifulSoup(page.text, 'lxml')
+      if not soup.form or 'action' not in soup.form.attrs:
+        raise ZPAuthenticationError(
+          'Login form not found on page. Zwiftpower may have changed their login flow.',
+        )
+      login_url_from_form = soup.form['action'][0:]
+    except (AttributeError, KeyError) as e:
+      raise ZPAuthenticationError(f'Could not parse login form: {e}') from e
+
     data = {'username': self.username, 'password': self.password}
     if self.verbose:
       print(f'Posting to url: {login_url_from_form}')
 
-    self.login = self._client.post(
-      login_url_from_form,
-      data=data,
-      cookies=self._client.cookies,
-    )
+    try:
+      self.login_response = self._client.post(
+        login_url_from_form,
+        data=data,
+        cookies=self._client.cookies,
+      )
+      self.login_response.raise_for_status()
+
+      # Check if login was actually successful by looking for error indicators
+      # If we're redirected back to a login/ucp page, authentication likely failed
+      if 'ucp.php' in str(self.login_response.url) and 'mode=login' in str(
+        self.login_response.url
+      ):
+        raise ZPAuthenticationError(
+          'Login failed. Please check your username and password.',
+        )
+    except httpx.HTTPStatusError as e:
+      raise ZPNetworkError(f'HTTP error during authentication: {e}') from e
+    except httpx.RequestError as e:
+      raise ZPNetworkError(f'Network error during authentication: {e}') from e
 
   # -------------------------------------------------------------------------------
   def init_client(self, client=None):
@@ -77,35 +127,50 @@ class ZP:
     if self._client is None:
       self.login()
 
-    if self.verbose:
-      print(f'Fetching: {endpoint}')
-    pres = self._client.get(endpoint, cookies=self._client.cookies)
     try:
-      res = pres.json()
-    except json.decoder.JSONDecodeError:
-      res = {}
-    return res
+      if self.verbose:
+        print(f'Fetching: {endpoint}')
+      pres = self._client.get(endpoint, cookies=self._client.cookies)
+      pres.raise_for_status()
+
+      try:
+        res = pres.json()
+      except json.decoder.JSONDecodeError:
+        if self.verbose:
+          print(f'Warning: Could not decode JSON from {endpoint}, returning empty dict')
+        res = {}
+      return res
+    except httpx.HTTPStatusError as e:
+      raise ZPNetworkError(f'HTTP error fetching {endpoint}: {e}') from e
+    except httpx.RequestError as e:
+      raise ZPNetworkError(f'Network error fetching {endpoint}: {e}') from e
 
   # -------------------------------------------------------------------------------
   def fetch_page(self, endpoint):
     if self._client is None:
       self.login()
 
-    if self.verbose:
-      print(f'Fetching: {endpoint}')
+    try:
+      if self.verbose:
+        print(f'Fetching: {endpoint}')
 
-    pres = self._client.get(endpoint, cookies=self._client.cookies)
-    res = pres.text
-    return res
+      pres = self._client.get(endpoint, cookies=self._client.cookies)
+      pres.raise_for_status()
+      res = pres.text
+      return res
+    except httpx.HTTPStatusError as e:
+      raise ZPNetworkError(f'HTTP error fetching {endpoint}: {e}') from e
+    except httpx.RequestError as e:
+      raise ZPNetworkError(f'Network error fetching {endpoint}: {e}') from e
 
   # -------------------------------------------------------------------------------
   def close(self):
-    try:
-      self._client.close()
-    except Exception as e:
-      if self.verbose:
-        sys.stderr.write('Could not close client properly\n')
-        sys.stderr.write(e)
+    if self._client:
+      try:
+        self._client.close()
+      except Exception as e:
+        if self.verbose:
+          sys.stderr.write(f'Could not close client properly: {e}\n')
 
   # -------------------------------------------------------------------------------
   def __del__(self):
@@ -173,7 +238,7 @@ def main():
   zp = ZP()
   zp.verbose = True
   zp.login()
-  print(zp.login.status_code)
+  print(zp.login_response.status_code)
   zp.close()
 
 

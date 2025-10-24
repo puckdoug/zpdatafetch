@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+
 from zpdatafetch.zp import ZP
 from zpdatafetch.zp_obj import ZP_obj
 
@@ -8,8 +9,9 @@ class Team(ZP_obj):
   # "https://zwiftpower.com/cache3/teams/{team_id}_riders.json"
   _url = 'https://zwiftpower.com/cache3/teams/'
   _url_end = '_riders.json'
-  raw = None
-  verbose = False
+
+  def __init__(self):
+    super().__init__()
 
   # -------------------------------------------------------------------------------
   def fetch(self, *team_id):
@@ -32,7 +34,7 @@ class Team(ZP_obj):
 # ===============================================================================
 def main():
   p = ArgumentParser(
-    description='Module for fetching cyclist data using the Zwifpower API'
+    description='Module for fetching cyclist data using the Zwifpower API',
   )
   p.add_argument(
     '--verbose',

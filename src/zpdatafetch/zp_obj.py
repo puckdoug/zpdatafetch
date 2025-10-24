@@ -2,8 +2,9 @@ import json
 
 
 class ZP_obj:
-  raw = {}
-  verbose = False
+  def __init__(self):
+    self.raw = {}
+    self.verbose = False
 
   def __str__(self):
     return str(self.raw)

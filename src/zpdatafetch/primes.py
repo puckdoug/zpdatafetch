@@ -1,6 +1,7 @@
-import re
 import datetime
+import re
 from argparse import ArgumentParser
+
 from zpdatafetch.zp import ZP
 from zpdatafetch.zp_obj import ZP_obj
 
@@ -14,6 +15,9 @@ class Primes(ZP_obj):
   _url_primetype = '&prime_type='
   _cat = ['A', 'B', 'C', 'D', 'E']
   _type = ['msec', 'elapsed']
+
+  def __init__(self):
+    super().__init__()
 
   # -------------------------------------------------------------------------------
   @classmethod
@@ -45,9 +49,7 @@ class Primes(ZP_obj):
           url = f'{self._url_base}{self._url_race_id}{race}{self._url_category}{cat}{self._url_primetype}{primetype}&_={ts}'
           res = zp.fetch_json(url)
           if self.verbose:
-            if 'data' not in res:
-              print(f'No Results for {primetype} in pen {cat}')
-            elif len(res['data']) == 0:
+            if 'data' not in res or len(res['data']) == 0:
               print(f'No Results for {primetype} in pen {cat}')
             else:
               print(f'Results found for {primetype} in pen {cat}')

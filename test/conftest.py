@@ -1,11 +1,30 @@
+import keyring
 import pytest
+from keyrings.alt.file import PlaintextKeyring
 
 from zpdatafetch import *
 
 
+@pytest.fixture(autouse=True, scope='session')
+def setup_test_credentials():
+  """Automatically set up test credentials for all tests"""
+  # Set the test domain override so all Config instances use it
+  Config._test_domain_override = 'test-zpdatafetch-auto'
+
+  # Set the keyring globally
+  keyring.set_keyring(PlaintextKeyring())
+
+  config = Config()
+  config.setup(username='test_user', password='test_pass')
+  yield
+  # Cleanup after test
+  Config._test_domain_override = None
+
+
 @pytest.fixture
 def zp():
-  return ZP()
+  # Skip credential check for tests since we mock the client anyway
+  return ZP(skip_credential_check=True)
 
 
 @pytest.fixture
@@ -25,7 +44,9 @@ def result():
 
 @pytest.fixture
 def config():
-  return Config()
+  config_instance = Config()
+  config_instance.set_keyring(PlaintextKeyring())
+  return config_instance
 
 
 @pytest.fixture
