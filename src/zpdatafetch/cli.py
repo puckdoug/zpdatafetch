@@ -1,3 +1,10 @@
+"""Command-line interface for fetching Zwiftpower data.
+
+This module provides a unified CLI for accessing all zpdatafetch
+functionality including cyclist profiles, race results, signups,
+team rosters, and prime data.
+"""
+
 import sys
 from argparse import ArgumentParser
 from typing import Optional, Union
@@ -7,6 +14,19 @@ from zpdatafetch import Config, Cyclist, Primes, Result, Signup, Team
 
 # ===============================================================================
 def main() -> int | None:
+  """Main entry point for the zpdatafetch CLI.
+
+  Provides commands for:
+    - config: Set up Zwiftpower credentials
+    - cyclist: Fetch cyclist profile data by Zwift ID
+    - primes: Fetch race prime/segment data by race ID
+    - result: Fetch race results by race ID
+    - signup: Fetch race signups by race ID
+    - team: Fetch team roster data by team ID
+
+  Returns:
+    None on success, or exit code on error
+  """
   desc = """
 Module for fetching zwiftpower data using the Zwifpower API
   """

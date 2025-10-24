@@ -10,21 +10,46 @@ from zpdatafetch.config import Config
 
 # ===============================================================================
 class ZPAuthenticationError(Exception):
-  """Raised when authentication with Zwiftpower fails"""
+  """Raised when authentication with Zwiftpower fails.
+
+  This exception is raised when login credentials are rejected,
+  the login form cannot be found, or authentication otherwise fails.
+  """
 
 
 # ===============================================================================
 class ZPNetworkError(Exception):
-  """Raised when network requests to Zwiftpower fail"""
+  """Raised when network requests to Zwiftpower fail.
+
+  This exception is raised for HTTP errors, connection errors,
+  timeouts, and other network-related issues.
+  """
 
 
 # ===============================================================================
 class ZPConfigError(Exception):
-  """Raised when configuration is invalid or missing"""
+  """Raised when configuration is invalid or missing.
+
+  This exception is raised when credentials are not found in the keyring
+  or other configuration issues are detected.
+  """
 
 
 # ===============================================================================
 class ZP:
+  """Core class for interacting with the Zwiftpower API.
+
+  This class handles authentication, session management, and HTTP requests
+  to the Zwiftpower website. It manages login state and provides methods
+  for fetching JSON data and HTML pages.
+
+  Attributes:
+    verbose: Enable verbose output for debugging
+    username: Zwiftpower username loaded from keyring
+    password: Zwiftpower password loaded from keyring
+    login_response: Response from the login POST request
+  """
+
   _client: httpx.Client | None = None
   _login_url: str = (
     'https://zwiftpower.com/ucp.php?mode=login&login=external&oauth_service=oauthzpsso'
@@ -33,6 +58,14 @@ class ZP:
 
   # -------------------------------------------------------------------------------
   def __init__(self, skip_credential_check: bool = False) -> None:
+    """Initialize the ZP client with credentials from keyring.
+
+    Args:
+      skip_credential_check: Skip validation of credentials (used for testing)
+
+    Raises:
+      ZPConfigError: If credentials are not found in keyring
+    """
     self.config: Config = Config()
     self.config.load()
     self.username: str = self.config.username
@@ -46,6 +79,15 @@ class ZP:
 
   # -------------------------------------------------------------------------------
   def login(self) -> None:
+    """Authenticate with Zwiftpower and establish a session.
+
+    Fetches the login page, extracts the login form URL, and submits
+    credentials to authenticate. Sets login_response with the result.
+
+    Raises:
+      ZPNetworkError: If network requests fail
+      ZPAuthenticationError: If login form cannot be parsed or auth fails
+    """
     if self.verbose:
       print('Logging in to Zwiftpower')
 
@@ -101,9 +143,14 @@ class ZP:
 
   # -------------------------------------------------------------------------------
   def init_client(self, client: httpx.Client | None = None) -> None:
-    """
-    Allow another client to be substituted for fetching web pages e.g. to allow
-    testing with httpx_mock.
+    """Initialize or replace the HTTP client.
+
+    Allows a custom httpx.Client to be injected, useful for testing
+    with mocked HTTP transports.
+
+    Args:
+      client: Optional httpx.Client instance to use. If None, creates a
+        new client with redirect following enabled.
     """
     if self.verbose:
       print('Initialzing httpx client')
@@ -115,9 +162,16 @@ class ZP:
 
   # -------------------------------------------------------------------------------
   def login_url(self, url: str | None = None) -> str:
-    """
-    Allow the login URL to be overridden. With no arguments it returns the current
-    URL. With arguments it will update the URL and return the new value.
+    """Get or set the login URL.
+
+    Allows the login URL to be overridden, useful for testing against
+    different environments.
+
+    Args:
+      url: Optional new login URL to set. If None, returns current URL.
+
+    Returns:
+      The current login URL (after updating if url was provided)
     """
     if url:
       self._login_url = url
@@ -126,6 +180,21 @@ class ZP:
 
   # -------------------------------------------------------------------------------
   def fetch_json(self, endpoint: str) -> dict[str, Any]:
+    """Fetch JSON data from a Zwiftpower endpoint.
+
+    Automatically logs in if not already authenticated. Returns an empty
+    dict if the response cannot be decoded as JSON.
+
+    Args:
+      endpoint: Full URL of the JSON endpoint to fetch
+
+    Returns:
+      Dictionary containing the parsed JSON response, or empty dict if
+      JSON decoding fails
+
+    Raises:
+      ZPNetworkError: If the HTTP request fails
+    """
     if self._client is None:
       self.login()
 
@@ -149,6 +218,19 @@ class ZP:
 
   # -------------------------------------------------------------------------------
   def fetch_page(self, endpoint: str) -> str:
+    """Fetch HTML page content from a Zwiftpower endpoint.
+
+    Automatically logs in if not already authenticated.
+
+    Args:
+      endpoint: Full URL of the page to fetch
+
+    Returns:
+      String containing the HTML page content
+
+    Raises:
+      ZPNetworkError: If the HTTP request fails
+    """
     if self._client is None:
       self.login()
 
@@ -167,6 +249,7 @@ class ZP:
 
   # -------------------------------------------------------------------------------
   def close(self) -> None:
+    """Close the HTTP client and clean up resources."""
     if self._client:
       try:
         self._client.close()
@@ -181,6 +264,14 @@ class ZP:
   # -------------------------------------------------------------------------------
   @classmethod
   def set_pen(cls, label: int) -> str:
+    """Convert numeric pen label to letter category.
+
+    Args:
+      label: Numeric pen label (0-5)
+
+    Returns:
+      Letter category ('A', 'B', 'C', 'D', 'E') or string of label if unknown
+    """
     match label:
       case 0:
         return 'E'
@@ -200,6 +291,14 @@ class ZP:
   # -------------------------------------------------------------------------------
   @classmethod
   def set_rider_category(cls, div: int) -> str:
+    """Convert numeric division to rider category letter.
+
+    Args:
+      div: Numeric division (0, 10, 20, 30, 40)
+
+    Returns:
+      Category letter ('', 'A', 'B', 'C', 'D') or string of div if unknown
+    """
     match div:
       case 0:
         return ''
@@ -217,6 +316,14 @@ class ZP:
   # -------------------------------------------------------------------------------
   @classmethod
   def set_category(cls, div: int) -> str:
+    """Convert numeric division to category letter.
+
+    Args:
+      div: Numeric division (0, 10, 20, 30, 40)
+
+    Returns:
+      Category letter ('E', 'A', 'B', 'C', 'D') or string of div if unknown
+    """
     match div:
       case 0:
         return 'E'

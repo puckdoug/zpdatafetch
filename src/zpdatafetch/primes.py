@@ -9,6 +9,17 @@ from zpdatafetch.zp_obj import ZP_obj
 
 # ===============================================================================
 class Primes(ZP_obj):
+  """Fetches and stores race prime (sprint/KOM) data from Zwiftpower.
+
+  Retrieves prime segment results for races, including both fastest
+  absolute lap (FAL/msec) and first to sprint (FTS/elapsed) primes
+  across all categories.
+
+  Attributes:
+    raw: Nested dictionary mapping race IDs -> categories -> prime types to data
+    verbose: Enable verbose output for debugging
+  """
+
   # https://zwiftpower.com/api3.php?do=event_primes&zid={race_id}&category={cat}&prime_type={type}
   _url_base: str = 'https://zwiftpower.com/api3.php?do=event_primes'
   _url_race_id: str = '&zid='
@@ -18,11 +29,21 @@ class Primes(ZP_obj):
   _type: list[str] = ['msec', 'elapsed']
 
   def __init__(self) -> None:
+    """Initialize a new Primes instance."""
     super().__init__()
 
   # -------------------------------------------------------------------------------
   @classmethod
   def set_primetype(cls, t: str) -> str:
+    """Convert prime type string to Zwiftpower API code.
+
+    Args:
+      t: Prime type string ('msec' or 'elapsed')
+
+    Returns:
+      API code ('FAL' for fastest absolute lap, 'FTS' for first to sprint,
+      or empty string if unknown)
+    """
     match t:
       case 'msec':
         return 'FAL'
@@ -33,6 +54,21 @@ class Primes(ZP_obj):
 
   # -------------------------------------------------------------------------------
   def fetch(self, *race_id: int) -> dict[Any, Any]:
+    """Fetch prime data for one or more race IDs.
+
+    Retrieves prime results for all categories (A-E) and both prime types
+    (msec/FAL and elapsed/FTS) for each race.
+
+    Args:
+      *race_id: One or more race ID integers to fetch
+
+    Returns:
+      Nested dictionary: {race_id: {category: {prime_type: data}}}
+
+    Raises:
+      ZPNetworkError: If network requests fail
+      ZPAuthenticationError: If authentication fails
+    """
     zp = ZP()
     p: dict[Any, Any] = {}
 

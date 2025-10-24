@@ -8,11 +8,22 @@ from zpdatafetch.zp_obj import ZP_obj
 
 # ===============================================================================
 class Cyclist(ZP_obj):
+  """Fetches and stores cyclist profile data from Zwiftpower.
+
+  Retrieves cyclist information including performance metrics, race history,
+  and profile details using Zwift IDs.
+
+  Attributes:
+    raw: Dictionary mapping Zwift IDs to their profile data
+    verbose: Enable verbose output for debugging
+  """
+
   _url: str = 'https://zwiftpower.com/cache3/profile/'
   _profile: str = 'https://zwiftpower.com/profile.php?z='
   _url_end: str = '_all.json'
 
   def __init__(self) -> None:
+    """Initialize a new Cyclist instance."""
     super().__init__()
 
   # -------------------------------------------------------------------------------
@@ -36,6 +47,21 @@ class Cyclist(ZP_obj):
 
   # -------------------------------------------------------------------------------
   def fetch(self, *zwift_id: int) -> dict[Any, Any]:
+    """Fetch cyclist profile data for one or more Zwift IDs.
+
+    Retrieves comprehensive profile data from Zwiftpower cache and profile
+    pages. Stores results in the raw dictionary keyed by Zwift ID.
+
+    Args:
+      *zwift_id: One or more Zwift ID integers to fetch
+
+    Returns:
+      Dictionary mapping Zwift IDs to their profile data
+
+    Raises:
+      ZPNetworkError: If network requests fail
+      ZPAuthenticationError: If authentication fails
+    """
     zp = ZP()
     if self.verbose:
       zp.verbose = True
