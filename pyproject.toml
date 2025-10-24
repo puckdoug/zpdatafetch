@@ -4,32 +4,49 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "zpdatafetch"
-dynamic = ["version", "authors", "description", "readme", "license", "urls"]
+version = "1.1.3"
+description = "A package for fetching data from Zwiftpower"
+readme = "README.md"
 requires-python = ">=3.10"
-dependencies = [
-  "anyio",
-  "beautifulsoup4",
-  "certifi",
-  "h11",
-  "httpcore",
-  "httpx",
-  "idna",
-  "iniconfig",
-  "jaraco-classes",
-  "jaraco-context",
-  "jaraco-functools",
-  "keyring",
-  "keyrings-alt",
-  "lxml",
-  "more-itertools",
-  "pip",
-  "pluggy",
-  "sniffio",
-  "soupsieve",
+license = {text = "MIT"}
+authors = [
+  {name = "Doug Morris", email = "doug@mhost.com"}
 ]
+keywords = ["zwift", "zwiftpower", "cycling", "racing", "data"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+  "beautifulsoup4>=4.12.3",
+  "httpx>=0.27.0",
+  "keyring>=25.2.0",
+  "keyrings-alt",
+  "lxml>=5.2.1",
+]
+
+[project.urls]
+Homepage = "https://github.com/puckdoug/zpdatafetch"
+Repository = "https://github.com/puckdoug/zpdatafetch"
+Issues = "https://github.com/puckdoug/zpdatafetch/issues"
 
 [project.scripts]
 zpdata = "zpdatafetch.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+exclude = ["test*"]
 
 [tool.ruff]
 # Exclude a variety of commonly ignored directories.
@@ -82,6 +99,7 @@ dev-dependencies = [
   "packaging>=24.1",
   "ruff>=0.6.2",
   "build>=1.2.1",
+  "tox>=4.31.0",
 ]
 
 [tool.pytest.ini_options]
@@ -90,3 +108,15 @@ filterwarnings = [
   "ignore:.*strip_cdata.*HTMLParser().*:DeprecationWarning",
   "ignore:.*Setting per-request cookies=.*is being deprecated, because the expected behaviour on cookie persistence is ambiguous.*:DeprecationWarning",
 ]
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+isolated_build = True
+envlist = py310,py311,py312,py313,py314
+
+[testenv]
+commands = pytest {posargs}
+deps =
+  pytest
+"""
