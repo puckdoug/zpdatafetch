@@ -1,9 +1,13 @@
 # import js2py
+import logging
 from argparse import ArgumentParser
 from typing import Any, Dict
 
+from zpdatafetch.logging_config import get_logger
 from zpdatafetch.zp import ZP
 from zpdatafetch.zp_obj import ZP_obj
+
+logger = get_logger(__name__)
 
 
 # ===============================================================================
@@ -62,19 +66,21 @@ class Cyclist(ZP_obj):
       ZPNetworkError: If network requests fail
       ZPAuthenticationError: If authentication fails
     """
+    logger.info(f'Fetching cyclist data for {len(zwift_id)} ID(s)')
     zp = ZP()
-    if self.verbose:
-      zp.verbose = True
 
     for z in zwift_id:
+      logger.debug(f'Fetching cyclist profile for Zwift ID: {z}')
       url = f'{self._url}{z}{self._url_end}'
       x = zp.fetch_json(url)
       self.raw[z] = x
       prof = f'{self._profile}{z}'
       zp.fetch_page(prof)
+      logger.debug(f'Successfully fetched data for Zwift ID: {z}')
       # js2py is broken in 3.12 right now. pull request pending to fix it.
       # zp_vars = self.extract_zp_vars(y)
 
+    logger.info(f'Successfully fetched {len(zwift_id)} cyclist profile(s)')
     return self.raw
 
 

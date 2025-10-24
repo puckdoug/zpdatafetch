@@ -1,8 +1,12 @@
+import logging
 from argparse import ArgumentParser
 from typing import Any, Dict
 
+from zpdatafetch.logging_config import get_logger
 from zpdatafetch.zp import ZP
 from zpdatafetch.zp_obj import ZP_obj
+
+logger = get_logger(__name__)
 
 
 # ===============================================================================
@@ -42,18 +46,18 @@ class Result(ZP_obj):
       ZPNetworkError: If network requests fail
       ZPAuthenticationError: If authentication fails
     """
+    logger.info(f'Fetching race results for {len(race_id)} race(s)')
     zp = ZP()
     content: dict[Any, Any] = {}
-    if self.verbose:
-      zp.verbose = True
 
     for r in race_id:
+      logger.debug(f'Fetching race results for race ID: {r}')
       url = f'{self._url}{r}{self._url_end}'
-      if zp.verbose:
-        print(f'fetching: {url}')
       content[r] = zp.fetch_json(url)
+      logger.debug(f'Successfully fetched results for race ID: {r}')
 
     self.raw = content
+    logger.info(f'Successfully fetched {len(race_id)} race result(s)')
 
     return self.raw
 

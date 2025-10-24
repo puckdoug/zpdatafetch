@@ -1,5 +1,6 @@
 from zpdatafetch.config import Config
 from zpdatafetch.cyclist import Cyclist
+from zpdatafetch.logging_config import setup_logging
 from zpdatafetch.primes import Primes
 from zpdatafetch.result import Result
 from zpdatafetch.signup import Signup
@@ -17,4 +18,5 @@ __all__ = [
   'ZPAuthenticationError',
   'ZPNetworkError',
   'ZPConfigError',
+  'setup_logging',
 ]

@@ -10,7 +10,6 @@ def test_cyclist(cyclist):
 
 def test_cyclist_initialization(cyclist):
   assert cyclist.raw == {}
-  assert cyclist.verbose == False
 
 
 def test_cyclist_fetch_single_id(cyclist, login_page, logged_in_page):

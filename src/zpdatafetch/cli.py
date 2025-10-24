@@ -5,11 +5,13 @@ functionality including cyclist profiles, race results, signups,
 team rosters, and prime data.
 """
 
+import logging
 import sys
 from argparse import ArgumentParser
 from typing import Optional, Union
 
 from zpdatafetch import Config, Cyclist, Primes, Result, Signup, Team
+from zpdatafetch.logging_config import setup_logging
 
 
 # ===============================================================================
@@ -34,15 +36,25 @@ Module for fetching zwiftpower data using the Zwifpower API
   p.add_argument(
     '-v',
     '--verbose',
-    action='store_const',
-    const=True,
-    help='provide feedback while running',
+    action='store_true',
+    help='enable INFO level logging to console',
+  )
+  p.add_argument(
+    '-vv',
+    '--debug',
+    action='store_true',
+    help='enable DEBUG level logging to console',
+  )
+  p.add_argument(
+    '--log-file',
+    type=str,
+    metavar='PATH',
+    help='path to log file (enables file logging)',
   )
   p.add_argument(
     '-r',
     '--raw',
-    action='store_const',
-    const=True,
+    action='store_true',
     help='print the raw results returned to screen',
   )
   p.add_argument(
@@ -57,6 +69,16 @@ Module for fetching zwiftpower data using the Zwifpower API
     nargs='*',
   )
   args = p.parse_args()
+
+  # Configure logging based on arguments
+  if args.debug:
+    setup_logging(log_file=args.log_file, console_level=logging.DEBUG)
+  elif args.verbose:
+    setup_logging(log_file=args.log_file, console_level=logging.INFO)
+  elif args.log_file:
+    # File logging only, no console output
+    setup_logging(log_file=args.log_file, force_console=False)
+  # else: use default ERROR-only logging to stderr
 
   x: Cyclist | Primes | Result | Signup | Team
 
@@ -78,8 +100,6 @@ Module for fetching zwiftpower data using the Zwifpower API
     case _:
       sys.exit(0)
 
-  if args.verbose:
-    x.verbose = True
   x.fetch(*args.id)
 
   if args.raw:

@@ -9,15 +9,16 @@ class ZP_obj:
   from Zwiftpower API endpoints. All data classes (Cyclist, Team, Result,
   Signup, Primes) inherit from this base class.
 
+  Logging is done via the standard logging module. Configure logging using
+  zpdatafetch.logging_config.setup_logging() for detailed output.
+
   Attributes:
     raw: Dictionary containing the raw data from the API
-    verbose: Enable verbose output for debugging
   """
 
   def __init__(self) -> None:
     """Initialize a new ZP_obj instance with empty raw data."""
     self.raw: dict[Any, Any] = {}
-    self.verbose: bool = False
 
   def __str__(self) -> str:
     """Return string representation of the raw data.

@@ -9,7 +9,6 @@ def test_primes(primes):
 
 def test_primes_initialization(primes):
   assert primes.raw == {}
-  assert primes.verbose == False
 
 
 def test_primes_set_primetype():

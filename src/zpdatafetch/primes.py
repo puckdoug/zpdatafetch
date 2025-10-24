@@ -1,10 +1,14 @@
 import datetime
+import logging
 import re
 from argparse import ArgumentParser
 from typing import Any, Dict, List
 
+from zpdatafetch.logging_config import get_logger
 from zpdatafetch.zp import ZP
 from zpdatafetch.zp_obj import ZP_obj
+
+logger = get_logger(__name__)
 
 
 # ===============================================================================
@@ -69,31 +73,32 @@ class Primes(ZP_obj):
       ZPNetworkError: If network requests fail
       ZPAuthenticationError: If authentication fails
     """
+    logger.info(f'Fetching prime data for {len(race_id)} race(s)')
     zp = ZP()
     p: dict[Any, Any] = {}
 
     ts = int(re.sub(r'\.', '', str(datetime.datetime.now().timestamp())[:-3]))
 
-    if self.verbose:
-      zp.verbose = True
-
     for race in race_id:
+      logger.debug(f'Fetching primes for race ID: {race}')
       p[race] = {}
       for cat in self._cat:
         if cat not in p[race]:
           p[race][cat] = {}
         for primetype in self._type:
+          logger.debug(f'Fetching {primetype} primes for category {cat}')
           url = f'{self._url_base}{self._url_race_id}{race}{self._url_category}{cat}{self._url_primetype}{primetype}&_={ts}'
           res = zp.fetch_json(url)
-          if self.verbose:
-            if 'data' not in res or len(res['data']) == 0:
-              print(f'No Results for {primetype} in pen {cat}')
-            else:
-              print(f'Results found for {primetype} in pen {cat}')
+          if 'data' not in res or len(res['data']) == 0:
+            logger.debug(f'No results for {primetype} in category {cat}')
+          else:
+            logger.debug(f'Results found for {primetype} in category {cat}')
           p[race][cat][primetype] = res
           ts = ts + 1
+      logger.debug(f'Successfully fetched all primes for race ID: {race}')
 
     self.raw = p
+    logger.info(f'Successfully fetched prime data for {len(race_id)} race(s)')
 
     return self.raw
 

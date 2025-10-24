@@ -1,4 +1,5 @@
 import json
+import logging
 import sys
 from typing import Any, Dict, Optional
 
@@ -6,6 +7,9 @@ import httpx
 from bs4 import BeautifulSoup
 
 from zpdatafetch.config import Config
+from zpdatafetch.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 # ===============================================================================
@@ -43,8 +47,10 @@ class ZP:
   to the Zwiftpower website. It manages login state and provides methods
   for fetching JSON data and HTML pages.
 
+  Logging is done via the standard logging module. Configure logging using
+  zpdatafetch.logging_config.setup_logging() for detailed output.
+
   Attributes:
-    verbose: Enable verbose output for debugging
     username: Zwiftpower username loaded from keyring
     password: Zwiftpower password loaded from keyring
     login_response: Response from the login POST request
@@ -54,7 +60,6 @@ class ZP:
   _login_url: str = (
     'https://zwiftpower.com/ucp.php?mode=login&login=external&oauth_service=oauthzpsso'
   )
-  verbose: bool = False
 
   # -------------------------------------------------------------------------------
   def __init__(self, skip_credential_check: bool = False) -> None:
@@ -88,20 +93,20 @@ class ZP:
       ZPNetworkError: If network requests fail
       ZPAuthenticationError: If login form cannot be parsed or auth fails
     """
-    if self.verbose:
-      print('Logging in to Zwiftpower')
+    logger.info('Logging in to Zwiftpower')
 
     if not self._client:
       self.init_client()
 
     try:
-      if self.verbose:
-        print(f'Fetching url: {self._login_url}')
+      logger.debug(f'Fetching url: {self._login_url}')
       page = self._client.get(self._login_url)
       page.raise_for_status()
     except httpx.HTTPStatusError as e:
+      logger.error(f'Failed to fetch login page: {e}')
       raise ZPNetworkError(f'Failed to fetch login page: {e}') from e
     except httpx.RequestError as e:
+      logger.error(f'Network error during login: {e}')
       raise ZPNetworkError(f'Network error during login: {e}') from e
 
     self._client.cookies.get('phpbb3_lswlk_sid')
@@ -109,16 +114,18 @@ class ZP:
     try:
       soup = BeautifulSoup(page.text, 'lxml')
       if not soup.form or 'action' not in soup.form.attrs:
+        logger.error('Login form not found on page')
         raise ZPAuthenticationError(
           'Login form not found on page. Zwiftpower may have changed their login flow.',
         )
       login_url_from_form = soup.form['action'][0:]
+      logger.debug(f'Extracted login form URL: {login_url_from_form}')
     except (AttributeError, KeyError) as e:
+      logger.error(f'Could not parse login form: {e}')
       raise ZPAuthenticationError(f'Could not parse login form: {e}') from e
 
     data = {'username': self.username, 'password': self.password}
-    if self.verbose:
-      print(f'Posting to url: {login_url_from_form}')
+    logger.debug(f'Posting credentials to: {login_url_from_form}')
 
     try:
       self.login_response = self._client.post(
@@ -133,12 +140,16 @@ class ZP:
       if 'ucp.php' in str(self.login_response.url) and 'mode=login' in str(
         self.login_response.url,
       ):
+        logger.error('Authentication failed - redirected back to login page')
         raise ZPAuthenticationError(
           'Login failed. Please check your username and password.',
         )
+      logger.info('Successfully authenticated with Zwiftpower')
     except httpx.HTTPStatusError as e:
+      logger.error(f'HTTP error during authentication: {e}')
       raise ZPNetworkError(f'HTTP error during authentication: {e}') from e
     except httpx.RequestError as e:
+      logger.error(f'Network error during authentication: {e}')
       raise ZPNetworkError(f'Network error during authentication: {e}') from e
 
   # -------------------------------------------------------------------------------
@@ -152,12 +163,13 @@ class ZP:
       client: Optional httpx.Client instance to use. If None, creates a
         new client with redirect following enabled.
     """
-    if self.verbose:
-      print('Initialzing httpx client')
+    logger.debug('Initializing httpx client')
 
     if client:
+      logger.debug('Using provided httpx client')
       self._client = client
     else:
+      logger.debug('Creating new httpx client with redirect following')
       self._client = httpx.Client(follow_redirects=True)
 
   # -------------------------------------------------------------------------------
@@ -199,21 +211,22 @@ class ZP:
       self.login()
 
     try:
-      if self.verbose:
-        print(f'Fetching: {endpoint}')
+      logger.debug(f'Fetching JSON from: {endpoint}')
       pres = self._client.get(endpoint, cookies=self._client.cookies)
       pres.raise_for_status()
 
       try:
         res = pres.json()
+        logger.debug(f'Successfully fetched and parsed JSON from {endpoint}')
       except json.decoder.JSONDecodeError:
-        if self.verbose:
-          print(f'Warning: Could not decode JSON from {endpoint}, returning empty dict')
+        logger.warning(f'Could not decode JSON from {endpoint}, returning empty dict')
         res = {}
       return res
     except httpx.HTTPStatusError as e:
+      logger.error(f'HTTP error fetching {endpoint}: {e}')
       raise ZPNetworkError(f'HTTP error fetching {endpoint}: {e}') from e
     except httpx.RequestError as e:
+      logger.error(f'Network error fetching {endpoint}: {e}')
       raise ZPNetworkError(f'Network error fetching {endpoint}: {e}') from e
 
   # -------------------------------------------------------------------------------
@@ -235,16 +248,18 @@ class ZP:
       self.login()
 
     try:
-      if self.verbose:
-        print(f'Fetching: {endpoint}')
+      logger.debug(f'Fetching page from: {endpoint}')
 
       pres = self._client.get(endpoint, cookies=self._client.cookies)
       pres.raise_for_status()
       res = pres.text
+      logger.debug(f'Successfully fetched page from {endpoint}')
       return res
     except httpx.HTTPStatusError as e:
+      logger.error(f'HTTP error fetching {endpoint}: {e}')
       raise ZPNetworkError(f'HTTP error fetching {endpoint}: {e}') from e
     except httpx.RequestError as e:
+      logger.error(f'Network error fetching {endpoint}: {e}')
       raise ZPNetworkError(f'Network error fetching {endpoint}: {e}') from e
 
   # -------------------------------------------------------------------------------
@@ -253,9 +268,9 @@ class ZP:
     if self._client:
       try:
         self._client.close()
+        logger.debug('HTTP client closed successfully')
       except Exception as e:
-        if self.verbose:
-          sys.stderr.write(f'Could not close client properly: {e}\n')
+        logger.error(f'Could not close client properly: {e}')
 
   # -------------------------------------------------------------------------------
   def __del__(self) -> None:

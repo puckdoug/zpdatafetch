@@ -1,8 +1,12 @@
+import logging
 from argparse import ArgumentParser
 from typing import Any, Dict
 
+from zpdatafetch.logging_config import get_logger
 from zpdatafetch.zp import ZP
 from zpdatafetch.zp_obj import ZP_obj
+
+logger = get_logger(__name__)
 
 
 # ===============================================================================
@@ -42,18 +46,18 @@ class Team(ZP_obj):
       ZPNetworkError: If network requests fail
       ZPAuthenticationError: If authentication fails
     """
+    logger.info(f'Fetching team data for {len(team_id)} ID(s)')
     zp = ZP()
     content: dict[Any, Any] = {}
-    if self.verbose:
-      zp.verbose = True
 
     for t in team_id:
+      logger.debug(f'Fetching team roster for team ID: {t}')
       url = f'{self._url}{t}{self._url_end}'
-      if zp.verbose:
-        print(f'fetching: {url}')
       content[t] = zp.fetch_json(url)
+      logger.debug(f'Successfully fetched data for team ID: {t}')
 
     self.raw = content
+    logger.info(f'Successfully fetched {len(team_id)} team roster(s)')
 
     return self.raw
 

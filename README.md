@@ -42,7 +42,7 @@ to use the keyring and keyring library for your system.
 ### Command-line example
 
 ```sh
-usage: zpdata [-h] [-v] [-r] [{config,cyclist,primes,result,signup,team}] [id ...]
+usage: zpdata [-h] [-v] [-vv] [--log-file PATH] [-r] [{config,cyclist,primes,result,signup,team}] [id ...]
 
 Module for fetching zwiftpower data using the Zwifpower API
 
@@ -53,8 +53,29 @@ positional arguments:
 
 options:
   -h, --help            show this help message and exit
-  -v, --verbose         provide feedback while running
+  -v, --verbose         enable INFO level logging to console
+  -vv, --debug          enable DEBUG level logging to console
+  --log-file PATH       path to log file (enables file logging)
   -r, --raw             print the raw results returned to screen
+```
+
+**Basic usage:**
+
+```sh
+# Fetch cyclist data (quiet mode - only errors shown)
+zpdata cyclist 1234567
+
+# Verbose mode - show INFO messages
+zpdata -v cyclist 1234567
+
+# Debug mode - show DEBUG messages
+zpdata -vv cyclist 1234567
+
+# Log to file only (quiet console)
+zpdata --log-file zpdatafetch.log cyclist 1234567
+
+# Both console and file logging
+zpdata -v --log-file zpdatafetch.log cyclist 1234567
 ```
 
 ### Library example
@@ -63,7 +84,6 @@ options:
 from zpdatafetch import Cyclist
 
 c = Cyclist()
-c.verbose = True
 c.fetch(1234567) # fetch data for cyclist with zwift id 1234567
 print(c.json())
 ```
@@ -82,6 +102,65 @@ The ZP class is the main driver for the library. It is used to fetch the data
 from zwiftpower. The other classes are used to parse the data into a more useful
 format.
 
+### Logging
+
+zpdatafetch provides flexible logging support for both library and command-line usage.
+
+#### Default Behavior (Quiet Mode)
+
+By default, the library is completely quiet except for errors, which are sent to stderr. This ensures that library users get clean output unless something goes wrong.
+
+#### Library Usage with Logging
+
+To enable logging when using zpdatafetch as a library, use the `setup_logging()` function:
+
+```python
+from zpdatafetch import setup_logging, Cyclist
+
+# Enable console logging at INFO level
+setup_logging(console_level='INFO')
+
+c = Cyclist()
+c.fetch(1234567)
+```
+
+**Logging Configuration Options:**
+
+```python
+from zpdatafetch import setup_logging
+
+# File logging only (no console output except errors)
+setup_logging(log_file='zpdatafetch.log', force_console=False)
+
+# Console logging at DEBUG level
+setup_logging(console_level='DEBUG')
+
+# Both console (INFO) and file (DEBUG) logging
+setup_logging(
+    log_file='debug.log',
+    console_level='INFO',    # Simple messages to console
+    file_level='DEBUG'       # Detailed logs to file
+)
+
+# Force console logging even when not in a TTY
+setup_logging(console_level='INFO', force_console=True)
+```
+
+**Log Format:**
+
+- **Console output**: Simple, clean format showing only messages (e.g., `"Logging in to Zwiftpower"`)
+- **File output**: Detailed format with timestamps, module names, log levels, function names, and line numbers
+  ```
+  2025-10-24 15:17:39 - zpdatafetch.zp - INFO - login:90 - Logging in to Zwiftpower
+  ```
+
+**Available Log Levels:**
+
+- `'DEBUG'` - Detailed diagnostic information
+- `'INFO'` - General informational messages
+- `'WARNING'` - Warning messages
+- `'ERROR'` - Error messages (default)
+
 ### Object signature
 
 Each object has a common set of methods available:
@@ -91,12 +170,6 @@ obj.fetch(id) or obj.fetch([id1, id2, id3]) # fetch the data from zwiftpower. As
 obj.json() # return the data as a json object
 obj.asdict() # return the data as a dictionary
 print(obj) # effectively the same as obj.asdict()
-```
-
-In addition, the object can be set to work in verbose mode, which it will pass to the ZP object which drives the interaction with the website, by simply setting:
-
-```python
-obj.verbose = True
 ```
 
 ## Development
@@ -193,10 +266,6 @@ While useful and usable, there's a bit that can be done to improve this package.
 Anyone interested to contribute is welcome to do so. These are the areas where I
 could use help:
 
-- [ ] Add more tests and improve coverage
 - [ ] Improve github actions setup
-- [ ] Improve error handling
 - [ ] Check if there are any objects not handled
 - [ ] Update the interface to allow alternate keyrings
-- [ ] Sort out cases where zpdata isn't properly installed as executable
-      (reported once but not reproducable)

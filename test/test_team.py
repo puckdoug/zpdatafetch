@@ -9,7 +9,6 @@ def test_team(team):
 
 def test_team_initialization(team):
   assert team.raw == {}
-  assert team.verbose == False
 
 
 def test_team_fetch_single_id(team, login_page, logged_in_page):
