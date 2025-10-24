@@ -40,9 +40,9 @@ def team():
 
 @pytest.fixture
 def login_page():
-  return open('test/fixtures/login_page.html').read()
+  return open('test/fixtures/login_page.html', encoding='utf8').read()
 
 
 @pytest.fixture
 def logged_in_page():
-  return open('test/fixtures/logged_in_page.html').read()
+  return open('test/fixtures/logged_in_page.html', encoding='utf8').read()
