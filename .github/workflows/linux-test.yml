@@ -5,7 +5,9 @@ name: linux-test
 
 on:
   push:
-    branhes: ["main"]
+    branches: ["main"]
+    tags:
+      - "release_*"
   pull_request:
     branches: ["main"]
 
