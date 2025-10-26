@@ -9,18 +9,24 @@
 - **Context manager support**: All library classes now support the `with` statement for automatic resource cleanup
 - **Connection pooling**: New `shared_client` parameter enables HTTP connection reuse across multiple instances for improved batch performance
 - **Automatic retry logic**: Built-in exponential backoff retry mechanism for transient network failures (connection errors, timeouts, 5xx errors)
+- **GitHub Actions CI**: Migrated to official `astral-sh/setup-uv` action with uv 0.9.5 and modern `[dependency-groups]` syntax
 
 ### Changed
 
 - Removed all unused imports for cleaner codebase
-- Updated pyproject.toml with pytest-cov configuration
+- Updated pyproject.toml with pytest-cov configuration and modern `[dependency-groups]` syntax
 - `ZP` class now supports context management via `__enter__()` and `__exit__()` methods
 - `fetch_json()` and `fetch_page()` methods now include automatic retry with exponential backoff (configurable via `max_retries` and `backoff_factor` parameters)
 - Enhanced HTTP client initialization to support connection pooling with new `init_client()` method
+- Updated GitHub Actions workflows to use official Astral setup-uv action with built-in caching
 
 ### Fixed
 
 - Resolved 21 ruff linting warnings (unused imports)
+
+### Known Issues
+
+- **test_shared_client_connection_pooling on Python 3.14**: Test is marked as xfail (expected failure) due to httpcore 1.1.x bug with Python 3.14 typing.Union. This is an upstream issue in encode/httpcore that will be fixed in version 1.2.0+. The test demonstrates the feature works on Python 3.10-3.13.
 
 ## [1.1.3] - 2024-10-26
 

@@ -1,3 +1,5 @@
+import sys
+
 import httpx
 import pytest
 
@@ -244,6 +246,12 @@ def test_context_manager_with_exception(zp):
   assert isinstance(zp_ctx, ZP)
 
 
+@pytest.mark.xfail(
+  sys.version_info >= (3, 14),
+  reason='httpcore 1.1.x incompatible with Python 3.14 typing.Union - '
+  'upstream issue encode/httpcore, fixed in 1.2.0+',
+  strict=False,
+)
 def test_shared_client_connection_pooling():
   """Test shared client enables connection pooling."""
 

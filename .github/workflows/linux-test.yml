@@ -44,3 +44,6 @@ jobs:
 
       - name: Test with pytest
         run: uv run pytest
+        # Note: On Python 3.14+, test_shared_client_connection_pooling is expected to fail (xfail)
+        # due to httpcore 1.1.x incompatibility with Python 3.14's typing.Union
+        # This is an upstream issue that will be resolved in httpcore 1.2.0+
