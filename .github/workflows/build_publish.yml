@@ -38,31 +38,52 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
+            const headSha = '${{ github.event.workflow_run.head_sha }}';
+            const event = '${{ github.event.workflow_run.event }}';
+
+            console.log(`Looking for windows-test workflow for SHA: ${headSha}, event: ${event}`);
+
+            // Fetch recent workflow runs for this commit
             const workflows = await github.rest.actions.listWorkflowRunsForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: 'windows-test.yml',
-              head_sha: '${{ github.event.workflow_run.head_sha }}',
-              per_page: 1
+              head_sha: headSha,
+              per_page: 10  // Check up to 10 runs to be safe
             });
+
+            console.log(`Found ${workflows.data.workflow_runs.length} windows-test workflow runs for this commit`);
 
             if (workflows.data.workflow_runs.length === 0) {
               core.setFailed('windows-test workflow not found for this commit');
               return;
             }
 
-            const windowsTest = workflows.data.workflow_runs[0];
-            console.log(`windows-test status: ${windowsTest.status}`);
-            console.log(`windows-test conclusion: ${windowsTest.conclusion}`);
+            // Find the workflow run that matches our event type (push)
+            let windowsTest = workflows.data.workflow_runs.find(run => run.event === event);
+
+            if (!windowsTest) {
+              console.log('No workflow run found matching event type, using most recent');
+              windowsTest = workflows.data.workflow_runs[0];
+            }
+
+            console.log(`Using workflow run #${windowsTest.run_number} (ID: ${windowsTest.id})`);
+            console.log(`  Status: ${windowsTest.status}`);
+            console.log(`  Conclusion: ${windowsTest.conclusion}`);
+            console.log(`  Event: ${windowsTest.event}`);
+            console.log(`  Created: ${windowsTest.created_at}`);
+            console.log(`  Updated: ${windowsTest.updated_at}`);
 
             // Wait for windows-test to complete if it's still running
             if (windowsTest.status !== 'completed') {
               console.log('windows-test is still running, waiting...');
               let attempts = 0;
               const maxAttempts = 60; // 10 minutes max wait
+              const waitSeconds = 10;
 
               while (attempts < maxAttempts) {
-                await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10 seconds
+                await new Promise(resolve => setTimeout(resolve, waitSeconds * 1000));
+                attempts++;
 
                 const updated = await github.rest.actions.getWorkflowRun({
                   owner: context.repo.owner,
@@ -70,26 +91,24 @@ jobs:
                   run_id: windowsTest.id
                 });
 
-                console.log(`Attempt ${attempts + 1}: status=${updated.data.status}, conclusion=${updated.data.conclusion}`);
+                console.log(`Attempt ${attempts}/${maxAttempts} (${attempts * waitSeconds}s elapsed): status=${updated.data.status}, conclusion=${updated.data.conclusion}`);
 
                 if (updated.data.status === 'completed') {
                   if (updated.data.conclusion === 'success') {
-                    console.log('windows-test completed successfully');
+                    console.log('✅ windows-test completed successfully');
                     return;
                   } else {
-                    core.setFailed(`windows-test failed with conclusion: ${updated.data.conclusion}`);
+                    core.setFailed(`❌ windows-test failed with conclusion: ${updated.data.conclusion}`);
                     return;
                   }
                 }
-
-                attempts++;
               }
 
-              core.setFailed('Timeout waiting for windows-test to complete');
+              core.setFailed(`⏱️ Timeout waiting for windows-test to complete after ${maxAttempts * waitSeconds} seconds`);
             } else if (windowsTest.conclusion !== 'success') {
-              core.setFailed(`windows-test failed with conclusion: ${windowsTest.conclusion}`);
+              core.setFailed(`❌ windows-test failed with conclusion: ${windowsTest.conclusion}`);
             } else {
-              console.log('windows-test already completed successfully');
+              console.log('✅ windows-test already completed successfully');
             }
 
       - name: Install uv
