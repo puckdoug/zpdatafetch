@@ -5,6 +5,12 @@ from keyrings.alt.file import PlaintextKeyring
 from zpdatafetch import ZP, Config, Cyclist, Primes, Result, Signup, Team
 
 
+@pytest.fixture(scope='session')
+def anyio_backend():
+  """Configure pytest-anyio to only use asyncio backend (trio not installed)"""
+  return 'asyncio'
+
+
 @pytest.fixture(autouse=True, scope='session')
 def setup_test_credentials():
   """Automatically set up test credentials for all tests"""
