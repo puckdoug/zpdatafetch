@@ -17,7 +17,7 @@ keywords = ["zwift", "zwiftpower", "cycling", "racing", "data"]
 dependencies = [
   "beautifulsoup4>=4.12.3",
   "cryptography>=44.0.0",
-  "httpx>=0.28.0",
+  "httpx>=0.29.0",
   "keyring>=25.2.0",
   "keyrings-alt",
   "lxml>=5.4.0",
@@ -91,6 +91,7 @@ dev = [
   "build>=1.2.1",
   "tox>=4.31.0",
   "pytest-cov>=4.1.0",
+  "httpcore>=1.2.0",
 ]
 
 [tool.pytest.ini_options]
