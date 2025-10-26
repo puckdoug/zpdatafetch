@@ -5,15 +5,17 @@ name: build and release
 
 on:
   workflow_run:
-    workflows: ["linux-test", "windows-test"]
+    # Only trigger on linux-test completion to avoid duplicate runs
+    # We'll check that windows-test also passed before publishing
+    workflows: ["linux-test"]
     types:
       - completed
 
 jobs:
   build:
     # Only run if:
-    # 1. The triggering workflow succeeded
-    # 2. The triggering workflow was run on a release_* tag
+    # 1. The linux-test workflow succeeded
+    # 2. The workflow was run on a release_* tag
     if: |
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.event == 'push' &&
@@ -31,6 +33,64 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Check windows-test workflow status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const workflows = await github.rest.actions.listWorkflowRunsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'windows-test.yml',
+              head_sha: '${{ github.event.workflow_run.head_sha }}',
+              per_page: 1
+            });
+
+            if (workflows.data.workflow_runs.length === 0) {
+              core.setFailed('windows-test workflow not found for this commit');
+              return;
+            }
+
+            const windowsTest = workflows.data.workflow_runs[0];
+            console.log(`windows-test status: ${windowsTest.status}`);
+            console.log(`windows-test conclusion: ${windowsTest.conclusion}`);
+
+            // Wait for windows-test to complete if it's still running
+            if (windowsTest.status !== 'completed') {
+              console.log('windows-test is still running, waiting...');
+              let attempts = 0;
+              const maxAttempts = 60; // 10 minutes max wait
+
+              while (attempts < maxAttempts) {
+                await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10 seconds
+
+                const updated = await github.rest.actions.getWorkflowRun({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  run_id: windowsTest.id
+                });
+
+                console.log(`Attempt ${attempts + 1}: status=${updated.data.status}, conclusion=${updated.data.conclusion}`);
+
+                if (updated.data.status === 'completed') {
+                  if (updated.data.conclusion === 'success') {
+                    console.log('windows-test completed successfully');
+                    return;
+                  } else {
+                    core.setFailed(`windows-test failed with conclusion: ${updated.data.conclusion}`);
+                    return;
+                  }
+                }
+
+                attempts++;
+              }
+
+              core.setFailed('Timeout waiting for windows-test to complete');
+            } else if (windowsTest.conclusion !== 'success') {
+              core.setFailed(`windows-test failed with conclusion: ${windowsTest.conclusion}`);
+            } else {
+              console.log('windows-test already completed successfully');
+            }
 
       - name: Install uv
         uses: astral-sh/setup-uv@v6
