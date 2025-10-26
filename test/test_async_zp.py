@@ -1,5 +1,7 @@
 """Tests for the async ZP API."""
 
+import sys
+
 import httpx
 import pytest
 
@@ -270,6 +272,12 @@ async def test_async_login_url():
     assert zp.login_url() == new_url
 
 
+@pytest.mark.xfail(
+  sys.version_info >= (3, 14),
+  reason='httpcore 1.1.x incompatible with Python 3.14 typing.Union - '
+  'upstream issue encode/httpcore, fixed in 1.2.0+',
+  strict=False,
+)
 @pytest.mark.anyio
 async def test_async_shared_client():
   """Test shared client functionality."""
