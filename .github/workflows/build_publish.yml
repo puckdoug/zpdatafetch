@@ -19,7 +19,6 @@ jobs:
       github.event.workflow_run.event == 'push' &&
       startsWith(github.event.workflow_run.head_branch, 'release_')
     runs-on: ubuntu-latest
-    environment: release
     steps:
       - name: Debug - Show workflow run info
         run: |
@@ -58,7 +57,6 @@ jobs:
 
   publish:
     name: Publish to PyPI
-    environment: release
     permissions:
       id-token: write
     needs:
