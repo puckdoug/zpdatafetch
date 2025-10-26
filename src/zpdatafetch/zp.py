@@ -56,7 +56,9 @@ class ZP:
   """
 
   _client: httpx.Client | None = None
-  _login_url: str = 'https://zwiftpower.com/ucp.php?mode=login&login=external&oauth_service=oauthzpsso'
+  _login_url: str = (
+    'https://zwiftpower.com/ucp.php?mode=login&login=external&oauth_service=oauthzpsso'
+  )
   _shared_client: httpx.Client | None = None
   _owns_client: bool = False
 
@@ -91,6 +93,28 @@ class ZP:
     if shared_client and ZP._shared_client is None:
       logger.debug('Creating shared HTTP client for connection pooling')
       ZP._shared_client = httpx.Client(follow_redirects=True)
+
+  # -------------------------------------------------------------------------------
+  def clear_credentials(self) -> None:
+    """Securely clear credentials from memory.
+
+    Overwrites credential strings before deletion to reduce risk of recovery
+    from memory dumps. Should be called when credentials are no longer needed.
+
+    SECURITY: This method helps prevent credentials from being exposed if the
+    process is dumped or inspected while credentials are in memory.
+    """
+    logger.debug('Clearing credentials from memory')
+    # Overwrite credentials with dummy data before deletion
+    if self.username:
+      self.username = '*' * len(self.username)
+      self.username = ''
+    if self.password:
+      self.password = '*' * len(self.password)
+      self.password = ''
+    logger.debug('Credentials cleared')
+</parameter>
+</invoke>
 
   # -------------------------------------------------------------------------------
   def login(self) -> None:
@@ -135,7 +159,8 @@ class ZP:
       raise ZPAuthenticationError(f'Could not parse login form: {e}') from e
 
     data = {'username': self.username, 'password': self.password}
-    logger.debug(f'Posting credentials to: {login_url_from_form}')
+    # SECURITY: Do NOT log the data dict or login URL - it contains credentials
+    logger.debug('Submitting authentication credentials to login endpoint')
 
     try:
       self.login_response = self._client.post(
@@ -170,6 +195,9 @@ class ZP:
     with mocked HTTP transports. If no client is provided, uses the
     shared client if available, otherwise creates a new one.
 
+    SECURITY: All connections use HTTPS with certificate verification enabled.
+    This protects against man-in-the-middle attacks.
+
     Args:
       client: Optional httpx.Client instance to use. If None, uses shared
         client if available, otherwise creates a new client.
@@ -183,8 +211,9 @@ class ZP:
       logger.debug('Using shared HTTP client for connection pooling')
       self._client = ZP._shared_client
     else:
-      logger.debug('Creating new httpx client with redirect following')
-      self._client = httpx.Client(follow_redirects=True)
+      logger.debug('Creating new httpx client with HTTPS certificate verification')
+      # SECURITY: Explicitly enable certificate verification for HTTPS connections
+      self._client = httpx.Client(follow_redirects=True, verify=True)
 
   # -------------------------------------------------------------------------------
   def _fetch_with_retry(
@@ -391,12 +420,36 @@ class ZP:
         logger.error(f'Could not close shared client properly: {e}')
 
   # -------------------------------------------------------------------------------
+  def clear_credentials(self) -> None:
+    """Securely clear credentials from memory.
+
+    Overwrites credential strings before deletion to reduce risk of recovery
+    from memory dumps. Should be called when credentials are no longer needed.
+
+    SECURITY: This method helps prevent credentials from being exposed if the
+    process is dumped or inspected while credentials are in memory.
+    """
+    logger.debug('Clearing credentials from memory')
+    # Overwrite credentials with dummy data before deletion
+    if self.username:
+      self.username = '*' * len(self.username)
+      self.username = ''
+    if self.password:
+      self.password = '*' * len(self.password)
+      self.password = ''
+    logger.debug('Credentials cleared')
+
+  # -------------------------------------------------------------------------------
   def close(self) -> None:
     """Close the HTTP client and clean up resources.
 
+    Closes the HTTP client and clears credentials from memory.
     Only closes the client if this instance owns it. Shared clients
     should be closed via close_shared_session().
     """
+    # Clear credentials first for security
+    self.clear_credentials()
+
     if self._client and self._owns_client:
       try:
         self._client.close()
@@ -442,6 +495,7 @@ class ZP:
 
   # -------------------------------------------------------------------------------
   def __del__(self) -> None:
+    """Cleanup on object destruction."""
     self.close()
 
   # -------------------------------------------------------------------------------

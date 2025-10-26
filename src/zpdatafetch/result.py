@@ -42,10 +42,19 @@ class Result(ZP_obj):
       Dictionary mapping race IDs to their result data
 
     Raises:
+      ValueError: If any race ID is invalid
       ZPNetworkError: If network requests fail
       ZPAuthenticationError: If authentication fails
     """
     logger.info(f'Fetching race results for {len(race_id)} race(s)')
+
+    # SECURITY: Validate all race IDs before processing
+    for r in race_id:
+      if not isinstance(r, int) or r <= 0 or r > 999999999:
+        raise ValueError(
+          f'Invalid race ID: {r}. Must be a positive integer.',
+        )
+
     zp = ZP()
     content: dict[Any, Any] = {}
 

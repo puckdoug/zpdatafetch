@@ -42,10 +42,19 @@ class Team(ZP_obj):
       Dictionary mapping team IDs to their roster data
 
     Raises:
+      ValueError: If any team ID is invalid
       ZPNetworkError: If network requests fail
       ZPAuthenticationError: If authentication fails
     """
     logger.info(f'Fetching team data for {len(team_id)} ID(s)')
+
+    # SECURITY: Validate all team IDs before processing
+    for t in team_id:
+      if not isinstance(t, int) or t <= 0 or t > 999999999:
+        raise ValueError(
+          f'Invalid team ID: {t}. Must be a positive integer.',
+        )
+
     zp = ZP()
     content: dict[Any, Any] = {}
 

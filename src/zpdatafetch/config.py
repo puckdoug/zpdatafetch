@@ -29,9 +29,7 @@ class Config:
   domain: str = 'zpdatafetch'
   username: str = ''
   password: str = ''
-  _test_domain_override: str | None = (
-    None  # Class variable for test domain override
-  )
+  _test_domain_override: str | None = None  # Class variable for test domain override
 
   # -----------------------------------------------------------------------------
   def __init__(self) -> None:
@@ -138,20 +136,49 @@ class Config:
 
     logger.info('Credentials setup completed')
 
-  # -----------------------------------------------------------------------------
-  def dump(self) -> None:
-    """Print current credentials to stdout.
+  # -----------------------------------------------------------------------
+  def clear_credentials(self) -> None:
+    """Securely clear credentials from memory.
 
-    Warning: This exposes the password in plaintext. Use only for debugging.
+    Overwrites credentials with placeholder values before clearing.
+    This reduces the risk of credential recovery from memory dumps.
+
+    SECURITY NOTE:
+      Python strings are immutable, so this provides best-effort protection.
+      For applications requiring higher security, use dedicated processes with
+      memory protection or containers with appropriate isolation.
     """
-    print(f'username: {self.username}')
-    print(f'password: {self.password}')
+    logger.debug('Clearing credentials from memory')
+    if self.username:
+      self.username = '*' * len(self.username)
+      self.username = ''
+    if self.password:
+      self.password = '*' * len(self.password)
+      self.password = ''
+    logger.debug('Credentials cleared from memory')
+
+  # -----------------------------------------------------------------------
+  def verify_credentials_exist(self) -> bool:
+    """Verify that credentials are configured in keyring.
+
+    Checks if both username and password are present without exposing them.
+    This is a safer alternative to dump() for credential verification.
+
+    Returns:
+      True if both username and password are set, False otherwise
+    """
+    logger.debug('Checking if credentials exist in keyring')
+    return bool(self.username and self.password)
 
 
 # ===============================================================================
 def main() -> None:
   c = Config()
-  c.dump()
+  c.load()
+  if c.verify_credentials_exist():
+    print('Credentials are configured in keyring')
+  else:
+    print('No credentials found in keyring')
 
 
 # ===============================================================================

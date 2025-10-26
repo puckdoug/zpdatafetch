@@ -62,10 +62,19 @@ class Cyclist(ZP_obj):
       Dictionary mapping Zwift IDs to their profile data
 
     Raises:
+      ValueError: If any ID is invalid (non-positive or too large)
       ZPNetworkError: If network requests fail
       ZPAuthenticationError: If authentication fails
     """
     logger.info(f'Fetching cyclist data for {len(zwift_id)} ID(s)')
+
+    # SECURITY: Validate all input IDs before processing
+    for z in zwift_id:
+      if not isinstance(z, int) or z <= 0 or z > 999999999:
+        raise ValueError(
+          f'Invalid Zwift ID: {z}. Must be a positive integer.',
+        )
+
     zp = ZP()
 
     for z in zwift_id:
