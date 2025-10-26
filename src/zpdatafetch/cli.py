@@ -8,7 +8,6 @@ team rosters, and prime data.
 import logging
 import sys
 from argparse import ArgumentParser
-from typing import Optional, Union
 
 from zpdatafetch import Config, Cyclist, Primes, Result, Signup, Team
 from zpdatafetch.logging_config import setup_logging

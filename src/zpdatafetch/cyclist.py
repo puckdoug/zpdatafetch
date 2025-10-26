@@ -1,7 +1,6 @@
 # import js2py
-import logging
 from argparse import ArgumentParser
-from typing import Any, Dict
+from typing import Any
 
 from zpdatafetch.logging_config import get_logger
 from zpdatafetch.zp import ZP

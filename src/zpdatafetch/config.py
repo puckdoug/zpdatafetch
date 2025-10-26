@@ -1,7 +1,6 @@
-import logging
 import sys
 from getpass import getpass
-from typing import Any, Optional
+from typing import Any
 
 import keyring
 
@@ -30,7 +29,9 @@ class Config:
   domain: str = 'zpdatafetch'
   username: str = ''
   password: str = ''
-  _test_domain_override: str | None = None  # Class variable for test domain override
+  _test_domain_override: str | None = (
+    None  # Class variable for test domain override
+  )
 
   # -----------------------------------------------------------------------------
   def __init__(self) -> None:

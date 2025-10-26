@@ -1,8 +1,7 @@
 import datetime
-import logging
 import re
 from argparse import ArgumentParser
-from typing import Any, Dict, List
+from typing import Any
 
 from zpdatafetch.logging_config import get_logger
 from zpdatafetch.zp import ZP

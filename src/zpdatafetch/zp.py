@@ -1,7 +1,5 @@
 import json
-import logging
-import sys
-from typing import Any, Dict, Optional
+from typing import Any
 
 import httpx
 from bs4 import BeautifulSoup
@@ -57,9 +55,7 @@ class ZP:
   """
 
   _client: httpx.Client | None = None
-  _login_url: str = (
-    'https://zwiftpower.com/ucp.php?mode=login&login=external&oauth_service=oauthzpsso'
-  )
+  _login_url: str = 'https://zwiftpower.com/ucp.php?mode=login&login=external&oauth_service=oauthzpsso'
 
   # -------------------------------------------------------------------------------
   def __init__(self, skip_credential_check: bool = False) -> None:
@@ -219,7 +215,9 @@ class ZP:
         res = pres.json()
         logger.debug(f'Successfully fetched and parsed JSON from {endpoint}')
       except json.decoder.JSONDecodeError:
-        logger.warning(f'Could not decode JSON from {endpoint}, returning empty dict')
+        logger.warning(
+          f'Could not decode JSON from {endpoint}, returning empty dict'
+        )
         res = {}
       return res
     except httpx.HTTPStatusError as e:

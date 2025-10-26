@@ -10,7 +10,6 @@ Provides flexible logging setup that:
 import logging
 import sys
 from pathlib import Path
-from typing import Optional
 
 # Default logger for the package
 _package_logger: logging.Logger | None = None

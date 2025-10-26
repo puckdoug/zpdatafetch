@@ -101,6 +101,7 @@ dev-dependencies = [
   "ruff>=0.6.2",
   "build>=1.2.1",
   "tox>=4.31.0",
+  "pytest-cov>=4.1.0",
 ]
 
 [tool.pytest.ini_options]

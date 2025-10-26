@@ -5,7 +5,12 @@ from zpdatafetch.primes import Primes
 from zpdatafetch.result import Result
 from zpdatafetch.signup import Signup
 from zpdatafetch.team import Team
-from zpdatafetch.zp import ZP, ZPAuthenticationError, ZPConfigError, ZPNetworkError
+from zpdatafetch.zp import (
+  ZP,
+  ZPAuthenticationError,
+  ZPConfigError,
+  ZPNetworkError,
+)
 
 __all__ = [
   'ZP',
