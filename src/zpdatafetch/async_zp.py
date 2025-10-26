@@ -4,10 +4,10 @@ This module provides async/await compatible interfaces for the Zwiftpower API,
 allowing for concurrent requests and better performance in async applications.
 """
 
-import asyncio
 import json
 from typing import Any
 
+import anyio
 import httpx
 from bs4 import BeautifulSoup
 
@@ -244,7 +244,7 @@ class AsyncZP:
           f'Transient network error on attempt {attempt + 1}: {e}. '
           f'Retrying in {wait_time:.1f}s...',
         )
-        await asyncio.sleep(wait_time)
+        await anyio.sleep(wait_time)
       except httpx.HTTPStatusError as e:
         if 500 <= e.response.status_code < 600:
           last_exception = e
@@ -255,7 +255,7 @@ class AsyncZP:
             f'Server error ({e.response.status_code}) on attempt '
             f'{attempt + 1}: {e}. Retrying in {wait_time:.1f}s...',
           )
-          await asyncio.sleep(wait_time)
+          await anyio.sleep(wait_time)
         else:
           raise ZPNetworkError(f'HTTP error: {e}') from e
       except httpx.RequestError as e:
@@ -267,7 +267,7 @@ class AsyncZP:
           f'Request error on attempt {attempt + 1}: {e}. '
           f'Retrying in {wait_time:.1f}s...',
         )
-        await asyncio.sleep(wait_time)
+        await anyio.sleep(wait_time)
 
     if last_exception:
       logger.error(f'Max retries ({max_retries}) exhausted: {last_exception}')

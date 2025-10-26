@@ -5,10 +5,10 @@ from keyrings.alt.file import PlaintextKeyring
 from zpdatafetch import ZP, Config, Cyclist, Primes, Result, Signup, Team
 
 
-@pytest.fixture(scope='session')
-def anyio_backend():
-  """Configure pytest-anyio to only use asyncio backend (trio not installed)"""
-  return 'asyncio'
+@pytest.fixture(scope='session', params=['asyncio', 'trio'])
+def anyio_backend(request):
+  """Configure pytest-anyio to test with both asyncio and trio backends"""
+  return request.param
 
 
 @pytest.fixture(autouse=True, scope='session')

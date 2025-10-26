@@ -3,6 +3,8 @@
 from argparse import ArgumentParser
 from typing import Any
 
+import anyio
+
 from zpdatafetch.async_zp import AsyncZP
 from zpdatafetch.logging_config import get_logger
 from zpdatafetch.zp_obj import ZP_obj
@@ -151,6 +153,4 @@ async def main() -> None:
 
 
 if __name__ == '__main__':
-  import asyncio
-
-  asyncio.run(main())
+  anyio.run(main)

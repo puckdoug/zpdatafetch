@@ -25,7 +25,15 @@ dependencies = [
   "keyring>=25.2.0",
   "keyrings-alt",
   "lxml>=5.4.0",
+  # Async support (anyio provides backend-agnostic async utilities)
+  "anyio>=4.4.0",
 ]
+
+[project.optional-dependencies]
+# Optional async backends - users can choose which to install
+trio = ["trio>=0.26.0"]
+# For users who want both backends
+async-full = ["trio>=0.26.0"]
 
 [project.urls]
 Homepage = "https://github.com/puckdoug/zpdatafetch"
@@ -95,6 +103,8 @@ dev = [
   "build>=1.2.1",
   "tox>=4.31.0",
   "pytest-cov>=4.1.0",
+  # Async testing support - trio for testing both backends
+  "trio>=0.26.0",
 ]
 
 [tool.pytest.ini_options]

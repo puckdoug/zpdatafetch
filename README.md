@@ -103,7 +103,7 @@ available classes are as follows:
 The library also provides a full async/await API for concurrent operations:
 
 ```python
-import asyncio
+import anyio
 from zpdatafetch import AsyncCyclist, AsyncResult, AsyncZP
 
 async def main():
@@ -116,15 +116,14 @@ async def main():
         result.set_session(zp)
 
         # Fetch multiple resources concurrently
-        cyclist_data, result_data = await asyncio.gather(
-            cyclist.fetch(1234567, 7654321),  # Multiple cyclists
-            result.fetch(3590800, 3590801)    # Multiple races
-        )
+        async with anyio.create_task_group() as tg:
+            tg.start_soon(cyclist.fetch, 1234567, 7654321)  # Multiple cyclists
+            tg.start_soon(result.fetch, 3590800, 3590801)   # Multiple races
 
         print(cyclist.json())
         print(result.json())
 
-asyncio.run(main())
+anyio.run(main)
 ```
 
 **Available async classes:**
@@ -136,12 +135,22 @@ asyncio.run(main())
 - AsyncTeam: Async team data fetching
 - AsyncPrimes: Async prime/sprint data fetching
 
+**Async backend support:**
+
+The async API uses [anyio](https://anyio.readthedocs.io/) to support both **asyncio** and **trio** backends:
+
+- **asyncio** (default): Built into Python, widely used
+- **trio** (optional): Install with `pip install zpdatafetch[trio]`
+
+You can use either backend transparently - the same code works with both!
+
 **Benefits of the async API:**
 
 - **2-3x faster** for batch operations (concurrent fetching)
 - Perfect for web services (FastAPI, aiohttp)
 - Modern async/await syntax
 - Connection pooling support
+- Choice of async backend (asyncio or trio)
 
 See `local/ASYNC_API_DOCUMENTATION.md` and `examples/async_*.py` for detailed async usage examples.
 
