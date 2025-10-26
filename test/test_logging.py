@@ -10,11 +10,24 @@ from zpdatafetch import setup_logging
 from zpdatafetch.logging_config import get_logger
 
 
+def _close_handlers():
+  """Close all handlers on the zpdatafetch logger."""
+  logger = logging.getLogger('zpdatafetch')
+  # Use slice copy to avoid modification during iteration
+  for handler in logger.handlers[:]:
+    try:
+      handler.close()
+    except (OSError, ValueError):
+      # On Windows, closing a handler to a deleted file may raise OSError
+      pass
+
+
 @pytest.fixture(autouse=True)
 def reset_logging():
   """Reset logging configuration before and after each test."""
   # Clear handlers before test and reinitialize default
   logger = logging.getLogger('zpdatafetch')
+  _close_handlers()
   logger.handlers.clear()
   from zpdatafetch.logging_config import _init_default_logging
 
@@ -23,6 +36,7 @@ def reset_logging():
   yield
 
   # Clear handlers after test and reinitialize default
+  _close_handlers()
   logger.handlers.clear()
   _init_default_logging()
 
@@ -120,6 +134,7 @@ def test_file_logging_format():
     assert 'test_file_logging_format' in log_content
 
   finally:
+    _close_handlers()
     log_file.unlink()
 
 
@@ -144,6 +159,7 @@ def test_file_logging_levels():
     assert 'Warning message' in log_content
 
   finally:
+    _close_handlers()
     log_file.unlink()
 
 
@@ -181,6 +197,7 @@ def test_combined_console_and_file_logging(capfd):
     assert '- INFO -' in log_content
 
   finally:
+    _close_handlers()
     log_file.unlink()
 
 
@@ -223,6 +240,7 @@ def test_file_format_includes_metadata():
     assert re.search(r'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}', log_content)
 
   finally:
+    _close_handlers()
     log_file.unlink()
 
 
@@ -264,6 +282,9 @@ def test_log_file_creation():
     assert log_file.parent.exists()
     assert 'Test message' in log_file.read_text()
 
+    # Close handlers before directory cleanup
+    _close_handlers()
+
 
 def test_string_log_levels():
   """Test that string log levels are properly converted."""
@@ -292,6 +313,7 @@ def test_string_log_levels():
     assert 'Warning' in log_content
 
   finally:
+    _close_handlers()
     log_file.unlink()
 
 
@@ -314,4 +336,5 @@ def test_multiple_setup_logging_calls():
     assert len(logger.handlers) >= initial_handler_count
 
   finally:
+    _close_handlers()
     log_file.unlink()
