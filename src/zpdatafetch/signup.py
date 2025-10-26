@@ -49,16 +49,27 @@ class Signup(ZP_obj):
     logger.info(f'Fetching race signups for {len(race_id_list)} race(s)')
 
     # SECURITY: Validate all race IDs before processing
+    validated_ids = []
     for r in race_id_list:
-      if not isinstance(r, int) or r <= 0 or r > 999999999:
+      try:
+        # Convert to int if string, validate range
+        rid = int(r) if not isinstance(r, int) else r
+        if rid <= 0 or rid > 999999999:
+          raise ValueError(
+            f'Invalid race ID: {r}. Must be a positive integer.',
+          )
+        validated_ids.append(rid)
+      except (ValueError, TypeError) as e:
+        if isinstance(e, ValueError) and 'Invalid race ID' in str(e):
+          raise
         raise ValueError(
-          f'Invalid race ID: {r}. Must be a positive integer.',
-        )
+          f'Invalid race ID: {r}. Must be a valid positive integer.',
+        ) from e
 
     zp = ZP()
     signups_by_race_id: dict[Any, Any] = {}
 
-    for race_id in race_id_list:
+    for race_id in validated_ids:
       logger.debug(f'Fetching race signups for race ID: {race_id}')
       url = f'{self._url}{race_id}{self._url_end}'
       signups_by_race_id[race_id] = zp.fetch_json(url)

@@ -49,16 +49,27 @@ class Team(ZP_obj):
     logger.info(f'Fetching team data for {len(team_id)} ID(s)')
 
     # SECURITY: Validate all team IDs before processing
+    validated_ids = []
     for t in team_id:
-      if not isinstance(t, int) or t <= 0 or t > 999999999:
+      try:
+        # Convert to int if string, validate range
+        tid = int(t) if not isinstance(t, int) else t
+        if tid <= 0 or tid > 999999999:
+          raise ValueError(
+            f'Invalid team ID: {t}. Must be a positive integer.',
+          )
+        validated_ids.append(tid)
+      except (ValueError, TypeError) as e:
+        if isinstance(e, ValueError) and 'Invalid team ID' in str(e):
+          raise
         raise ValueError(
-          f'Invalid team ID: {t}. Must be a positive integer.',
-        )
+          f'Invalid team ID: {t}. Must be a valid positive integer.',
+        ) from e
 
     zp = ZP()
     content: dict[Any, Any] = {}
 
-    for t in team_id:
+    for t in validated_ids:
       logger.debug(f'Fetching team roster for team ID: {t}')
       url = f'{self._url}{t}{self._url_end}'
       content[t] = zp.fetch_json(url)

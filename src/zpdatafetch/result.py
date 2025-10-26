@@ -49,23 +49,34 @@ class Result(ZP_obj):
     logger.info(f'Fetching race results for {len(race_id)} race(s)')
 
     # SECURITY: Validate all race IDs before processing
+    validated_ids = []
     for r in race_id:
-      if not isinstance(r, int) or r <= 0 or r > 999999999:
+      try:
+        # Convert to int if string, validate range
+        rid = int(r) if not isinstance(r, int) else r
+        if rid <= 0 or rid > 999999999:
+          raise ValueError(
+            f'Invalid race ID: {r}. Must be a positive integer.',
+          )
+        validated_ids.append(rid)
+      except (ValueError, TypeError) as e:
+        if isinstance(e, ValueError) and 'Invalid race ID' in str(e):
+          raise
         raise ValueError(
-          f'Invalid race ID: {r}. Must be a positive integer.',
-        )
+          f'Invalid race ID: {r}. Must be a valid positive integer.',
+        ) from e
 
     zp = ZP()
     content: dict[Any, Any] = {}
 
-    for r in race_id:
+    for r in validated_ids:
       logger.debug(f'Fetching race results for race ID: {r}')
       url = f'{self._url}{r}{self._url_end}'
       content[r] = zp.fetch_json(url)
       logger.debug(f'Successfully fetched results for race ID: {r}')
 
     self.raw = content
-    logger.info(f'Successfully fetched {len(race_id)} race result(s)')
+    logger.info(f'Successfully fetched {len(validated_ids)} race result(s)')
 
     return self.raw
 

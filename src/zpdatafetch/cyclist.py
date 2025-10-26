@@ -69,15 +69,26 @@ class Cyclist(ZP_obj):
     logger.info(f'Fetching cyclist data for {len(zwift_id)} ID(s)')
 
     # SECURITY: Validate all input IDs before processing
+    validated_ids = []
     for z in zwift_id:
-      if not isinstance(z, int) or z <= 0 or z > 999999999:
+      try:
+        # Convert to int if string, validate range
+        zid = int(z) if not isinstance(z, int) else z
+        if zid <= 0 or zid > 999999999:
+          raise ValueError(
+            f'Invalid Zwift ID: {z}. Must be a positive integer.',
+          )
+        validated_ids.append(zid)
+      except (ValueError, TypeError) as e:
+        if isinstance(e, ValueError) and 'Invalid Zwift ID' in str(e):
+          raise
         raise ValueError(
-          f'Invalid Zwift ID: {z}. Must be a positive integer.',
-        )
+          f'Invalid Zwift ID: {z}. Must be a valid positive integer.',
+        ) from e
 
     zp = ZP()
 
-    for z in zwift_id:
+    for z in validated_ids:
       logger.debug(f'Fetching cyclist profile for Zwift ID: {z}')
       url = f'{self._url}{z}{self._url_end}'
       x = zp.fetch_json(url)
@@ -88,7 +99,7 @@ class Cyclist(ZP_obj):
       # js2py is broken in 3.12 right now. pull request pending to fix it.
       # zp_vars = self.extract_zp_vars(y)
 
-    logger.info(f'Successfully fetched {len(zwift_id)} cyclist profile(s)')
+    logger.info(f'Successfully fetched {len(validated_ids)} cyclist profile(s)')
     return self.raw
 
 
