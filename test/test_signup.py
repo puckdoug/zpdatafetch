@@ -1,6 +1,6 @@
 import httpx
 
-from zpdatafetch import Signup
+from zpdatafetch import Signup  # noqa: F401
 
 
 def test_signup(signup):

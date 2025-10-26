@@ -2,7 +2,7 @@ import keyring
 import pytest
 from keyrings.alt.file import PlaintextKeyring
 
-from zpdatafetch import *
+from zpdatafetch import ZP, Config, Cyclist, Primes, Result, Signup, Team
 
 
 @pytest.fixture(autouse=True, scope='session')

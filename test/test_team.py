@@ -1,6 +1,6 @@
 import httpx
 
-from zpdatafetch import Team
+from zpdatafetch import Team  # noqa: F401
 
 
 def test_team(team):

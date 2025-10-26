@@ -113,8 +113,6 @@ class ZP:
       self.password = '*' * len(self.password)
       self.password = ''
     logger.debug('Credentials cleared')
-</parameter>
-</invoke>
 
   # -------------------------------------------------------------------------------
   def login(self) -> None:
@@ -418,26 +416,6 @@ class ZP:
         cls._shared_client = None
       except Exception as e:
         logger.error(f'Could not close shared client properly: {e}')
-
-  # -------------------------------------------------------------------------------
-  def clear_credentials(self) -> None:
-    """Securely clear credentials from memory.
-
-    Overwrites credential strings before deletion to reduce risk of recovery
-    from memory dumps. Should be called when credentials are no longer needed.
-
-    SECURITY: This method helps prevent credentials from being exposed if the
-    process is dumped or inspected while credentials are in memory.
-    """
-    logger.debug('Clearing credentials from memory')
-    # Overwrite credentials with dummy data before deletion
-    if self.username:
-      self.username = '*' * len(self.username)
-      self.username = ''
-    if self.password:
-      self.password = '*' * len(self.password)
-      self.password = ''
-    logger.debug('Credentials cleared')
 
   # -------------------------------------------------------------------------------
   def close(self) -> None:

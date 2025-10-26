@@ -6,8 +6,8 @@ def test_setup(config):
 
 
 def test_setup_has_no_default_creds(config):
-  assert config.username is ''
-  assert config.password is ''
+  assert config.username == ''
+  assert config.password == ''
 
 
 def test_domain_can_be_changed(config):
@@ -18,8 +18,8 @@ def test_domain_can_be_changed(config):
 def test_load_config_has_no_creds_before_set(config):
   config.domain = 'test-zpdatafetch'
   config.load()
-  assert config.username is ''
-  assert config.password is ''
+  assert config.username == ''
+  assert config.password == ''
 
 
 def test_after_load_config_has_creds(config):

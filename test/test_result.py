@@ -1,6 +1,6 @@
 import httpx
 
-from zpdatafetch import Result
+from zpdatafetch import Result  # noqa: F401
 
 
 def test_result(result):

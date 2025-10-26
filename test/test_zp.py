@@ -3,7 +3,7 @@ import sys
 import httpx
 import pytest
 
-from zpdatafetch.zp import ZP, ZPAuthenticationError, ZPConfigError, ZPNetworkError
+from zpdatafetch.zp import ZP, ZPAuthenticationError, ZPNetworkError
 
 
 def test_fetch_login_page(

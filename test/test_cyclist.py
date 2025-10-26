@@ -1,7 +1,6 @@
 import httpx
-import pytest
 
-from zpdatafetch import Cyclist, ZPNetworkError
+from zpdatafetch import Cyclist  # noqa: F401
 
 
 def test_cyclist(cyclist):
