@@ -1,4 +1,5 @@
 import json
+import time
 from typing import Any
 
 import httpx
@@ -56,13 +57,21 @@ class ZP:
 
   _client: httpx.Client | None = None
   _login_url: str = 'https://zwiftpower.com/ucp.php?mode=login&login=external&oauth_service=oauthzpsso'
+  _shared_client: httpx.Client | None = None
+  _owns_client: bool = False
 
   # -------------------------------------------------------------------------------
-  def __init__(self, skip_credential_check: bool = False) -> None:
+  def __init__(
+    self,
+    skip_credential_check: bool = False,
+    shared_client: bool = False,
+  ) -> None:
     """Initialize the ZP client with credentials from keyring.
 
     Args:
       skip_credential_check: Skip validation of credentials (used for testing)
+      shared_client: Use a shared HTTP client for connection pooling (default: False).
+        Useful when creating multiple ZP instances for batch operations.
 
     Raises:
       ZPConfigError: If credentials are not found in keyring
@@ -77,6 +86,11 @@ class ZP:
       raise ZPConfigError(
         'Zwiftpower credentials not found. Please run "zpdata config" to set up your credentials.',
       )
+
+    self._owns_client = not shared_client
+    if shared_client and ZP._shared_client is None:
+      logger.debug('Creating shared HTTP client for connection pooling')
+      ZP._shared_client = httpx.Client(follow_redirects=True)
 
   # -------------------------------------------------------------------------------
   def login(self) -> None:
@@ -153,20 +167,104 @@ class ZP:
     """Initialize or replace the HTTP client.
 
     Allows a custom httpx.Client to be injected, useful for testing
-    with mocked HTTP transports.
+    with mocked HTTP transports. If no client is provided, uses the
+    shared client if available, otherwise creates a new one.
 
     Args:
-      client: Optional httpx.Client instance to use. If None, creates a
-        new client with redirect following enabled.
+      client: Optional httpx.Client instance to use. If None, uses shared
+        client if available, otherwise creates a new client.
     """
     logger.debug('Initializing httpx client')
 
     if client:
       logger.debug('Using provided httpx client')
       self._client = client
+    elif ZP._shared_client is not None:
+      logger.debug('Using shared HTTP client for connection pooling')
+      self._client = ZP._shared_client
     else:
       logger.debug('Creating new httpx client with redirect following')
       self._client = httpx.Client(follow_redirects=True)
+
+  # -------------------------------------------------------------------------------
+  def _fetch_with_retry(
+    self,
+    url: str,
+    method: str = 'GET',
+    max_retries: int = 3,
+    backoff_factor: float = 1.0,
+    **kwargs: Any,
+  ) -> httpx.Response:
+    """Fetch URL with exponential backoff retry logic.
+
+    Retries on transient errors (connection errors, timeouts) but not on
+    client errors (4xx) or authentication errors.
+
+    Args:
+      url: URL to fetch
+      method: HTTP method (default: 'GET')
+      max_retries: Maximum number of retry attempts (default: 3)
+      backoff_factor: Multiplier for exponential backoff (default: 1.0)
+      **kwargs: Additional arguments to pass to httpx client method
+
+    Returns:
+      httpx.Response: The successful response
+
+    Raises:
+      ZPNetworkError: If all retries are exhausted
+    """
+    if self._client is None:
+      self.login()
+
+    last_exception: Exception | None = None
+
+    for attempt in range(max_retries):
+      try:
+        logger.debug(f'Attempt {attempt + 1}/{max_retries}: {method} {url}')
+        response = self._client.request(method, url, **kwargs)
+        response.raise_for_status()
+        return response
+      except (httpx.ConnectError, httpx.TimeoutException) as e:
+        last_exception = e
+        if attempt == max_retries - 1:
+          break
+        wait_time = backoff_factor * (2**attempt)
+        logger.warning(
+          f'Transient network error on attempt {attempt + 1}: {e}. '
+          f'Retrying in {wait_time:.1f}s...',
+        )
+        time.sleep(wait_time)
+      except httpx.HTTPStatusError as e:
+        if 500 <= e.response.status_code < 600:
+          last_exception = e
+          if attempt == max_retries - 1:
+            break
+          wait_time = backoff_factor * (2**attempt)
+          logger.warning(
+            f'Server error ({e.response.status_code}) on attempt '
+            f'{attempt + 1}: {e}. Retrying in {wait_time:.1f}s...',
+          )
+          time.sleep(wait_time)
+        else:
+          raise ZPNetworkError(f'HTTP error: {e}') from e
+      except httpx.RequestError as e:
+        last_exception = e
+        if attempt == max_retries - 1:
+          break
+        wait_time = backoff_factor * (2**attempt)
+        logger.warning(
+          f'Request error on attempt {attempt + 1}: {e}. '
+          f'Retrying in {wait_time:.1f}s...',
+        )
+        time.sleep(wait_time)
+
+    if last_exception:
+      logger.error(f'Max retries ({max_retries}) exhausted: {last_exception}')
+      raise ZPNetworkError(
+        f'Failed after {max_retries} attempts: {last_exception}',
+      ) from last_exception
+
+    raise ZPNetworkError(f'Unexpected error fetching {url}')
 
   # -------------------------------------------------------------------------------
   def login_url(self, url: str | None = None) -> str:
@@ -187,39 +285,43 @@ class ZP:
     return self._login_url
 
   # -------------------------------------------------------------------------------
-  def fetch_json(self, endpoint: str) -> dict[str, Any]:
+  def fetch_json(self, endpoint: str, max_retries: int = 3) -> dict[str, Any]:
     """Fetch JSON data from a Zwiftpower endpoint.
 
-    Automatically logs in if not already authenticated. Returns an empty
-    dict if the response cannot be decoded as JSON.
+    Automatically logs in if not already authenticated. Retries on transient
+    network errors. Returns an empty dict if the response cannot be decoded
+    as JSON.
 
     Args:
       endpoint: Full URL of the JSON endpoint to fetch
+      max_retries: Maximum number of retry attempts for transient errors
 
     Returns:
       Dictionary containing the parsed JSON response, or empty dict if
       JSON decoding fails
 
     Raises:
-      ZPNetworkError: If the HTTP request fails
+      ZPNetworkError: If the HTTP request fails after retries
     """
-    if self._client is None:
-      self.login()
-
     try:
       logger.debug(f'Fetching JSON from: {endpoint}')
-      pres = self._client.get(endpoint, cookies=self._client.cookies)
-      pres.raise_for_status()
+      pres = self._fetch_with_retry(
+        endpoint,
+        method='GET',
+        max_retries=max_retries,
+      )
 
       try:
         res = pres.json()
         logger.debug(f'Successfully fetched and parsed JSON from {endpoint}')
       except json.decoder.JSONDecodeError:
         logger.warning(
-          f'Could not decode JSON from {endpoint}, returning empty dict'
+          f'Could not decode JSON from {endpoint}, returning empty dict',
         )
         res = {}
       return res
+    except ZPNetworkError:
+      raise
     except httpx.HTTPStatusError as e:
       logger.error(f'HTTP error fetching {endpoint}: {e}')
       raise ZPNetworkError(f'HTTP error fetching {endpoint}: {e}') from e
@@ -228,31 +330,35 @@ class ZP:
       raise ZPNetworkError(f'Network error fetching {endpoint}: {e}') from e
 
   # -------------------------------------------------------------------------------
-  def fetch_page(self, endpoint: str) -> str:
+  def fetch_page(self, endpoint: str, max_retries: int = 3) -> str:
     """Fetch HTML page content from a Zwiftpower endpoint.
 
-    Automatically logs in if not already authenticated.
+    Automatically logs in if not already authenticated. Retries on transient
+    network errors.
 
     Args:
       endpoint: Full URL of the page to fetch
+      max_retries: Maximum number of retry attempts for transient errors
 
     Returns:
       String containing the HTML page content
 
     Raises:
-      ZPNetworkError: If the HTTP request fails
+      ZPNetworkError: If the HTTP request fails after retries
     """
-    if self._client is None:
-      self.login()
-
     try:
       logger.debug(f'Fetching page from: {endpoint}')
 
-      pres = self._client.get(endpoint, cookies=self._client.cookies)
-      pres.raise_for_status()
+      pres = self._fetch_with_retry(
+        endpoint,
+        method='GET',
+        max_retries=max_retries,
+      )
       res = pres.text
       logger.debug(f'Successfully fetched page from {endpoint}')
       return res
+    except ZPNetworkError:
+      raise
     except httpx.HTTPStatusError as e:
       logger.error(f'HTTP error fetching {endpoint}: {e}')
       raise ZPNetworkError(f'HTTP error fetching {endpoint}: {e}') from e
@@ -261,14 +367,78 @@ class ZP:
       raise ZPNetworkError(f'Network error fetching {endpoint}: {e}') from e
 
   # -------------------------------------------------------------------------------
+  @classmethod
+  def close_shared_session(cls) -> None:
+    """Close the shared HTTP client used for connection pooling.
+
+    Call this when you're done with all batch operations to free resources.
+
+    Example:
+      try:
+          zp1 = ZP(shared_client=True)
+          zp2 = ZP(shared_client=True)
+          zp1.fetch_json(url1)
+          zp2.fetch_json(url2)
+      finally:
+          ZP.close_shared_session()
+    """
+    if cls._shared_client is not None:
+      try:
+        cls._shared_client.close()
+        logger.debug('Shared HTTP client closed successfully')
+        cls._shared_client = None
+      except Exception as e:
+        logger.error(f'Could not close shared client properly: {e}')
+
+  # -------------------------------------------------------------------------------
   def close(self) -> None:
-    """Close the HTTP client and clean up resources."""
-    if self._client:
+    """Close the HTTP client and clean up resources.
+
+    Only closes the client if this instance owns it. Shared clients
+    should be closed via close_shared_session().
+    """
+    if self._client and self._owns_client:
       try:
         self._client.close()
         logger.debug('HTTP client closed successfully')
       except Exception as e:
         logger.error(f'Could not close client properly: {e}')
+    elif self._client and not self._owns_client:
+      logger.debug('Skipping close of shared client')
+
+  # -------------------------------------------------------------------------------
+  def __enter__(self) -> 'ZP':
+    """Enter context manager - return self for use in 'with' statement.
+
+    Returns:
+      The ZP instance for use within the context block.
+
+    Example:
+      with ZP() as zp:
+          zp.login()
+          data = zp.fetch_json(url)
+    """
+    logger.debug('Entering ZP context manager')
+    return self
+
+  # -------------------------------------------------------------------------------
+  def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> bool:
+    """Exit context manager - ensure cleanup always happens.
+
+    Guarantees that the HTTP client is closed when exiting the context,
+    whether normally or due to an exception.
+
+    Args:
+      exc_type: Exception type if an exception occurred, None otherwise.
+      exc_val: Exception value if an exception occurred, None otherwise.
+      exc_tb: Exception traceback if an exception occurred, None otherwise.
+
+    Returns:
+      False to propagate any exceptions that occurred.
+    """
+    logger.debug('Exiting ZP context manager')
+    self.close()
+    return False
 
   # -------------------------------------------------------------------------------
   def __del__(self) -> None:

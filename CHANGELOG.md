@@ -6,11 +6,17 @@
 
 - pytest-cov for automated coverage reporting
 - Code review documentation (REVIEW.md, IMPROVEMENTS.md)
+- **Context manager support**: All library classes now support the `with` statement for automatic resource cleanup
+- **Connection pooling**: New `shared_client` parameter enables HTTP connection reuse across multiple instances for improved batch performance
+- **Automatic retry logic**: Built-in exponential backoff retry mechanism for transient network failures (connection errors, timeouts, 5xx errors)
 
 ### Changed
 
 - Removed all unused imports for cleaner codebase
 - Updated pyproject.toml with pytest-cov configuration
+- `ZP` class now supports context management via `__enter__()` and `__exit__()` methods
+- `fetch_json()` and `fetch_page()` methods now include automatic retry with exponential backoff (configurable via `max_retries` and `backoff_factor` parameters)
+- Enhanced HTTP client initialization to support connection pooling with new `init_client()` method
 
 ### Fixed
 

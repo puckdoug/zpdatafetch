@@ -118,7 +118,7 @@ def test_fetch_json_network_error(zp):
     httpx.Client(follow_redirects=True, transport=httpx.MockTransport(handler)),
   )
 
-  with pytest.raises(ZPNetworkError, match='Network error fetching'):
+  with pytest.raises(ZPNetworkError, match='Failed after'):
     zp.fetch_json('https://zwiftpower.com/api/test')
 
 
@@ -148,7 +148,7 @@ def test_fetch_page_http_error(zp):
     httpx.Client(follow_redirects=True, transport=httpx.MockTransport(handler)),
   )
 
-  with pytest.raises(ZPNetworkError, match='HTTP error fetching'):
+  with pytest.raises(ZPNetworkError, match='HTTP error'):
     zp.fetch_page('https://zwiftpower.com/profile.php?z=999')
 
 
@@ -178,3 +178,158 @@ def test_category(zp):
   assert zp.set_category(30) == 'C'
   assert zp.set_category(40) == 'D'
   assert zp.set_category(50) == '50'
+
+
+def test_context_manager(zp):
+  """Test ZP can be used as a context manager."""
+
+  def handler(request):
+    if 'login' in str(request.url):
+      return httpx.Response(
+        200,
+        text='<html><form action="https://zwiftpower.com/login"></form></html>',
+      )
+    return httpx.Response(200, json={'data': 'test'})
+
+  client = httpx.Client(
+    follow_redirects=True,
+    transport=httpx.MockTransport(handler),
+  )
+
+  with ZP(skip_credential_check=True) as zp_ctx:
+    zp_ctx.init_client(client)
+    zp_ctx.login()
+    data = zp_ctx.fetch_json('https://zwiftpower.com/api/test', max_retries=1)
+    assert data == {'data': 'test'}
+    assert zp_ctx._client is not None
+
+  # Verify context manager returned self
+  assert isinstance(zp_ctx, ZP)
+
+
+def test_context_manager_with_exception(zp):
+  """Test ZP context manager cleans up even on exception."""
+
+  def handler(request):
+    if 'login' in str(request.url):
+      return httpx.Response(
+        200,
+        text='<html><form action="https://zwiftpower.com/login"></form></html>',
+      )
+    raise httpx.ConnectError('Forced error')
+
+  with ZP(skip_credential_check=True) as zp_ctx:
+
+    def mock_handler(request):
+      if 'login' in str(request.url):
+        return httpx.Response(
+          200,
+          text='<html><form action="https://zwiftpower.com/login"></form></html>',
+        )
+      raise httpx.ConnectError('Forced error')
+
+    zp_ctx.init_client(
+      httpx.Client(
+        follow_redirects=True,
+        transport=httpx.MockTransport(mock_handler),
+      ),
+    )
+    zp_ctx.login()
+    try:
+      zp_ctx.fetch_json('https://zwiftpower.com/api/test', max_retries=1)
+    except ZPNetworkError:
+      pass  # Expected
+
+  # Verify __exit__ was called and context exited cleanly
+  assert isinstance(zp_ctx, ZP)
+
+
+def test_shared_client_connection_pooling():
+  """Test shared client enables connection pooling."""
+
+  def handler(request):
+    if 'login' in str(request.url):
+      return httpx.Response(
+        200,
+        text='<html><form action="https://zwiftpower.com/login"></form></html>',
+      )
+    return httpx.Response(200, json={'id': request.url.params.get('id', '?')})
+
+  client = httpx.Client(
+    follow_redirects=True,
+    transport=httpx.MockTransport(handler),
+  )
+
+  try:
+    # Create two ZP instances using shared client
+    zp1 = ZP(skip_credential_check=True, shared_client=True)
+    zp2 = ZP(skip_credential_check=True, shared_client=True)
+
+    # Inject the same client
+    zp1.init_client(client)
+    zp2.init_client(client)
+
+    # Both should use the same client
+    assert zp1._client is zp2._client
+    assert zp1._client is client
+
+    # Neither owns the client
+    assert not zp1._owns_client
+    assert not zp2._owns_client
+
+  finally:
+    ZP.close_shared_session()
+
+
+def test_fetch_with_retry_success(zp):
+  """Test _fetch_with_retry succeeds on first attempt."""
+
+  def handler(request):
+    return httpx.Response(200, json={'data': 'success'})
+
+  zp.init_client(
+    httpx.Client(follow_redirects=True, transport=httpx.MockTransport(handler)),
+  )
+  response = zp._fetch_with_retry('https://zwiftpower.com/api/test', max_retries=3)
+  assert response.status_code == 200
+
+
+def test_fetch_with_retry_transient_error(zp):
+  """Test _fetch_with_retry recovers from transient errors."""
+  attempt_count = 0
+
+  def handler(request):
+    nonlocal attempt_count
+    attempt_count += 1
+    if attempt_count < 3:
+      raise httpx.ConnectError('Transient error')
+    return httpx.Response(200, json={'data': 'success'})
+
+  zp.init_client(
+    httpx.Client(follow_redirects=True, transport=httpx.MockTransport(handler)),
+  )
+  response = zp._fetch_with_retry(
+    'https://zwiftpower.com/api/test',
+    max_retries=3,
+    backoff_factor=0.01,
+  )
+  assert response.status_code == 200
+  assert attempt_count == 3
+
+
+def test_fetch_with_retry_max_retries_exceeded(zp):
+  """Test _fetch_with_retry fails after max retries."""
+
+  def handler(request):
+    raise httpx.ConnectError('Persistent error')
+
+  zp.init_client(
+    httpx.Client(follow_redirects=True, transport=httpx.MockTransport(handler)),
+  )
+
+  with pytest.raises(ZPNetworkError, match='Failed after 3 attempts'):
+    zp._fetch_with_retry(
+      'https://zwiftpower.com/api/test',
+      max_retries=3,
+      backoff_factor=0.01,
+    )

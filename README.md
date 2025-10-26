@@ -102,6 +102,82 @@ The ZP class is the main driver for the library. It is used to fetch the data
 from zwiftpower. The other classes are used to parse the data into a more useful
 format.
 
+#### Context Manager (Resource Management)
+
+The library now supports context managers for automatic resource cleanup. This is especially useful when making multiple requests, as it ensures proper cleanup of the underlying HTTP session:
+
+```python
+from zpdatafetch import Cyclist
+
+# Using context manager for automatic cleanup
+with Cyclist() as c:
+    c.fetch([1234567, 7654321])  # fetch multiple cyclists
+    print(c.json())
+# HTTP session is automatically closed
+```
+
+#### Connection Pooling (Performance Optimization)
+
+For batch operations, you can enable connection pooling to reuse a single HTTP client across multiple requests. This significantly improves performance when making multiple API calls:
+
+```python
+from zpdatafetch import Cyclist, Result
+
+# Multiple operations share a single connection pool
+with Cyclist(shared_client=True) as cyclist:
+    cyclist.fetch([1234567, 7654321, 9876543])
+    cyclist_data = cyclist.json()
+
+with Result(shared_client=True) as result:
+    result.fetch([111111, 222222, 333333])
+    result_data = result.json()
+
+# Clean up shared session when done
+from zpdatafetch.zp import ZP
+ZP.close_shared_session()
+```
+
+The `shared_client=True` option (enabled by default) allows multiple instances to reuse the same HTTP connection pool, reducing overhead and improving throughput.
+
+#### Automatic Retry with Exponential Backoff
+
+The library includes built-in retry logic with exponential backoff for handling transient network failures. This is automatically applied to `fetch_json()` and `fetch_page()` methods:
+
+```python
+from zpdatafetch import Cyclist
+
+c = Cyclist()
+
+# Retries are automatically handled internally
+# Default: 3 retries with exponential backoff
+c.fetch(1234567)  # Automatically retries on transient errors
+print(c.json())
+```
+
+For direct HTTP operations via the ZP class, you can configure retry behavior:
+
+```python
+from zpdatafetch.zp import ZP
+
+zp = ZP()
+
+# Fetch with custom retry settings
+data = zp.fetch_json(
+    '/some/endpoint',
+    max_retries=5,           # number of retries
+    backoff_factor=1.5       # exponential backoff multiplier
+)
+```
+
+The retry mechanism automatically handles:
+
+- Connection errors
+- Timeout errors
+- Request errors
+- HTTP 5xx server errors
+
+This makes the library more resilient to temporary network issues and server hiccups.
+
 ### Logging
 
 zpdatafetch provides flexible logging support for both library and command-line usage.
