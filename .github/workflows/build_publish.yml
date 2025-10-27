@@ -6,7 +6,7 @@ name: build and release
 on:
   workflow_run:
     # Only trigger on linux-test completion to avoid duplicate runs
-    # We'll check that windows-test also passed before publishing
+    # We'll check that windows-test and macos-test also passed before publishing
     workflows: ["linux-test"]
     types:
       - completed
@@ -34,82 +34,89 @@ jobs:
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
 
-      - name: Check windows-test workflow status
+      - name: Check windows-test and macos-test workflow status
         uses: actions/github-script@v7
         with:
           script: |
             const headSha = '${{ github.event.workflow_run.head_sha }}';
             const event = '${{ github.event.workflow_run.event }}';
 
-            console.log(`Looking for windows-test workflow for SHA: ${headSha}, event: ${event}`);
+            console.log(`Looking for windows-test and macos-test workflows for SHA: ${headSha}, event: ${event}`);
 
-            // Fetch recent workflow runs for this commit
-            const workflows = await github.rest.actions.listWorkflowRunsForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'windows-test.yml',
-              head_sha: headSha,
-              per_page: 10  // Check up to 10 runs to be safe
-            });
+            // Function to check and wait for a workflow
+            async function checkWorkflow(workflowId, workflowName) {
+              // Fetch recent workflow runs for this commit
+              const workflows = await github.rest.actions.listWorkflowRunsForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: workflowId,
+                head_sha: headSha,
+                per_page: 10  // Check up to 10 runs to be safe
+              });
 
-            console.log(`Found ${workflows.data.workflow_runs.length} windows-test workflow runs for this commit`);
+              console.log(`Found ${workflows.data.workflow_runs.length} ${workflowName} workflow runs for this commit`);
 
-            if (workflows.data.workflow_runs.length === 0) {
-              core.setFailed('windows-test workflow not found for this commit');
-              return;
-            }
-
-            // Find the workflow run that matches our event type (push)
-            let windowsTest = workflows.data.workflow_runs.find(run => run.event === event);
-
-            if (!windowsTest) {
-              console.log('No workflow run found matching event type, using most recent');
-              windowsTest = workflows.data.workflow_runs[0];
-            }
-
-            console.log(`Using workflow run #${windowsTest.run_number} (ID: ${windowsTest.id})`);
-            console.log(`  Status: ${windowsTest.status}`);
-            console.log(`  Conclusion: ${windowsTest.conclusion}`);
-            console.log(`  Event: ${windowsTest.event}`);
-            console.log(`  Created: ${windowsTest.created_at}`);
-            console.log(`  Updated: ${windowsTest.updated_at}`);
-
-            // Wait for windows-test to complete if it's still running
-            if (windowsTest.status !== 'completed') {
-              console.log('windows-test is still running, waiting...');
-              let attempts = 0;
-              const maxAttempts = 60; // 10 minutes max wait
-              const waitSeconds = 10;
-
-              while (attempts < maxAttempts) {
-                await new Promise(resolve => setTimeout(resolve, waitSeconds * 1000));
-                attempts++;
-
-                const updated = await github.rest.actions.getWorkflowRun({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  run_id: windowsTest.id
-                });
-
-                console.log(`Attempt ${attempts}/${maxAttempts} (${attempts * waitSeconds}s elapsed): status=${updated.data.status}, conclusion=${updated.data.conclusion}`);
-
-                if (updated.data.status === 'completed') {
-                  if (updated.data.conclusion === 'success') {
-                    console.log('✅ windows-test completed successfully');
-                    return;
-                  } else {
-                    core.setFailed(`❌ windows-test failed with conclusion: ${updated.data.conclusion}`);
-                    return;
-                  }
-                }
+              if (workflows.data.workflow_runs.length === 0) {
+                core.setFailed(`${workflowName} workflow not found for this commit`);
+                return;
               }
 
-              core.setFailed(`⏱️ Timeout waiting for windows-test to complete after ${maxAttempts * waitSeconds} seconds`);
-            } else if (windowsTest.conclusion !== 'success') {
-              core.setFailed(`❌ windows-test failed with conclusion: ${windowsTest.conclusion}`);
-            } else {
-              console.log('✅ windows-test already completed successfully');
+              // Find the workflow run that matches our event type (push)
+              let workflowRun = workflows.data.workflow_runs.find(run => run.event === event);
+
+              if (!workflowRun) {
+                console.log(`No workflow run found matching event type for ${workflowName}, using most recent`);
+                workflowRun = workflows.data.workflow_runs[0];
+              }
+
+              console.log(`Using ${workflowName} workflow run #${workflowRun.run_number} (ID: ${workflowRun.id})`);
+              console.log(`  Status: ${workflowRun.status}`);
+              console.log(`  Conclusion: ${workflowRun.conclusion}`);
+              console.log(`  Event: ${workflowRun.event}`);
+              console.log(`  Created: ${workflowRun.created_at}`);
+              console.log(`  Updated: ${workflowRun.updated_at}`);
+
+              // Wait for workflow to complete if it's still running
+              if (workflowRun.status !== 'completed') {
+                console.log(`${workflowName} is still running, waiting...`);
+                let attempts = 0;
+                const maxAttempts = 60; // 10 minutes max wait
+                const waitSeconds = 10;
+
+                while (attempts < maxAttempts) {
+                  await new Promise(resolve => setTimeout(resolve, waitSeconds * 1000));
+                  attempts++;
+
+                  const updated = await github.rest.actions.getWorkflowRun({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    run_id: workflowRun.id
+                  });
+
+                  console.log(`Attempt ${attempts}/${maxAttempts} (${attempts * waitSeconds}s elapsed): status=${updated.data.status}, conclusion=${updated.data.conclusion}`);
+
+                  if (updated.data.status === 'completed') {
+                    if (updated.data.conclusion === 'success') {
+                      console.log(`✅ ${workflowName} completed successfully`);
+                      return;
+                    } else {
+                      core.setFailed(`❌ ${workflowName} failed with conclusion: ${updated.data.conclusion}`);
+                      return;
+                    }
+                  }
+                }
+
+                core.setFailed(`⏱️ Timeout waiting for ${workflowName} to complete after ${maxAttempts * waitSeconds} seconds`);
+              } else if (workflowRun.conclusion !== 'success') {
+                core.setFailed(`❌ ${workflowName} failed with conclusion: ${workflowRun.conclusion}`);
+              } else {
+                console.log(`✅ ${workflowName} already completed successfully`);
+              }
             }
+
+            // Check both windows-test and macos-test
+            await checkWorkflow('windows-test.yml', 'windows-test');
+            await checkWorkflow('macos-test.yml', 'macos-test');
 
       - name: Install uv
         uses: astral-sh/setup-uv@v6
