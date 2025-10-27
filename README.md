@@ -142,15 +142,7 @@ The async API uses [anyio](https://anyio.readthedocs.io/) to support both **asyn
 - **asyncio** (default): Built into Python, widely used
 - **trio** (optional): Install with `pip install zpdatafetch[trio]`
 
-You can use either backend transparently - the same code works with both!
-
-**Benefits of the async API:**
-
-- **2-3x faster** for batch operations (concurrent fetching)
-- Perfect for web services (FastAPI, aiohttp)
-- Modern async/await syntax
-- Connection pooling support
-- Choice of async backend (asyncio or trio)
+You can use either backend transparently - the same code works with both.
 
 See `local/ASYNC_API_DOCUMENTATION.md` and `examples/async_*.py` for detailed async usage examples.
 
