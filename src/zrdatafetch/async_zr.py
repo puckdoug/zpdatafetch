@@ -163,7 +163,6 @@ class AsyncZR_obj:
           raise ZRNetworkError(
             f'Rate limit exceeded ({tier} tier). '
             f'Status: {e.response.status_code}. '
-            f'Use --premium flag to increase limits or wait before retrying. '
             f'Current rate limit status: {self.rate_limiter.get_status()}',
           ) from e
 

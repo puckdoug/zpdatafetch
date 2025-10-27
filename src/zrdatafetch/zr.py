@@ -148,7 +148,6 @@ class ZR_obj:
       raise ZRNetworkError(
         f'Rate limit exceeded ({rate_limiter.tier} tier). '
         f'Please wait {wait_time:.1f}s before retrying. '
-        f'Use premium=True to increase limits. '
         f'Current rate limit status: {rate_limiter.get_status()}',
       )
 
@@ -163,7 +162,6 @@ class ZR_obj:
         raise ZRNetworkError(
           f'Rate limit exceeded ({rate_limiter.tier} tier). '
           f'Status: 429 Too Many Requests. '
-          f'Use premium=True to increase limits or wait before retrying. '
           f'Current rate limit status: {rate_limiter.get_status()}',
         )
 

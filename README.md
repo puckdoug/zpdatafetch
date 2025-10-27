@@ -369,7 +369,6 @@ If you exceed the rate limit, you'll see a clear error message:
 ```
 Rate limit exceeded (standard tier).
 Status: 429 Too Many Requests.
-Use --premium flag to increase limits or wait before retrying.
 Current rate limit status: {...}
 ```
 
