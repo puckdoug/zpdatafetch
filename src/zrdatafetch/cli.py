@@ -90,7 +90,9 @@ Module for fetching Zwiftracing data using the Zwiftracing API
     help='ID(s) to search for',
   )
 
-  args = p.parse_args()
+  # Use parse_intermixed_args to handle flags after positional arguments
+  # This allows: zrdata rider --noaction 12345 67890
+  args = p.parse_intermixed_args()
 
   # Configure logging based on arguments
   if args.debug:

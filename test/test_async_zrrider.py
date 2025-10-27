@@ -231,22 +231,31 @@ class TestAsyncZRRiderCloseSharedSession:
   @pytest.mark.anyio
   async def test_close_shared_session(self):
     """Test closing shared session."""
-    # Create an instance with shared client
-    zr1 = AsyncZR_obj(shared_client=True)
-    await zr1.init_client()
+    from unittest.mock import AsyncMock, patch
 
-    # Create another instance that should use shared client
-    zr2 = AsyncZR_obj(shared_client=True)
-    await zr2.init_client()
+    with patch('httpx.AsyncClient') as mock_client_class:
+      mock_client = AsyncMock()
+      mock_client_class.return_value = mock_client
 
-    # Verify both use same shared client
-    assert zr1._client is zr2._client
+      # Create an instance with shared client
+      zr1 = AsyncZR_obj(shared_client=True)
+      await zr1.init_client()
 
-    # Close shared session
-    await AsyncZR_obj.close_shared_session()
+      # Create another instance that should use shared client
+      zr2 = AsyncZR_obj(shared_client=True)
+      await zr2.init_client()
 
-    # Verify shared client is cleared
-    assert AsyncZR_obj._shared_client is None
+      # Verify both use same shared client
+      assert zr1._client is zr2._client
+      # Should only create one client
+      mock_client_class.assert_called_once()
+
+      # Close shared session
+      await AsyncZR_obj.close_shared_session()
+
+      # Verify shared client is cleared
+      assert AsyncZR_obj._shared_client is None
+      mock_client.aclose.assert_called_once()
 
   @pytest.mark.anyio
   async def test_close_nonexistent_shared_session(self):

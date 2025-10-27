@@ -23,28 +23,46 @@ class TestZR_objClientManagement:
     # Clean up any existing client
     ZR_obj._client = None
 
-    client = ZR_obj.get_client()
+    # Mock httpx.Client to prevent real connections
+    with patch('httpx.Client') as mock_client_class:
+      mock_client = MagicMock()
+      mock_client.base_url = 'https://zwift-ranking.herokuapp.com'
+      mock_client_class.return_value = mock_client
 
-    assert isinstance(client, httpx.Client)
-    assert client.base_url == 'https://zwift-ranking.herokuapp.com'
+      client = ZR_obj.get_client()
+
+      assert client is mock_client
+      mock_client_class.assert_called_once()
 
   def test_get_client_reuses_existing_client(self):
     """Test that get_client reuses the existing client."""
     # Clean up and create a fresh client
     ZR_obj._client = None
-    client1 = ZR_obj.get_client()
-    client2 = ZR_obj.get_client()
 
-    assert client1 is client2
+    with patch('httpx.Client') as mock_client_class:
+      mock_client = MagicMock()
+      mock_client_class.return_value = mock_client
+
+      client1 = ZR_obj.get_client()
+      client2 = ZR_obj.get_client()
+
+      assert client1 is client2
+      # Should only create client once
+      mock_client_class.assert_called_once()
 
   def test_close_client_closes_connection(self):
     """Test that close_client properly closes the connection."""
     ZR_obj._client = None
-    ZR_obj.get_client()
 
-    ZR_obj.close_client()
+    with patch('httpx.Client') as mock_client_class:
+      mock_client = MagicMock()
+      mock_client_class.return_value = mock_client
 
-    assert ZR_obj._client is None
+      ZR_obj.get_client()
+      ZR_obj.close_client()
+
+      assert ZR_obj._client is None
+      mock_client.close.assert_called_once()
 
   def test_close_client_when_none(self):
     """Test that close_client handles None gracefully."""
@@ -172,31 +190,45 @@ class TestZR_objIntegration:
     """Test that multiple instances share the same HTTP client."""
     ZR_obj._client = None
 
-    obj1 = ZR_obj()
-    obj2 = ZR_obj()
+    with patch('httpx.Client') as mock_client_class:
+      mock_client = MagicMock()
+      mock_client_class.return_value = mock_client
 
-    client1 = obj1.get_client()
-    client2 = obj2.get_client()
+      obj1 = ZR_obj()
+      obj2 = ZR_obj()
 
-    assert client1 is client2
+      client1 = obj1.get_client()
+      client2 = obj2.get_client()
+
+      assert client1 is client2
+      # Should only create client once even with multiple instances
+      mock_client_class.assert_called_once()
 
   def test_client_lifecycle(self):
     """Test complete client lifecycle."""
     ZR_obj._client = None
 
-    # Create client
-    obj = ZR_obj()
-    client1 = obj.get_client()
-    assert ZR_obj._client is not None
+    with patch('httpx.Client') as mock_client_class:
+      mock_client1 = MagicMock()
+      mock_client3 = MagicMock()
+      mock_client_class.side_effect = [mock_client1, mock_client3]
 
-    # Reuse client
-    client2 = obj.get_client()
-    assert client1 is client2
+      # Create client
+      obj = ZR_obj()
+      client1 = obj.get_client()
+      assert ZR_obj._client is not None
+      assert client1 is mock_client1
 
-    # Close client
-    obj.close_client()
-    assert ZR_obj._client is None
+      # Reuse client
+      client2 = obj.get_client()
+      assert client1 is client2
 
-    # Create new client
-    client3 = obj.get_client()
-    assert client3 is not client1
+      # Close client
+      obj.close_client()
+      assert ZR_obj._client is None
+      mock_client1.close.assert_called_once()
+
+      # Create new client
+      client3 = obj.get_client()
+      assert client3 is not client1
+      assert client3 is mock_client3

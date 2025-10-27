@@ -72,7 +72,9 @@ Module for fetching zwiftpower data using the Zwifpower API
     help='ID(s) to search for',
   )
 
-  args = p.parse_args()
+  # Use parse_intermixed_args to handle flags after positional arguments
+  # This allows: zpdata cyclist --noaction 123 456
+  args = p.parse_intermixed_args()
 
   # Configure logging based on arguments
   if args.debug:
