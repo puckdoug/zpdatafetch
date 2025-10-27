@@ -11,6 +11,7 @@ import httpx
 
 from zrdatafetch.exceptions import ZRNetworkError
 from zrdatafetch.logging_config import get_logger
+from zrdatafetch.rate_limiter import RateLimiter
 
 logger = get_logger(__name__)
 
@@ -23,16 +24,19 @@ class ZR_obj:
     - HTTP requests to the Zwiftracing API
     - Error handling and logging
     - JSON serialization
+    - Rate limiting with standard/premium tiers
 
   The Zwiftracing API base URL is: https://zwift-ranking.herokuapp.com
 
   Attributes:
     _client: Shared HTTP client for connection pooling
     _base_url: Base URL for all API requests
+    _premium_mode: Class-level setting for premium tier rate limits
   """
 
   _client: ClassVar[httpx.Client | None] = None
   _base_url: ClassVar[str] = 'https://zwift-ranking.herokuapp.com'
+  _premium_mode: ClassVar[bool] = False  # Default to standard tier
 
   # -------------------------------------------------------------------------------
   @classmethod
@@ -69,21 +73,45 @@ class ZR_obj:
       cls._client = None
 
   # -------------------------------------------------------------------------------
+  @classmethod
+  def set_premium_mode(cls, premium: bool) -> None:
+    """Set the global premium tier rate limit mode.
+
+    Args:
+      premium: True for premium tier (higher limits), False for standard tier
+    """
+    cls._premium_mode = premium
+    tier = 'premium' if premium else 'standard'
+    logger.info(f'Rate limit tier set to: {tier}')
+
+  # -------------------------------------------------------------------------------
+  @classmethod
+  def get_premium_mode(cls) -> bool:
+    """Get the current premium tier mode setting.
+
+    Returns:
+      True if premium tier is enabled, False for standard tier
+    """
+    return cls._premium_mode
+
+  # -------------------------------------------------------------------------------
   def fetch_json(
     self,
     endpoint: str,
     method: str = 'GET',
+    premium: bool = False,
     **kwargs: Any,
   ) -> dict | list:
     """Fetch JSON data from an API endpoint.
 
     Makes an HTTP request (GET or POST) to the specified endpoint and returns
     the parsed JSON response. Handles errors with proper logging and raises
-    ZRNetworkError for any failures.
+    ZRNetworkError for any failures. Respects rate limits.
 
     Args:
       endpoint: API endpoint path (e.g., '/public/riders/123')
       method: HTTP method ('GET' or 'POST'). Default: 'GET'
+      premium: Use premium tier rate limits (default: False for standard)
       **kwargs: Additional arguments passed to httpx.get() or httpx.post()
         (e.g., headers, params, json, etc.)
 
@@ -92,7 +120,7 @@ class ZR_obj:
 
     Raises:
       ZRNetworkError: If the request fails for any reason
-        (HTTP error, network error, invalid JSON, etc.)
+        (HTTP error, network error, invalid JSON, rate limit exceeded, etc.)
 
     Example:
       # GET request
@@ -109,14 +137,42 @@ class ZR_obj:
       # Returns list of rider dicts
     """
     client = self.get_client()
+    # Use provided premium parameter, or fall back to class-level setting
+    use_premium = premium or self._premium_mode
+    rate_limiter = RateLimiter(tier='premium' if use_premium else 'standard')
+
+    # Check rate limits before attempting request
+    endpoint_type = RateLimiter.get_endpoint_type(method, endpoint)
+    if not rate_limiter.can_request(endpoint_type):
+      wait_time = rate_limiter.wait_time(endpoint_type)
+      raise ZRNetworkError(
+        f'Rate limit exceeded ({rate_limiter.tier} tier). '
+        f'Please wait {wait_time:.1f}s before retrying. '
+        f'Use premium=True to increase limits. '
+        f'Current rate limit status: {rate_limiter.get_status()}',
+      )
 
     try:
       if method.upper() == 'POST':
         response = client.post(endpoint, **kwargs)
       else:
         response = client.get(endpoint, **kwargs)
+
+      # Handle 429 rate limit errors specifically
+      if response.status_code == 429:
+        raise ZRNetworkError(
+          f'Rate limit exceeded ({rate_limiter.tier} tier). '
+          f'Status: 429 Too Many Requests. '
+          f'Use premium=True to increase limits or wait before retrying. '
+          f'Current rate limit status: {rate_limiter.get_status()}',
+        )
+
       response.raise_for_status()
+
+      # Record successful request for rate limiting
+      rate_limiter.record_request(endpoint_type)
       return response.json()
+
     except httpx.HTTPStatusError as e:
       logger.error(f'HTTP error {method} {endpoint}: {e.response.status_code}')
       raise ZRNetworkError(

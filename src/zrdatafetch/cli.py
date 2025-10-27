@@ -15,6 +15,7 @@ from argparse import ArgumentParser
 
 from zrdatafetch import Config, ZRResult, ZRRider, ZRTeam
 from zrdatafetch.logging_config import setup_logging
+from zrdatafetch.zr import ZR_obj
 
 
 # ===============================================================================
@@ -74,6 +75,11 @@ Module for fetching Zwiftracing data using the Zwiftracing API
     help='read IDs from file (one per line) for batch request (rider command only)',
   )
   p.add_argument(
+    '--premium',
+    action='store_true',
+    help='use premium tier rate limits (higher request quotas)',
+  )
+  p.add_argument(
     'cmd',
     help='which command to run',
     nargs='?',
@@ -95,6 +101,10 @@ Module for fetching Zwiftracing data using the Zwiftracing API
     # File logging only, no console output
     setup_logging(log_file=args.log_file, force_console=False)
   # else: use default ERROR-only logging to stderr
+
+  # Set premium tier mode if requested
+  if args.premium:
+    ZR_obj.set_premium_mode(True)
 
   # Route to appropriate command
   match args.cmd:

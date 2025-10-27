@@ -318,6 +318,103 @@ keyring set zrdatafetch authorization
 # Then enter your Zwiftracing API authorization header
 ```
 
+### Rate Limiting
+
+The Zwiftracing API enforces rate limits to prevent abuse. `zrdatafetch` automatically respects these limits and provides helpful messages when limits are exceeded.
+
+#### Rate Limit Tiers
+
+The API has two tier levels with different request quotas:
+
+**Standard Tier (Default):**
+
+- Riders (GET): 5 requests per 1 minute
+- Riders (POST batch): 1 request per 15 minutes
+- Results: 1 request per 1 minute
+- Clubs (Teams): 1 request per 60 minutes
+
+**Premium Tier:**
+
+- Riders (GET): 10 requests per 1 minute (2x)
+- Riders (POST batch): 10 requests per 15 minutes (10x)
+- Results: 1 request per 1 minute (same as standard)
+- Clubs (Teams): 10 requests per 60 minutes (10x)
+
+You should know you're in the Premium tier from discussion with [Tim
+Hanson](mailto:tim%40zwiftracing.app). If you haven't spoken to him, you can
+contact him via the Zwiftracing [Discord Server](https://discord.gg/BJrXX4gdty).
+
+#### Using Premium Tier
+
+To use premium tier rate limits, add the `--premium` flag to any CLI command:
+
+```sh
+# Fetch with premium rate limits
+zrdata --premium rider 12345 67890
+
+# Batch fetch with premium limits
+zrdata --premium rider --batch 12345 67890 11111
+
+# Batch from file with premium limits
+zrdata --premium rider --batch-file riders.txt
+
+# Check team with premium limits
+zrdata --premium team 456
+```
+
+#### Rate Limit Errors
+
+If you exceed the rate limit, you'll see a clear error message:
+
+```
+Rate limit exceeded (standard tier).
+Status: 429 Too Many Requests.
+Use --premium flag to increase limits or wait before retrying.
+Current rate limit status: {...}
+```
+
+#### Library Usage with Rate Limiting
+
+```python
+from zrdatafetch import ZRRider, ZR_obj
+
+# Use standard tier (default)
+rider = ZRRider(zwift_id=12345)
+rider.fetch()
+
+# Use premium tier - set globally
+ZR_obj.set_premium_mode(True)
+rider = ZRRider(zwift_id=12345)
+rider.fetch()  # Now uses premium tier limits
+
+# Or check current rate limit status
+status = ZRRider().rate_limiter.get_status() if hasattr(ZRRider(), 'rate_limiter') else None
+```
+
+#### Async Rate Limiting
+
+Async operations also respect rate limits with automatic throttling:
+
+```python
+import anyio
+from zrdatafetch import AsyncZRRider, AsyncZR_obj
+
+async def main():
+    # Standard tier (default)
+    async with AsyncZR_obj() as zr:
+        rider = AsyncZRRider()
+        rider.set_session(zr)
+        await rider.fetch(12345)  # Auto-throttled to standard limits
+
+    # Premium tier
+    async with AsyncZR_obj(premium=True) as zr:
+        rider = AsyncZRRider()
+        rider.set_session(zr)
+        await rider.fetch(12345)  # Auto-throttled to premium limits
+
+anyio.run(main)
+```
+
 ### Async Library API
 
 The library provides a full async/await API for concurrent operations using [anyio](https://anyio.readthedocs.io/) for backend-agnostic async support (asyncio or trio):

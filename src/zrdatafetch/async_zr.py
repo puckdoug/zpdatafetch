@@ -12,6 +12,7 @@ import httpx
 
 from zrdatafetch.exceptions import ZRNetworkError
 from zrdatafetch.logging_config import get_logger
+from zrdatafetch.rate_limiter import RateLimiter
 
 logger = get_logger(__name__)
 
@@ -42,15 +43,21 @@ class AsyncZR_obj:
   _owns_client: bool = False
 
   # -------------------------------------------------------------------------------
-  def __init__(self, shared_client: bool = False) -> None:
+  def __init__(
+    self,
+    shared_client: bool = False,
+    premium: bool = False,
+  ) -> None:
     """Initialize the AsyncZR_obj client.
 
     Args:
       shared_client: Use a shared HTTP client for connection pooling (default: False).
         Useful when creating multiple AsyncZR_obj instances for batch operations.
+      premium: Use premium tier rate limits (default: False for standard tier).
     """
     self._client: httpx.AsyncClient | None = None
     self._owns_client = not shared_client
+    self.rate_limiter = RateLimiter(tier='premium' if premium else 'standard')
 
     if shared_client and AsyncZR_obj._shared_client is None:
       logger.debug('Creating shared async HTTP client for connection pooling')
@@ -103,7 +110,8 @@ class AsyncZR_obj:
     """Fetch endpoint with exponential backoff retry logic (async).
 
     Retries on transient errors (connection errors, timeouts) but not on
-    client errors (4xx) or authentication errors.
+    client errors (4xx) or authentication errors. Respects rate limits
+    by waiting before requests and handling 429 responses.
 
     Args:
       endpoint: API endpoint path
@@ -116,10 +124,14 @@ class AsyncZR_obj:
       httpx.Response: The successful response
 
     Raises:
-      ZRNetworkError: If all retries are exhausted
+      ZRNetworkError: If all retries are exhausted or rate limit exceeded
     """
     if self._client is None:
       await self.init_client()
+
+    # Check rate limits before attempting request
+    endpoint_type = RateLimiter.get_endpoint_type(method, endpoint)
+    await self.rate_limiter.wait_if_needed(endpoint_type)
 
     last_exception: Exception | None = None
 
@@ -128,7 +140,11 @@ class AsyncZR_obj:
         logger.debug(f'Attempt {attempt + 1}/{max_retries}: {method} {endpoint}')
         response = await self._client.request(method, endpoint, **kwargs)
         response.raise_for_status()
+
+        # Record successful request for rate limiting
+        self.rate_limiter.record_request(endpoint_type)
         return response
+
       except (httpx.ConnectError, httpx.TimeoutException) as e:
         last_exception = e
         if attempt == max_retries - 1:
@@ -139,7 +155,18 @@ class AsyncZR_obj:
           f'Retrying in {wait_time:.1f}s...',
         )
         await anyio.sleep(wait_time)
+
       except httpx.HTTPStatusError as e:
+        # Handle rate limit error (429)
+        if e.response.status_code == 429:
+          tier = self.rate_limiter.tier
+          raise ZRNetworkError(
+            f'Rate limit exceeded ({tier} tier). '
+            f'Status: {e.response.status_code}. '
+            f'Use --premium flag to increase limits or wait before retrying. '
+            f'Current rate limit status: {self.rate_limiter.get_status()}',
+          ) from e
+
         if 500 <= e.response.status_code < 600:
           last_exception = e
           if attempt == max_retries - 1:
@@ -152,6 +179,7 @@ class AsyncZR_obj:
           await anyio.sleep(wait_time)
         else:
           raise ZRNetworkError(f'HTTP error: {e}') from e
+
       except httpx.RequestError as e:
         last_exception = e
         if attempt == max_retries - 1:
