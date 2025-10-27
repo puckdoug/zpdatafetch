@@ -1,5 +1,36 @@
 # Changelog
 
+## [1.4.0]
+
+### Added
+
+- Full Python 3.14 support with compatibility fixes for httpcore library
+- ZwiftRacing API support via new `zrdatafetch` module
+  - `AsyncZR_obj` base class for async ZwiftRacing API operations
+  - `ZRRider` class for fetching rider profiles and rankings
+  - `ZRResult` class for fetching race results
+  - `ZRTeam` class for fetching team/club information
+  - Rate limiting support for ZwiftRacing API endpoints
+  - Async versions of all ZwiftRacing classes with trio/asyncio support
+- `zrdata` command-line tool for ZwiftRacing API access
+- Rate limiter module with configurable limits per endpoint type
+- Comprehensive test coverage for all new ZwiftRacing functionality
+
+### Changed
+
+- Improved test isolation - all tests now use mocked network connections
+- Updated httpcore compatibility for Python 3.14 (patched type alias attribute setting)
+
+### Fixed
+
+- Fixed tests making real network connections to live websites
+  - `test/test_zr_obj.py`: Now properly mocks all `httpx.Client()` instantiation
+  - `test/test_async_zr.py`: Completely rewrote tests to use `AsyncMock` and `patch`
+  - `test/test_async_zrrider.py`: Added proper mocking for shared session tests
+- Fixed Python 3.14 compatibility issue where httpcore 1.0.5 attempted to set `__module__` attribute on immutable `typing.Union` objects
+- Fixed 37 test failures on Python 3.14 related to httpcore/typing incompatibility
+- Resolved 3 xfail tests that now pass on Python 3.14 (httpcore shared client tests)
+
 ## [1.2.0]
 
 ### Security
