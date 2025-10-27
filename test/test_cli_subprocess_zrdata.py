@@ -105,6 +105,100 @@ class TestZRDataRiderCommand:
 
 
 # ===============================================================================
+class TestZRDataBatchCommand:
+  """Test zrdata batch rider commands."""
+
+  def test_batch_flag_no_ids(self):
+    """Test --batch flag without IDs produces error."""
+    result = subprocess.run(
+      ['zrdata', 'rider', '--batch'],
+      capture_output=True,
+      text=True,
+      timeout=5,
+      check=False,
+    )
+    assert result.returncode == 1
+    assert 'Error' in result.stdout or 'Error' in result.stderr
+
+  def test_batch_noaction_single_id(self):
+    """Test --batch with --noaction and single ID."""
+    result = subprocess.run(
+      ['zrdata', 'rider', '--batch', '--noaction', '12345'],
+      capture_output=True,
+      text=True,
+      timeout=5,
+      check=False,
+    )
+    assert result.returncode == 0
+    assert 'Would fetch' in result.stdout or 'batch' in result.stdout.lower()
+
+  def test_batch_noaction_multiple_ids(self):
+    """Test --batch with --noaction and multiple IDs."""
+    result = subprocess.run(
+      ['zrdata', 'rider', '--batch', '--noaction', '123', '456', '789'],
+      capture_output=True,
+      text=True,
+      timeout=5,
+      check=False,
+    )
+    assert result.returncode == 0
+    assert 'batch' in result.stdout.lower() or 'Would fetch' in result.stdout
+
+  def test_batch_noaction_with_raw_flag(self):
+    """Test --batch with --noaction and --raw flags."""
+    result = subprocess.run(
+      ['zrdata', 'rider', '--batch', '--noaction', '--raw', '12345', '67890'],
+      capture_output=True,
+      text=True,
+      timeout=5,
+      check=False,
+    )
+    assert result.returncode == 0
+
+  def test_batch_file_not_found(self):
+    """Test --batch-file with non-existent file."""
+    result = subprocess.run(
+      ['zrdata', 'rider', '--batch-file', '/nonexistent/file.txt'],
+      capture_output=True,
+      text=True,
+      timeout=5,
+      check=False,
+    )
+    assert result.returncode == 1
+    assert 'Error' in result.stdout or 'Error' in result.stderr
+
+  def test_batch_file_with_ids(self, tmp_path):
+    """Test --batch-file with valid file."""
+    # Create a temporary file with rider IDs
+    batch_file = tmp_path / 'riders.txt'
+    batch_file.write_text('12345\n67890\n11111\n')
+
+    result = subprocess.run(
+      ['zrdata', 'rider', '--batch-file', str(batch_file), '--noaction'],
+      capture_output=True,
+      text=True,
+      timeout=5,
+      check=False,
+    )
+    assert result.returncode == 0
+
+  def test_batch_file_with_blank_lines(self, tmp_path):
+    """Test --batch-file handles blank lines correctly."""
+    # Create a file with blank lines
+    batch_file = tmp_path / 'riders.txt'
+    batch_file.write_text('12345\n\n67890\n\n\n11111\n')
+
+    result = subprocess.run(
+      ['zrdata', 'rider', '--batch-file', str(batch_file), '--noaction'],
+      capture_output=True,
+      text=True,
+      timeout=5,
+      check=False,
+    )
+    assert result.returncode == 0
+
+
+# ===============================================================================
 class TestZRDataConfigCommand:
   """Test zrdata config command."""
 

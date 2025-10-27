@@ -1,7 +1,7 @@
-"""ZwiftRanking race result data fetching and management.
+"""Zwiftracing race result data fetching and management.
 
 This module provides the ZRResult class for fetching and storing race result
-data from the ZwiftRanking API, including per-rider finishes and rating changes.
+data from the Zwiftracing API, including per-rider finishes and rating changes.
 """
 
 from dataclasses import asdict, dataclass, field
@@ -18,7 +18,7 @@ logger = get_logger(__name__)
 # ===============================================================================
 @dataclass
 class ZRRiderResult:
-  """Individual rider result from a ZwiftRanking race.
+  """Individual rider result from a Zwiftracing race.
 
   Represents a single rider's performance and rating change in a race result.
 
@@ -56,7 +56,7 @@ class ZRRiderResult:
 # ===============================================================================
 @dataclass
 class ZRResult(ZR_obj):
-  """Race result data from ZwiftRanking API.
+  """Race result data from Zwiftracing API.
 
   Represents all rider results from a specific race, including the race ID
   and a list of individual rider results with rating changes.
@@ -77,9 +77,9 @@ class ZRResult(ZR_obj):
 
   # -----------------------------------------------------------------------
   def fetch(self, race_id: int | None = None) -> None:
-    """Fetch race result data from the ZwiftRanking API.
+    """Fetch race result data from the Zwiftracing API.
 
-    Fetches all rider results for a specific race ID from the ZwiftRanking API.
+    Fetches all rider results for a specific race ID from the Zwiftracing API.
 
     Args:
       race_id: The race ID to fetch (uses self.race_id if not provided)
@@ -106,7 +106,7 @@ class ZRResult(ZR_obj):
     config.load()
     if not config.authorization:
       raise ZRConfigError(
-        'ZwiftRanking authorization not found. Please run "zrdata config" to set it up.',
+        'Zwiftracing authorization not found. Please run "zrdata config" to set it up.',
       )
 
     logger.debug(f'Fetching results for race_id={self.race_id}')

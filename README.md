@@ -1,6 +1,6 @@
-# zpdatafetch
+# zpdatafetch & zrdatafetch
 
-A python library and command-line tool for fetching data from zwiftpower.
+A python library and command-line tool for fetching data from ZwiftPower.com and Zwiftracing.app APIs.
 
 ## Installation
 
@@ -16,28 +16,74 @@ uv add zpdatafetch
 
 This currently works with python versions 3.10 - 3.14 including 3.14t but excluding 3.13t. Build fails on 3.13t and I am unlikely to fix it. If you want free threading, use 3.14t.
 
-Note that while this builds and runs, it'd not yet properly tested to run in a real free-threaded environment.
+Note that while this builds and runs, it'd not yet properly tested to run in a real free-threaded environment. Please do [report](https://github.com/puckdoug/zpdatafetch/issues) any issues you find.
 
-## Usage
+## Overview
 
-zpdatafetch comes with a command-line tool named `zpdata`. This can be used to
-fetch data directly from zwiftpower. It sends the response to stdout. It can
-also act as a guide for how to use the library in your own program.
+This package provides two main command-line tools:
 
-For both command-line and library usage, you will need to have a zwiftpower
-account. You will need set up your credentials in your system keyring. This can
-be done using the following commands from they python keyring library (installed
-as part of zpdatafetch if not already available on your system):
+| Tool         | API         | Purpose                              | Data Types                                |
+| ------------ | ----------- | ------------------------------------ | ----------------------------------------- |
+| **`zpdata`** | ZwiftPower  | Race rankings, signups, results      | Cyclist, Primes, Results, Signups, Teams  |
+| **`zrdata`** | Zwiftracing | Rider ratings, race results, rosters | Rider Ratings, Race Results, Team Rosters |
+
+Both tools support batch operations, flexible logging, and can be used as standalone CLI tools or imported as libraries. They maintain separate credential stores for each API.
+
+## Key Features
+
+### For zpdata (ZwiftPower)
+
+- **Cyclist rankings** - Individual and batch lookups by Zwift ID
+- **Race results** - Detailed finish information and point scoring
+- **Signups** - Event signup lists and participant info
+- **Primes/Sprints** - Intermediate results and prime tracking
+- **Team data** - Team rosters and member information
+- **Async support** - Concurrent fetching with asyncio or trio backends
+- **Connection pooling** - Efficient batch operations with shared HTTP client
+
+### For zrdata (Zwiftracing)
+
+- **Rider ratings** - Current, max30, max90 ratings and categories
+- **Batch POST requests** - Fetch up to 1000 riders in a single efficient API call
+- **Derived rating scores** - Calculated DRS for all riders
+- **Power metrics** - Zwiftracing compound score and power data
+- **Race results** - Complete race result data with rating changes
+- **Team rosters** - Full team member details and power metrics
+- **File-based batch input** - Read rider IDs from files for batch processing
+- **Safe testing** - `--noaction` flag to preview operations without network calls
+
+### Common Features
+
+- **Flexible logging** - Console and file logging with multiple levels (DEBUG, INFO, WARNING, ERROR)
+- **Secure credentials** - System keyring integration for safe credential storage
+- **CLI and library APIs** - Use as command-line tools or import as Python libraries
+- **JSON output** - Raw JSON or formatted output for all data types
+- **Error handling** - Comprehensive error messages and retry logic
+
+## Credentials Setup
+
+For ZwiftPower (`zpdata`), you will need a zwiftpower account with credentials in your system keyring:
 
 ```sh
 keyring set zpdatafetch username
 keyring set zpdatafetch password
 ```
 
+For Zwiftracing (`zrdata`), you will need your Zwiftracing API authorization header:
+
+```sh
+keyring set zrdatafetch authorization
+# Or use the CLI: zrdata config
+```
+
 In principle, the library can use alternate backend keyrings, but I have not
 tested this so far. At the moment, only the system keyring is used. See [the
 keyring docs](https://keyring.readthedocs.io/en/latest/) for more details on how
 to use the keyring and keyring library for your system.
+
+## ZwiftPower Data (zpdata)
+
+The `zpdata` command-line tool provides access to ZwiftPower data including cyclist rankings, race results, and event signups.
 
 ### Command-line example
 
@@ -97,6 +143,180 @@ available classes are as follows:
 - Result: fetch results from one or more races (finish, points) using event id
 - Signup: fetch signups for a particular event by event id
 - Team: fetch team data by team id
+
+## Zwiftracing Data (zrdata)
+
+The `zrdata` command-line tool provides access to Zwiftracing API data including rider ratings, race results, and team rosters.
+
+### Command-line usage
+
+```sh
+usage: zrdata [-h] [-v] [-vv] [--log-file PATH] [-r] [--noaction] [--batch] [--batch-file FILE]
+              [{config,rider,result,team}] [id ...]
+
+Module for fetching Zwiftracing data using the Zwiftracing API
+
+positional arguments:
+  {config,rider,result,team}
+                        which command to run
+  id                    the id to search for
+
+options:
+  -h, --help            show this help message and exit
+  -v, --verbose         enable INFO level logging to console
+  -vv, --debug          enable DEBUG level logging to console
+  --log-file PATH       path to log file (enables file logging)
+  -r, --raw             print the raw results returned to screen
+  --noaction            report what would be done without actually fetching data
+  --batch               use batch POST endpoint for multiple IDs (rider command only)
+  --batch-file FILE     read IDs from file (one per line) for batch request (rider command only)
+```
+
+### Basic Examples
+
+```sh
+# Fetch a single rider's rating data
+zrdata rider 12345
+
+# Fetch multiple riders individually (GET requests)
+zrdata rider 12345 67890 11111
+
+# Fetch multiple riders using batch POST endpoint (more efficient)
+zrdata rider --batch 12345 67890 11111
+
+# Fetch riders from a file
+zrdata rider --batch-file riders.txt
+
+# Fetch race results
+zrdata result 3590800
+
+# Fetch team roster
+zrdata team 456
+
+# View current configuration
+zrdata config
+
+# Set up authorization
+zrdata config  # Will prompt for authorization header
+```
+
+### Advanced Options
+
+```sh
+# Verbose output with debug logging
+zrdata -vv rider 12345
+
+# Raw JSON output
+zrdata -r rider 12345
+
+# Test what would be fetched without making requests
+zrdata --noaction --batch 12345 67890
+
+# Log to file
+zrdata --log-file zrdata.log rider 12345
+
+# Combine options
+zrdata -v --batch -r rider 12345 67890 11111
+```
+
+### Batch Processing
+
+For efficiency, `zrdata` supports batch operations that use the Zwiftracing API's POST endpoints:
+
+**Command-line batch:**
+
+```sh
+# Batch with inline IDs (up to 1000 per request)
+zrdata rider --batch 123 456 789
+
+# Batch from file
+cat > riders.txt << EOF
+12345
+67890
+11111
+EOF
+zrdata rider --batch-file riders.txt
+```
+
+**Programmatic batch (Python):**
+
+```python
+from zrdatafetch import ZRRider
+
+# Batch fetch multiple riders in one API request
+riders = ZRRider.fetch_batch(12345, 67890, 11111)
+for zwift_id, rider in riders.items():
+    print(f"{rider.name}: {rider.current_rating}")
+```
+
+### Library Usage
+
+```python
+from zrdatafetch import ZRRider, ZRResult, ZRTeam
+
+# Fetch single rider
+rider = ZRRider(zwift_id=12345)
+rider.fetch()
+print(rider.json())
+
+# Fetch batch of riders (more efficient)
+riders = ZRRider.fetch_batch(12345, 67890, 11111)
+for zwift_id, rider in riders.items():
+    print(f"{rider.name} - Rating: {rider.current_rating}")
+
+# Fetch race results
+result = ZRResult(race_id=3590800)
+result.fetch()
+print(f"Found {len(result.results)} riders")
+
+# Fetch team roster
+team = ZRTeam(team_id=456)
+team.fetch()
+print(f"Team: {team.team_name}")
+for rider in team.riders:
+    print(f"  {rider.name}: {rider.current_rating}")
+```
+
+### Data Classes
+
+**ZRRider**: Individual rider rating data
+
+- `zwift_id`: Rider's Zwift ID
+- `name`: Rider's display name
+- `current_rating`: Current rating score
+- `current_rank`: Current category rank (A, B, C, D, etc.)
+- `max30_rating`: Best rating in last 30 days
+- `max30_rank`: Category for max30
+- `max90_rating`: Best rating in last 90 days
+- `max90_rank`: Category for max90
+- `drs_rating`: Derived rating score (max30 or max90)
+- `drs_rank`: Category for DRS
+- `gender`: Rider gender (M/F)
+- `zrcs`: Zwiftracing compound score (power metric)
+
+**ZRResult**: Race result data
+
+- `race_id`: The race ID (Zwift event ID)
+- `results`: List of rider results with positions and rating changes
+
+**ZRTeam**: Team roster data
+
+- `team_id`: Team/club ID
+- `team_name`: Team name
+- `riders`: List of team members with their ratings and power metrics
+
+### Configuration
+
+To set up Zwiftracing API authorization:
+
+```sh
+# Interactive setup
+zrdata config
+
+# Or set directly in keyring
+keyring set zrdatafetch authorization
+# Then enter your Zwiftracing API authorization header
+```
 
 ### Async Library example
 

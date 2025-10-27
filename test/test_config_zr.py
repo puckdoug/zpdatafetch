@@ -1,6 +1,6 @@
 """Tests for zrdatafetch Config class.
 
-Tests the configuration management for ZwiftRanking API credentials
+Tests the configuration management for Zwiftracing API credentials
 stored in system keyring.
 """
 

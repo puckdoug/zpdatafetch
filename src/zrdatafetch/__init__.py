@@ -1,6 +1,6 @@
-"""ZwiftRanking data fetching library.
+"""Zwiftracing data fetching library.
 
-A Python library for fetching and managing ZwiftRanking data including:
+A Python library for fetching and managing Zwiftracing data including:
 - Rider ratings and rankings
 - Race results
 - Team/club rosters

@@ -1,13 +1,13 @@
 """Custom exceptions for zrdatafetch module.
 
 Provides typed exceptions for different error conditions when interacting
-with the ZwiftRanking API.
+with the Zwiftracing API.
 """
 
 
 # ===============================================================================
 class ZRAuthenticationError(Exception):
-  """Raised when authentication with ZwiftRanking API fails.
+  """Raised when authentication with Zwiftracing API fails.
 
   This exception is raised when API credentials are rejected, missing,
   or authentication otherwise fails.
@@ -16,7 +16,7 @@ class ZRAuthenticationError(Exception):
 
 # ===============================================================================
 class ZRNetworkError(Exception):
-  """Raised when network requests to ZwiftRanking API fail.
+  """Raised when network requests to Zwiftracing API fail.
 
   This exception is raised for HTTP errors, connection errors, timeouts,
   and other network-related issues.

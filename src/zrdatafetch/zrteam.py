@@ -1,7 +1,7 @@
-"""ZwiftRanking team roster data fetching and management.
+"""Zwiftracing team roster data fetching and management.
 
 This module provides the ZRTeam class for fetching and storing team/club
-roster data from the ZwiftRanking API, including all team member details
+roster data from the Zwiftracing API, including all team member details
 and their current ratings.
 """
 
@@ -19,7 +19,7 @@ logger = get_logger(__name__)
 # ===============================================================================
 @dataclass
 class ZRTeamRider:
-  """Individual team member from a ZwiftRanking team roster.
+  """Individual team member from a Zwiftracing team roster.
 
   Represents a single team member with their basic info and current ratings.
 
@@ -101,7 +101,7 @@ class ZRTeamRider:
 # ===============================================================================
 @dataclass
 class ZRTeam(ZR_obj):
-  """Team roster data from ZwiftRanking API.
+  """Team roster data from Zwiftracing API.
 
   Represents a Zwift team/club with all member information including
   their ratings, power metrics, and category rankings.
@@ -124,10 +124,10 @@ class ZRTeam(ZR_obj):
 
   # -----------------------------------------------------------------------
   def fetch(self, team_id: int | None = None) -> None:
-    """Fetch team roster data from the ZwiftRanking API.
+    """Fetch team roster data from the Zwiftracing API.
 
     Fetches all team members and their data for a specific team ID from
-    the ZwiftRanking API.
+    the Zwiftracing API.
 
     Args:
       team_id: The team ID to fetch (uses self.team_id if not provided)
@@ -154,7 +154,7 @@ class ZRTeam(ZR_obj):
     config.load()
     if not config.authorization:
       raise ZRConfigError(
-        'ZwiftRanking authorization not found. Please run "zrdata config" to set it up.',
+        'Zwiftracing authorization not found. Please run "zrdata config" to set it up.',
       )
 
     logger.debug(f'Fetching team roster for team_id={self.team_id}')

@@ -1,6 +1,6 @@
 """Configuration management for zrdatafetch.
 
-Manages ZwiftRanking API authorization credentials using the system keyring
+Manages Zwiftracing API authorization credentials using the system keyring
 for secure storage.
 """
 
@@ -17,7 +17,7 @@ logger = get_logger(__name__)
 
 # ===============================================================================
 class Config:
-  """Manages ZwiftRanking API credentials using system keyring.
+  """Manages Zwiftracing API credentials using system keyring.
 
   Stores and retrieves the authorization header from the system keyring
   service, providing secure credential management for the zrdatafetch
@@ -25,7 +25,7 @@ class Config:
 
   Attributes:
     domain: Keyring service name (default: 'zrdatafetch')
-    authorization: ZwiftRanking API authorization header value
+    authorization: Zwiftracing API authorization header value
     kr: Reference to the active keyring backend
   """
 
@@ -97,22 +97,22 @@ class Config:
 
   # -----------------------------------------------------------------------
   def setup(self, authorization: str = '') -> None:
-    """Configure ZwiftRanking API authorization interactively or programmatically.
+    """Configure Zwiftracing API authorization interactively or programmatically.
 
     If authorization is not provided, prompts the user interactively.
     Saves authorization to keyring after collection.
 
     Args:
-      authorization: ZwiftRanking API authorization header (prompts if empty)
+      authorization: Zwiftracing API authorization header (prompts if empty)
     """
-    logger.info('Setting up ZwiftRanking authorization')
+    logger.info('Setting up Zwiftracing authorization')
 
     if authorization:
       self.authorization = authorization
       logger.debug('Using provided authorization')
     else:
       self.authorization = getpass(
-        'ZwiftRanking API authorization header (for use with zrdatafetch): ',
+        'Zwiftracing API authorization header (for use with zrdatafetch): ',
       )
       logger.debug('Authorization entered interactively')
 

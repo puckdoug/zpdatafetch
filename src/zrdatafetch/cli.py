@@ -1,4 +1,4 @@
-"""Command-line interface for fetching ZwiftRanking data.
+"""Command-line interface for fetching Zwiftracing data.
 
 This module provides a unified CLI for accessing zrdatafetch functionality
 including rider ratings, race results, and team rosters.
@@ -30,7 +30,7 @@ def main() -> int | None:
     None on success, or exit code on error
   """
   desc = """
-Module for fetching ZwiftRanking data using the ZwiftRanking API
+Module for fetching Zwiftracing data using the Zwiftracing API
   """
   p = ArgumentParser(description=desc)
   p.add_argument(
@@ -61,6 +61,17 @@ Module for fetching ZwiftRanking data using the ZwiftRanking API
     '--noaction',
     action='store_true',
     help='report what would be done without actually fetching data',
+  )
+  p.add_argument(
+    '--batch',
+    action='store_true',
+    help='use batch POST endpoint for multiple IDs (rider command only)',
+  )
+  p.add_argument(
+    '--batch-file',
+    type=str,
+    metavar='FILE',
+    help='read IDs from file (one per line) for batch request (rider command only)',
   )
   p.add_argument(
     'cmd',
@@ -97,31 +108,61 @@ Module for fetching ZwiftRanking data using the ZwiftRanking API
         print('Authorization configured successfully')
       return None
     case 'rider':
+      # Handle batch file input
+      if args.batch_file:
+        try:
+          with open(args.batch_file) as f:
+            args.id = [line.strip() for line in f if line.strip()]
+        except OSError as e:
+          print(f'Error reading batch file: {e}')
+          return 1
+
       if not args.id:
         print('Error: rider command requires at least one ID')
         return 1
 
       if args.noaction:
-        print(f'Would fetch rider data for: {", ".join(args.id)}')
+        if args.batch or args.batch_file:
+          print(f'Would fetch {len(args.id)} riders using batch POST')
+        else:
+          print(f'Would fetch rider data for: {", ".join(args.id)}')
         if args.raw:
           print('(raw output format)')
         return None
 
-      # Fetch and display rider data
-      for zwift_id in args.id:
+      # Handle batch request
+      if args.batch or args.batch_file:
         try:
-          rider = ZRRider(zwift_id=int(zwift_id))
-          rider.fetch()
-          if args.raw:
-            print(rider.to_dict())
-          else:
-            print(rider.json())
-        except ValueError:
-          print(f'Error: Invalid Zwift ID: {zwift_id}')
+          # Convert IDs to integers for batch fetch
+          rider_ids = [int(rid) for rid in args.id]
+          riders = ZRRider.fetch_batch(*rider_ids)
+          for zwift_id, rider in riders.items():
+            if args.raw:
+              print(rider.to_dict())
+            else:
+              print(rider.json())
+        except ValueError as e:
+          print(f'Error: Invalid Zwift ID in batch: {e}')
           return 1
         except Exception as e:
-          print(f'Error fetching rider {zwift_id}: {e}')
+          print(f'Error fetching batch: {e}')
           return 1
+      else:
+        # Fetch and display rider data individually
+        for zwift_id in args.id:
+          try:
+            rider = ZRRider(zwift_id=int(zwift_id))
+            rider.fetch()
+            if args.raw:
+              print(rider.to_dict())
+            else:
+              print(rider.json())
+          except ValueError:
+            print(f'Error: Invalid Zwift ID: {zwift_id}')
+            return 1
+          except Exception as e:
+            print(f'Error fetching rider {zwift_id}: {e}')
+            return 1
     case 'result':
       if not args.id:
         print('Error: result command requires at least one ID')

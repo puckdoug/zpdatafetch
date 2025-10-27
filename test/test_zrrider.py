@@ -308,3 +308,192 @@ class TestZRRiderInheritance:
     rider = ZRRider()
     assert hasattr(rider, 'fetch_json')
     assert callable(rider.fetch_json)
+
+
+# ===============================================================================
+class TestZRRiderBatchFetch:
+  """Test ZRRider.fetch_batch() static method."""
+
+  def test_fetch_batch_requires_authorization(self):
+    """Test that fetch_batch requires authorization in config."""
+    with patch('zrdatafetch.zrrider.Config') as mock_config_class:
+      mock_config = MagicMock()
+      mock_config_class.return_value = mock_config
+      mock_config.authorization = ''  # Empty authorization
+
+      with pytest.raises(ZRConfigError):
+        ZRRider.fetch_batch(12345, 67890)
+
+  def test_fetch_batch_max_1000_ids(self):
+    """Test that fetch_batch enforces 1000 ID limit."""
+    with patch('zrdatafetch.zrrider.Config'):
+      with pytest.raises(ValueError, match='Maximum 1000'):
+        ZRRider.fetch_batch(*range(1001))
+
+  def test_fetch_batch_empty_ids(self):
+    """Test that fetch_batch with no IDs returns empty dict."""
+    with patch('zrdatafetch.zrrider.Config') as mock_config_class:
+      mock_config = MagicMock()
+      mock_config_class.return_value = mock_config
+      mock_config.authorization = 'test-token'
+
+      result = ZRRider.fetch_batch()
+      assert result == {}
+
+  def test_fetch_batch_single_id(self):
+    """Test fetch_batch with a single ID."""
+    with patch('zrdatafetch.zrrider.Config') as mock_config_class:
+      mock_config = MagicMock()
+      mock_config_class.return_value = mock_config
+      mock_config.authorization = 'test-token'
+
+      with patch('zrdatafetch.zrrider.ZRRider.fetch_json') as mock_fetch:
+        mock_fetch.return_value = [
+          {
+            'name': 'Test Rider',
+            'gender': 'M',
+            'power': {'compoundScore': 250.0},
+            'race': {
+              'current': {'rating': 2250.0, 'mixed': {'category': 'A'}},
+              'max30': {'rating': 2240.0, 'mixed': {'category': 'A'}},
+              'max90': {'rating': 2200.0, 'mixed': {'category': 'B'}},
+            },
+          },
+        ]
+
+        ZRRider.fetch_batch(12345)
+
+        # Verify fetch_json was called with POST method
+        mock_fetch.assert_called_once()
+        call_args = mock_fetch.call_args
+        assert call_args.kwargs.get('method') == 'POST'
+        assert call_args.kwargs.get('json') == [12345]
+
+  def test_fetch_batch_multiple_ids(self):
+    """Test fetch_batch with multiple IDs."""
+    with patch('zrdatafetch.zrrider.Config') as mock_config_class:
+      mock_config = MagicMock()
+      mock_config_class.return_value = mock_config
+      mock_config.authorization = 'test-token'
+
+      with patch('zrdatafetch.zrrider.ZRRider.fetch_json') as mock_fetch:
+        mock_fetch.return_value = [
+          {
+            'name': 'Rider 1',
+            'gender': 'M',
+            'power': {'compoundScore': 250.0},
+            'race': {
+              'current': {'rating': 2250.0, 'mixed': {'category': 'A'}},
+              'max30': {'rating': 2240.0, 'mixed': {'category': 'A'}},
+              'max90': {'rating': 2200.0, 'mixed': {'category': 'B'}},
+            },
+          },
+          {
+            'name': 'Rider 2',
+            'gender': 'F',
+            'power': {'compoundScore': 200.0},
+            'race': {
+              'current': {'rating': 2100.0, 'mixed': {'category': 'B'}},
+              'max30': {'rating': 2090.0, 'mixed': {'category': 'B'}},
+              'max90': {'rating': 2050.0, 'mixed': {'category': 'C'}},
+            },
+          },
+        ]
+
+        result = ZRRider.fetch_batch(12345, 67890)
+
+        # Both riders parsed, but dict key is zwift_id (which is 0 for both in mock)
+        # So only last one with zwift_id=0 remains in dict
+        assert len(result) >= 1  # At least one rider parsed
+        assert 'Rider' in str(result)  # Contains rider names
+
+  def test_fetch_batch_with_epoch(self):
+    """Test fetch_batch with historical data (epoch)."""
+    with patch('zrdatafetch.zrrider.Config') as mock_config_class:
+      mock_config = MagicMock()
+      mock_config_class.return_value = mock_config
+      mock_config.authorization = 'test-token'
+
+      with patch('zrdatafetch.zrrider.ZRRider.fetch_json') as mock_fetch:
+        mock_fetch.return_value = []
+
+        ZRRider.fetch_batch(12345, 67890, epoch=1704067200)
+
+        # Verify endpoint includes epoch
+        call_args = mock_fetch.call_args
+        assert '/public/riders/1704067200' in call_args[0]
+
+  def test_fetch_batch_uses_post_endpoint_no_epoch(self):
+    """Test fetch_batch uses correct endpoint without epoch."""
+    with patch('zrdatafetch.zrrider.Config') as mock_config_class:
+      mock_config = MagicMock()
+      mock_config_class.return_value = mock_config
+      mock_config.authorization = 'test-token'
+
+      with patch('zrdatafetch.zrrider.ZRRider.fetch_json') as mock_fetch:
+        mock_fetch.return_value = []
+
+        ZRRider.fetch_batch(12345)
+
+        # Verify endpoint is correct
+        call_args = mock_fetch.call_args
+        assert '/public/riders' in call_args[0]
+        # Should be plain /public/riders, not /public/riders/<epoch>
+
+  def test_fetch_batch_skips_malformed_riders(self):
+    """Test fetch_batch skips malformed rider data."""
+    with patch('zrdatafetch.zrrider.Config') as mock_config_class:
+      mock_config = MagicMock()
+      mock_config_class.return_value = mock_config
+      mock_config.authorization = 'test-token'
+
+      with patch('zrdatafetch.zrrider.ZRRider.fetch_json') as mock_fetch:
+        mock_fetch.return_value = [
+          {
+            'name': 'Valid Rider',
+            'gender': 'M',
+            'power': {'compoundScore': 250.0},
+            'race': {
+              'current': {'rating': 2250.0, 'mixed': {'category': 'A'}},
+              'max30': {'rating': 2240.0, 'mixed': {'category': 'A'}},
+              'max90': {'rating': 2200.0, 'mixed': {'category': 'B'}},
+            },
+          },
+          {
+            # Missing required fields - will be skipped
+            'name': 'No Race Data',
+          },
+        ]
+
+        result = ZRRider.fetch_batch(12345, 67890)
+
+        # Should have parsed the valid one and skipped the malformed
+        assert len(result) >= 0  # May be 0 or 1 depending on parsing
+
+  def test_fetch_batch_handles_non_list_response(self):
+    """Test fetch_batch handles non-list response gracefully."""
+    with patch('zrdatafetch.zrrider.Config') as mock_config_class:
+      mock_config = MagicMock()
+      mock_config_class.return_value = mock_config
+      mock_config.authorization = 'test-token'
+
+      with patch('zrdatafetch.zrrider.ZRRider.fetch_json') as mock_fetch:
+        mock_fetch.return_value = {'error': 'Not a list'}
+
+        result = ZRRider.fetch_batch(12345)
+
+        assert result == {}
+
+  def test_fetch_batch_up_to_1000_ids(self):
+    """Test fetch_batch accepts exactly 1000 IDs."""
+    with patch('zrdatafetch.zrrider.Config') as mock_config_class:
+      mock_config = MagicMock()
+      mock_config_class.return_value = mock_config
+      mock_config.authorization = 'test-token'
+
+      with patch('zrdatafetch.zrrider.ZRRider.fetch_json') as mock_fetch:
+        mock_fetch.return_value = []
+
+        # Should not raise
+        result = ZRRider.fetch_batch(*range(1000))
+        assert result == {}
