@@ -1,268 +1,281 @@
-import http.client
-import json
-import sys
-import time
-from argparse import ArgumentParser
-from pprint import pprint
-from typing import ClassVar
+"""ZwiftRanking team roster data fetching and management.
 
-import chardet
-from pydantic import BaseModel, PrivateAttr
+This module provides the ZRTeam class for fetching and storing team/club
+roster data from the ZwiftRanking API, including all team member details
+and their current ratings.
+"""
 
-SITE: str = 'zwift-ranking.herokuapp.com'
-PATH: str = '/public/clubs'
+from dataclasses import asdict, dataclass, field
+from typing import Any
 
-sys.path.append('./etc')
-try:
-  from credentials import header
-except Exception as e:
-  print(e)  # noqa: T201
+from zrdatafetch.config import Config
+from zrdatafetch.exceptions import ZRConfigError, ZRNetworkError
+from zrdatafetch.logging_config import get_logger
+from zrdatafetch.zr import ZR_obj
+
+logger = get_logger(__name__)
 
 
 # ===============================================================================
+@dataclass
+class ZRTeamRider:
+  """Individual team member from a ZwiftRanking team roster.
+
+  Represents a single team member with their basic info and current ratings.
+
+  Attributes:
+    zwift_id: Rider's Zwift ID
+    name: Rider's display name
+    gender: Rider's gender (M/F)
+    height: Height in cm
+    weight: Weight in kg
+    current_rating: Current category rating
+    current_category_mixed: Current mixed category
+    current_category_womens: Current women's category (if applicable)
+    max30_rating: Max30 rating
+    max30_category_mixed: Max30 mixed category
+    max30_category_womens: Max30 women's category
+    max90_rating: Max90 rating
+    max90_category_mixed: Max90 mixed category
+    max90_category_womens: Max90 women's category
+    power_awc: Anaerobic work capacity (watts)
+    power_cp: Critical power (watts)
+    power_cs: Compound score
+    power_w5: 5-second power (watts)
+    power_w15: 15-second power
+    power_w30: 30-second power
+    power_w60: 60-second power
+    power_w120: 2-minute power
+    power_w300: 5-minute power
+    power_w1200: 20-minute power
+    power_wkg5: 5-second power per kg
+    power_wkg15: 15-second power per kg
+    power_wkg30: 30-second power per kg
+    power_wkg60: 60-second power per kg
+    power_wkg120: 2-minute power per kg
+    power_wkg300: 5-minute power per kg
+    power_wkg1200: 20-minute power per kg
+  """
+
+  zwift_id: int = 0
+  name: str = ''
+  gender: str = 'M'
+  height: float = 0.0
+  weight: float = 0.0
+  current_rating: float = 0.0
+  current_category_mixed: str = ''
+  current_category_womens: str = ''
+  max30_rating: float = 0.0
+  max30_category_mixed: str = ''
+  max30_category_womens: str = ''
+  max90_rating: float = 0.0
+  max90_category_mixed: str = ''
+  max90_category_womens: str = ''
+  power_awc: float = 0.0
+  power_cp: float = 0.0
+  power_cs: float = 0.0
+  power_w5: float = 0.0
+  power_w15: float = 0.0
+  power_w30: float = 0.0
+  power_w60: float = 0.0
+  power_w120: float = 0.0
+  power_w300: float = 0.0
+  power_w1200: float = 0.0
+  power_wkg5: float = 0.0
+  power_wkg15: float = 0.0
+  power_wkg30: float = 0.0
+  power_wkg60: float = 0.0
+  power_wkg120: float = 0.0
+  power_wkg300: float = 0.0
+  power_wkg1200: float = 0.0
+
+  def to_dict(self) -> dict[str, Any]:
+    """Return dictionary representation of team rider.
+
+    Returns:
+      Dictionary with all attributes
+    """
+    return asdict(self)
 
 
-class ZRTeam(BaseModel):
+# ===============================================================================
+@dataclass
+class ZRTeam(ZR_obj):
+  """Team roster data from ZwiftRanking API.
+
+  Represents a Zwift team/club with all member information including
+  their ratings, power metrics, and category rankings.
+
+  Attributes:
+    team_id: The team/club ID
+    team_name: Name of the team/club
+    riders: List of ZRTeamRider objects for team members
+  """
+
+  # Public attributes (in __init__)
   team_id: int = 0
-  first_rider_id: int = 0
   team_name: str = ''
-  riders: list | None = []
-  _url: str = PrivateAttr(default=f'https://{SITE}{PATH}/{team_id}')
-  _verbose: bool = PrivateAttr(default=False)
-  _response: http.client.HTTPResponse = PrivateAttr()
-  _raw: str = PrivateAttr()
-  _team: str = PrivateAttr()
+  riders: list[ZRTeamRider] = field(default_factory=list)
 
-  # make connection a class variable to allow reuse when fetching multiple IDs
-  conn: ClassVar[http.client.HTTPSConnection] = http.client.HTTPSConnection(SITE)
+  # Private attributes (not in __init__)
+  _raw: dict = field(default_factory=dict, init=False, repr=False)
+  _team: dict = field(default_factory=dict, init=False, repr=False)
+  _verbose: bool = field(default=False, init=False, repr=False)
 
-  def __init__(self, **kwargs):
-    self._team = None
-    super().__init__(**kwargs)
-    if self.team_id != 0:
-      self.fetch()
+  # -----------------------------------------------------------------------
+  def fetch(self, team_id: int | None = None) -> None:
+    """Fetch team roster data from the ZwiftRanking API.
 
-  # -------------------------------------------------------------------------------
-  def verbose(self, *args: bool) -> bool:
-    for arg in args:
-      self._verbose = arg
-    return self._verbose
+    Fetches all team members and their data for a specific team ID from
+    the ZwiftRanking API.
 
-  # -------------------------------------------------------------------------------
-  def url(self) -> str:
-    return self._url
+    Args:
+      team_id: The team ID to fetch (uses self.team_id if not provided)
 
-  # -------------------------------------------------------------------------------
-  def fetch(self):
-    while True:
-      self._url = f'{PATH}/{self.team_id}/{self.first_rider_id}'
-      if self._verbose is True:
-        print(f'Fetching: {self._url}')
+    Raises:
+      ZRNetworkError: If the API request fails
+      ZRConfigError: If authorization is not configured
 
-      ZRTeam.conn.request('GET', self._url, headers=header)
-      self._response = ZRTeam.conn.getresponse()
-      if self._response.status != 200:
-        print(self._response.status, self._response.reason)
-        sys.exit(0)
+    Example:
+      team = ZRTeam()
+      team.fetch(team_id=456)
+      print(team.json())
+    """
+    # Use provided value or default
+    if team_id is not None:
+      self.team_id = team_id
 
-      self._raw = self._response.read()
+    if self.team_id == 0:
+      logger.warning('No team_id provided for fetch')
+      return
 
-      enc = chardet.detect(self._raw)['encoding']
-      try:
-        self._team = json.loads(self._raw.decode(encoding=enc))
-      except Exception as e:
-        print(e)
-        sys.exit(1)
+    # Get authorization from config
+    config = Config()
+    config.load()
+    if not config.authorization:
+      raise ZRConfigError(
+        'ZwiftRanking authorization not found. Please run "zrdata config" to set it up.',
+      )
 
-      if self._team is not None:
-        self.team_name = self._team['name']
-        r = {}
-        for rider in self._team['riders']:
-          r = {}
-          r['zwift_id'] = rider['riderId']
-          r['name'] = rider['name']
-          r['gender'] = rider['gender']
-          r['height'] = rider['height']
-          r['weight'] = rider['weight']
-          try:
-            r['current_mixed_category'] = rider['race']['current']['mixed']['category']
-          except KeyError:
-            r['current_mixed_category'] = ''
-          try:
-            r['current_womens_category'] = rider['race']['current']['womens'][
-              'category'
-            ]
-          except KeyError:
-            r['current_womens_category'] = ''
-          try:
-            r['current_rating'] = rider['race']['current']['rating']
-          except KeyError:
-            r['current_rating'] = 0.0
-          try:
-            r['max30_mixed_category'] = rider['race']['max30']['mixed']['category']
-          except KeyError:
-            r['max30_mixed_category'] = ''
-          try:
-            r['max30_womens_category'] = rider['race']['max30']['womens']['category']
-          except KeyError:
-            r['max30_womens_category'] = ''
-          try:
-            r['max30_rating'] = rider['race']['max30']['rating']
-          except KeyError:
-            r['max30_rating'] = 0.0
-          try:
-            r['max90_mixed_category'] = rider['race']['max90']['mixed']['category']
-          except KeyError:
-            r['max90_mixed_category'] = ''
-          try:
-            r['max90_womens_category'] = rider['race']['max90']['womens']['category']
-          except KeyError:
-            r['max90_womens_category'] = ''
-          try:
-            r['max90_rating'] = rider['race']['max90']['rating']
-          except KeyError:
-            r['max90_rating'] = 0.0
-          try:
-            r['power_AWC'] = rider['power']['AWC']
-          except KeyError:
-            r['power_AWC'] = 0.0
-          try:
-            r['power_CP'] = rider['power']['CP']
-          except KeyError:
-            r['power_CP'] = 0.0
-          try:
-            r['power_CS'] = rider['power']['compoundScore']
-          except KeyError:
-            r['power_CS'] = 0.0
-          try:
-            r['power_w120'] = rider['power']['w120']
-          except KeyError:
-            r['power_w120'] = 0
-          try:
-            r['power_w1200'] = rider['power']['w1200']
-          except KeyError:
-            r['power_w1200'] = 0
-          try:
-            r['power_w15'] = rider['power']['w15']
-          except KeyError:
-            r['power_w15'] = 0
-          try:
-            r['power_w30'] = rider['power']['w30']
-          except KeyError:
-            r['power_w30'] = 0
-          try:
-            r['power_w300'] = rider['power']['w300']
-          except KeyError:
-            r['power_w300'] = 0
-          try:
-            r['power_w5'] = rider['power']['w5']
-          except KeyError:
-            r['power_w5'] = 0
-          try:
-            r['power_w60'] = rider['power']['w60']
-          except KeyError:
-            r['power_w60'] = 0
-          try:
-            r['power_wkg120'] = rider['power']['wkg120']
-          except KeyError:
-            r['power_wkg120'] = 0.0
-          try:
-            r['power_wkg1200'] = rider['power']['wkg1200']
-          except KeyError:
-            r['power_wkg1200'] = 0.0
-          try:
-            r['power_wkg15'] = rider['power']['wkg15']
-          except KeyError:
-            r['power_wkg15'] = 0.0
-          try:
-            r['power_wkg30'] = rider['power']['wkg30']
-          except KeyError:
-            r['power_wkg30'] = 0.0
-          try:
-            r['power_wkg300'] = rider['power']['wkg300']
-          except KeyError:
-            r['power_wkg300'] = 0.0
-          try:
-            r['power_wkg5'] = rider['power']['wkg5']
-          except KeyError:
-            r['power_wkg5'] = 0.0
-          try:
-            r['power_wkg60'] = rider['power']['wkg60']
-          except KeyError:
-            r['power_wkg60'] = 0.0
-          self.riders.append(r)
+    logger.debug(f'Fetching team roster for team_id={self.team_id}')
 
-          if self.verbose:
-            print(f'{r["zwift_id"]} {r["name"]}')
+    # Endpoint is /public/clubs/{team_id}/0 (0 is starting rider offset)
+    endpoint = f'/public/clubs/{self.team_id}/0'
 
+    # Fetch JSON from API
+    headers = {'Authorization': config.authorization}
+    try:
+      self._raw = self.fetch_json(endpoint, headers=headers)
+    except ZRNetworkError as e:
+      logger.error(f'Failed to fetch team roster: {e}')
+      raise
+
+    # Parse response
+    self._parse_response()
+
+  # -----------------------------------------------------------------------
+  def _parse_response(self) -> None:
+    """Parse API response into team and rider objects.
+
+    Extracts team information and all team member data from the raw API
+    response and creates ZRTeamRider objects for each member.
+    """
+    if not self._raw:
+      logger.warning('No data to parse')
+      return
+
+    self._team = self._raw
+
+    # Check for error in response
+    if isinstance(self._team, dict) and 'message' in self._team:
+      logger.error(f"API error: {self._team['message']}")
+      return
+
+    # Response should be a dict with team info
+    if not isinstance(self._team, dict):
+      logger.warning('Expected dict response, got different format')
+      return
+
+    try:
+      # Extract team name
+      self.team_name = self._team.get('name', '')
+
+      # Parse riders list
+      riders_list = self._team.get('riders', [])
+      if not isinstance(riders_list, list):
+        logger.warning('Expected riders to be a list')
+        return
+
+      for rider_data in riders_list:
         try:
-          if self.first_rider_id == r['zwift_id']:
-            return
-          self.first_rider_id = r['zwift_id'] + 1
-          time.sleep(5)
-        except KeyError:
-          return
+          # Extract nested structures safely
+          race = rider_data.get('race', {})
+          current = race.get('current', {})
+          max30 = race.get('max30', {})
+          max90 = race.get('max90', {})
+          power = rider_data.get('power', {})
 
-  # -------------------------------------------------------------------------------
-  def raw(self):
-    enc = chardet.detect(self._raw)['encoding']
-    print(self._raw.decode(encoding=enc))
+          # Extract categories
+          current_mixed = current.get('mixed', {})
+          current_womens = current.get('womens', {})
+          max30_mixed = max30.get('mixed', {})
+          max30_womens = max30.get('womens', {})
+          max90_mixed = max90.get('mixed', {})
+          max90_womens = max90.get('womens', {})
 
-  # -------------------------------------------------------------------------------
-  def alldata(self):
-    pprint(self)
+          rider = ZRTeamRider(
+            zwift_id=rider_data.get('riderId', 0),
+            name=rider_data.get('name', ''),
+            gender=rider_data.get('gender', 'M'),
+            height=float(rider_data.get('height', 0.0)),
+            weight=float(rider_data.get('weight', 0.0)),
+            current_rating=float(current.get('rating', 0.0)),
+            current_category_mixed=current_mixed.get('category', ''),
+            current_category_womens=current_womens.get('category', ''),
+            max30_rating=float(max30.get('rating', 0.0)),
+            max30_category_mixed=max30_mixed.get('category', ''),
+            max30_category_womens=max30_womens.get('category', ''),
+            max90_rating=float(max90.get('rating', 0.0)),
+            max90_category_mixed=max90_mixed.get('category', ''),
+            max90_category_womens=max90_womens.get('category', ''),
+            power_awc=float(power.get('AWC', 0.0)),
+            power_cp=float(power.get('CP', 0.0)),
+            power_cs=float(power.get('compoundScore', 0.0)),
+            power_w5=float(power.get('w5', 0.0)),
+            power_w15=float(power.get('w15', 0.0)),
+            power_w30=float(power.get('w30', 0.0)),
+            power_w60=float(power.get('w60', 0.0)),
+            power_w120=float(power.get('w120', 0.0)),
+            power_w300=float(power.get('w300', 0.0)),
+            power_w1200=float(power.get('w1200', 0.0)),
+            power_wkg5=float(power.get('wkg5', 0.0)),
+            power_wkg15=float(power.get('wkg15', 0.0)),
+            power_wkg30=float(power.get('wkg30', 0.0)),
+            power_wkg60=float(power.get('wkg60', 0.0)),
+            power_wkg120=float(power.get('wkg120', 0.0)),
+            power_wkg300=float(power.get('wkg300', 0.0)),
+            power_wkg1200=float(power.get('wkg1200', 0.0)),
+          )
+          self.riders.append(rider)
+        except (KeyError, TypeError, ValueError) as e:
+          logger.warning(f'Skipping malformed rider in team: {e}')
+          continue
 
+      logger.debug(
+        f'Successfully parsed {len(self.riders)} team members from team_id={self.team_id}',
+      )
+    except Exception as e:
+      logger.error(f'Error parsing response: {e}')
 
-# ===============================================================================
-def main():
-  p = ArgumentParser(description="module to fetch a rider's Zwiftrace ranking")
-  p.add_argument(
-    '--verbose',
-    '-v',
-    action='store_const',
-    const=True,
-    help='produce verbose results',
-  )
-  p.add_argument(
-    '--raw',
-    '-r',
-    action='store_const',
-    const=True,
-    help='print raw data returned for a rider',
-  )
-  p.add_argument(
-    '--url',
-    '-u',
-    action='store_const',
-    const=True,
-    help='print the URL that will be called',
-  )
-  p.add_argument(
-    '--alldata',
-    '-a',
-    action='store_const',
-    const=True,
-    help='print all returned data for a rider',
-  )
-  p.add_argument('team_id', help='Team ID to look up')
-  args = p.parse_args()
+  # -----------------------------------------------------------------------
+  def to_dict(self) -> dict[str, Any]:
+    """Return dictionary representation excluding private attributes.
 
-  if args.verbose:
-    team = ZRTeam(team_id=args.team_id, verbose=True)
-  else:
-    team = ZRTeam(team_id=args.team_id, verbose=False)
-
-  if args.url:
-    print(team.url())
-    sys.exit(0)
-
-  if args.raw:
-    team.raw()
-
-  if args.alldata:
-    team.alldata()
-
-
-# ===============================================================================
-if __name__ == '__main__':
-  main()
+    Returns:
+      Dictionary with all public attributes and riders as dicts
+    """
+    return {
+      'team_id': self.team_id,
+      'team_name': self.team_name,
+      'riders': [r.to_dict() for r in self.riders],
+    }

@@ -29,7 +29,9 @@ from zrdatafetch.exceptions import (
 )
 from zrdatafetch.logging_config import setup_logging
 from zrdatafetch.zr import ZR_obj
+from zrdatafetch.zrresult import ZRResult, ZRRiderResult
 from zrdatafetch.zrrider import ZRRider
+from zrdatafetch.zrteam import ZRTeam, ZRTeamRider
 
 __all__ = [
   # Base classes
@@ -38,12 +40,14 @@ __all__ = [
   'Config',
   # Data classes
   'ZRRider',
+  'ZRResult',
+  'ZRRiderResult',
+  'ZRTeam',
+  'ZRTeamRider',
   # Exceptions
   'ZRAuthenticationError',
   'ZRNetworkError',
   'ZRConfigError',
   # Logging
   'setup_logging',
-  # Note: Data classes (ZRResult, ZRTeam) will be added
-  # when they are refactored to use dataclasses and inherit from ZR_obj
 ]

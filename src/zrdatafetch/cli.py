@@ -13,11 +13,8 @@ import logging
 import sys
 from argparse import ArgumentParser
 
-from zrdatafetch import Config, ZRRider
+from zrdatafetch import Config, ZRResult, ZRRider, ZRTeam
 from zrdatafetch.logging_config import setup_logging
-
-# Note: ZRResult and ZRTeam will be imported once they are refactored
-# from zrdatafetch import ZRResult, ZRTeam
 
 
 # ===============================================================================
@@ -126,13 +123,57 @@ Module for fetching ZwiftRanking data using the ZwiftRanking API
           print(f'Error fetching rider {zwift_id}: {e}')
           return 1
     case 'result':
-      # TODO: Implement result command
-      print('Result command not yet implemented')
-      return 1
+      if not args.id:
+        print('Error: result command requires at least one ID')
+        return 1
+
+      if args.noaction:
+        print(f'Would fetch result data for: {", ".join(args.id)}')
+        if args.raw:
+          print('(raw output format)')
+        return None
+
+      # Fetch and display result data
+      for race_id in args.id:
+        try:
+          result = ZRResult(race_id=int(race_id))
+          result.fetch()
+          if args.raw:
+            print(result.to_dict())
+          else:
+            print(result.json())
+        except ValueError:
+          print(f'Error: Invalid race ID: {race_id}')
+          return 1
+        except Exception as e:
+          print(f'Error fetching result {race_id}: {e}')
+          return 1
     case 'team':
-      # TODO: Implement team command
-      print('Team command not yet implemented')
-      return 1
+      if not args.id:
+        print('Error: team command requires at least one ID')
+        return 1
+
+      if args.noaction:
+        print(f'Would fetch team data for: {", ".join(args.id)}')
+        if args.raw:
+          print('(raw output format)')
+        return None
+
+      # Fetch and display team data
+      for team_id in args.id:
+        try:
+          team = ZRTeam(team_id=int(team_id))
+          team.fetch()
+          if args.raw:
+            print(team.to_dict())
+          else:
+            print(team.json())
+        except ValueError:
+          print(f'Error: Invalid team ID: {team_id}')
+          return 1
+        except Exception as e:
+          print(f'Error fetching team {team_id}: {e}')
+          return 1
     case _:
       # No command specified
       return None

@@ -168,40 +168,6 @@ class TestZRDataLoggingOptions:
 
 
 # ===============================================================================
-class TestZRDataResultCommand:
-  """Test zrdata result command (not yet implemented)."""
-
-  def test_result_command_not_implemented(self):
-    """Test result command reports not implemented."""
-    result = subprocess.run(
-      ['zrdata', 'result', '123'],
-      capture_output=True,
-      text=True,
-      timeout=5,
-      check=False,
-    )
-    assert result.returncode == 1
-    assert 'not yet implemented' in result.stdout.lower()
-
-
-# ===============================================================================
-class TestZRDataTeamCommand:
-  """Test zrdata team command (not yet implemented)."""
-
-  def test_team_command_not_implemented(self):
-    """Test team command reports not implemented."""
-    result = subprocess.run(
-      ['zrdata', 'team', '123'],
-      capture_output=True,
-      text=True,
-      timeout=5,
-      check=False,
-    )
-    assert result.returncode == 1
-    assert 'not yet implemented' in result.stdout.lower()
-
-
-# ===============================================================================
 class TestZRDataIntegration:
   """Integration tests combining multiple features."""
 
@@ -228,3 +194,135 @@ class TestZRDataIntegration:
     )
     output = result.stdout + result.stderr
     assert 'rider' in output.lower()
+
+
+# ===============================================================================
+class TestZRDataResultCommand:
+  """Test zrdata result command."""
+
+  def test_result_no_id(self):
+    """Test result command without ID produces error."""
+    result = subprocess.run(
+      ['zrdata', 'result'],
+      capture_output=True,
+      text=True,
+      timeout=5,
+      check=False,
+    )
+    assert result.returncode == 1
+    assert 'Error' in result.stdout or 'Error' in result.stderr
+
+  def test_result_noaction_single_id(self):
+    """Test result command with --noaction flag (no network)."""
+    result = subprocess.run(
+      ['zrdata', 'result', '--noaction', '3590800'],
+      capture_output=True,
+      text=True,
+      timeout=5,
+      check=False,
+    )
+    assert result.returncode == 0
+    assert 'Would fetch result data for: 3590800' in result.stdout
+
+  def test_result_noaction_multiple_ids(self):
+    """Test result command with multiple IDs and --noaction."""
+    result = subprocess.run(
+      ['zrdata', 'result', '--noaction', '123', '456', '789'],
+      capture_output=True,
+      text=True,
+      timeout=5,
+      check=False,
+    )
+    assert result.returncode == 0
+    assert 'Would fetch result data for: 123, 456, 789' in result.stdout
+
+  def test_result_noaction_with_raw_flag(self):
+    """Test result command with --noaction and --raw flags."""
+    result = subprocess.run(
+      ['zrdata', 'result', '--noaction', '--raw', '3590800'],
+      capture_output=True,
+      text=True,
+      timeout=5,
+      check=False,
+    )
+    assert result.returncode == 0
+    assert 'Would fetch result data for: 3590800' in result.stdout
+    assert 'raw output format' in result.stdout
+
+  def test_result_invalid_id(self):
+    """Test result command with invalid (non-numeric) ID."""
+    result = subprocess.run(
+      ['zrdata', 'result', '--noaction', 'invalid'],
+      capture_output=True,
+      text=True,
+      timeout=5,
+      check=False,
+    )
+    # Should succeed with --noaction (no conversion happens)
+    assert result.returncode == 0
+
+
+# ===============================================================================
+class TestZRDataTeamCommand:
+  """Test zrdata team command."""
+
+  def test_team_no_id(self):
+    """Test team command without ID produces error."""
+    result = subprocess.run(
+      ['zrdata', 'team'],
+      capture_output=True,
+      text=True,
+      timeout=5,
+      check=False,
+    )
+    assert result.returncode == 1
+    assert 'Error' in result.stdout or 'Error' in result.stderr
+
+  def test_team_noaction_single_id(self):
+    """Test team command with --noaction flag (no network)."""
+    result = subprocess.run(
+      ['zrdata', 'team', '--noaction', '456'],
+      capture_output=True,
+      text=True,
+      timeout=5,
+      check=False,
+    )
+    assert result.returncode == 0
+    assert 'Would fetch team data for: 456' in result.stdout
+
+  def test_team_noaction_multiple_ids(self):
+    """Test team command with multiple IDs and --noaction."""
+    result = subprocess.run(
+      ['zrdata', 'team', '--noaction', '111', '222', '333'],
+      capture_output=True,
+      text=True,
+      timeout=5,
+      check=False,
+    )
+    assert result.returncode == 0
+    assert 'Would fetch team data for: 111, 222, 333' in result.stdout
+
+  def test_team_noaction_with_raw_flag(self):
+    """Test team command with --noaction and --raw flags."""
+    result = subprocess.run(
+      ['zrdata', 'team', '--noaction', '--raw', '456'],
+      capture_output=True,
+      text=True,
+      timeout=5,
+      check=False,
+    )
+    assert result.returncode == 0
+    assert 'Would fetch team data for: 456' in result.stdout
+    assert 'raw output format' in result.stdout
+
+  def test_team_invalid_id(self):
+    """Test team command with invalid (non-numeric) ID."""
+    result = subprocess.run(
+      ['zrdata', 'team', '--noaction', 'invalid'],
+      capture_output=True,
+      text=True,
+      timeout=5,
+      check=False,
+    )
+    # Should succeed with --noaction (no conversion happens)
+    assert result.returncode == 0
