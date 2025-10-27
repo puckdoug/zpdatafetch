@@ -318,6 +318,99 @@ keyring set zrdatafetch authorization
 # Then enter your Zwiftracing API authorization header
 ```
 
+### Async Library API
+
+The library provides a full async/await API for concurrent operations using [anyio](https://anyio.readthedocs.io/) for backend-agnostic async support (asyncio or trio):
+
+```python
+import anyio
+from zrdatafetch import AsyncZRRider, AsyncZRResult, AsyncZRTeam, AsyncZR_obj
+
+async def main():
+    # Use async context manager for automatic resource cleanup
+    async with AsyncZR_obj() as zr:
+        # Fetch multiple resources concurrently
+        rider = AsyncZRRider()
+        result = AsyncZRResult()
+        team = AsyncZRTeam()
+
+        # Set shared session for all operations
+        rider.set_session(zr)
+        result.set_session(zr)
+        team.set_session(zr)
+
+        # Fetch multiple items concurrently using task group
+        async with anyio.create_task_group() as tg:
+            tg.start_soon(rider.fetch, 12345)
+            tg.start_soon(result.fetch, 3590800)
+            tg.start_soon(team.fetch, 456)
+
+        print(rider.json())
+        print(result.json())
+        print(team.json())
+
+# Run with asyncio (default)
+anyio.run(main)
+
+# Or use trio: pip install zpdatafetch[trio]
+# anyio.run(main, backend='trio')
+```
+
+**Async batch operations:**
+
+```python
+import anyio
+from zrdatafetch import AsyncZRRider, AsyncZR_obj
+
+async def main():
+    async with AsyncZR_obj() as zr:
+        # Batch fetch up to 1000 riders in one request
+        riders = await AsyncZRRider.fetch_batch(
+            12345, 67890, 11111,  # Up to 1000 IDs
+            zr=zr  # Use shared session
+        )
+        for zwift_id, rider in riders.items():
+            print(f"{rider.name}: {rider.current_rating}")
+
+        # Batch fetch with historical data
+        historical = await AsyncZRRider.fetch_batch(
+            12345, 67890,
+            epoch=1704067200,  # Unix timestamp
+            zr=zr
+        )
+
+anyio.run(main)
+```
+
+**Connection pooling:**
+
+For maximum efficiency with multiple async operations, use a shared client:
+
+```python
+import anyio
+from zrdatafetch import AsyncZRRider, AsyncZR_obj
+
+async def main():
+    # Create shared session for multiple operations
+    async with AsyncZR_obj(shared_client=True) as zr:
+        # All riders share the same HTTP connection pool
+        tasks = []
+        async with anyio.create_task_group() as tg:
+            for zwift_id in [12345, 67890, 11111]:
+                rider = AsyncZRRider()
+                rider.set_session(zr)
+                tg.start_soon(rider.fetch, zwift_id)
+
+anyio.run(main)
+```
+
+**Available async classes:**
+
+- `AsyncZR_obj`: Async base class with httpx.AsyncClient support
+- `AsyncZRRider`: Async rider ratings fetching (with batch POST support)
+- `AsyncZRResult`: Async race results fetching
+- `AsyncZRTeam`: Async team roster fetching
+
 ### Async Library example
 
 The library also provides a full async/await API for concurrent operations:

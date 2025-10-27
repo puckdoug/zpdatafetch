@@ -21,6 +21,10 @@ For command-line usage:
   zrdata team 456
 """
 
+from zrdatafetch.async_zr import AsyncZR_obj
+from zrdatafetch.async_zrresult import AsyncZRResult
+from zrdatafetch.async_zrrider import AsyncZRRider
+from zrdatafetch.async_zrteam import AsyncZRTeam
 from zrdatafetch.config import Config
 from zrdatafetch.exceptions import (
   ZRAuthenticationError,
@@ -36,14 +40,19 @@ from zrdatafetch.zrteam import ZRTeam, ZRTeamRider
 __all__ = [
   # Base classes
   'ZR_obj',
+  'AsyncZR_obj',
   # Configuration
   'Config',
-  # Data classes
+  # Data classes (synchronous)
   'ZRRider',
   'ZRResult',
   'ZRRiderResult',
   'ZRTeam',
   'ZRTeamRider',
+  # Data classes (asynchronous)
+  'AsyncZRRider',
+  'AsyncZRResult',
+  'AsyncZRTeam',
   # Exceptions
   'ZRAuthenticationError',
   'ZRNetworkError',
