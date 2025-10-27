@@ -4,7 +4,7 @@ This module provides a unified CLI for accessing zrdatafetch functionality
 including rider ratings, race results, and team rosters.
 
 The CLI matches the zpdata interface:
-  zrdata rating <id>       Fetch rider rating
+  zrdata rider <id>        Fetch rider rating
   zrdata result <id>       Fetch race results
   zrdata team <id>         Fetch team roster
 """
@@ -13,11 +13,11 @@ import logging
 import sys
 from argparse import ArgumentParser
 
+from zrdatafetch import Config, ZRRider
 from zrdatafetch.logging_config import setup_logging
 
-# Note: Placeholder imports. These will be replaced with actual class imports
-# once the refactored classes are implemented.
-# from zrdatafetch import Config, ZRRating, ZRResult, ZRTeam
+# Note: ZRResult and ZRTeam will be imported once they are refactored
+# from zrdatafetch import ZRResult, ZRTeam
 
 
 # ===============================================================================
@@ -25,7 +25,7 @@ def main() -> int | None:
   """Main entry point for the zrdatafetch CLI.
 
   Provides commands for:
-    - rating: Fetch rider rating/ranking data by Zwift ID
+    - rider: Fetch rider rating/ranking data by Zwift ID
     - result: Fetch race results by event ID
     - team: Fetch team/club roster data by team ID
 
@@ -61,10 +61,15 @@ Module for fetching ZwiftRanking data using the ZwiftRanking API
     help='print the raw results returned to screen',
   )
   p.add_argument(
+    '--noaction',
+    action='store_true',
+    help='report what would be done without actually fetching data',
+  )
+  p.add_argument(
     'cmd',
     help='which command to run',
     nargs='?',
-    choices=('rating', 'result', 'team'),
+    choices=('config', 'rider', 'result', 'team'),
   )
   p.add_argument(
     'id',
@@ -83,29 +88,60 @@ Module for fetching ZwiftRanking data using the ZwiftRanking API
     setup_logging(log_file=args.log_file, force_console=False)
   # else: use default ERROR-only logging to stderr
 
-  # TODO: Implement command routing
-  # x: ZRRating | ZRResult | ZRTeam
-  #
-  # match args.cmd:
-  #   case 'rating':
-  #     x = ZRRating()
-  #   case 'result':
-  #     x = ZRResult()
-  #   case 'team':
-  #     x = ZRTeam()
-  #   case _:
-  #     sys.exit(0)
-  #
-  # x.fetch(*args.id)
-  #
-  # if args.raw:
-  #   print(x.raw)
-  # else:
-  #   print(x.json())
+  # Route to appropriate command
+  match args.cmd:
+    case 'config':
+      c = Config()
+      c.load()
+      if c.verify_credentials_exist():
+        print('Authorization is already configured in keyring')
+      else:
+        c.setup()
+        print('Authorization configured successfully')
+      return None
+    case 'rider':
+      if not args.id:
+        print('Error: rider command requires at least one ID')
+        return 1
+
+      if args.noaction:
+        print(f'Would fetch rider data for: {", ".join(args.id)}')
+        if args.raw:
+          print('(raw output format)')
+        return None
+
+      # Fetch and display rider data
+      for zwift_id in args.id:
+        try:
+          rider = ZRRider(zwift_id=int(zwift_id))
+          rider.fetch()
+          if args.raw:
+            print(rider.to_dict())
+          else:
+            print(rider.json())
+        except ValueError:
+          print(f'Error: Invalid Zwift ID: {zwift_id}')
+          return 1
+        except Exception as e:
+          print(f'Error fetching rider {zwift_id}: {e}')
+          return 1
+    case 'result':
+      # TODO: Implement result command
+      print('Result command not yet implemented')
+      return 1
+    case 'team':
+      # TODO: Implement team command
+      print('Team command not yet implemented')
+      return 1
+    case _:
+      # No command specified
+      return None
 
   return None
 
 
 # ===============================================================================
 if __name__ == '__main__':
-  sys.exit(main())
+  exit_code = main()
+  if exit_code is not None:
+    sys.exit(exit_code)

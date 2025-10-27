@@ -21,6 +21,7 @@ For command-line usage:
   zrdata team 456
 """
 
+from zrdatafetch.config import Config
 from zrdatafetch.exceptions import (
   ZRAuthenticationError,
   ZRConfigError,
@@ -28,16 +29,21 @@ from zrdatafetch.exceptions import (
 )
 from zrdatafetch.logging_config import setup_logging
 from zrdatafetch.zr import ZR_obj
+from zrdatafetch.zrrider import ZRRider
 
 __all__ = [
   # Base classes
   'ZR_obj',
+  # Configuration
+  'Config',
+  # Data classes
+  'ZRRider',
   # Exceptions
   'ZRAuthenticationError',
   'ZRNetworkError',
   'ZRConfigError',
   # Logging
   'setup_logging',
-  # Note: Data classes (ZRRating, ZRResult, ZRTeam) will be added
+  # Note: Data classes (ZRResult, ZRTeam) will be added
   # when they are refactored to use dataclasses and inherit from ZR_obj
 ]

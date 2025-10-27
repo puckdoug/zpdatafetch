@@ -1,0 +1,200 @@
+"""ZwiftRanking rider rating data fetching and management.
+
+This module provides the ZRRider class for fetching and storing rider
+rating data from the ZwiftRanking API.
+"""
+
+from dataclasses import asdict, dataclass, field
+from typing import Any
+
+from zrdatafetch.config import Config
+from zrdatafetch.exceptions import ZRConfigError, ZRNetworkError
+from zrdatafetch.logging_config import get_logger
+from zrdatafetch.zr import ZR_obj
+
+logger = get_logger(__name__)
+
+
+# ===============================================================================
+@dataclass
+class ZRRider(ZR_obj):
+  """Rider rating data from ZwiftRanking API.
+
+  Represents a rider's current and historical ratings across multiple
+  timeframes (current, max30, max90) as well as derived rating score (DRS).
+
+  Attributes:
+    zwift_id: Rider's Zwift ID
+    epoch: Unix timestamp for historical data (default: -1 for current)
+    name: Rider's display name
+    gender: Rider's gender (M/F)
+    current_rating: Current rating score
+    current_rank: Current category rank
+    max30_rating: Maximum rating in last 30 days
+    max30_rank: Max30 category rank
+    max90_rating: Maximum rating in last 90 days
+    max90_rank: Max90 category rank
+    drs_rating: Derived rating score
+    drs_rank: DRS category rank
+    zrcs: ZwiftRanking compound score
+    source: Source of DRS (max30, max90, or none)
+  """
+
+  # Public attributes (in __init__)
+  zwift_id: int = 0
+  epoch: int = -1
+  name: str = 'Nobody'
+  gender: str = 'M'
+  current_rating: float = 0.0
+  current_rank: str = 'Unranked'
+  max30_rating: float = 0.0
+  max30_rank: str = 'Unranked'
+  max90_rating: float = 0.0
+  max90_rank: str = 'Unranked'
+  drs_rating: float = 0.0
+  drs_rank: str = 'Unranked'
+  zrcs: float = 0.0
+  source: str = 'none'
+
+  # Private attributes (not in __init__)
+  _raw: dict = field(default_factory=dict, init=False, repr=False)
+  _rider: dict = field(default_factory=dict, init=False, repr=False)
+  _verbose: bool = field(default=False, init=False, repr=False)
+
+  # -----------------------------------------------------------------------
+  def fetch(self, zwift_id: int | None = None, epoch: int | None = None) -> None:
+    """Fetch rider rating data from the ZwiftRanking API.
+
+    Fetches the rider's current or historical rating data based on the
+    provided zwift_id and optional epoch (unix timestamp).
+
+    Args:
+      zwift_id: Rider's Zwift ID (uses self.zwift_id if not provided)
+      epoch: Unix timestamp for historical data (uses self.epoch if not provided)
+
+    Raises:
+      ZRNetworkError: If the API request fails
+      ZRConfigError: If authorization is not configured
+
+    Example:
+      rider = ZRRider()
+      rider.fetch(zwift_id=12345)
+      print(rider.json())
+    """
+    # Use provided values or defaults
+    if zwift_id is not None:
+      self.zwift_id = zwift_id
+    if epoch is not None:
+      self.epoch = epoch
+
+    if self.zwift_id == 0:
+      logger.warning('No zwift_id provided for fetch')
+      return
+
+    # Get authorization from config
+    config = Config()
+    config.load()
+    if not config.authorization:
+      raise ZRConfigError(
+        'ZwiftRanking authorization not found. Please run "zrdata config" to set it up.',
+      )
+
+    logger.debug(
+      f'Fetching rider for zwift_id={self.zwift_id}, epoch={self.epoch}',
+    )
+
+    # Build endpoint
+    if self.epoch >= 0:
+      endpoint = f'/public/riders/{self.zwift_id}/{self.epoch}'
+    else:
+      endpoint = f'/public/riders/{self.zwift_id}'
+
+    # Fetch JSON from API
+    headers = {'Authorization': config.authorization}
+    try:
+      self._raw = self.fetch_json(endpoint, headers=headers)
+    except ZRNetworkError as e:
+      logger.error(f'Failed to fetch rider: {e}')
+      raise
+
+    # Parse response
+    self._parse_response()
+
+  # -----------------------------------------------------------------------
+  def _parse_response(self) -> None:
+    """Parse API response into object attributes.
+
+    Extracts rider information from the raw API response and populates
+    the object's attributes. Silently uses defaults if fields are missing.
+    """
+    if not self._raw:
+      logger.warning('No data to parse')
+      return
+
+    self._rider = self._raw
+
+    # Check for error in response
+    if 'message' in self._rider:
+      logger.error(f"API error: {self._rider['message']}")
+      return
+
+    # Check for required fields
+    if 'name' not in self._rider or 'race' not in self._rider:
+      logger.warning('Missing required fields (name or race) in response')
+      return
+
+    try:
+      self.name = self._rider.get('name', 'Nobody')
+      self.gender = self._rider.get('gender', 'M')
+
+      # ZRCS (compound score)
+      power = self._rider.get('power', {})
+      self.zrcs = power.get('compoundScore', 0.0)
+
+      # Current rating
+      race = self._rider.get('race', {})
+      current = race.get('current', {})
+      self.current_rating = current.get('rating', 0.0)
+      current_mixed = current.get('mixed', {})
+      self.current_rank = current_mixed.get('category', 'Unranked')
+
+      # Max90 rating
+      max90 = race.get('max90', {})
+      max90_rating = max90.get('rating')
+      if max90_rating is not None:
+        self.max90_rating = max90_rating
+      max90_mixed = max90.get('mixed', {})
+      self.max90_rank = max90_mixed.get('category', 'Unranked')
+
+      # Max30 rating
+      max30 = race.get('max30', {})
+      max30_rating = max30.get('rating')
+      if max30_rating is not None:
+        self.max30_rating = max30_rating
+      max30_mixed = max30.get('mixed', {})
+      self.max30_rank = max30_mixed.get('category', 'Unranked')
+
+      # Determine DRS (derived rating score)
+      if self.max30_rank != 'Unranked':
+        self.drs_rating = self.max30_rating
+        self.drs_rank = self.max30_rank
+        self.source = 'max30'
+      elif self.max90_rank != 'Unranked':
+        self.drs_rating = self.max90_rating
+        self.drs_rank = self.max90_rank
+        self.source = 'max90'
+
+      logger.debug(
+        f'Successfully parsed rider {self.name} ' f'(zwift_id={self.zwift_id})',
+      )
+    except (KeyError, TypeError) as e:
+      logger.error(f'Error parsing response: {e}')
+
+  # -----------------------------------------------------------------------
+  def to_dict(self) -> dict[str, Any]:
+    """Return dictionary representation excluding private attributes.
+
+    Returns:
+      Dictionary with all public attributes
+    """
+    return {k: v for k, v in asdict(self).items() if not k.startswith('_')}

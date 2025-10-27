@@ -4,7 +4,7 @@ import sys
 import time
 from argparse import ArgumentParser
 from pprint import pprint
-from typing import ClassVar, Optional
+from typing import ClassVar
 
 import chardet
 from pydantic import BaseModel, PrivateAttr

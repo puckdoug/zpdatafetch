@@ -40,7 +40,7 @@ class TestZR_objClientManagement:
   def test_close_client_closes_connection(self):
     """Test that close_client properly closes the connection."""
     ZR_obj._client = None
-    client = ZR_obj.get_client()
+    ZR_obj.get_client()
 
     ZR_obj.close_client()
 

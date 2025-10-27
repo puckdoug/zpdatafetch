@@ -57,6 +57,11 @@ Module for fetching zwiftpower data using the Zwifpower API
     help='print the raw results returned to screen',
   )
   p.add_argument(
+    '--noaction',
+    action='store_true',
+    help='report what would be done without actually fetching data',
+  )
+  p.add_argument(
     'cmd',
     help='which command to run',
     nargs='?',
@@ -98,6 +103,13 @@ Module for fetching zwiftpower data using the Zwifpower API
       x = Team()
     case _:
       sys.exit(0)
+
+  # Handle --noaction flag (report what would be done without fetching)
+  if args.noaction:
+    print(f'Would fetch {args.cmd} data for: {", ".join(args.id)}')
+    if args.raw:
+      print('(raw output format)')
+    sys.exit(0)
 
   x.fetch(*args.id)
 
