@@ -81,15 +81,15 @@ Module for fetching Zwiftracing data using the Zwiftracing API
   )
   p.add_argument(
     'cmd',
-    help='which command to run',
     nargs='?',
-    choices=('config', 'rider', 'result', 'team'),
+    help='which command to run',
   )
   p.add_argument(
     'id',
-    help='the id to search for',
     nargs='*',
+    help='ID(s) to search for',
   )
+
   args = p.parse_args()
 
   # Configure logging based on arguments
@@ -105,6 +105,11 @@ Module for fetching Zwiftracing data using the Zwiftracing API
   # Set premium tier mode if requested
   if args.premium:
     ZR_obj.set_premium_mode(True)
+
+  # Handle no command
+  if not args.cmd:
+    p.print_help()
+    return None
 
   # Route to appropriate command
   match args.cmd:
@@ -226,8 +231,10 @@ Module for fetching Zwiftracing data using the Zwiftracing API
           print(f'Error fetching team {team_id}: {e}')
           return 1
     case _:
-      # No command specified
-      return None
+      # Invalid command
+      print(f'Error: invalid command "{args.cmd}"')
+      print('Valid commands: config, rider, result, team')
+      return 1
 
   return None
 

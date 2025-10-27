@@ -63,15 +63,15 @@ Module for fetching zwiftpower data using the Zwifpower API
   )
   p.add_argument(
     'cmd',
-    help='which command to run',
     nargs='?',
-    choices=('config', 'cyclist', 'primes', 'result', 'signup', 'team'),
+    help='which command to run',
   )
   p.add_argument(
     'id',
-    help='the id to search for, ignored for config',
     nargs='*',
+    help='ID(s) to search for',
   )
+
   args = p.parse_args()
 
   # Configure logging based on arguments
@@ -84,13 +84,40 @@ Module for fetching zwiftpower data using the Zwifpower API
     setup_logging(log_file=args.log_file, force_console=False)
   # else: use default ERROR-only logging to stderr
 
+  # Handle commands
+  if not args.cmd:
+    p.print_help()
+    return None
+
+  if args.cmd == 'config':
+    c = Config()
+    c.setup()
+    return None
+
+  # For non-config commands, validate we have a valid command
+  valid_commands = ('cyclist', 'primes', 'result', 'signup', 'team')
+  if args.cmd not in valid_commands:
+    # The 'cmd' might actually be an ID if user didn't provide a command
+    print(f'Error: invalid command "{args.cmd}"')
+    print(f'Valid commands: {", ".join(valid_commands)}')
+    return 1
+
+  # For non-config commands, we need an ID
+  if not args.id:
+    print(f'Error: {args.cmd} command requires at least one ID')
+    return 1
+
+  # Handle --noaction flag (report what would be done without fetching)
+  if args.noaction:
+    print(f'Would fetch {args.cmd} data for: {", ".join(args.id)}')
+    if args.raw:
+      print('(raw output format)')
+    return None
+
+  # Map command to class and fetch
   x: Cyclist | Primes | Result | Signup | Team
 
   match args.cmd:
-    case 'config':
-      c = Config()
-      c.setup()
-      sys.exit(0)
     case 'cyclist':
       x = Cyclist()
     case 'primes':
@@ -102,14 +129,8 @@ Module for fetching zwiftpower data using the Zwifpower API
     case 'team':
       x = Team()
     case _:
-      sys.exit(0)
-
-  # Handle --noaction flag (report what would be done without fetching)
-  if args.noaction:
-    print(f'Would fetch {args.cmd} data for: {", ".join(args.id)}')
-    if args.raw:
-      print('(raw output format)')
-    sys.exit(0)
+      print(f'Unknown command: {args.cmd}')
+      return 1
 
   x.fetch(*args.id)
 

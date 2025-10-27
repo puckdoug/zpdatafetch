@@ -76,9 +76,9 @@ class TestCLIArgumentParsing:
   def test_main_with_invalid_command(self):
     """Test main with invalid command."""
     with patch('sys.argv', ['zrdata', 'invalid']):
-      # ArgumentParser will exit with error, so we need to catch it
-      with pytest.raises(SystemExit):
-        main()
+      # Invalid command should return error code
+      result = main()
+      assert result == 1
 
   def test_main_with_config_command(self):
     """Test main with config command."""
