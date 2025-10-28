@@ -82,6 +82,7 @@ Module for fetching Zwiftracing data using the Zwiftracing API
   p.add_argument(
     'cmd',
     nargs='?',
+    metavar='{config,rider,result,team}',
     help='which command to run',
   )
   p.add_argument(

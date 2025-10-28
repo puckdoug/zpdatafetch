@@ -64,6 +64,7 @@ Module for fetching zwiftpower data using the Zwifpower API
   p.add_argument(
     'cmd',
     nargs='?',
+    metavar='{config,cyclist,primes,result,signup,team}',
     help='which command to run',
   )
   p.add_argument(
