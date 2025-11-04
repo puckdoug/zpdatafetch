@@ -8,13 +8,6 @@ on:
 
 jobs:
   build:
-    # Only run if:
-    # 1. The linux-test workflow succeeded
-    # 2. The workflow was run on a release_* tag
-    if: |
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'push' &&
-      startsWith(github.event.workflow_run.head_branch, 'release_')
     runs-on: ubuntu-latest
     steps:
       - name: Debug - Show workflow run info
