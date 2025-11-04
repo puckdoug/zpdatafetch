@@ -1,11 +1,11 @@
-"""Tests for AsyncZRTeam class."""
+"""Tests for ZRTeam class with async (afetch) methods."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from zrdatafetch.async_zr import AsyncZR_obj
-from zrdatafetch.async_zrteam import AsyncZRTeam
+from zrdatafetch.zrteam import ZRTeam
 
 
 # ===============================================================================
@@ -16,17 +16,17 @@ class TestAsyncZRTeamFetch:
   async def test_fetch_no_team_id(self):
     """Test fetch with no team_id returns silently."""
     async with AsyncZR_obj() as zr:
-      team = AsyncZRTeam()
+      team = ZRTeam()
       team.set_session(zr)
       # Should return without error when team_id is 0
-      await team.fetch()
+      await team.afetch()
       assert team.team_id == 0
 
   @pytest.mark.anyio
   async def test_fetch_parses_response(self):
     """Test that fetch with valid data parses response."""
     async with AsyncZR_obj() as zr:
-      team = AsyncZRTeam()
+      team = ZRTeam()
       team.set_session(zr)
       # Mock response by directly setting _raw
       team._raw = {
@@ -74,7 +74,7 @@ class TestAsyncZRTeamFetch:
   async def test_fetch_handles_empty_riders(self):
     """Test fetch handles empty riders list."""
     async with AsyncZR_obj() as zr:
-      team = AsyncZRTeam()
+      team = ZRTeam()
       team.set_session(zr)
       team._raw = {
         'name': 'Test Team',
@@ -89,7 +89,7 @@ class TestAsyncZRTeamFetch:
   async def test_fetch_handles_missing_nested_fields(self):
     """Test fetch handles missing nested fields in rider data."""
     async with AsyncZR_obj() as zr:
-      team = AsyncZRTeam()
+      team = ZRTeam()
       team.set_session(zr)
       team._raw = {
         'name': 'Test Team',
@@ -148,16 +148,16 @@ class TestAsyncZRTeamFetch:
       },
     )
 
-    with patch('zrdatafetch.async_zrteam.Config') as mock_config_class:
+    with patch('zrdatafetch.zrteam.Config') as mock_config_class:
       mock_config = MagicMock()
       mock_config.authorization = 'test-token'
       mock_config_class.return_value = mock_config
 
-      team = AsyncZRTeam()
+      team = ZRTeam()
       team.set_session(mock_zr)
       team.team_id = 456
 
-      await team.fetch()
+      await team.afetch()
 
       # Verify fetch_json was called with correct endpoint and headers
       mock_zr.fetch_json.assert_called_once()
@@ -174,7 +174,7 @@ class TestAsyncZRTeamFetch:
   async def test_async_context_manager(self):
     """Test AsyncZRTeam works with async context manager."""
     async with AsyncZR_obj() as zr:
-      team = AsyncZRTeam()
+      team = ZRTeam()
       team.set_session(zr)
       assert team._zr is zr
 
@@ -187,7 +187,7 @@ class TestAsyncZRTeamSession:
   async def test_set_session(self):
     """Test set_session stores the ZR object."""
     async with AsyncZR_obj() as zr:
-      team = AsyncZRTeam()
+      team = ZRTeam()
       team.set_session(zr)
       assert team._zr is zr
 
@@ -195,8 +195,8 @@ class TestAsyncZRTeamSession:
   async def test_multiple_teams_shared_session(self):
     """Test multiple teams can share same session."""
     async with AsyncZR_obj() as zr:
-      team1 = AsyncZRTeam()
-      team2 = AsyncZRTeam()
+      team1 = ZRTeam()
+      team2 = ZRTeam()
       team1.set_session(zr)
       team2.set_session(zr)
       assert team1._zr is team2._zr

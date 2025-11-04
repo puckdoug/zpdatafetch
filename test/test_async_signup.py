@@ -1,10 +1,10 @@
-"""Tests for AsyncSignup."""
+"""Tests for Signup with async (afetch) methods."""
 
 import httpx
 import pytest
 
-from zpdatafetch.async_signup import AsyncSignup
 from zpdatafetch.async_zp import AsyncZP
+from zpdatafetch.signup import Signup
 
 
 @pytest.mark.anyio
@@ -31,9 +31,9 @@ async def test_async_signup_fetch(login_page, logged_in_page):
       ),
     )
 
-    signup = AsyncSignup()
+    signup = Signup()
     signup.set_session(zp)
-    data = await signup.fetch(3590800)
+    data = await signup.afetch(3590800)
 
     assert 3590800 in data
     assert data[3590800] == test_data

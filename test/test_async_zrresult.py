@@ -1,32 +1,32 @@
-"""Tests for AsyncZRResult class."""
+"""Tests for ZRResult class with async (afetch) methods."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from zrdatafetch.async_zr import AsyncZR_obj
-from zrdatafetch.async_zrresult import AsyncZRResult
+from zrdatafetch.zrresult import ZRResult
 
 
 # ===============================================================================
 class TestAsyncZRResultFetch:
-  """Test AsyncZRResult.fetch() method."""
+  """Test ZRResult.afetch() method."""
 
   @pytest.mark.anyio
   async def test_fetch_no_race_id(self):
     """Test fetch with no race_id returns silently."""
     async with AsyncZR_obj() as zr:
-      result = AsyncZRResult()
+      result = ZRResult()
       result.set_session(zr)
       # Should return without error when race_id is 0
-      await result.fetch()
+      await result.afetch()
       assert result.race_id == 0
 
   @pytest.mark.anyio
   async def test_fetch_parses_response(self):
     """Test that fetch with valid data parses response."""
     async with AsyncZR_obj() as zr:
-      result = AsyncZRResult()
+      result = ZRResult()
       result.set_session(zr)
       # Mock response by directly setting _raw
       result._raw = [
@@ -63,7 +63,7 @@ class TestAsyncZRResultFetch:
   async def test_fetch_handles_empty_response(self):
     """Test fetch handles empty response list."""
     async with AsyncZR_obj() as zr:
-      result = AsyncZRResult()
+      result = ZRResult()
       result.set_session(zr)
       result._raw = []
       result.race_id = 3590800
@@ -74,7 +74,7 @@ class TestAsyncZRResultFetch:
   async def test_fetch_handles_malformed_response(self):
     """Test fetch handles malformed rider data."""
     async with AsyncZR_obj() as zr:
-      result = AsyncZRResult()
+      result = ZRResult()
       result.set_session(zr)
       result._raw = [
         {
@@ -108,16 +108,16 @@ class TestAsyncZRResultFetch:
       ],
     )
 
-    with patch('zrdatafetch.async_zrresult.Config') as mock_config_class:
+    with patch('zrdatafetch.zrresult.Config') as mock_config_class:
       mock_config = MagicMock()
       mock_config.authorization = 'test-token'
       mock_config_class.return_value = mock_config
 
-      result = AsyncZRResult()
+      result = ZRResult()
       result.set_session(mock_zr)
       result.race_id = 3590800
 
-      await result.fetch()
+      await result.afetch()
 
       # Verify fetch_json was called with correct endpoint and headers
       mock_zr.fetch_json.assert_called_once()
@@ -133,7 +133,7 @@ class TestAsyncZRResultFetch:
   async def test_async_context_manager(self):
     """Test AsyncZRResult works with async context manager."""
     async with AsyncZR_obj() as zr:
-      result = AsyncZRResult()
+      result = ZRResult()
       result.set_session(zr)
       assert result._zr is zr
 
@@ -146,7 +146,7 @@ class TestAsyncZRResultSession:
   async def test_set_session(self):
     """Test set_session stores the ZR object."""
     async with AsyncZR_obj() as zr:
-      result = AsyncZRResult()
+      result = ZRResult()
       result.set_session(zr)
       assert result._zr is zr
 
@@ -154,8 +154,8 @@ class TestAsyncZRResultSession:
   async def test_multiple_results_shared_session(self):
     """Test multiple results can share same session."""
     async with AsyncZR_obj() as zr:
-      result1 = AsyncZRResult()
-      result2 = AsyncZRResult()
+      result1 = ZRResult()
+      result2 = ZRResult()
       result1.set_session(zr)
       result2.set_session(zr)
       assert result1._zr is result2._zr

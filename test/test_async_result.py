@@ -1,10 +1,10 @@
-"""Tests for AsyncResult."""
+"""Tests for Result with async (afetch) methods."""
 
 import httpx
 import pytest
 
-from zpdatafetch.async_result import AsyncResult
 from zpdatafetch.async_zp import AsyncZP
+from zpdatafetch.result import Result
 
 
 @pytest.mark.anyio
@@ -31,9 +31,9 @@ async def test_async_result_fetch(login_page, logged_in_page):
       ),
     )
 
-    result = AsyncResult()
+    result = Result()
     result.set_session(zp)
-    data = await result.fetch(3590800)
+    data = await result.afetch(3590800)
 
     assert 3590800 in data
     assert data[3590800] == test_data

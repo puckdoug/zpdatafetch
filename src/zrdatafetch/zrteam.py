@@ -1,4 +1,4 @@
-"""Zwiftracing team roster data fetching and management.
+"""Unified ZRTeam class with both sync and async fetch capabilities.
 
 This module provides the ZRTeam class for fetching and storing team/club
 roster data from the Zwiftracing API, including all team member details
@@ -8,6 +8,7 @@ and their current ratings.
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
+from zrdatafetch.async_zr import AsyncZR_obj
 from zrdatafetch.config import Config
 from zrdatafetch.exceptions import ZRConfigError, ZRNetworkError
 from zrdatafetch.logging_config import get_logger
@@ -104,7 +105,20 @@ class ZRTeam(ZR_obj):
   """Team roster data from Zwiftracing API.
 
   Represents a Zwift team/club with all member information including
-  their ratings, power metrics, and category rankings.
+  their ratings, power metrics, and category rankings. Supports both
+  synchronous and asynchronous operations.
+
+  Synchronous usage:
+    team = ZRTeam()
+    team.fetch(team_id=456)
+    print(team.json())
+
+  Asynchronous usage:
+    async with AsyncZR_obj() as zr:
+      team = ZRTeam()
+      team.set_session(zr)
+      await team.afetch(team_id=456)
+      print(team.json())
 
   Attributes:
     team_id: The team/club ID
@@ -121,10 +135,20 @@ class ZRTeam(ZR_obj):
   _raw: dict = field(default_factory=dict, init=False, repr=False)
   _team: dict = field(default_factory=dict, init=False, repr=False)
   _verbose: bool = field(default=False, init=False, repr=False)
+  _zr: AsyncZR_obj | None = field(default=None, init=False, repr=False)
+
+  # -----------------------------------------------------------------------
+  def set_session(self, zr: AsyncZR_obj) -> None:
+    """Set the AsyncZR_obj session to use for async fetching.
+
+    Args:
+      zr: AsyncZR_obj instance to use for API requests
+    """
+    self._zr = zr
 
   # -----------------------------------------------------------------------
   def fetch(self, team_id: int | None = None) -> None:
-    """Fetch team roster data from the Zwiftracing API.
+    """Fetch team roster data from the Zwiftracing API (synchronous).
 
     Fetches all team members and their data for a specific team ID from
     the Zwiftracing API.
@@ -172,6 +196,71 @@ class ZRTeam(ZR_obj):
 
     # Parse response
     self._parse_response()
+
+  # -----------------------------------------------------------------------
+  async def afetch(self, team_id: int | None = None) -> None:
+    """Fetch team roster data from the Zwiftracing API (asynchronous).
+
+    Fetches all team members and their data for a specific team ID from
+    the Zwiftracing API.
+
+    Args:
+      team_id: The team ID to fetch (uses self.team_id if not provided)
+
+    Raises:
+      ZRNetworkError: If the API request fails
+      ZRConfigError: If authorization is not configured
+
+    Example:
+      team = ZRTeam()
+      team.set_session(zr)
+      await team.afetch(team_id=456)
+      print(team.json())
+    """
+    # Use provided value or default
+    if team_id is not None:
+      self.team_id = team_id
+
+    if self.team_id == 0:
+      logger.warning('No team_id provided for fetch')
+      return
+
+    # Get authorization from config
+    config = Config()
+    config.load()
+    if not config.authorization:
+      raise ZRConfigError(
+        'Zwiftracing authorization not found. Please run "zrdata config" to set it up.',
+      )
+
+    logger.debug(f'Fetching team roster for team_id={self.team_id} (async)')
+
+    # Create temporary session if none provided
+    if not self._zr:
+      self._zr = AsyncZR_obj()
+      await self._zr.init_client()
+      owns_session = True
+    else:
+      owns_session = False
+
+    try:
+      # Endpoint is /public/clubs/{team_id}/0 (0 is starting rider offset)
+      endpoint = f'/public/clubs/{self.team_id}/0'
+
+      # Fetch JSON from API
+      headers = {'Authorization': config.authorization}
+      self._raw = await self._zr.fetch_json(endpoint, headers=headers)
+
+      # Parse response
+      self._parse_response()
+      logger.info(f'Successfully fetched team roster for team_id={self.team_id}')
+    except ZRNetworkError as e:
+      logger.error(f'Failed to fetch team roster: {e}')
+      raise
+    finally:
+      # Clean up temporary session if we created one
+      if owns_session and self._zr:
+        await self._zr.close()
 
   # -----------------------------------------------------------------------
   def _parse_response(self) -> None:

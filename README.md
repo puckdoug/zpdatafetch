@@ -5,18 +5,22 @@ A python library and command-line tool for fetching data from ZwiftPower.com and
 ## Installation
 
 ```sh
-pip install zpdatafetch
+uv add zpdatafetch
 ```
 
 or
 
 ```sh
-uv add zpdatafetch
+pip install zpdatafetch
 ```
 
-This currently works with python versions 3.10 - 3.14 including 3.14t but excluding 3.13t. Build fails on 3.13t and I am unlikely to fix it. If you want free threading, use 3.14t.
+This currently works with python versions 3.10 - 3.14 including 3.14t but
+excluding 3.13t. Build fails on 3.13t and I am unlikely to fix it. If you want
+free threading, use 3.14t.
 
-Note that while this builds and runs, it'd not yet properly tested to run in a real free-threaded environment. Please do [report](https://github.com/puckdoug/zpdatafetch/issues) any issues you find.
+Note that while this builds and runs, it'd not yet properly tested to run in a
+real free-threaded environment. Please do
+[report](https://github.com/puckdoug/zpdatafetch/issues) any issues you find.
 
 ## Overview
 
@@ -27,33 +31,31 @@ This package provides two main command-line tools:
 | **`zpdata`** | ZwiftPower  | Race rankings, signups, results      | Cyclist, Primes, Results, Signups, Teams  |
 | **`zrdata`** | Zwiftracing | Rider ratings, race results, rosters | Rider Ratings, Race Results, Team Rosters |
 
-Both tools support batch operations, flexible logging, and can be used as standalone CLI tools or imported as libraries. They maintain separate credential stores for each API.
+Both tools support batch operations, flexible logging, and can be used as
+standalone CLI tools or imported as libraries. They maintain separate credential
+stores for each API.
 
 ## Key Features
 
 ### For zpdata (ZwiftPower)
 
 - **Cyclist rankings** - Individual and batch lookups by Zwift ID
-- **Race results** - Detailed finish information and point scoring
+- **Race results** - Detailed finish information and point scoring per race
 - **Signups** - Event signup lists and participant info
-- **Primes/Sprints** - Intermediate results and prime tracking
+- **Primes/Sprints** - Prime results for Fastest Through Segment (FTS) and First Across the Line (FAL)
 - **Team data** - Team rosters and member information
-- **Async support** - Concurrent fetching with asyncio or trio backends
-- **Connection pooling** - Efficient batch operations with shared HTTP client
 
 ### For zrdata (Zwiftracing)
 
 - **Rider ratings** - Current, max30, max90 ratings and categories
-- **Batch POST requests** - Fetch up to 1000 riders in a single efficient API call
-- **Derived rating scores** - Calculated DRS for all riders
 - **Power metrics** - Zwiftracing compound score and power data
 - **Race results** - Complete race result data with rating changes
 - **Team rosters** - Full team member details and power metrics
-- **File-based batch input** - Read rider IDs from files for batch processing
-- **Safe testing** - `--noaction` flag to preview operations without network calls
 
 ### Common Features
 
+- **Async support** - Concurrent fetching with asyncio or trio backends
+- **Connection pooling** - Efficient batch operations with shared HTTP client
 - **Flexible logging** - Console and file logging with multiple levels (DEBUG, INFO, WARNING, ERROR)
 - **Secure credentials** - System keyring integration for safe credential storage
 - **CLI and library APIs** - Use as command-line tools or import as Python libraries
@@ -62,18 +64,22 @@ Both tools support batch operations, flexible logging, and can be used as standa
 
 ## Credentials Setup
 
-For ZwiftPower (`zpdata`), you will need a zwiftpower account with credentials in your system keyring:
+For ZwiftPower (`zpdata`), you will need a zwiftpower account with credentials
+in your system keyring:
 
 ```sh
 keyring set zpdatafetch username
 keyring set zpdatafetch password
+# or with zpdata
+zpdata config
 ```
 
 For Zwiftracing (`zrdata`), you will need your Zwiftracing API authorization header:
 
 ```sh
 keyring set zrdatafetch authorization
-# Or use the CLI: zrdata config
+# or wioth zrdata
+zrdata config
 ```
 
 In principle, the library can use alternate backend keyrings, but I have not
@@ -83,7 +89,8 @@ to use the keyring and keyring library for your system.
 
 ## ZwiftPower Data (zpdata)
 
-The `zpdata` command-line tool provides access to ZwiftPower data including cyclist rankings, race results, and event signups.
+The `zpdata` command-line tool provides access to ZwiftPower data including
+cyclist rankings, race results, and event signups.
 
 ### Command-line example
 
@@ -146,7 +153,8 @@ available classes are as follows:
 
 ## Zwiftracing Data (zrdata)
 
-The `zrdata` command-line tool provides access to Zwiftracing API data including rider ratings, race results, and team rosters.
+The `zrdata` command-line tool provides access to Zwiftracing.app API data
+including rider ratings, race results, and team rosters.
 
 ### Command-line usage
 
@@ -171,6 +179,8 @@ options:
   --batch               use batch POST endpoint for multiple IDs (rider command only)
   --batch-file FILE     read IDs from file (one per line) for batch request (rider command only)
 ```
+
+**Note:** All objects support both synchronous (`fetch()`) and asynchronous (`afetch()`) methods. See the Async API section below for details.
 
 ### Basic Examples
 
@@ -221,7 +231,7 @@ zrdata -v --batch -r rider 12345 67890 11111
 
 ### Batch Processing
 
-For efficiency, `zrdata` supports batch operations that use the Zwiftracing API's POST endpoints:
+`zrdata` supports batch operations that use the Zwiftracing API's POST endpoints:
 
 **Command-line batch:**
 
@@ -249,7 +259,7 @@ for zwift_id, rider in riders.items():
     print(f"{rider.name}: {rider.current_rating}")
 ```
 
-### Library Usage
+### Library Usage (Synchronous API)
 
 ```python
 from zrdatafetch import ZRRider, ZRResult, ZRTeam
@@ -276,6 +286,8 @@ print(f"Team: {team.team_name}")
 for rider in team.riders:
     print(f"  {rider.name}: {rider.current_rating}")
 ```
+
+**Note:** All data classes support both synchronous (`fetch()`) and asynchronous (`afetch()`) methods. See the Async API section below for details.
 
 ### Data Classes
 
@@ -414,21 +426,27 @@ async def main():
 anyio.run(main)
 ```
 
-### Async Library API
+### Async Library API (Zwiftracing)
 
-The library provides a full async/await API for concurrent operations using [anyio](https://anyio.readthedocs.io/) for backend-agnostic async support (asyncio or trio):
+The library provides a full async/await API for concurrent operations using [anyio](https://anyio.readthedocs.io/) for backend-agnostic async support (asyncio or trio).
+
+**Unified API Design:** All data classes (`ZRRider`, `ZRResult`, `ZRTeam`) support both synchronous and asynchronous operations:
+
+- Use `fetch()` for synchronous operations
+- Use `afetch()` for asynchronous operations
+- `type(obj)` returns the same class regardless of sync/async usage
 
 ```python
 import anyio
-from zrdatafetch import AsyncZRRider, AsyncZRResult, AsyncZRTeam, AsyncZR_obj
+from zrdatafetch import ZRRider, ZRResult, ZRTeam, AsyncZR_obj
 
 async def main():
     # Use async context manager for automatic resource cleanup
     async with AsyncZR_obj() as zr:
-        # Fetch multiple resources concurrently
-        rider = AsyncZRRider()
-        result = AsyncZRResult()
-        team = AsyncZRTeam()
+        # Create instances of unified data classes
+        rider = ZRRider()
+        result = ZRResult()
+        team = ZRTeam()
 
         # Set shared session for all operations
         rider.set_session(zr)
@@ -437,9 +455,9 @@ async def main():
 
         # Fetch multiple items concurrently using task group
         async with anyio.create_task_group() as tg:
-            tg.start_soon(rider.fetch, 12345)
-            tg.start_soon(result.fetch, 3590800)
-            tg.start_soon(team.fetch, 456)
+            tg.start_soon(rider.afetch, 12345)       # Use afetch() for async
+            tg.start_soon(result.afetch, 3590800)    # Use afetch() for async
+            tg.start_soon(team.afetch, 456)          # Use afetch() for async
 
         print(rider.json())
         print(result.json())
@@ -456,12 +474,12 @@ anyio.run(main)
 
 ```python
 import anyio
-from zrdatafetch import AsyncZRRider, AsyncZR_obj
+from zrdatafetch import ZRRider, AsyncZR_obj
 
 async def main():
     async with AsyncZR_obj() as zr:
         # Batch fetch up to 1000 riders in one request
-        riders = await AsyncZRRider.fetch_batch(
+        riders = await ZRRider.afetch_batch(
             12345, 67890, 11111,  # Up to 1000 IDs
             zr=zr  # Use shared session
         )
@@ -469,7 +487,7 @@ async def main():
             print(f"{rider.name}: {rider.current_rating}")
 
         # Batch fetch with historical data
-        historical = await AsyncZRRider.fetch_batch(
+        historical = await ZRRider.afetch_batch(
             12345, 67890,
             epoch=1704067200,  # Unix timestamp
             zr=zr
@@ -484,7 +502,7 @@ For maximum efficiency with multiple async operations, use a shared client:
 
 ```python
 import anyio
-from zrdatafetch import AsyncZRRider, AsyncZR_obj
+from zrdatafetch import ZRRider, AsyncZR_obj
 
 async def main():
     # Create shared session for multiple operations
@@ -493,41 +511,51 @@ async def main():
         tasks = []
         async with anyio.create_task_group() as tg:
             for zwift_id in [12345, 67890, 11111]:
-                rider = AsyncZRRider()
+                rider = ZRRider()
                 rider.set_session(zr)
-                tg.start_soon(rider.fetch, zwift_id)
+                tg.start_soon(rider.afetch, zwift_id)  # Use afetch()
 
 anyio.run(main)
 ```
 
-**Available async classes:**
+**Backwards compatibility:**
 
-- `AsyncZR_obj`: Async base class with httpx.AsyncClient support
-- `AsyncZRRider`: Async rider ratings fetching (with batch POST support)
-- `AsyncZRResult`: Async race results fetching
-- `AsyncZRTeam`: Async team roster fetching
+For backwards compatibility, the old `AsyncZRRider`, `AsyncZRResult`, and `AsyncZRTeam` names are still available as aliases:
 
-### Async Library example
+```python
+from zrdatafetch import AsyncZRRider, ZRRider
 
-The library also provides a full async/await API for concurrent operations:
+# These are the same class
+assert AsyncZRRider is ZRRider  # True!
+```
+
+### Async Library API (ZwiftPower)
+
+The library provides a full async/await API for concurrent operations using [anyio](https://anyio.readthedocs.io/) for backend-agnostic async support (asyncio or trio).
+
+**Unified API Design:** All data classes (`Cyclist`, `Result`, `Signup`, `Team`, `Primes`) support both synchronous and asynchronous operations:
+
+- Use `fetch()` for synchronous operations
+- Use `afetch()` for asynchronous operations
+- `type(obj)` returns the same class regardless of sync/async usage
 
 ```python
 import anyio
-from zpdatafetch import AsyncCyclist, AsyncResult, AsyncZP
+from zpdatafetch import Cyclist, Result, AsyncZP
 
 async def main():
     # Use async context manager
     async with AsyncZP() as zp:
-        cyclist = AsyncCyclist()
-        result = AsyncResult()
+        cyclist = Cyclist()
+        result = Result()
 
         cyclist.set_session(zp)
         result.set_session(zp)
 
         # Fetch multiple resources concurrently
         async with anyio.create_task_group() as tg:
-            tg.start_soon(cyclist.fetch, 1234567, 7654321)  # Multiple cyclists
-            tg.start_soon(result.fetch, 3590800, 3590801)   # Multiple races
+            tg.start_soon(cyclist.afetch, 1234567, 7654321)  # Use afetch() for async
+            tg.start_soon(result.afetch, 3590800, 3590801)   # Use afetch() for async
 
         print(cyclist.json())
         print(result.json())
@@ -535,14 +563,16 @@ async def main():
 anyio.run(main)
 ```
 
-**Available async classes:**
+**Backwards compatibility:**
 
-- AsyncZP: Async authentication and HTTP client
-- AsyncCyclist: Async cyclist data fetching
-- AsyncResult: Async race results fetching
-- AsyncSignup: Async signup list fetching
-- AsyncTeam: Async team data fetching
-- AsyncPrimes: Async prime/sprint data fetching
+For backwards compatibility, the old `AsyncCyclist`, `AsyncResult`, `AsyncSignup`, `AsyncTeam`, and `AsyncPrimes` names are still available as aliases:
+
+```python
+from zpdatafetch import AsyncCyclist, Cyclist
+
+# These are the same class
+assert AsyncCyclist is Cyclist  # True!
+```
 
 **Async backend support:**
 
@@ -751,34 +781,24 @@ simple direct access to experiment without additional code wrapped around it -
 yours or the provided command-line tool. They each respond to the -h flag to
 provide help. Basic examples follow.
 
-### Cyclist example
-
 ```shell
-PYTHONPATH=`pwd`/src python src/zpdatafetch/cyclist.py -v -r <zwift_id>
-```
+# Cyclist
+zpdata cyclist <zwift_id>
+# Team
+zpdata team <team_id>
+# Signuup
+zpdata signup <race_id>
+# Race Result
+zpdata result <race_id>
+# Primes
+zpdata primes <race_id>
 
-### Team example
-
-```shell
-PYTHONPATH=`pwd`/src python src/zpdatafetch/team.py -v -r <team_id>
-```
-
-### Signup example
-
-```shell
-PYTHONPATH=`pwd`/src python src/zpdatafetch/signup.py -v -r <race_id>
-```
-
-### Result example
-
-```shell
-PYTHONPATH=`pwd`/src python src/zpdatafetch/result.py -v -r <race_id>
-```
-
-### Primes example
-
-```shell
-PYTHONPATH=`pwd`/src python src/zpdatafetch/primes.py -v -r <race_id>
+# Zwiftrace Result
+zrdata result <race_id>
+# Zwiftrace Rider Stats
+zrdata rider <zwift_id>
+# Zwiftrace Team Data
+zrdata team <team_id>
 ```
 
 5. Build the project
@@ -799,5 +819,6 @@ While useful and usable, there's a bit that can be done to improve this package.
 Anyone interested to contribute is welcome to do so. These are the areas where I
 could use help:
 
-- [ ] Check if there are any objects not handled
+- [ ] Check if there are any objects not handled - Zwiftracing has a clean, documented API. Zwiftpower, not so much...
 - [ ] Update the interface to allow alternate keyrings
+- [ ] Open to suggestions...

@@ -1,10 +1,10 @@
-"""Tests for AsyncPrimes."""
+"""Tests for Primes with async (afetch) methods."""
 
 import httpx
 import pytest
 
-from zpdatafetch.async_primes import AsyncPrimes
 from zpdatafetch.async_zp import AsyncZP
+from zpdatafetch.primes import Primes
 
 
 @pytest.mark.anyio
@@ -31,9 +31,9 @@ async def test_async_primes_fetch(login_page, logged_in_page):
       ),
     )
 
-    primes = AsyncPrimes()
+    primes = Primes()
     primes.set_session(zp)
-    data = await primes.fetch(3590800)
+    data = await primes.afetch(3590800)
 
     assert 3590800 in data
     assert data[3590800] == test_data
@@ -41,8 +41,8 @@ async def test_async_primes_fetch(login_page, logged_in_page):
 
 @pytest.mark.anyio
 async def test_async_primes_set_primetype():
-  """Test AsyncPrimes static primetype method."""
-  assert AsyncPrimes.set_primetype('sprint') == 'Sprint'
-  assert AsyncPrimes.set_primetype('kom') == 'KOM'
-  assert AsyncPrimes.set_primetype('prime') == 'Prime'
-  assert AsyncPrimes.set_primetype('unknown') == 'unknown'
+  """Test Primes static primetype method."""
+  assert Primes.set_primetype('sprint') == 'Sprint'
+  assert Primes.set_primetype('kom') == 'KOM'
+  assert Primes.set_primetype('prime') == 'Prime'
+  assert Primes.set_primetype('unknown') == ''

@@ -1,11 +1,11 @@
-"""Tests for AsyncZRRider class."""
+"""Tests for ZRRider class with async (afetch) methods."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from zrdatafetch.async_zr import AsyncZR_obj
-from zrdatafetch.async_zrrider import AsyncZRRider
+from zrdatafetch.zrrider import ZRRider
 
 
 # ===============================================================================
@@ -16,17 +16,17 @@ class TestAsyncZRRiderFetch:
   async def test_fetch_no_zwift_id(self):
     """Test fetch with no zwift_id returns silently."""
     async with AsyncZR_obj() as zr:
-      rider = AsyncZRRider()
+      rider = ZRRider()
       rider.set_session(zr)
       # Should return without error when zwift_id is 0
-      await rider.fetch()
+      await rider.afetch()
       assert rider.zwift_id == 0
 
   @pytest.mark.anyio
   async def test_fetch_sets_attributes(self):
     """Test that fetch with valid data sets attributes."""
     async with AsyncZR_obj() as zr:
-      rider = AsyncZRRider()
+      rider = ZRRider()
       rider.set_session(zr)
       # Mock response by directly setting _raw
       rider._raw = {
@@ -48,7 +48,7 @@ class TestAsyncZRRiderFetch:
   async def test_async_context_manager(self):
     """Test AsyncZRRider works with async context manager."""
     async with AsyncZR_obj() as zr:
-      rider = AsyncZRRider()
+      rider = ZRRider()
       rider.set_session(zr)
       assert rider._zr is zr
 
@@ -69,16 +69,16 @@ class TestAsyncZRRiderFetch:
       },
     )
 
-    with patch('zrdatafetch.async_zrrider.Config') as mock_config_class:
+    with patch('zrdatafetch.zrrider.Config') as mock_config_class:
       mock_config = MagicMock()
       mock_config.authorization = 'test-token'
       mock_config_class.return_value = mock_config
 
-      rider = AsyncZRRider()
+      rider = ZRRider()
       rider.set_session(mock_zr)
       rider.zwift_id = 12345
 
-      await rider.fetch()
+      await rider.afetch()
 
       # Verify fetch_json was called with correct endpoint and headers
       mock_zr.fetch_json.assert_called_once()
@@ -96,17 +96,17 @@ class TestAsyncZRRiderFetch:
     mock_zr = AsyncMock(spec=AsyncZR_obj)
     mock_zr.fetch_json = AsyncMock(return_value={})
 
-    with patch('zrdatafetch.async_zrrider.Config') as mock_config_class:
+    with patch('zrdatafetch.zrrider.Config') as mock_config_class:
       mock_config = MagicMock()
       mock_config.authorization = 'test-token'
       mock_config_class.return_value = mock_config
 
-      rider = AsyncZRRider()
+      rider = ZRRider()
       rider.set_session(mock_zr)
       rider.zwift_id = 12345
       rider.epoch = 1704067200
 
-      await rider.fetch()
+      await rider.afetch()
 
       # Verify endpoint includes epoch
       call_args = mock_zr.fetch_json.call_args
@@ -120,7 +120,7 @@ class TestAsyncZRRiderFetchBatch:
   @pytest.mark.anyio
   async def test_fetch_batch_empty(self):
     """Test batch fetch with no IDs returns empty dict."""
-    result = await AsyncZRRider.fetch_batch()
+    result = await ZRRider.afetch_batch()
     assert result == {}
 
   @pytest.mark.anyio
@@ -128,7 +128,7 @@ class TestAsyncZRRiderFetchBatch:
     """Test batch fetch enforces 1000 ID limit."""
     ids = list(range(1001))
     with pytest.raises(ValueError, match='Maximum 1000'):
-      await AsyncZRRider.fetch_batch(*ids)
+      await ZRRider.afetch_batch(*ids)
 
   @pytest.mark.anyio
   async def test_fetch_batch_with_mocked_session(self):
@@ -159,12 +159,12 @@ class TestAsyncZRRiderFetchBatch:
       ],
     )
 
-    with patch('zrdatafetch.async_zrrider.Config') as mock_config_class:
+    with patch('zrdatafetch.zrrider.Config') as mock_config_class:
       mock_config = MagicMock()
       mock_config.authorization = 'test-token'
       mock_config_class.return_value = mock_config
 
-      riders = await AsyncZRRider.fetch_batch(12345, 67890, zr=mock_zr)
+      riders = await ZRRider.afetch_batch(12345, 67890, zr=mock_zr)
 
       # Verify fetch_json was called with POST method
       mock_zr.fetch_json.assert_called_once()
@@ -182,12 +182,12 @@ class TestAsyncZRRiderFetchBatch:
     mock_zr = AsyncMock(spec=AsyncZR_obj)
     mock_zr.fetch_json = AsyncMock(return_value=[])
 
-    with patch('zrdatafetch.async_zrrider.Config') as mock_config_class:
+    with patch('zrdatafetch.zrrider.Config') as mock_config_class:
       mock_config = MagicMock()
       mock_config.authorization = 'test-token'
       mock_config_class.return_value = mock_config
 
-      result = await AsyncZRRider.fetch_batch(
+      result = await ZRRider.afetch_batch(
         12345,
         67890,
         epoch=1704067200,
@@ -208,7 +208,7 @@ class TestAsyncZRRiderSession:
   async def test_set_session(self):
     """Test set_session stores the ZR object."""
     async with AsyncZR_obj() as zr:
-      rider = AsyncZRRider()
+      rider = ZRRider()
       rider.set_session(zr)
       assert rider._zr is zr
 
@@ -216,8 +216,8 @@ class TestAsyncZRRiderSession:
   async def test_multiple_riders_shared_session(self):
     """Test multiple riders can share same session."""
     async with AsyncZR_obj() as zr:
-      rider1 = AsyncZRRider()
-      rider2 = AsyncZRRider()
+      rider1 = ZRRider()
+      rider2 = ZRRider()
       rider1.set_session(zr)
       rider2.set_session(zr)
       assert rider1._zr is rider2._zr

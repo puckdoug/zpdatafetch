@@ -6,7 +6,6 @@ routing.
 
 from unittest.mock import patch
 
-import pytest
 
 from zrdatafetch.cli import main
 

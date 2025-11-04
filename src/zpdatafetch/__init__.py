@@ -1,9 +1,4 @@
-# Async API imports
-from zpdatafetch.async_cyclist import AsyncCyclist
-from zpdatafetch.async_primes import AsyncPrimes
-from zpdatafetch.async_result import AsyncResult
-from zpdatafetch.async_signup import AsyncSignup
-from zpdatafetch.async_team import AsyncTeam
+# Core imports
 from zpdatafetch.async_zp import AsyncZP
 from zpdatafetch.config import Config
 from zpdatafetch.cyclist import Cyclist
@@ -18,6 +13,14 @@ from zpdatafetch.zp import (
   ZPConfigError,
   ZPNetworkError,
 )
+
+# Backwards compatibility aliases for async classes
+# Note: These classes now support both sync (fetch) and async (afetch) methods
+AsyncCyclist = Cyclist
+AsyncPrimes = Primes
+AsyncResult = Result
+AsyncSignup = Signup
+AsyncTeam = Team
 
 __all__ = [
   # Synchronous API
@@ -34,9 +37,9 @@ __all__ = [
   'setup_logging',
   # Asynchronous API
   'AsyncZP',
-  'AsyncCyclist',
-  'AsyncPrimes',
-  'AsyncResult',
-  'AsyncSignup',
-  'AsyncTeam',
+  'AsyncCyclist',  # Alias for Cyclist (supports both sync and async)
+  'AsyncPrimes',  # Alias for Primes (supports both sync and async)
+  'AsyncResult',  # Alias for Result (supports both sync and async)
+  'AsyncSignup',  # Alias for Signup (supports both sync and async)
+  'AsyncTeam',  # Alias for Team (supports both sync and async)
 ]

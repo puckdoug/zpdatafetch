@@ -1,7 +1,9 @@
-# import js2py
+"""Unified Cyclist class with both sync and async fetch capabilities."""
+
 from argparse import ArgumentParser
 from typing import Any
 
+from zpdatafetch.async_zp import AsyncZP
 from zpdatafetch.logging_config import get_logger
 from zpdatafetch.zp import ZP
 from zpdatafetch.zp_obj import ZP_obj
@@ -14,7 +16,20 @@ class Cyclist(ZP_obj):
   """Fetches and stores cyclist profile data from Zwiftpower.
 
   Retrieves cyclist information including performance metrics, race history,
-  and profile details using Zwift IDs.
+  and profile details using Zwift IDs. Supports both synchronous and
+  asynchronous operations.
+
+  Synchronous usage:
+    cyclist = Cyclist()
+    cyclist.fetch(123456, 789012)
+    print(cyclist.json())
+
+  Asynchronous usage:
+    async with AsyncZP() as zp:
+      cyclist = Cyclist()
+      cyclist.set_session(zp)
+      await cyclist.afetch(123456, 789012)
+      print(cyclist.json())
 
   Attributes:
     raw: Dictionary mapping Zwift IDs to their profile data
@@ -28,29 +43,20 @@ class Cyclist(ZP_obj):
   def __init__(self) -> None:
     """Initialize a new Cyclist instance."""
     super().__init__()
+    self._zp: AsyncZP | None = None
 
   # -------------------------------------------------------------------------------
-  # def extract_zp_vars(self, y):
-  #   soupjs = BeautifulSoup(y, 'lxml')
-  #   f = soupjs.find_all('script')
-  #   zp_js = ''
-  #   zp_vars = {}
-  #   for s in f:
-  #     c = s.string
-  #     try:
-  #       if re.search('ZP_VARS =', c):
-  #         zp_js = c
-  #     except Exception:
-  #       pass
+  def set_session(self, zp: AsyncZP) -> None:
+    """Set the AsyncZP session to use for async fetching.
 
-  #   zp_js = zp_js + '; ZP_VARS.athlete_id'
-  #   strava = js2py.eval_js(zp_js)
-  #   zp_vars['strava'] = f'https://www.strava.com/athletes/{strava}'
-  #   return zp_vars
+    Args:
+      zp: AsyncZP instance to use for API requests
+    """
+    self._zp = zp
 
   # -------------------------------------------------------------------------------
   def fetch(self, *zwift_id: int) -> dict[Any, Any]:
-    """Fetch cyclist profile data for one or more Zwift IDs.
+    """Fetch cyclist profile data for one or more Zwift IDs (synchronous).
 
     Retrieves comprehensive profile data from Zwiftpower cache and profile
     pages. Stores results in the raw dictionary keyed by Zwift ID.
@@ -96,17 +102,74 @@ class Cyclist(ZP_obj):
       prof = f'{self._profile}{z}'
       zp.fetch_page(prof)
       logger.debug(f'Successfully fetched data for Zwift ID: {z}')
-      # js2py is broken in 3.12 right now. pull request pending to fix it.
-      # zp_vars = self.extract_zp_vars(y)
 
     logger.info(f'Successfully fetched {len(validated_ids)} cyclist profile(s)')
     return self.raw
+
+  # -------------------------------------------------------------------------------
+  async def afetch(self, *zwift_id: int) -> dict[Any, Any]:
+    """Fetch cyclist profile data for one or more Zwift IDs (asynchronous).
+
+    Retrieves comprehensive profile data from Zwiftpower cache and profile
+    pages. Stores results in the raw dictionary keyed by Zwift ID.
+
+    Args:
+      *zwift_id: One or more Zwift ID integers to fetch
+
+    Returns:
+      Dictionary mapping Zwift IDs to their profile data
+
+    Raises:
+      ValueError: If any ID is invalid (non-positive or too large)
+      ZPNetworkError: If network requests fail
+      ZPAuthenticationError: If authentication fails
+    """
+    if not self._zp:
+      # Create a temporary session if none provided
+      self._zp = AsyncZP()
+      await self._zp.login()
+      owns_session = True
+    else:
+      owns_session = False
+
+    try:
+      logger.info(f'Fetching cyclist data for {len(zwift_id)} ID(s) (async)')
+
+      # SECURITY: Validate all input IDs before processing
+      validated_ids = []
+      for z in zwift_id:
+        try:
+          # Convert to int if string, validate range
+          zid = int(z) if not isinstance(z, int) else z
+          if zid <= 0 or zid > 999999999:
+            raise ValueError(
+              f'Invalid Zwift ID: {z}. Must be a positive integer.',
+            )
+          validated_ids.append(zid)
+          logger.debug(f'Validated Zwift ID: {zid}')
+        except (ValueError, TypeError) as e:
+          logger.error(f'Invalid Zwift ID: {z}')
+          raise ValueError(f'Invalid Zwift ID: {z}. {e}') from e
+
+      # Fetch data for all validated IDs
+      for zid in validated_ids:
+        url = f'{self._url}{zid}{self._url_end}'
+        logger.debug(f'Fetching cyclist data from: {url}')
+        self.raw[zid] = await self._zp.fetch_json(url)
+        logger.info(f'Successfully fetched data for Zwift ID: {zid}')
+
+      return self.raw
+
+    finally:
+      # Clean up temporary session if we created one
+      if owns_session and self._zp:
+        await self._zp.close()
 
 
 # ===============================================================================
 def main() -> None:
   desc = """
-Module for fetching cyclist data using the Zwifpower API
+Module for fetching cyclist data using the Zwiftpower API
   """
   p = ArgumentParser(description=desc)
   p.add_argument(

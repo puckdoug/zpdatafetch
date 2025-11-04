@@ -1,8 +1,11 @@
+"""Unified Primes class with both sync and async fetch capabilities."""
+
 import datetime
 import re
 from argparse import ArgumentParser
 from typing import Any
 
+from zpdatafetch.async_zp import AsyncZP
 from zpdatafetch.logging_config import get_logger
 from zpdatafetch.zp import ZP
 from zpdatafetch.zp_obj import ZP_obj
@@ -16,7 +19,19 @@ class Primes(ZP_obj):
 
   Retrieves prime segment results for races, including both fastest
   absolute lap (FAL/msec) and first to sprint (FTS/elapsed) primes
-  across all categories.
+  across all categories. Supports both synchronous and asynchronous operations.
+
+  Synchronous usage:
+    primes = Primes()
+    primes.fetch(3590800, 3590801)
+    print(primes.json())
+
+  Asynchronous usage:
+    async with AsyncZP() as zp:
+      primes = Primes()
+      primes.set_session(zp)
+      await primes.afetch(3590800, 3590801)
+      print(primes.json())
 
   Attributes:
     raw: Nested dictionary mapping race IDs -> categories -> prime types to data
@@ -31,33 +46,53 @@ class Primes(ZP_obj):
   _cat: list[str] = ['A', 'B', 'C', 'D', 'E']
   _type: list[str] = ['msec', 'elapsed']
 
+  # Async version uses different URLs
+  _url_async: str = 'https://zwiftpower.com/cache3/primes/'
+  _url_end_async: str = '.json'
+
   def __init__(self) -> None:
     """Initialize a new Primes instance."""
     super().__init__()
+    self._zp: AsyncZP | None = None
+
+  # -------------------------------------------------------------------------------
+  def set_session(self, zp: AsyncZP) -> None:
+    """Set the AsyncZP session to use for async fetching.
+
+    Args:
+      zp: AsyncZP instance to use for API requests
+    """
+    self._zp = zp
 
   # -------------------------------------------------------------------------------
   @classmethod
   def set_primetype(cls, t: str) -> str:
-    """Convert prime type string to Zwiftpower API code.
+    """Convert prime type string to Zwiftpower API code or descriptive string.
 
     Args:
-      t: Prime type string ('msec' or 'elapsed')
+      t: Prime type string ('msec', 'elapsed', 'sprint', 'kom', 'prime')
 
     Returns:
       API code ('FAL' for fastest absolute lap, 'FTS' for first to sprint,
-      or empty string if unknown)
+      or descriptive string like 'Sprint', 'KOM', 'Prime', or empty string for unknown)
     """
-    match t:
+    match t.lower():
       case 'msec':
         return 'FAL'
       case 'elapsed':
         return 'FTS'
+      case 'sprint':
+        return 'Sprint'
+      case 'kom':
+        return 'KOM'
+      case 'prime':
+        return 'Prime'
       case _:
         return ''
 
   # -------------------------------------------------------------------------------
   def fetch(self, *race_id: int) -> dict[Any, Any]:
-    """Fetch prime data for one or more race IDs.
+    """Fetch prime data for one or more race IDs (synchronous).
 
     Retrieves prime results for all categories (A-E) and both prime types
     (msec/FAL and elapsed/FTS) for each race.
@@ -120,6 +155,65 @@ class Primes(ZP_obj):
     logger.info(f'Successfully fetched prime data for {len(validated_ids)} race(s)')
 
     return self.raw
+
+  # -------------------------------------------------------------------------------
+  async def afetch(self, *race_id: int) -> dict[Any, Any]:
+    """Fetch prime data for one or more race IDs (asynchronous).
+
+    Retrieves prime/sprint/KOM data from Zwiftpower cache.
+    Stores results in the raw dictionary keyed by race ID.
+
+    Args:
+      *race_id: One or more race ID integers to fetch
+
+    Returns:
+      Dictionary mapping race IDs to their prime data
+
+    Raises:
+      ValueError: If any race ID is invalid
+      ZPNetworkError: If network requests fail
+      ZPAuthenticationError: If authentication fails
+    """
+    if not self._zp:
+      # Create a temporary session if none provided
+      self._zp = AsyncZP()
+      await self._zp.login()
+      owns_session = True
+    else:
+      owns_session = False
+
+    try:
+      logger.info(f'Fetching prime data for {len(race_id)} race(s) (async)')
+
+      # SECURITY: Validate all race IDs before processing
+      validated_ids = []
+      for r in race_id:
+        try:
+          # Convert to int if string, validate range
+          rid = int(r) if not isinstance(r, int) else r
+          if rid <= 0 or rid > 999999999:
+            raise ValueError(
+              f'Invalid race ID: {r}. Must be a positive integer.',
+            )
+          validated_ids.append(rid)
+          logger.debug(f'Validated race ID: {rid}')
+        except (ValueError, TypeError) as e:
+          logger.error(f'Invalid race ID: {r}')
+          raise ValueError(f'Invalid race ID: {r}. {e}') from e
+
+      # Fetch prime data for all validated IDs
+      for rid in validated_ids:
+        url = f'{self._url_async}{rid}{self._url_end_async}'
+        logger.debug(f'Fetching prime data from: {url}')
+        self.raw[rid] = await self._zp.fetch_json(url)
+        logger.info(f'Successfully fetched prime data for race ID: {rid}')
+
+      return self.raw
+
+    finally:
+      # Clean up temporary session if we created one
+      if owns_session and self._zp:
+        await self._zp.close()
 
 
 # ===============================================================================

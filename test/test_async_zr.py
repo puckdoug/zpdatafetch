@@ -2,11 +2,9 @@
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import httpx
 import pytest
 
 from zrdatafetch.async_zr import AsyncZR_obj
-from zrdatafetch.exceptions import ZRNetworkError
 
 
 # ===============================================================================

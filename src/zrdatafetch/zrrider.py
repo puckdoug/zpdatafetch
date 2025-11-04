@@ -1,4 +1,4 @@
-"""Zwiftracing rider rating data fetching and management.
+"""Unified ZRRider class with both sync and async fetch capabilities.
 
 This module provides the ZRRider class for fetching and storing rider
 rating data from the Zwiftracing API.
@@ -7,6 +7,7 @@ rating data from the Zwiftracing API.
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
+from zrdatafetch.async_zr import AsyncZR_obj
 from zrdatafetch.config import Config
 from zrdatafetch.exceptions import ZRConfigError, ZRNetworkError
 from zrdatafetch.logging_config import get_logger
@@ -22,6 +23,30 @@ class ZRRider(ZR_obj):
 
   Represents a rider's current and historical ratings across multiple
   timeframes (current, max30, max90) as well as derived rating score (DRS).
+  Supports both synchronous and asynchronous operations.
+
+  Synchronous usage:
+    rider = ZRRider()
+    rider.fetch(zwift_id=12345)
+    print(rider.json())
+
+    # Batch fetch
+    riders = ZRRider.fetch_batch(123456, 789012)
+    for zwift_id, rider in riders.items():
+      print(f"{rider.name}: {rider.current_rating}")
+
+  Asynchronous usage:
+    async with AsyncZR_obj() as zr:
+      rider = ZRRider()
+      rider.set_session(zr)
+      await rider.afetch(zwift_id=123456)
+      print(rider.json())
+
+    # Async batch fetch
+    async with AsyncZR_obj() as zr:
+      riders = await ZRRider.afetch_batch(123456, 789012, zr=zr)
+      for zwift_id, rider in riders.items():
+        print(f"{rider.name}: {rider.current_rating}")
 
   Attributes:
     zwift_id: Rider's Zwift ID
@@ -60,10 +85,20 @@ class ZRRider(ZR_obj):
   _raw: dict = field(default_factory=dict, init=False, repr=False)
   _rider: dict = field(default_factory=dict, init=False, repr=False)
   _verbose: bool = field(default=False, init=False, repr=False)
+  _zr: AsyncZR_obj | None = field(default=None, init=False, repr=False)
+
+  # -----------------------------------------------------------------------
+  def set_session(self, zr: AsyncZR_obj) -> None:
+    """Set the AsyncZR_obj session to use for async fetching.
+
+    Args:
+      zr: AsyncZR_obj instance to use for API requests
+    """
+    self._zr = zr
 
   # -----------------------------------------------------------------------
   def fetch(self, zwift_id: int | None = None, epoch: int | None = None) -> None:
-    """Fetch rider rating data from the Zwiftracing API.
+    """Fetch rider rating data from the Zwiftracing API (synchronous).
 
     Fetches the rider's current or historical rating data based on the
     provided zwift_id and optional epoch (unix timestamp).
@@ -119,6 +154,86 @@ class ZRRider(ZR_obj):
 
     # Parse response
     self._parse_response()
+
+  # -----------------------------------------------------------------------
+  async def afetch(
+    self,
+    zwift_id: int | None = None,
+    epoch: int | None = None,
+  ) -> None:
+    """Fetch rider rating data from the Zwiftracing API (asynchronous).
+
+    Fetches the rider's current or historical rating data based on the
+    provided zwift_id and optional epoch (unix timestamp).
+
+    Args:
+      zwift_id: Rider's Zwift ID (uses self.zwift_id if not provided)
+      epoch: Unix timestamp for historical data (uses self.epoch if not provided)
+
+    Raises:
+      ValueError: If zwift_id is invalid
+      ZRNetworkError: If the API request fails
+      ZRConfigError: If authorization is not configured
+
+    Example:
+      rider = ZRRider()
+      rider.set_session(zr)
+      await rider.afetch(zwift_id=12345)
+      print(rider.json())
+    """
+    # Use provided values or defaults
+    if zwift_id is not None:
+      self.zwift_id = zwift_id
+    if epoch is not None:
+      self.epoch = epoch
+
+    if self.zwift_id == 0:
+      logger.warning('No zwift_id provided for fetch')
+      return
+
+    # Get authorization from config
+    config = Config()
+    config.load()
+    if not config.authorization:
+      raise ZRConfigError(
+        'Zwiftracing authorization not found. Please run "zrdata config" to set it up.',
+      )
+
+    logger.debug(
+      f'Fetching rider for zwift_id={self.zwift_id}, epoch={self.epoch} (async)',
+    )
+
+    # Build endpoint
+    if self.epoch >= 0:
+      endpoint = f'/public/riders/{self.zwift_id}/{self.epoch}'
+    else:
+      endpoint = f'/public/riders/{self.zwift_id}'
+
+    # Create temporary session if none provided
+    if not self._zr:
+      self._zr = AsyncZR_obj()
+      await self._zr.init_client()
+      owns_session = True
+    else:
+      owns_session = False
+
+    try:
+      # Fetch JSON from API
+      headers = {'Authorization': config.authorization}
+      self._raw = await self._zr.fetch_json(endpoint, headers=headers)
+
+      # Parse response
+      self._parse_response()
+      logger.info(
+        f'Successfully fetched rider {self.name} (zwift_id={self.zwift_id})',
+      )
+    except ZRNetworkError as e:
+      logger.error(f'Failed to fetch rider: {e}')
+      raise
+    finally:
+      # Clean up temporary session if we created one
+      if owns_session and self._zr:
+        await self._zr.close()
 
   # -----------------------------------------------------------------------
   def _parse_response(self) -> None:
@@ -196,7 +311,7 @@ class ZRRider(ZR_obj):
     *zwift_ids: int,
     epoch: int | None = None,
   ) -> dict[int, 'ZRRider']:
-    """Fetch multiple riders in a single request (POST).
+    """Fetch multiple riders in a single request (POST, synchronous).
 
     Uses the Zwiftracing API batch endpoint to fetch current or historical
     data for multiple riders in a single request. More efficient than
@@ -280,6 +395,120 @@ class ZRRider(ZR_obj):
       f'Successfully fetched {len(results)}/{len(zwift_ids)} riders in batch',
     )
     return results
+
+  # -----------------------------------------------------------------------
+  @staticmethod
+  async def afetch_batch(
+    *zwift_ids: int,
+    epoch: int | None = None,
+    zr: AsyncZR_obj | None = None,
+  ) -> dict[int, 'ZRRider']:
+    """Fetch multiple riders in a single request (POST, asynchronous).
+
+    Uses the Zwiftracing API batch endpoint to fetch current or historical
+    data for multiple riders in a single request. More efficient than
+    individual GET requests.
+
+    Args:
+      *zwift_ids: Rider IDs to fetch (max 1000 per request)
+      epoch: Unix timestamp for historical data (None for current)
+      zr: Optional AsyncZR_obj session. If not provided, creates temporary session.
+
+    Returns:
+      Dictionary mapping rider ID to ZRRider instance with parsed data
+
+    Raises:
+      ValueError: If more than 1000 IDs provided
+      ZRNetworkError: If the API request fails
+      ZRConfigError: If authorization is not configured
+
+    Example:
+      # With session
+      async with AsyncZR_obj() as zr:
+        riders = await ZRRider.afetch_batch(12345, 67890, 11111, zr=zr)
+        for zwift_id, rider in riders.items():
+          print(f"{rider.name}: {rider.current_rating}")
+
+      # Without session (creates temporary)
+      riders = await ZRRider.afetch_batch(12345, 67890)
+
+      # Historical data
+      riders = await ZRRider.afetch_batch(12345, 67890, epoch=1704067200, zr=zr)
+    """
+    if len(zwift_ids) > 1000:
+      raise ValueError('Maximum 1000 rider IDs per batch request')
+
+    if len(zwift_ids) == 0:
+      logger.warning('No rider IDs provided for batch fetch')
+      return {}
+
+    # Get authorization from config
+    config = Config()
+    config.load()
+    if not config.authorization:
+      raise ZRConfigError(
+        'Zwiftracing authorization not found. Please run "zrdata config" to set it up.',
+      )
+
+    logger.debug(
+      f'Fetching batch of {len(zwift_ids)} riders, epoch={epoch} (async)',
+    )
+
+    # Create temporary session if none provided
+    if not zr:
+      zr = AsyncZR_obj()
+      await zr.init_client()
+      owns_session = True
+    else:
+      owns_session = False
+
+    try:
+      # Build endpoint
+      if epoch is not None:
+        endpoint = f'/public/riders/{epoch}'
+      else:
+        endpoint = '/public/riders'
+
+      # Fetch JSON from API using POST
+      headers = {'Authorization': config.authorization}
+      raw_data = await zr.fetch_json(
+        endpoint,
+        method='POST',
+        headers=headers,
+        json=list(zwift_ids),
+      )
+
+      # Parse response into individual ZRRider objects
+      results = {}
+      if not isinstance(raw_data, list):
+        logger.error('Expected list of riders in batch response')
+        return results
+
+      for rider_data in raw_data:
+        try:
+          rider = ZRRider()
+          rider._raw = rider_data
+          rider._parse_response()
+          results[rider.zwift_id] = rider
+          logger.debug(
+            f'Parsed batch rider: {rider.name} (zwift_id={rider.zwift_id})',
+          )
+        except (KeyError, TypeError) as e:
+          logger.warning(f'Skipping malformed rider in batch response: {e}')
+          continue
+
+      logger.info(
+        f'Successfully fetched {len(results)}/{len(zwift_ids)} riders in batch (async)',
+      )
+      return results
+
+    except ZRNetworkError as e:
+      logger.error(f'Failed to fetch batch: {e}')
+      raise
+    finally:
+      # Clean up temporary session if we created one
+      if owns_session and zr:
+        await zr.close()
 
   # -----------------------------------------------------------------------
   def to_dict(self) -> dict[str, Any]:

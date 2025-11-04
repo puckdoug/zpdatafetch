@@ -1,10 +1,10 @@
-"""Tests for AsyncCyclist."""
+"""Tests for Cyclist with async (afetch) methods."""
 
 import httpx
 import pytest
 
-from zpdatafetch.async_cyclist import AsyncCyclist
 from zpdatafetch.async_zp import AsyncZP
+from zpdatafetch.cyclist import Cyclist
 
 
 @pytest.mark.anyio
@@ -31,9 +31,9 @@ async def test_async_cyclist_fetch(login_page, logged_in_page):
       ),
     )
 
-    cyclist = AsyncCyclist()
+    cyclist = Cyclist()
     cyclist.set_session(zp)
-    result = await cyclist.fetch(123456)
+    result = await cyclist.afetch(123456)
 
     assert 123456 in result
     assert result[123456] == test_data
@@ -43,17 +43,17 @@ async def test_async_cyclist_fetch(login_page, logged_in_page):
 async def test_async_cyclist_invalid_id():
   """Test AsyncCyclist rejects invalid IDs."""
   async with AsyncZP(skip_credential_check=True) as zp:
-    cyclist = AsyncCyclist()
+    cyclist = Cyclist()
     cyclist.set_session(zp)
 
     with pytest.raises(ValueError):
-      await cyclist.fetch(0)  # Invalid: too small
+      await cyclist.afetch(0)  # Invalid: too small
 
     with pytest.raises(ValueError):
-      await cyclist.fetch(-1)  # Invalid: negative
+      await cyclist.afetch(-1)  # Invalid: negative
 
     with pytest.raises(ValueError):
-      await cyclist.fetch(9999999999)  # Invalid: too large
+      await cyclist.afetch(9999999999)  # Invalid: too large
 
 
 @pytest.mark.anyio
@@ -81,9 +81,9 @@ async def test_async_multiple_fetches(login_page, logged_in_page):
       ),
     )
 
-    cyclist = AsyncCyclist()
+    cyclist = Cyclist()
     cyclist.set_session(zp)
-    result = await cyclist.fetch(123456, 789012)
+    result = await cyclist.afetch(123456, 789012)
 
     assert len(result) == 2
     assert 123456 in result
@@ -114,9 +114,9 @@ async def test_async_data_class_json_output(login_page, logged_in_page):
       ),
     )
 
-    cyclist = AsyncCyclist()
+    cyclist = Cyclist()
     cyclist.set_session(zp)
-    await cyclist.fetch(123456)
+    await cyclist.afetch(123456)
 
     # Test json() method
     json_str = cyclist.json()

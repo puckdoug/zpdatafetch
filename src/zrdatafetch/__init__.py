@@ -22,9 +22,6 @@ For command-line usage:
 """
 
 from zrdatafetch.async_zr import AsyncZR_obj
-from zrdatafetch.async_zrresult import AsyncZRResult
-from zrdatafetch.async_zrrider import AsyncZRRider
-from zrdatafetch.async_zrteam import AsyncZRTeam
 from zrdatafetch.config import Config
 from zrdatafetch.exceptions import (
   ZRAuthenticationError,
@@ -36,6 +33,12 @@ from zrdatafetch.zr import ZR_obj
 from zrdatafetch.zrresult import ZRResult, ZRRiderResult
 from zrdatafetch.zrrider import ZRRider
 from zrdatafetch.zrteam import ZRTeam, ZRTeamRider
+
+# Backwards compatibility aliases for async classes
+# Note: These classes now support both sync (fetch) and async (afetch) methods
+AsyncZRRider = ZRRider
+AsyncZRResult = ZRResult
+AsyncZRTeam = ZRTeam
 
 __all__ = [
   # Base classes
@@ -49,10 +52,10 @@ __all__ = [
   'ZRRiderResult',
   'ZRTeam',
   'ZRTeamRider',
-  # Data classes (asynchronous)
-  'AsyncZRRider',
-  'AsyncZRResult',
-  'AsyncZRTeam',
+  # Data classes (asynchronous) - Aliases for backwards compatibility
+  'AsyncZRRider',  # Alias for ZRRider (supports both sync and async)
+  'AsyncZRResult',  # Alias for ZRResult (supports both sync and async)
+  'AsyncZRTeam',  # Alias for ZRTeam (supports both sync and async)
   # Exceptions
   'ZRAuthenticationError',
   'ZRNetworkError',
