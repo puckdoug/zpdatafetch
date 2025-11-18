@@ -1,5 +1,53 @@
 # Changelog
 
+## [1.6.0]
+
+### Added
+
+- New `Sprints` endpoint for fetching sprint data from ZwiftPower
+  - Fetches data from `api3.php?do=event_sprints&zid=<race_id>`
+  - Supports both synchronous `fetch()` and asynchronous `afetch()` methods
+  - Returns sprint data organized by race ID
+  - Full test coverage with sync and async tests
+- `sprints` command to zpdata CLI tool
+
+### Changed
+
+- **BREAKING: `Primes.fetch()` return value** - Now returns a dictionary of nested structure `{race_id: {category: {prime_type: data}}}` instead of a flat structure
+- **BREAKING: `Primes.afetch()` return value** - Now returns the same nested dictionary structure as `fetch()` for consistency
+- `Primes.afetch()` now uses the same `api3.php` endpoint as `fetch()` instead of the non-functional `cache3/primes` endpoint
+- Updated README.md to document the new Sprints endpoint and updated CLI usage examples
+
+### Fixed
+
+- Fixed `Primes.afetch()` to use working `api3.php` endpoint instead of non-functional `cache3/primes` endpoint
+- Fixed inconsistency between `Primes.fetch()` and `Primes.afetch()` - both now call identical endpoints and return identical data structures
+- Fixed `test_async_primes.py` to validate the new nested dictionary structure returned by `afetch()`
+
+## [1.5.0]
+
+### Added
+
+- Reorganized async API to be integrated with regular data classes for simplified interface
+  - All data classes (`Cyclist`, `Result`, `Signup`, `Team`, `Primes`, `ZRRider`, `ZRResult`, `ZRTeam`) now support both sync and async methods
+  - Removed separate `AsyncCyclist`, `AsyncResult`, etc. classes (now aliases for backwards compatibility)
+  - Unified `fetch()` and `afetch()` methods on all classes
+- Improved test organization with individual async test files per endpoint
+
+### Changed
+
+- **BREAKING: Unified API design** - Removed separate async classes; `fetch()` and `afetch()` are now methods on the same class
+  - `type(obj)` returns the same class regardless of sync/async usage
+  - Simplified imports: no need for separate `Async*` classes
+- Reorganized async tests into individual files (`test_async_cyclist.py`, `test_async_primes.py`, etc.) instead of single `test_async_data_classes.py`
+- Updated GitHub workflow - removed conditional checks on manual build to allow manual triggering at any time
+- Updated README.md with unified async API documentation and examples
+
+### Fixed
+
+- Simplified async API interface by consolidating async functionality into base classes
+- Improved test organization and maintainability
+
 ## [1.4.0]
 
 ### Added

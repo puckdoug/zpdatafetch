@@ -26,10 +26,10 @@ real free-threaded environment. Please do
 
 This package provides two main command-line tools:
 
-| Tool         | API         | Purpose                              | Data Types                                |
-| ------------ | ----------- | ------------------------------------ | ----------------------------------------- |
-| **`zpdata`** | ZwiftPower  | Race rankings, signups, results      | Cyclist, Primes, Results, Signups, Teams  |
-| **`zrdata`** | Zwiftracing | Rider ratings, race results, rosters | Rider Ratings, Race Results, Team Rosters |
+| Tool         | API         | Purpose                              | Data Types                                        |
+| ------------ | ----------- | ------------------------------------ | ------------------------------------------------- |
+| **`zpdata`** | ZwiftPower  | Race rankings, signups, results      | Cyclist, Primes, Results, Signups, Sprints, Teams |
+| **`zrdata`** | Zwiftracing | Rider ratings, race results, rosters | Rider Ratings, Race Results, Team Rosters         |
 
 Both tools support batch operations, flexible logging, and can be used as
 standalone CLI tools or imported as libraries. They maintain separate credential
@@ -42,7 +42,8 @@ stores for each API.
 - **Cyclist rankings** - Individual and batch lookups by Zwift ID
 - **Race results** - Detailed finish information and point scoring per race
 - **Signups** - Event signup lists and participant info
-- **Primes/Sprints** - Prime results for Fastest Through Segment (FTS) and First Across the Line (FAL)
+- **Primes** - Prime results for Fastest Through Segment (FTS) and First Across the Line (FAL)
+- **Sprints** - Sprint data including sprint details and positions
 - **Team data** - Team rosters and member information
 
 ### For zrdata (Zwiftracing)
@@ -95,12 +96,12 @@ cyclist rankings, race results, and event signups.
 ### Command-line example
 
 ```sh
-usage: zpdata [-h] [-v] [-vv] [--log-file PATH] [-r] [{config,cyclist,primes,result,signup,team}] [id ...]
+usage: zpdata [-h] [-v] [-vv] [--log-file PATH] [-r] [{config,cyclist,primes,result,signup,sprints,team}] [id ...]
 
 Module for fetching zwiftpower data using the Zwifpower API
 
 positional arguments:
-  {config,cyclist,primes,result,signup,team}
+  {config,cyclist,primes,result,signup,sprints,team}
                         which command to run
   id                    the id to search for, ignored for config
 
@@ -149,6 +150,7 @@ available classes are as follows:
 - Primes: fetch primes from one or more races using event id
 - Result: fetch results from one or more races (finish, points) using event id
 - Signup: fetch signups for a particular event by event id
+- Sprints: fetch sprints from one or more races using event id
 - Team: fetch team data by team id
 
 ## Zwiftracing Data (zrdata)
@@ -786,12 +788,14 @@ provide help. Basic examples follow.
 zpdata cyclist <zwift_id>
 # Team
 zpdata team <team_id>
-# Signuup
+# Signup
 zpdata signup <race_id>
 # Race Result
 zpdata result <race_id>
 # Primes
 zpdata primes <race_id>
+# Sprints
+zpdata sprints <race_id>
 
 # Zwiftrace Result
 zrdata result <race_id>
