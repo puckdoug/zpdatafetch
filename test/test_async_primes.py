@@ -10,14 +10,19 @@ from zpdatafetch.primes import Primes
 @pytest.mark.anyio
 async def test_async_primes_fetch(login_page, logged_in_page):
   """Test AsyncPrimes fetch functionality."""
-  test_data = {'race_id': 3590800, 'primes': []}
+  test_data = {
+    'data': [
+      {'position': 1, 'name': 'Winner', 'time': '01:23:45'},
+      {'position': 2, 'name': 'Second Place', 'time': '01:24:12'},
+    ],
+  }
 
   def handler(request):
     if request.method == 'GET' and 'login' in str(request.url):
       return httpx.Response(200, text=login_page)
     if request.method == 'POST':
       return httpx.Response(200, text=logged_in_page)
-    if '3590800' in str(request.url):
+    if 'event_primes' in str(request.url) and '3590800' in str(request.url):
       return httpx.Response(200, json=test_data)
     return httpx.Response(404)
 
@@ -36,7 +41,10 @@ async def test_async_primes_fetch(login_page, logged_in_page):
     data = await primes.afetch(3590800)
 
     assert 3590800 in data
-    assert data[3590800] == test_data
+    # afetch now returns nested structure: {race_id: {category: {prime_type: data}}}
+    assert 'A' in data[3590800]
+    assert 'msec' in data[3590800]['A']
+    assert 'elapsed' in data[3590800]['A']
 
 
 @pytest.mark.anyio

@@ -160,14 +160,14 @@ class Primes(ZP_obj):
   async def afetch(self, *race_id: int) -> dict[Any, Any]:
     """Fetch prime data for one or more race IDs (asynchronous).
 
-    Retrieves prime/sprint/KOM data from Zwiftpower cache.
-    Stores results in the raw dictionary keyed by race ID.
+    Retrieves prime results for all categories (A-E) and both prime types
+    (msec/FAL and elapsed/FTS) for each race.
 
     Args:
       *race_id: One or more race ID integers to fetch
 
     Returns:
-      Dictionary mapping race IDs to their prime data
+      Nested dictionary: {race_id: {category: {prime_type: data}}}
 
     Raises:
       ValueError: If any race ID is invalid
@@ -201,12 +201,31 @@ class Primes(ZP_obj):
           logger.error(f'Invalid race ID: {r}')
           raise ValueError(f'Invalid race ID: {r}. {e}') from e
 
-      # Fetch prime data for all validated IDs
-      for rid in validated_ids:
-        url = f'{self._url_async}{rid}{self._url_end_async}'
-        logger.debug(f'Fetching prime data from: {url}')
-        self.raw[rid] = await self._zp.fetch_json(url)
-        logger.info(f'Successfully fetched prime data for race ID: {rid}')
+      p: dict[Any, Any] = {}
+      ts = int(re.sub(r'\.', '', str(datetime.datetime.now().timestamp())[:-3]))
+
+      for race in validated_ids:
+        logger.debug(f'Fetching primes for race ID: {race} (async)')
+        p[race] = {}
+        for cat in self._cat:
+          if cat not in p[race]:
+            p[race][cat] = {}
+          for primetype in self._type:
+            logger.debug(f'Fetching {primetype} primes for category {cat} (async)')
+            url = f'{self._url_base}{self._url_race_id}{race}{self._url_category}{cat}{self._url_primetype}{primetype}&_={ts}'
+            res = await self._zp.fetch_json(url)
+            if 'data' not in res or len(res['data']) == 0:
+              logger.debug(f'No results for {primetype} in category {cat} (async)')
+            else:
+              logger.debug(f'Results found for {primetype} in category {cat} (async)')
+            p[race][cat][primetype] = res
+            ts = ts + 1
+        logger.debug(f'Successfully fetched all primes for race ID: {race} (async)')
+
+      self.raw = p
+      logger.info(
+        f'Successfully fetched prime data for {len(validated_ids)} race(s) (async)'
+      )
 
       return self.raw
 
