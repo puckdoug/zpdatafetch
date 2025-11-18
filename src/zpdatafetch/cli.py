@@ -9,7 +9,7 @@ import logging
 import sys
 from argparse import ArgumentParser
 
-from zpdatafetch import Config, Cyclist, Primes, Result, Signup, Team
+from zpdatafetch import Config, Cyclist, Primes, Result, Signup, Sprints, Team
 from zpdatafetch.logging_config import setup_logging
 
 
@@ -23,6 +23,7 @@ def main() -> int | None:
     - primes: Fetch race prime/segment data by race ID
     - result: Fetch race results by race ID
     - signup: Fetch race signups by race ID
+    - sprints: Fetch race sprint data by race ID
     - team: Fetch team roster data by team ID
 
   Returns:
@@ -64,7 +65,7 @@ Module for fetching zwiftpower data using the Zwifpower API
   p.add_argument(
     'cmd',
     nargs='?',
-    metavar='{config,cyclist,primes,result,signup,team}',
+    metavar='{config,cyclist,primes,result,signup,sprints,team}',
     help='which command to run',
   )
   p.add_argument(
@@ -98,7 +99,7 @@ Module for fetching zwiftpower data using the Zwifpower API
     return None
 
   # For non-config commands, validate we have a valid command
-  valid_commands = ('cyclist', 'primes', 'result', 'signup', 'team')
+  valid_commands = ('cyclist', 'primes', 'result', 'signup', 'sprints', 'team')
   if args.cmd not in valid_commands:
     # The 'cmd' might actually be an ID if user didn't provide a command
     print(f'Error: invalid command "{args.cmd}"')
@@ -118,7 +119,7 @@ Module for fetching zwiftpower data using the Zwifpower API
     return None
 
   # Map command to class and fetch
-  x: Cyclist | Primes | Result | Signup | Team
+  x: Cyclist | Primes | Result | Signup | Sprints | Team
 
   match args.cmd:
     case 'cyclist':
@@ -129,6 +130,8 @@ Module for fetching zwiftpower data using the Zwifpower API
       x = Result()
     case 'signup':
       x = Signup()
+    case 'sprints':
+      x = Sprints()
     case 'team':
       x = Team()
     case _:

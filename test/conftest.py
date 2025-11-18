@@ -2,7 +2,7 @@ import keyring
 import pytest
 from keyrings.alt.file import PlaintextKeyring
 
-from zpdatafetch import ZP, Config, Cyclist, Primes, Result, Signup, Team
+from zpdatafetch import ZP, Config, Cyclist, Primes, Result, Signup, Sprints, Team
 
 
 @pytest.fixture(scope='session', params=['asyncio', 'trio'])
@@ -58,6 +58,11 @@ def config():
 @pytest.fixture
 def signup():
   return Signup()
+
+
+@pytest.fixture
+def sprints():
+  return Sprints()
 
 
 @pytest.fixture

@@ -6,6 +6,7 @@ from zpdatafetch.logging_config import setup_logging
 from zpdatafetch.primes import Primes
 from zpdatafetch.result import Result
 from zpdatafetch.signup import Signup
+from zpdatafetch.sprints import Sprints
 from zpdatafetch.team import Team
 from zpdatafetch.zp import (
   ZP,
@@ -28,6 +29,7 @@ __all__ = [
   'Cyclist',
   'Primes',
   'Result',
+  'Sprints',
   'Config',
   'Signup',
   'Team',
