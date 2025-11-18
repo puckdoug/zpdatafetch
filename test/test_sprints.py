@@ -1,6 +1,5 @@
 import httpx
 
-from zpdatafetch import Sprints
 
 
 def test_sprints(sprints):
