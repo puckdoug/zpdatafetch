@@ -204,6 +204,8 @@ class Sprints(ZP_obj):
     self.raw = content
     logger.info(f'Successfully fetched {len(validated_ids)} race sprint(s)')
 
+    # Share the session with primes to avoid second login
+    self.primes.set_zp_session(zp)
     self.primes.fetch(*validated_ids)
     self.extract_banners()
     self.enrich_sprints()

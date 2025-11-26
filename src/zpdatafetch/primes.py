@@ -66,6 +66,15 @@ class Primes(ZP_obj):
     self._zp = zp
 
   # -------------------------------------------------------------------------------
+  def set_zp_session(self, zp: ZP) -> None:
+    """Set the ZP session to use for sync fetching.
+
+    Args:
+      zp: ZP instance to use for API requests
+    """
+    self._zp_session = zp
+
+  # -------------------------------------------------------------------------------
   @classmethod
   def set_primetype(cls, t: str) -> str:
     """Convert prime type string to Zwiftpower API code or descriptive string.
@@ -129,7 +138,13 @@ class Primes(ZP_obj):
           f'Invalid race ID: {r}. Must be a valid positive integer.',
         ) from e
 
-    zp = ZP()
+    # Use existing session if available, otherwise create new one
+    if hasattr(self, '_zp_session') and self._zp_session:
+      zp = self._zp_session
+      logger.debug('Using existing ZP session for primes fetch')
+    else:
+      zp = ZP()
+      logger.debug('Created new ZP session for primes fetch')
     p: dict[Any, Any] = {}
 
     ts = int(re.sub(r'\.', '', str(datetime.datetime.now().timestamp())[:-3]))
