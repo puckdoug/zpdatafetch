@@ -100,6 +100,15 @@ class ZRResult(ZR_obj):
     self._zr = zr
 
   # -----------------------------------------------------------------------
+  def set_zr_session(self, zr: ZR_obj) -> None:
+    """Set the ZR_obj session to use for sync fetching.
+
+    Args:
+      zr: ZR_obj instance to use for API requests
+    """
+    self._zr_session = zr
+
+  # -----------------------------------------------------------------------
   def fetch(self, race_id: int | None = None) -> None:
     """Fetch race result data from the Zwiftracing API (synchronous).
 
@@ -141,7 +150,13 @@ class ZRResult(ZR_obj):
     # Fetch JSON from API
     headers = {'Authorization': config.authorization}
     try:
-      self._raw = self.fetch_json(endpoint, headers=headers)
+      # Use existing session if available, otherwise use self
+      if hasattr(self, '_zr_session') and self._zr_session:
+        logger.debug('Using existing ZR session for result fetch')
+        self._raw = self._zr_session.fetch_json(endpoint, headers=headers)
+      else:
+        logger.debug('Using own instance for result fetch')
+        self._raw = self.fetch_json(endpoint, headers=headers)
     except ZRNetworkError as e:
       logger.error(f'Failed to fetch race result: {e}')
       raise

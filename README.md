@@ -726,6 +726,152 @@ setup_logging(console_level='INFO', force_console=True)
 - `'WARNING'` - Warning messages
 - `'ERROR'` - Error messages (default)
 
+### Session Sharing (Performance Optimization)
+
+When working with multiple data objects or making multiple API requests, you can share HTTP sessions to improve performance and reduce overhead. This prevents unnecessary login attempts (for ZwiftPower) and reuses HTTP connection pools.
+
+#### ZwiftPower Session Sharing
+
+**Synchronous API:**
+
+```python
+from zpdatafetch import ZP, Cyclist, Result, Team, Primes, Sprints
+
+# Create a single ZP session
+zp = ZP()
+
+# Share it across multiple objects
+cyclist = Cyclist()
+cyclist.set_zp_session(zp)
+cyclist.fetch(1234567)
+
+result = Result()
+result.set_zp_session(zp)
+result.fetch(3590800)
+
+team = Team()
+team.set_zp_session(zp)
+team.fetch(456)
+
+# Only logs in once to ZwiftPower.
+```
+
+**Asynchronous API:**
+
+```python
+import anyio
+from zpdatafetch import AsyncZP, Cyclist, Result, Team
+
+async def main():
+    # Create a single async session
+    async with AsyncZP() as zp:
+        cyclist = Cyclist()
+        cyclist.set_session(zp)
+
+        result = Result()
+        result.set_session(zp)
+
+        team = Team()
+        team.set_session(zp)
+
+        # Fetch concurrently, sharing the same session
+        async with anyio.create_task_group() as tg:
+            tg.start_soon(cyclist.afetch, 1234567)
+            tg.start_soon(result.afetch, 3590800)
+            tg.start_soon(team.afetch, 456)
+
+        print(cyclist.json())
+        print(result.json())
+        print(team.json())
+
+anyio.run(main)
+```
+
+#### Zwiftracing Session Sharing
+
+**Synchronous API:**
+
+```python
+from zrdatafetch import ZR_obj, ZRRider, ZRResult, ZRTeam
+
+# Create a single ZR_obj instance
+zr = ZR_obj()
+
+# Share it across multiple objects
+rider = ZRRider()
+rider.set_zr_session(zr)
+rider.fetch(zwift_id=12345)
+
+result = ZRResult()
+result.set_zr_session(zr)
+result.fetch(race_id=3590800)
+
+team = ZRTeam()
+team.set_zr_session(zr)
+team.fetch(team_id=456)
+
+# All use the same HTTP connection pool
+```
+
+**Batch Operations with Session Sharing:**
+
+```python
+from zrdatafetch import ZR_obj, ZRRider
+
+# Share session for batch operation
+zr = ZR_obj()
+riders = ZRRider.fetch_batch(12345, 67890, 11111, zr=zr)
+for zwift_id, rider in riders.items():
+    print(f"{rider.name}: {rider.current_rating}")
+```
+
+**Asynchronous API:**
+
+```python
+import anyio
+from zrdatafetch import AsyncZR_obj, ZRRider, ZRResult, ZRTeam
+
+async def main():
+    # Create a single async session
+    async with AsyncZR_obj() as zr:
+        rider = ZRRider()
+        rider.set_session(zr)
+
+        result = ZRResult()
+        result.set_session(zr)
+
+        team = ZRTeam()
+        team.set_session(zr)
+
+        # Fetch concurrently, sharing the same session
+        async with anyio.create_task_group() as tg:
+            tg.start_soon(rider.afetch, 12345)
+            tg.start_soon(result.afetch, 3590800)
+            tg.start_soon(team.afetch, 456)
+
+        print(rider.json())
+        print(result.json())
+        print(team.json())
+
+anyio.run(main)
+```
+
+**Async Batch with Session Sharing:**
+
+```python
+import anyio
+from zrdatafetch import AsyncZR_obj, ZRRider
+
+async def main():
+    async with AsyncZR_obj() as zr:
+        # Share session for batch operation
+        riders = await ZRRider.afetch_batch(12345, 67890, 11111, zr=zr)
+        for zwift_id, rider in riders.items():
+            print(f"{rider.name}: {rider.current_rating}")
+
+anyio.run(main)
+```
+
 ### Object signature
 
 Each object has a common set of methods available:

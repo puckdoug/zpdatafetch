@@ -97,6 +97,15 @@ class ZRRider(ZR_obj):
     self._zr = zr
 
   # -----------------------------------------------------------------------
+  def set_zr_session(self, zr: ZR_obj) -> None:
+    """Set the ZR_obj session to use for sync fetching.
+
+    Args:
+      zr: ZR_obj instance to use for API requests
+    """
+    self._zr_session = zr
+
+  # -----------------------------------------------------------------------
   def fetch(self, zwift_id: int | None = None, epoch: int | None = None) -> None:
     """Fetch rider rating data from the Zwiftracing API (synchronous).
 
@@ -147,7 +156,13 @@ class ZRRider(ZR_obj):
     # Fetch JSON from API
     headers = {'Authorization': config.authorization}
     try:
-      self._raw = self.fetch_json(endpoint, headers=headers)
+      # Use existing session if available, otherwise use self
+      if hasattr(self, '_zr_session') and self._zr_session:
+        logger.debug('Using existing ZR session for rider fetch')
+        self._raw = self._zr_session.fetch_json(endpoint, headers=headers)
+      else:
+        logger.debug('Using own instance for rider fetch')
+        self._raw = self.fetch_json(endpoint, headers=headers)
     except ZRNetworkError as e:
       logger.error(f'Failed to fetch rider: {e}')
       raise
@@ -310,6 +325,7 @@ class ZRRider(ZR_obj):
   def fetch_batch(
     *zwift_ids: int,
     epoch: int | None = None,
+    zr: ZR_obj | None = None,
   ) -> dict[int, 'ZRRider']:
     """Fetch multiple riders in a single request (POST, synchronous).
 
@@ -320,6 +336,7 @@ class ZRRider(ZR_obj):
     Args:
       *zwift_ids: Rider IDs to fetch (max 1000 per request)
       epoch: Unix timestamp for historical data (None for current)
+      zr: Optional ZR_obj session. If not provided, creates temporary instance.
 
     Returns:
       Dictionary mapping rider ID to ZRRider instance with parsed data
@@ -330,12 +347,17 @@ class ZRRider(ZR_obj):
       ZRConfigError: If authorization is not configured
 
     Example:
-      riders = ZRRider.fetch_batch(12345, 67890, 11111)
+      # With session
+      zr = ZR_obj()
+      riders = ZRRider.fetch_batch(12345, 67890, 11111, zr=zr)
       for zwift_id, rider in riders.items():
         print(f"{rider.name}: {rider.current_rating}")
 
+      # Without session (creates temporary)
+      riders = ZRRider.fetch_batch(12345, 67890)
+
       # Historical data
-      riders = ZRRider.fetch_batch(12345, 67890, epoch=1704067200)
+      riders = ZRRider.fetch_batch(12345, 67890, epoch=1704067200, zr=zr)
     """
     if len(zwift_ids) > 1000:
       raise ValueError('Maximum 1000 rider IDs per batch request')
@@ -363,13 +385,24 @@ class ZRRider(ZR_obj):
     # Fetch JSON from API using POST
     headers = {'Authorization': config.authorization}
     try:
-      rider_obj = ZRRider()
-      raw_data = rider_obj.fetch_json(
-        endpoint,
-        headers=headers,
-        json=list(zwift_ids),
-        method='POST',
-      )
+      # Use provided session or create temporary instance
+      if zr is not None:
+        logger.debug('Using provided ZR session for batch fetch')
+        raw_data = zr.fetch_json(
+          endpoint,
+          headers=headers,
+          json=list(zwift_ids),
+          method='POST',
+        )
+      else:
+        logger.debug('Creating temporary ZR instance for batch fetch')
+        rider_obj = ZRRider()
+        raw_data = rider_obj.fetch_json(
+          endpoint,
+          headers=headers,
+          json=list(zwift_ids),
+          method='POST',
+        )
     except ZRNetworkError as e:
       logger.error(f'Failed to fetch batch: {e}')
       raise
