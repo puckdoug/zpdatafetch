@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.1]
+
+### Changed
+
+- Updated sprint logic to pull in banner names from Primes
+- Updated all objects to allow session sharing (zp_obj, zr_obj) so that only one login is required per session
+- Updated README to describe how this works.
+
 ## [1.6.0]
 
 ### Added
