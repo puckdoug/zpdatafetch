@@ -46,6 +46,7 @@ class Team(ZP_obj):
     """Initialize a new Team instance."""
     super().__init__()
     self._zp: AsyncZP | None = None
+    self.processed: dict[Any, Any] = {}
 
   # -------------------------------------------------------------------------------
   def set_session(self, zp: AsyncZP) -> None:
@@ -106,7 +107,8 @@ class Team(ZP_obj):
     self.raw = content
     logger.info(f'Successfully fetched {len(team_id)} team roster(s)')
 
-    return self.raw
+    self.processed = self.raw
+    return self.processed
 
   # -------------------------------------------------------------------------------
   async def afetch(self, *team_id: int) -> dict[Any, Any]:
@@ -160,7 +162,8 @@ class Team(ZP_obj):
         self.raw[tid] = await self._zp.fetch_json(url)
         logger.info(f'Successfully fetched data for team ID: {tid}')
 
-      return self.raw
+      self.processed = self.raw
+      return self.processed
 
     finally:
       # Clean up temporary session if we created one

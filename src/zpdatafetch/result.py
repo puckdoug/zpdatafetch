@@ -44,6 +44,7 @@ class Result(ZP_obj):
     """Initialize a new Result instance."""
     super().__init__()
     self._zp: AsyncZP | None = None
+    self.processed: dict[Any, Any] = {}
 
   # -------------------------------------------------------------------------------
   def set_session(self, zp: AsyncZP) -> None:
@@ -104,7 +105,8 @@ class Result(ZP_obj):
     self.raw = content
     logger.info(f'Successfully fetched {len(validated_ids)} race result(s)')
 
-    return self.raw
+    self.processed = self.raw
+    return self.processed
 
   # -------------------------------------------------------------------------------
   async def afetch(self, *race_id: int) -> dict[Any, Any]:
@@ -158,7 +160,8 @@ class Result(ZP_obj):
         self.raw[rid] = await self._zp.fetch_json(url)
         logger.info(f'Successfully fetched results for race ID: {rid}')
 
-      return self.raw
+      self.processed = self.raw
+      return self.processed
 
     finally:
       # Clean up temporary session if we created one

@@ -54,6 +54,7 @@ class Primes(ZP_obj):
     """Initialize a new Primes instance."""
     super().__init__()
     self._zp: AsyncZP | None = None
+    self.processed: dict[Any, Any] = {}
 
   # -------------------------------------------------------------------------------
   def set_session(self, zp: AsyncZP) -> None:
@@ -154,7 +155,8 @@ class Primes(ZP_obj):
     self.raw = p
     logger.info(f'Successfully fetched prime data for {len(validated_ids)} race(s)')
 
-    return self.raw
+    self.processed = self.raw
+    return self.processed
 
   # -------------------------------------------------------------------------------
   async def afetch(self, *race_id: int) -> dict[Any, Any]:
@@ -227,7 +229,8 @@ class Primes(ZP_obj):
         f'Successfully fetched prime data for {len(validated_ids)} race(s) (async)',
       )
 
-      return self.raw
+      self.processed = self.raw
+      return self.processed
 
     finally:
       # Clean up temporary session if we created one

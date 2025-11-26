@@ -44,6 +44,7 @@ class Cyclist(ZP_obj):
     """Initialize a new Cyclist instance."""
     super().__init__()
     self._zp: AsyncZP | None = None
+    self.processed: dict[Any, Any] = {}
 
   # -------------------------------------------------------------------------------
   def set_session(self, zp: AsyncZP) -> None:
@@ -104,7 +105,8 @@ class Cyclist(ZP_obj):
       logger.debug(f'Successfully fetched data for Zwift ID: {z}')
 
     logger.info(f'Successfully fetched {len(validated_ids)} cyclist profile(s)')
-    return self.raw
+    self.processed = self.raw
+    return self.processed
 
   # -------------------------------------------------------------------------------
   async def afetch(self, *zwift_id: int) -> dict[Any, Any]:
@@ -158,7 +160,8 @@ class Cyclist(ZP_obj):
         self.raw[zid] = await self._zp.fetch_json(url)
         logger.info(f'Successfully fetched data for Zwift ID: {zid}')
 
-      return self.raw
+      self.processed = self.raw
+      return self.processed
 
     finally:
       # Clean up temporary session if we created one

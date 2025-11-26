@@ -37,17 +37,18 @@ class Signup(ZP_obj):
   """
 
   # Sync version uses different endpoint than async
-  _url: str = 'https://zwiftpower.com/cache3/results/'
-  _url_end: str = '_signups.json'
+  _url: str = "https://zwiftpower.com/cache3/results/"
+  _url_end: str = "_signups.json"
 
   # Async version uses different URLs
-  _url_async: str = 'https://zwiftpower.com/cache3/lists/'
-  _url_end_async: str = '_zwift.json'
+  _url_async: str = "https://zwiftpower.com/cache3/lists/"
+  _url_end_async: str = "_zwift.json"
 
   def __init__(self) -> None:
     """Initialize a new Signup instance."""
     super().__init__()
     self._zp: AsyncZP | None = None
+    self.processed: dict[Any, Any] = {}
 
   # -------------------------------------------------------------------------------
   def set_session(self, zp: AsyncZP) -> None:
@@ -76,7 +77,7 @@ class Signup(ZP_obj):
       ZPNetworkError: If network requests fail
       ZPAuthenticationError: If authentication fails
     """
-    logger.info(f'Fetching race signups for {len(race_id_list)} race(s)')
+    logger.info(f"Fetching race signups for {len(race_id_list)} race(s)")
 
     # SECURITY: Validate all race IDs before processing
     validated_ids = []
@@ -86,29 +87,30 @@ class Signup(ZP_obj):
         rid = int(r) if not isinstance(r, int) else r
         if rid <= 0 or rid > 999999999:
           raise ValueError(
-            f'Invalid race ID: {r}. Must be a positive integer.',
+            f"Invalid race ID: {r}. Must be a positive integer.",
           )
         validated_ids.append(rid)
       except (ValueError, TypeError) as e:
-        if isinstance(e, ValueError) and 'Invalid race ID' in str(e):
+        if isinstance(e, ValueError) and "Invalid race ID" in str(e):
           raise
         raise ValueError(
-          f'Invalid race ID: {r}. Must be a valid positive integer.',
+          f"Invalid race ID: {r}. Must be a valid positive integer.",
         ) from e
 
     zp = ZP()
     signups_by_race_id: dict[Any, Any] = {}
 
     for race_id in validated_ids:
-      logger.debug(f'Fetching race signups for race ID: {race_id}')
-      url = f'{self._url}{race_id}{self._url_end}'
+      logger.debug(f"Fetching race signups for race ID: {race_id}")
+      url = f"{self._url}{race_id}{self._url_end}"
       signups_by_race_id[race_id] = zp.fetch_json(url)
-      logger.debug(f'Successfully fetched signups for race ID: {race_id}')
+      logger.debug(f"Successfully fetched signups for race ID: {race_id}")
 
     self.raw = signups_by_race_id
-    logger.info(f'Successfully fetched {len(race_id_list)} race signup list(s)')
+    logger.info(f"Successfully fetched {len(race_id_list)} race signup list(s)")
 
-    return self.raw
+    self.processed = self.raw
+    return self.processed
 
   # -------------------------------------------------------------------------------
   async def afetch(self, *race_id: int) -> dict[Any, Any]:
@@ -138,7 +140,7 @@ class Signup(ZP_obj):
 
     try:
       logger.info(
-        f'Fetching signup lists for {len(race_id)} race(s) (async)',
+        f"Fetching signup lists for {len(race_id)} race(s) (async)",
       )
 
       # SECURITY: Validate all race IDs before processing
@@ -149,22 +151,23 @@ class Signup(ZP_obj):
           rid = int(r) if not isinstance(r, int) else r
           if rid <= 0 or rid > 999999999:
             raise ValueError(
-              f'Invalid race ID: {r}. Must be a positive integer.',
+              f"Invalid race ID: {r}. Must be a positive integer.",
             )
           validated_ids.append(rid)
-          logger.debug(f'Validated race ID: {rid}')
+          logger.debug(f"Validated race ID: {rid}")
         except (ValueError, TypeError) as e:
-          logger.error(f'Invalid race ID: {r}')
-          raise ValueError(f'Invalid race ID: {r}. {e}') from e
+          logger.error(f"Invalid race ID: {r}")
+          raise ValueError(f"Invalid race ID: {r}. {e}") from e
 
       # Fetch signup lists for all validated IDs
       for rid in validated_ids:
-        url = f'{self._url_async}{rid}{self._url_end_async}'
-        logger.debug(f'Fetching signup list from: {url}')
+        url = f"{self._url_async}{rid}{self._url_end_async}"
+        logger.debug(f"Fetching signup list from: {url}")
         self.raw[rid] = await self._zp.fetch_json(url)
-        logger.info(f'Successfully fetched signup list for race ID: {rid}')
+        logger.info(f"Successfully fetched signup list for race ID: {rid}")
 
-      return self.raw
+      self.processed = self.raw
+      return self.processed
 
     finally:
       # Clean up temporary session if we created one
@@ -175,30 +178,30 @@ class Signup(ZP_obj):
 # ===============================================================================
 def main() -> None:
   p = ArgumentParser(
-    description='Module for fetching race signup data using the Zwiftpower API',
+    description="Module for fetching race signup data using the Zwiftpower API",
   )
   p.add_argument(
-    '--verbose',
-    '-v',
-    action='count',
+    "--verbose",
+    "-v",
+    action="count",
     default=0,
-    help='increase output verbosity (-v for INFO, -vv for DEBUG)',
+    help="increase output verbosity (-v for INFO, -vv for DEBUG)",
   )
   p.add_argument(
-    '--raw',
-    '-r',
-    action='store_const',
+    "--raw",
+    "-r",
+    action="store_const",
     const=True,
-    help='print all returned data',
+    help="print all returned data",
   )
-  p.add_argument('race_id', type=int, nargs='+', help='one or more race_ids')
+  p.add_argument("race_id", type=int, nargs="+", help="one or more race_ids")
   args = p.parse_args()
 
   # Configure logging based on verbosity level (output to stderr)
   if args.verbose >= 2:
-    setup_logging(console_level='DEBUG', force_console=True)
+    setup_logging(console_level="DEBUG", force_console=True)
   elif args.verbose == 1:
-    setup_logging(console_level='INFO', force_console=True)
+    setup_logging(console_level="INFO", force_console=True)
 
   x = Signup()
 
@@ -209,5 +212,5 @@ def main() -> None:
 
 
 # ===============================================================================
-if __name__ == '__main__':
+if __name__ == "__main__":
   main()
