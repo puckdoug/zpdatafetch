@@ -37,9 +37,14 @@ Module for fetching zwiftpower data using the Zwifpower API
   p.add_argument(
     '-v',
     '--verbose',
-    action='count',
-    default=0,
-    help='increase output verbosity (-v for INFO, -vv for DEBUG)',
+    action='store_true',
+    help='verbose output',
+  )
+  p.add_argument(
+    '-vv',
+    '--debug',
+    action='store_true',
+    help='enable DEBUG level logging',
   )
   p.add_argument(
     '--log-file',
@@ -75,13 +80,13 @@ Module for fetching zwiftpower data using the Zwifpower API
   args = p.parse_intermixed_args()
 
   # Configure logging based on arguments (output to stderr)
-  if args.verbose >= 2:
+  if args.debug:
     setup_logging(
       log_file=args.log_file,
       console_level=logging.DEBUG,
       force_console=True,
     )
-  elif args.verbose == 1:
+  elif args.verbose:
     setup_logging(
       log_file=args.log_file,
       console_level=logging.INFO,

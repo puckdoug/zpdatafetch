@@ -1,7 +1,6 @@
 import httpx
 
 
-
 def test_sprints(sprints):
   assert sprints is not None
 
@@ -10,22 +9,13 @@ def test_sprints_initialization(sprints):
   assert sprints.raw == {}
 
 
-def test_sprints_fetch_race_sprints(sprints, login_page, logged_in_page):
-  test_data = {
-    'data': [
-      {'sprint_id': 1, 'name': 'Sprint 1', 'distance': 500},
-      {'sprint_id': 2, 'name': 'Sprint 2', 'distance': 750},
-    ],
-  }
-
-  def handler(request):
-    if 'login' in str(request.url) and request.method == 'GET':
-      return httpx.Response(200, text=login_page)
-    if request.method == 'POST':
-      return httpx.Response(200, text=logged_in_page)
-    if 'event_sprints' in str(request.url):
-      return httpx.Response(200, json=test_data)
-    return httpx.Response(404)
+def test_sprints_fetch_race_sprints(
+  sprints,
+  sprints_test_data,
+  primes_test_data,
+  sprints_handler,
+):
+  from unittest.mock import patch
 
   from zpdatafetch.zp import ZP
 
@@ -34,14 +24,22 @@ def test_sprints_fetch_race_sprints(sprints, login_page, logged_in_page):
   def mock_init(self, skip_credential_check=False):
     original_init(self, skip_credential_check=True)
     self.init_client(
-      httpx.Client(follow_redirects=True, transport=httpx.MockTransport(handler)),
+      httpx.Client(
+        follow_redirects=True, transport=httpx.MockTransport(sprints_handler)
+      ),
     )
 
   ZP.__init__ = mock_init
 
   try:
-    race_sprints = sprints.fetch(3590800)
-    assert 3590800 in race_sprints
-    assert race_sprints[3590800] == test_data
+    # Mock primes.fetch to avoid real API call
+    with patch.object(sprints.primes, 'fetch') as mock_primes_fetch:
+      mock_primes_fetch.return_value = primes_test_data
+      sprints.primes.raw = primes_test_data
+
+      race_sprints = sprints.fetch(3590800)
+      assert 3590800 in race_sprints
+      assert race_sprints[3590800] == sprints_test_data
+      mock_primes_fetch.assert_called_once_with(3590800)
   finally:
     ZP.__init__ = original_init

@@ -80,13 +80,13 @@ def test_console_info_logging(capfd):
   logger.debug('Debug message')
 
   captured = capfd.readouterr()
-  # Should show INFO on stdout
-  assert 'Info message' in captured.out
+  # Should show INFO on stderr (not stdout)
+  assert 'Info message' in captured.err
   # Should NOT show DEBUG (level too low)
-  assert 'Debug message' not in captured.out
+  assert 'Debug message' not in captured.err
   # Should be simple format (no timestamp, module, level)
-  assert 'INFO' not in captured.out  # No log level in output
-  assert '2025-' not in captured.out  # No timestamp
+  assert 'INFO' not in captured.err  # No log level in output
+  assert '2025-' not in captured.err  # No timestamp
 
 
 def test_console_debug_logging(capfd):
@@ -98,12 +98,12 @@ def test_console_debug_logging(capfd):
   logger.info('Info message')
 
   captured = capfd.readouterr()
-  # Should show both DEBUG and INFO on stdout
-  assert 'Debug message' in captured.out
-  assert 'Info message' in captured.out
+  # Should show both DEBUG and INFO on stderr (not stdout)
+  assert 'Debug message' in captured.err
+  assert 'Info message' in captured.err
   # Should be simple format
-  assert 'DEBUG' not in captured.out
-  assert 'INFO' not in captured.out
+  assert 'DEBUG' not in captured.err
+  assert 'INFO' not in captured.err
 
 
 def test_file_logging_format():
@@ -180,12 +180,12 @@ def test_combined_console_and_file_logging(capfd):
     logger.debug('Debug only in file')
     logger.info('Info in both')
 
-    # Check console output
+    # Check console output (stderr not stdout)
     captured = capfd.readouterr()
-    assert 'Debug only in file' not in captured.out  # DEBUG not on console
-    assert 'Info in both' in captured.out
+    assert 'Debug only in file' not in captured.err  # DEBUG not on console
+    assert 'Info in both' in captured.err
     # Console should be simple format
-    assert 'INFO' not in captured.out
+    assert 'INFO' not in captured.err
 
     # Check file output
     log_content = log_file.read_text()
@@ -210,8 +210,8 @@ def test_console_format_is_message_only(capfd):
 
   captured = capfd.readouterr()
 
-  # Should contain ONLY the message
-  lines = [line for line in captured.out.split('\n') if line.strip()]
+  # Should contain ONLY the message (on stderr not stdout)
+  lines = [line for line in captured.err.split('\n') if line.strip()]
   assert len(lines) == 1
   assert lines[0] == 'Simple message'
 

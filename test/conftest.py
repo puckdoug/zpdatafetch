@@ -78,3 +78,51 @@ def login_page():
 @pytest.fixture
 def logged_in_page():
   return open('test/fixtures/logged_in_page.html', encoding='utf8').read()
+
+
+@pytest.fixture
+def sprints_test_data():
+  """Test data for sprints endpoint."""
+  return {
+    'data': [
+      {'sprint_id': 1, 'name': 'Sprint 1', 'distance': 500},
+      {'sprint_id': 2, 'name': 'Sprint 2', 'distance': 750},
+    ],
+  }
+
+
+@pytest.fixture
+def primes_test_data():
+  """Test data for primes endpoint."""
+  return {
+    3590800: {
+      'A': {
+        'msec': {
+          'data': [
+            {'sprint_id': 1, 'name': 'Sprint 1'},
+            {'sprint_id': 2, 'name': 'Sprint 2'},
+          ],
+        },
+        'elapsed': {'data': []},
+      },
+    },
+  }
+
+
+@pytest.fixture
+def sprints_handler(login_page, logged_in_page, sprints_test_data):
+  """HTTP handler for sprints-related requests."""
+  import httpx
+
+  def handler(request):
+    if 'login' in str(request.url) and request.method == 'GET':
+      return httpx.Response(200, text=login_page)
+    if request.method == 'POST':
+      return httpx.Response(200, text=logged_in_page)
+    if 'event_sprints' in str(request.url):
+      return httpx.Response(200, json=sprints_test_data)
+    if 'event_primes' in str(request.url):
+      return httpx.Response(200, json={'data': []})
+    return httpx.Response(404)
+
+  return handler
