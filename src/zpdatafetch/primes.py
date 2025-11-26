@@ -6,7 +6,7 @@ from argparse import ArgumentParser
 from typing import Any
 
 from zpdatafetch.async_zp import AsyncZP
-from zpdatafetch.logging_config import get_logger
+from zpdatafetch.logging_config import get_logger, setup_logging
 from zpdatafetch.zp import ZP
 from zpdatafetch.zp_obj import ZP_obj
 
@@ -224,7 +224,7 @@ class Primes(ZP_obj):
 
       self.raw = p
       logger.info(
-        f'Successfully fetched prime data for {len(validated_ids)} race(s) (async)'
+        f'Successfully fetched prime data for {len(validated_ids)} race(s) (async)',
       )
 
       return self.raw
@@ -244,9 +244,9 @@ Module for fetching primes using the Zwiftpower API
   p.add_argument(
     '--verbose',
     '-v',
-    action='store_const',
-    const=True,
-    help='provide feedback while running',
+    action='count',
+    default=0,
+    help='increase output verbosity (-v for INFO, -vv for DEBUG)',
   )
   p.add_argument(
     '--raw',
@@ -258,9 +258,13 @@ Module for fetching primes using the Zwiftpower API
   p.add_argument('race_id', type=int, nargs='+', help='one or more race_ids')
   args = p.parse_args()
 
+  # Configure logging based on verbosity level (output to stderr)
+  if args.verbose >= 2:
+    setup_logging(console_level='DEBUG', force_console=True)
+  elif args.verbose == 1:
+    setup_logging(console_level='INFO', force_console=True)
+
   x = Primes()
-  if args.verbose:
-    x.verbose = True
 
   x.fetch(*args.race_id)
 

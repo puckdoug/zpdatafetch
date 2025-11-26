@@ -82,9 +82,9 @@ def setup_logging(
   else:
     use_console = force_console
 
-  # Console handler (if enabled)
+  # Console handler (if enabled) - output to stderr
   if use_console:
-    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler = logging.StreamHandler(sys.stderr)
     console_handler.setLevel(console_level)
     # Simple format for interactive console - just the message
     console_formatter = logging.Formatter('%(message)s')

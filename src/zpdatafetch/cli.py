@@ -36,14 +36,9 @@ Module for fetching zwiftpower data using the Zwifpower API
   p.add_argument(
     '-v',
     '--verbose',
-    action='store_true',
-    help='enable INFO level logging to console',
-  )
-  p.add_argument(
-    '-vv',
-    '--debug',
-    action='store_true',
-    help='enable DEBUG level logging to console',
+    action='count',
+    default=0,
+    help='increase output verbosity (-v for INFO, -vv for DEBUG)',
   )
   p.add_argument(
     '--log-file',
@@ -78,11 +73,15 @@ Module for fetching zwiftpower data using the Zwifpower API
   # This allows: zpdata cyclist --noaction 123 456
   args = p.parse_intermixed_args()
 
-  # Configure logging based on arguments
-  if args.debug:
-    setup_logging(log_file=args.log_file, console_level=logging.DEBUG)
-  elif args.verbose:
-    setup_logging(log_file=args.log_file, console_level=logging.INFO)
+  # Configure logging based on arguments (output to stderr)
+  if args.verbose >= 2:
+    setup_logging(
+      log_file=args.log_file, console_level=logging.DEBUG, force_console=True
+    )
+  elif args.verbose == 1:
+    setup_logging(
+      log_file=args.log_file, console_level=logging.INFO, force_console=True
+    )
   elif args.log_file:
     # File logging only, no console output
     setup_logging(log_file=args.log_file, force_console=False)

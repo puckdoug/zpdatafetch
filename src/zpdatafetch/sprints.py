@@ -4,7 +4,8 @@ from argparse import ArgumentParser
 from typing import Any
 
 from zpdatafetch.async_zp import AsyncZP
-from zpdatafetch.logging_config import get_logger
+from zpdatafetch.logging_config import get_logger, setup_logging
+from zpdatafetch.primes import Primes
 from zpdatafetch.zp import ZP
 from zpdatafetch.zp_obj import ZP_obj
 
@@ -42,6 +43,8 @@ class Sprints(ZP_obj):
     """Initialize a new Sprints instance."""
     super().__init__()
     self._zp: AsyncZP | None = None
+    self.primes: Primes = Primes()
+    self.banners: list[dict[str, Any]] = []
 
   # -------------------------------------------------------------------------------
   def set_session(self, zp: AsyncZP) -> None:
@@ -51,6 +54,51 @@ class Sprints(ZP_obj):
       zp: AsyncZP instance to use for API requests
     """
     self._zp = zp
+    self.primes.set_session(zp)
+
+  # -------------------------------------------------------------------------------
+  def extract_banners(self) -> list[dict[str, Any]]:
+    """Extract sprint_id and name from primes data to build banner list.
+
+    Loops through the primes data and extracts sprint_id and name fields
+    to create a list of banner dictionaries.
+
+    Returns:
+      List of dictionaries with sprint_id and name keys
+
+    Example:
+      [
+        {"sprint_id": 133, "name": "Manhattan Sprint Reverse"},
+        {"sprint_id": 132, "name": "Manhattan Sprint"},
+        {"sprint_id": 32, "name": "NY Sprint 2"}
+      ]
+    """
+    logger.debug('Extracting banners from primes data')
+    banners: list[dict[str, Any]] = []
+
+    # Loop through primes data structure: race_id -> category -> prime_type -> data
+    for race_id, categories in self.primes.raw.items():
+      logger.debug(f'Processing race ID: {race_id}')
+      for category, prime_types in categories.items():
+        for prime_type, prime_data in prime_types.items():
+          # Check if 'data' key exists and has items
+          if prime_data.get('data'):
+            for item in prime_data['data']:
+              # Extract sprint_id and name if they exist
+              if 'sprint_id' in item and 'name' in item:
+                banner = {
+                  'sprint_id': item['sprint_id'],
+                  'name': item['name'],
+                }
+                # Avoid duplicates
+                if banner not in banners:
+                  banners.append(banner)
+                  logger.debug(f'Added banner: {banner}')
+
+    self.banners = banners
+    logger.info(f'Extracted {len(banners)} unique banner(s)')
+    logger.debug(f'{banners}')
+    return self.banners
 
   # -------------------------------------------------------------------------------
   def fetch(self, *race_id: int) -> dict[Any, Any]:
@@ -101,6 +149,9 @@ class Sprints(ZP_obj):
 
     self.raw = content
     logger.info(f'Successfully fetched {len(validated_ids)} race sprint(s)')
+
+    self.primes.fetch(*validated_ids)
+    self.extract_banners()
 
     return self.raw
 
@@ -156,6 +207,10 @@ class Sprints(ZP_obj):
         self.raw[rid] = await self._zp.fetch_json(url)
         logger.info(f'Successfully fetched sprints for race ID: {rid}')
 
+      self.primes.set_session(self._zp)
+      await self.primes.afetch(*validated_ids)
+      self.extract_banners()
+
       return self.raw
 
     finally:
@@ -173,9 +228,9 @@ Module for fetching sprints using the Zwiftpower API
   p.add_argument(
     '--verbose',
     '-v',
-    action='store_const',
-    const=True,
-    help='provide feedback while running',
+    action='count',
+    default=0,
+    help='increase output verbosity (-v for INFO, -vv for DEBUG)',
   )
   p.add_argument(
     '--raw',
@@ -187,9 +242,13 @@ Module for fetching sprints using the Zwiftpower API
   p.add_argument('race_id', type=int, nargs='+', help='one or more race_ids')
   args = p.parse_args()
 
+  # Configure logging based on verbosity level (output to stderr)
+  if args.verbose >= 2:
+    setup_logging(console_level='DEBUG', force_console=True)
+  elif args.verbose == 1:
+    setup_logging(console_level='INFO', force_console=True)
+
   x = Sprints()
-  if args.verbose:
-    x.verbose = True
 
   x.fetch(*args.race_id)
 
