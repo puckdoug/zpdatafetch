@@ -45,6 +45,7 @@ class Sprints(ZP_obj):
     self._zp: AsyncZP | None = None
     self.primes: Primes = Primes()
     self.banners: list[dict[str, Any]] = []
+    self.processed: dict[Any, Any] = {}
 
   # -------------------------------------------------------------------------------
   def set_session(self, zp: AsyncZP) -> None:
@@ -101,6 +102,59 @@ class Sprints(ZP_obj):
     return self.banners
 
   # -------------------------------------------------------------------------------
+  def enrich_sprints(self) -> dict[Any, Any]:
+    """Enrich sprint data by replacing sprint IDs with banner names.
+
+    Creates a deep copy of self.raw and replaces sprint_id keys (like "32", "132")
+    with their corresponding banner names from self.banners in sections like
+    "msec", "watts", and "wkg".
+
+    Returns:
+      Dictionary with enriched sprint data stored in self.processed
+    """
+    import copy
+
+    logger.debug('Enriching sprint data with banner names')
+
+    # Create sprint_id to name mapping for quick lookup
+    id_to_name: dict[str, str] = {}
+    for banner in self.banners:
+      sprint_id = str(banner['sprint_id'])
+      name = banner['name']
+      id_to_name[sprint_id] = name
+      logger.debug(f'Mapping sprint_id {sprint_id} -> {name}')
+
+    # Deep copy raw data to processed
+    self.processed = copy.deepcopy(self.raw)
+
+    # Loop through the processed data structure
+    for race_id, race_data in self.processed.items():
+      logger.debug(f'Processing race ID: {race_id}')
+
+      # race_data should be a dict or list of dicts
+      if isinstance(race_data, dict):
+        # Look for data arrays containing sprint results
+        if 'data' in race_data and isinstance(race_data['data'], list):
+          for rider in race_data['data']:
+            if isinstance(rider, dict):
+              # Replace sprint IDs in msec, watts, wkg sections
+              for section in ['msec', 'watts', 'wkg']:
+                if section in rider and isinstance(rider[section], dict):
+                  # Create new dict with banner names as keys
+                  enriched_section = {}
+                  for sprint_id, value in rider[section].items():
+                    banner_name = id_to_name.get(sprint_id, sprint_id)
+                    enriched_section[banner_name] = value
+                    if banner_name != sprint_id:
+                      logger.debug(
+                        f'Replaced {sprint_id} with {banner_name} in {section}',
+                      )
+                  rider[section] = enriched_section
+
+    logger.info(f'Enriched sprint data for {len(self.processed)} race(s)')
+    return self.processed
+
+  # -------------------------------------------------------------------------------
   def fetch(self, *race_id: int) -> dict[Any, Any]:
     """Fetch sprint data for one or more race IDs (synchronous).
 
@@ -152,8 +206,9 @@ class Sprints(ZP_obj):
 
     self.primes.fetch(*validated_ids)
     self.extract_banners()
+    self.enrich_sprints()
 
-    return self.raw
+    return self.processed
 
   # -------------------------------------------------------------------------------
   async def afetch(self, *race_id: int) -> dict[Any, Any]:
@@ -210,8 +265,9 @@ class Sprints(ZP_obj):
       self.primes.set_session(self._zp)
       await self.primes.afetch(*validated_ids)
       self.extract_banners()
+      self.enrich_sprints()
 
-      return self.raw
+      return self.processed
 
     finally:
       # Clean up temporary session if we created one

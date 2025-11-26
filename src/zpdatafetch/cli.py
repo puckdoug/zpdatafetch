@@ -5,6 +5,7 @@ functionality including cyclist profiles, race results, signups,
 team rosters, and prime data.
 """
 
+import json
 import logging
 import sys
 from argparse import ArgumentParser
@@ -76,11 +77,15 @@ Module for fetching zwiftpower data using the Zwifpower API
   # Configure logging based on arguments (output to stderr)
   if args.verbose >= 2:
     setup_logging(
-      log_file=args.log_file, console_level=logging.DEBUG, force_console=True
+      log_file=args.log_file,
+      console_level=logging.DEBUG,
+      force_console=True,
     )
   elif args.verbose == 1:
     setup_logging(
-      log_file=args.log_file, console_level=logging.INFO, force_console=True
+      log_file=args.log_file,
+      console_level=logging.INFO,
+      force_console=True,
     )
   elif args.log_file:
     # File logging only, no console output
@@ -142,7 +147,7 @@ Module for fetching zwiftpower data using the Zwifpower API
   if args.raw:
     print(x.raw)
   else:
-    print(x.json())
+    print(json.dumps(x.processed, indent=2))
 
   return None
 
