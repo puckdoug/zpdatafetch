@@ -58,6 +58,15 @@ class Team(ZP_obj):
     self._zp = zp
 
   # -------------------------------------------------------------------------------
+  def set_zp_session(self, zp: ZP) -> None:
+    """Set the ZP session to use for sync fetching.
+
+    Args:
+      zp: ZP instance to use for API requests
+    """
+    self._zp_session = zp
+
+  # -------------------------------------------------------------------------------
   def fetch(self, *team_id: int) -> dict[Any, Any]:
     """Fetch team roster data for one or more team IDs (synchronous).
 
@@ -95,7 +104,13 @@ class Team(ZP_obj):
           f'Invalid team ID: {t}. Must be a valid positive integer.',
         ) from e
 
-    zp = ZP()
+    # Use existing session if available, otherwise create new one
+    if hasattr(self, '_zp_session') and self._zp_session:
+      zp = self._zp_session
+      logger.debug('Using existing ZP session for team fetch')
+    else:
+      zp = ZP()
+      logger.debug('Created new ZP session for team fetch')
     content: dict[Any, Any] = {}
 
     for t in validated_ids:

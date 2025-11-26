@@ -60,6 +60,15 @@ class Signup(ZP_obj):
     self._zp = zp
 
   # -------------------------------------------------------------------------------
+  def set_zp_session(self, zp: ZP) -> None:
+    """Set the ZP session to use for sync fetching.
+
+    Args:
+      zp: ZP instance to use for API requests
+    """
+    self._zp_session = zp
+
+  # -------------------------------------------------------------------------------
   def fetch(self, *race_id_list: int) -> dict[Any, Any]:
     """Fetch race signup data for one or more race IDs (synchronous).
 
@@ -97,7 +106,13 @@ class Signup(ZP_obj):
           f"Invalid race ID: {r}. Must be a valid positive integer.",
         ) from e
 
-    zp = ZP()
+    # Use existing session if available, otherwise create new one
+    if hasattr(self, "_zp_session") and self._zp_session:
+      zp = self._zp_session
+      logger.debug("Using existing ZP session for signup fetch")
+    else:
+      zp = ZP()
+      logger.debug("Created new ZP session for signup fetch")
     signups_by_race_id: dict[Any, Any] = {}
 
     for race_id in validated_ids:

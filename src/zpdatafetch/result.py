@@ -37,8 +37,8 @@ class Result(ZP_obj):
   """
 
   # race = "https://zwiftpower.com/cache3/results/3590800_view.json"
-  _url: str = 'https://zwiftpower.com/cache3/results/'
-  _url_end: str = '_view.json'
+  _url: str = "https://zwiftpower.com/cache3/results/"
+  _url_end: str = "_view.json"
 
   def __init__(self) -> None:
     """Initialize a new Result instance."""
@@ -54,6 +54,15 @@ class Result(ZP_obj):
       zp: AsyncZP instance to use for API requests
     """
     self._zp = zp
+
+  # -------------------------------------------------------------------------------
+  def set_zp_session(self, zp: ZP) -> None:
+    """Set the ZP session to use for sync fetching.
+
+    Args:
+      zp: ZP instance to use for API requests
+    """
+    self._zp_session = zp
 
   # -------------------------------------------------------------------------------
   def fetch(self, *race_id: int) -> dict[Any, Any]:
@@ -73,7 +82,7 @@ class Result(ZP_obj):
       ZPNetworkError: If network requests fail
       ZPAuthenticationError: If authentication fails
     """
-    logger.info(f'Fetching race results for {len(race_id)} race(s)')
+    logger.info(f"Fetching race results for {len(race_id)} race(s)")
 
     # SECURITY: Validate all race IDs before processing
     validated_ids = []
@@ -83,27 +92,33 @@ class Result(ZP_obj):
         rid = int(r) if not isinstance(r, int) else r
         if rid <= 0 or rid > 999999999:
           raise ValueError(
-            f'Invalid race ID: {r}. Must be a positive integer.',
+            f"Invalid race ID: {r}. Must be a positive integer.",
           )
         validated_ids.append(rid)
       except (ValueError, TypeError) as e:
-        if isinstance(e, ValueError) and 'Invalid race ID' in str(e):
+        if isinstance(e, ValueError) and "Invalid race ID" in str(e):
           raise
         raise ValueError(
-          f'Invalid race ID: {r}. Must be a valid positive integer.',
+          f"Invalid race ID: {r}. Must be a valid positive integer.",
         ) from e
 
-    zp = ZP()
+    # Use existing session if available, otherwise create new one
+    if hasattr(self, "_zp_session") and self._zp_session:
+      zp = self._zp_session
+      logger.debug("Using existing ZP session for result fetch")
+    else:
+      zp = ZP()
+      logger.debug("Created new ZP session for result fetch")
     content: dict[Any, Any] = {}
 
     for r in validated_ids:
-      logger.debug(f'Fetching race results for race ID: {r}')
-      url = f'{self._url}{r}{self._url_end}'
+      logger.debug(f"Fetching race results for race ID: {r}")
+      url = f"{self._url}{r}{self._url_end}"
       content[r] = zp.fetch_json(url)
-      logger.debug(f'Successfully fetched results for race ID: {r}')
+      logger.debug(f"Successfully fetched results for race ID: {r}")
 
     self.raw = content
-    logger.info(f'Successfully fetched {len(validated_ids)} race result(s)')
+    logger.info(f"Successfully fetched {len(validated_ids)} race result(s)")
 
     self.processed = self.raw
     return self.processed
@@ -135,7 +150,7 @@ class Result(ZP_obj):
       owns_session = False
 
     try:
-      logger.info(f'Fetching race results for {len(race_id)} race(s) (async)')
+      logger.info(f"Fetching race results for {len(race_id)} race(s) (async)")
 
       # SECURITY: Validate all race IDs before processing
       validated_ids = []
@@ -145,20 +160,20 @@ class Result(ZP_obj):
           rid = int(r) if not isinstance(r, int) else r
           if rid <= 0 or rid > 999999999:
             raise ValueError(
-              f'Invalid race ID: {r}. Must be a positive integer.',
+              f"Invalid race ID: {r}. Must be a positive integer.",
             )
           validated_ids.append(rid)
-          logger.debug(f'Validated race ID: {rid}')
+          logger.debug(f"Validated race ID: {rid}")
         except (ValueError, TypeError) as e:
-          logger.error(f'Invalid race ID: {r}')
-          raise ValueError(f'Invalid race ID: {r}. {e}') from e
+          logger.error(f"Invalid race ID: {r}")
+          raise ValueError(f"Invalid race ID: {r}. {e}") from e
 
       # Fetch results for all validated IDs
       for rid in validated_ids:
-        url = f'{self._url}{rid}{self._url_end}'
-        logger.debug(f'Fetching race results from: {url}')
+        url = f"{self._url}{rid}{self._url_end}"
+        logger.debug(f"Fetching race results from: {url}")
         self.raw[rid] = await self._zp.fetch_json(url)
-        logger.info(f'Successfully fetched results for race ID: {rid}')
+        logger.info(f"Successfully fetched results for race ID: {rid}")
 
       self.processed = self.raw
       return self.processed
@@ -176,27 +191,27 @@ Module for fetching race data using the Zwiftpower API
   """
   p = ArgumentParser(description=desc)
   p.add_argument(
-    '--verbose',
-    '-v',
-    action='count',
+    "--verbose",
+    "-v",
+    action="count",
     default=0,
-    help='increase output verbosity (-v for INFO, -vv for DEBUG)',
+    help="increase output verbosity (-v for INFO, -vv for DEBUG)",
   )
   p.add_argument(
-    '--raw',
-    '-r',
-    action='store_const',
+    "--raw",
+    "-r",
+    action="store_const",
     const=True,
-    help='print all returned data',
+    help="print all returned data",
   )
-  p.add_argument('race_id', type=int, nargs='+', help='one or more race_ids')
+  p.add_argument("race_id", type=int, nargs="+", help="one or more race_ids")
   args = p.parse_args()
 
   # Configure logging based on verbosity level (output to stderr)
   if args.verbose >= 2:
-    setup_logging(console_level='DEBUG', force_console=True)
+    setup_logging(console_level="DEBUG", force_console=True)
   elif args.verbose == 1:
-    setup_logging(console_level='INFO', force_console=True)
+    setup_logging(console_level="INFO", force_console=True)
 
   x = Result()
 
@@ -207,5 +222,5 @@ Module for fetching race data using the Zwiftpower API
 
 
 # ===============================================================================
-if __name__ == '__main__':
+if __name__ == "__main__":
   main()

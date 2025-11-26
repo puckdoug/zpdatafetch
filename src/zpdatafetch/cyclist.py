@@ -56,6 +56,15 @@ class Cyclist(ZP_obj):
     self._zp = zp
 
   # -------------------------------------------------------------------------------
+  def set_zp_session(self, zp: ZP) -> None:
+    """Set the ZP session to use for sync fetching.
+
+    Args:
+      zp: ZP instance to use for API requests
+    """
+    self._zp_session = zp
+
+  # -------------------------------------------------------------------------------
   def fetch(self, *zwift_id: int) -> dict[Any, Any]:
     """Fetch cyclist profile data for one or more Zwift IDs (synchronous).
 
@@ -93,7 +102,13 @@ class Cyclist(ZP_obj):
           f'Invalid Zwift ID: {z}. Must be a valid positive integer.',
         ) from e
 
-    zp = ZP()
+    # Use existing session if available, otherwise create new one
+    if hasattr(self, '_zp_session') and self._zp_session:
+      zp = self._zp_session
+      logger.debug('Using existing ZP session for cyclist fetch')
+    else:
+      zp = ZP()
+      logger.debug('Created new ZP session for cyclist fetch')
 
     for z in validated_ids:
       logger.debug(f'Fetching cyclist profile for Zwift ID: {z}')
