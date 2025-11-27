@@ -1,20 +1,15 @@
-[build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "zpdatafetch"
-version = "1.6.1"
+version = "1.6.2"
 description = "A package for fetching data from Zwiftpower and Zwiftracing.app"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
-authors = [
-  {name = "Doug Morris", email = "doug@mhost.com"}
-]
-keywords = ["zwift", "zwiftpower", "cycling", "racing", "data"]
-
+authors = [{ name = "Doug Morris", email = "doug@mhost.com" }]
+keywords = ["cycling", "data", "racing", "zwift", "zwiftpower"]
 dependencies = [
+  # Async support (anyio provides backend-agnostic async utilities)
+  "anyio>=4.4.0",
   "beautifulsoup4>=4.12.3",
   "cryptography>=44.0.0",
   # Note: httpx 0.28.0 depends on httpcore 1.1.x which has a compatibility
@@ -25,31 +20,52 @@ dependencies = [
   "keyring>=25.2.0",
   "keyrings-alt",
   "lxml>=5.4.0",
-  # Async support (anyio provides backend-agnostic async utilities)
-  "anyio>=4.4.0",
 ]
-
-[project.optional-dependencies]
-# Optional async backends - users can choose which to install
-trio = ["trio>=0.26.0"]
-# For users who want both backends
-async-full = ["trio>=0.26.0"]
 
 [project.urls]
 Homepage = "https://github.com/puckdoug/zpdatafetch"
-Repository = "https://github.com/puckdoug/zpdatafetch"
 Issues = "https://github.com/puckdoug/zpdatafetch/issues"
+Repository = "https://github.com/puckdoug/zpdatafetch"
 
 [project.scripts]
 zpdata = "zpdatafetch.cli:main"
 zrdata = "zrdatafetch.cli:main"
 
-[tool.setuptools]
-package-dir = {"" = "src"}
+[project.optional-dependencies]
+# For users who want both backends
+async-full = ["trio>=0.26.0"]
+# Optional async backends - users can choose which to install
+trio = ["trio>=0.26.0"]
 
-[tool.setuptools.packages.find]
-where = ["src"]
-exclude = ["test*"]
+[dependency-groups]
+dev = [
+  "build>=1.2.1",
+  "ipdb>=0.13.13",
+  "packaging>=24.1",
+  "pytest>=8.3.2",
+  "pytest-cov>=4.1.0",
+  "ruff>=0.6.2",
+  "setuptools>=73.0.1",
+  "tox>=4.31.0",
+  # Async testing support - trio for testing both backends
+  "trio>=0.26.0",
+  "wheel>=0.44.0",
+]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.pyright]
+venv = "3.12"
+venvPath = ".."
+
+[tool.pytest.ini_options]
+filterwarnings = [
+  # HTTPX warnings from libraries
+  "ignore:.*strip_cdata.*HTMLParser().*:DeprecationWarning",
+  "ignore:.*Setting per-request cookies=.*is being deprecated, because the expected behaviour on cookie persistence is ambiguous.*:DeprecationWarning",
+]
 
 [tool.ruff]
 # Exclude a variety of commonly ignored directories.
@@ -81,7 +97,6 @@ exclude = [
   "site-packages",
   "venv",
 ]
-
 line-length = 80
 indent-width = 2
 
@@ -90,31 +105,12 @@ quote-style = "single"
 indent-style = "space"
 line-ending = "auto"
 
-[tool.pyright]
-venv = "3.12"
-venvPath = ".."
+[tool.setuptools]
+package-dir = { "" = "src" }
 
-[dependency-groups]
-dev = [
-  "wheel>=0.44.0",
-  "setuptools>=73.0.1",
-  "pytest>=8.3.2",
-  "packaging>=24.1",
-  "ruff>=0.6.2",
-  "build>=1.2.1",
-  "tox>=4.31.0",
-  "pytest-cov>=4.1.0",
-  # Async testing support - trio for testing both backends
-  "trio>=0.26.0",
-  "ipdb>=0.13.13",
-]
-
-[tool.pytest.ini_options]
-filterwarnings = [
-  # HTTPX warnings from libraries
-  "ignore:.*strip_cdata.*HTMLParser().*:DeprecationWarning",
-  "ignore:.*Setting per-request cookies=.*is being deprecated, because the expected behaviour on cookie persistence is ambiguous.*:DeprecationWarning",
-]
+[tool.setuptools.packages.find]
+where = ["src"]
+exclude = ["test*"]
 
 [tool.tox]
 legacy_tox_ini = """
