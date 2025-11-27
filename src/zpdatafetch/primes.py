@@ -1,9 +1,12 @@
 """Unified Primes class with both sync and async fetch capabilities."""
 
+import asyncio
 import datetime
 import re
 from argparse import ArgumentParser
 from typing import Any
+
+import anyio
 
 from zpdatafetch.async_zp import AsyncZP
 from zpdatafetch.logging_config import get_logger, setup_logging
@@ -53,7 +56,8 @@ class Primes(ZP_obj):
   def __init__(self) -> None:
     """Initialize a new Primes instance."""
     super().__init__()
-    self._zp: AsyncZP | None = None
+    self._zp: AsyncZP | None = None  # Async session
+    self._zp_sync: ZP | None = None  # Sync session (for reference only)
     self.processed: dict[Any, Any] = {}
 
   # -------------------------------------------------------------------------------
@@ -69,10 +73,14 @@ class Primes(ZP_obj):
   def set_zp_session(self, zp: ZP) -> None:
     """Set the ZP session to use for sync fetching.
 
+    The cookies from this session will be shared with an async client
+    for parallel requests, but the sync session itself is not used
+    for fetching.
+
     Args:
-      zp: ZP instance to use for API requests
+      zp: ZP instance to use for API requests (shared across objects)
     """
-    self._zp_session = zp
+    self._zp_sync = zp
 
   # -------------------------------------------------------------------------------
   @classmethod
@@ -101,6 +109,144 @@ class Primes(ZP_obj):
         return ''
 
   # -------------------------------------------------------------------------------
+  async def _get_or_create_session(self) -> tuple[AsyncZP, bool]:
+    """Get existing session or create temporary one.
+
+    Returns:
+      Tuple of (AsyncZP session, owns_session bool)
+      - If owns_session is True, caller must close the session
+      - If owns_session is False, session is shared and must not be closed
+    """
+    # Case 1: Already have async session (set via set_session)
+    if self._zp:
+      logger.debug('Using existing AsyncZP session')
+      return (self._zp, False)
+
+    # Case 2: Have sync session (set via set_zp_session) - convert to async
+    if self._zp_sync:
+      logger.debug('Creating AsyncZP wrapper for shared sync session')
+      # Create async client that shares cookies with sync session
+      async_zp = AsyncZP(skip_credential_check=True)
+      await async_zp.init_client()
+
+      # Copy authentication state from sync to async client
+      if self._zp_sync._client and async_zp._client:
+        # Share the cookies - this preserves the login session
+        async_zp._client.cookies = self._zp_sync._client.cookies
+        logger.debug('Copied authentication cookies from sync to async session')
+
+      # Don't store this - create fresh each time to avoid lifecycle issues
+      return (async_zp, True)  # We own this temporary wrapper
+
+    # Case 3: No session - create temporary one
+    logger.debug('Creating temporary AsyncZP session')
+    temp_zp = AsyncZP(skip_credential_check=True)
+    await temp_zp.login()
+    return (temp_zp, True)
+
+  # -------------------------------------------------------------------------------
+  async def _fetch_parallel(self, *race_id: int) -> dict[Any, Any]:
+    """Internal method that performs parallel fetching (always async).
+
+    This is the core implementation used by both fetch() and afetch().
+    Handles both shared sessions and temporary sessions.
+
+    Args:
+      *race_id: One or more race ID integers to fetch
+
+    Returns:
+      Nested dictionary: {race_id: {category: {prime_type: data}}}
+
+    Raises:
+      ValueError: If any race ID is invalid
+      ZPNetworkError: If network requests fail
+      ZPAuthenticationError: If authentication fails
+    """
+    # Get session (shared or temporary)
+    session, owns_session = await self._get_or_create_session()
+
+    try:
+      logger.info(f'Fetching prime data for {len(race_id)} race(s)')
+
+      # SECURITY: Validate all race IDs before processing
+      validated_ids = []
+      for r in race_id:
+        try:
+          # Convert to int if string, validate range
+          rid = int(r) if not isinstance(r, int) else r
+          if rid <= 0 or rid > 999999999:
+            raise ValueError(
+              f'Invalid race ID: {r}. Must be a positive integer.',
+            )
+          validated_ids.append(rid)
+          logger.debug(f'Validated race ID: {rid}')
+        except (ValueError, TypeError) as e:
+          if isinstance(e, ValueError) and 'Invalid race ID' in str(e):
+            raise
+          logger.error(f'Invalid race ID: {r}')
+          raise ValueError(
+            f'Invalid race ID: {r}. Must be a valid positive integer.',
+          ) from e
+
+      p: dict[Any, Any] = {}
+      ts = int(re.sub(r'\.', '', str(datetime.datetime.now().timestamp())[:-3]))
+
+      # Build all URLs and prepare structure
+      fetch_tasks = []
+      url_mapping = []  # Track (race, cat, primetype) for each URL
+
+      for race in validated_ids:
+        p[race] = {}
+        for cat in self._cat:
+          p[race][cat] = {}
+          for primetype in self._type:
+            url = f'{self._url_base}{self._url_race_id}{race}{self._url_category}{cat}{self._url_primetype}{primetype}&_={ts}'
+            fetch_tasks.append(session.fetch_json(url))
+            url_mapping.append((race, cat, primetype))
+            ts += 1
+
+      # Fetch all URLs in parallel using anyio for cross-backend compatibility
+      logger.info(f'Sending {len(fetch_tasks)} requests in parallel')
+      results = [None] * len(fetch_tasks)
+
+      async def fetch_and_store(idx: int, task: Any) -> None:
+        """Fetch a single URL and store the result."""
+        try:
+          results[idx] = await task
+        except Exception as e:
+          results[idx] = e
+
+      async with anyio.create_task_group() as tg:
+        for idx, task in enumerate(fetch_tasks):
+          tg.start_soon(fetch_and_store, idx, task)
+
+      # Process results
+      for idx, result in enumerate(results):
+        race, cat, primetype = url_mapping[idx]
+
+        if isinstance(result, Exception):
+          logger.error(
+            f'Error fetching {primetype} for race {race} cat {cat}: {result}',
+          )
+          p[race][cat][primetype] = {'data': [], 'error': str(result)}
+        else:
+          if 'data' not in result or len(result['data']) == 0:
+            logger.debug(f'No results for {primetype} in category {cat}')
+          else:
+            logger.debug(f'Results found for {primetype} in category {cat}')
+          p[race][cat][primetype] = result
+
+      self.raw = p
+      logger.info(f'Successfully fetched prime data for {len(validated_ids)} race(s)')
+      self.processed = self.raw
+      return self.processed
+
+    finally:
+      # Only close if we created a temporary session
+      if owns_session:
+        await session.close()
+
+  # -------------------------------------------------------------------------------
   def fetch(self, *race_id: int) -> dict[Any, Any]:
     """Fetch prime data for one or more race IDs (synchronous).
 
@@ -118,67 +264,24 @@ class Primes(ZP_obj):
       ZPNetworkError: If network requests fail
       ZPAuthenticationError: If authentication fails
     """
-    logger.info(f'Fetching prime data for {len(race_id)} race(s)')
-
-    # SECURITY: Validate all race IDs before processing
-    validated_ids = []
-    for r in race_id:
-      try:
-        # Convert to int if string, validate range
-        rid = int(r) if not isinstance(r, int) else r
-        if rid <= 0 or rid > 999999999:
-          raise ValueError(
-            f'Invalid race ID: {r}. Must be a positive integer.',
-          )
-        validated_ids.append(rid)
-      except (ValueError, TypeError) as e:
-        if isinstance(e, ValueError) and 'Invalid race ID' in str(e):
-          raise
-        raise ValueError(
-          f'Invalid race ID: {r}. Must be a valid positive integer.',
-        ) from e
-
-    # Use existing session if available, otherwise create new one
-    if hasattr(self, '_zp_session') and self._zp_session:
-      zp = self._zp_session
-      logger.debug('Using existing ZP session for primes fetch')
-    else:
-      zp = ZP()
-      logger.debug('Created new ZP session for primes fetch')
-    p: dict[Any, Any] = {}
-
-    ts = int(re.sub(r'\.', '', str(datetime.datetime.now().timestamp())[:-3]))
-
-    for race in validated_ids:
-      logger.debug(f'Fetching primes for race ID: {race}')
-      p[race] = {}
-      for cat in self._cat:
-        if cat not in p[race]:
-          p[race][cat] = {}
-        for primetype in self._type:
-          logger.debug(f'Fetching {primetype} primes for category {cat}')
-          url = f'{self._url_base}{self._url_race_id}{race}{self._url_category}{cat}{self._url_primetype}{primetype}&_={ts}'
-          res = zp.fetch_json(url)
-          if 'data' not in res or len(res['data']) == 0:
-            logger.debug(f'No results for {primetype} in category {cat}')
-          else:
-            logger.debug(f'Results found for {primetype} in category {cat}')
-          p[race][cat][primetype] = res
-          ts = ts + 1
-      logger.debug(f'Successfully fetched all primes for race ID: {race}')
-
-    self.raw = p
-    logger.info(f'Successfully fetched prime data for {len(validated_ids)} race(s)')
-
-    self.processed = self.raw
-    return self.processed
+    try:
+      asyncio.get_running_loop()
+      raise RuntimeError(
+        'fetch() called from async context. Use afetch() instead, or '
+        'call fetch() from synchronous code.',
+      )
+    except RuntimeError as e:
+      if 'fetch() called from async context' in str(e):
+        raise
+      # No running loop - safe to use asyncio.run()
+      return asyncio.run(self._fetch_parallel(*race_id))
 
   # -------------------------------------------------------------------------------
   async def afetch(self, *race_id: int) -> dict[Any, Any]:
-    """Fetch prime data for one or more race IDs (asynchronous).
+    """Fetch prime data for one or more race IDs (asynchronous interface).
 
-    Retrieves prime results for all categories (A-E) and both prime types
-    (msec/FAL and elapsed/FTS) for each race.
+    Uses parallel async requests internally. Supports session sharing
+    via set_session() or set_zp_session().
 
     Args:
       *race_id: One or more race ID integers to fetch
@@ -191,66 +294,7 @@ class Primes(ZP_obj):
       ZPNetworkError: If network requests fail
       ZPAuthenticationError: If authentication fails
     """
-    if not self._zp:
-      # Create a temporary session if none provided
-      self._zp = AsyncZP()
-      await self._zp.login()
-      owns_session = True
-    else:
-      owns_session = False
-
-    try:
-      logger.info(f'Fetching prime data for {len(race_id)} race(s) (async)')
-
-      # SECURITY: Validate all race IDs before processing
-      validated_ids = []
-      for r in race_id:
-        try:
-          # Convert to int if string, validate range
-          rid = int(r) if not isinstance(r, int) else r
-          if rid <= 0 or rid > 999999999:
-            raise ValueError(
-              f'Invalid race ID: {r}. Must be a positive integer.',
-            )
-          validated_ids.append(rid)
-          logger.debug(f'Validated race ID: {rid}')
-        except (ValueError, TypeError) as e:
-          logger.error(f'Invalid race ID: {r}')
-          raise ValueError(f'Invalid race ID: {r}. {e}') from e
-
-      p: dict[Any, Any] = {}
-      ts = int(re.sub(r'\.', '', str(datetime.datetime.now().timestamp())[:-3]))
-
-      for race in validated_ids:
-        logger.debug(f'Fetching primes for race ID: {race} (async)')
-        p[race] = {}
-        for cat in self._cat:
-          if cat not in p[race]:
-            p[race][cat] = {}
-          for primetype in self._type:
-            logger.debug(f'Fetching {primetype} primes for category {cat} (async)')
-            url = f'{self._url_base}{self._url_race_id}{race}{self._url_category}{cat}{self._url_primetype}{primetype}&_={ts}'
-            res = await self._zp.fetch_json(url)
-            if 'data' not in res or len(res['data']) == 0:
-              logger.debug(f'No results for {primetype} in category {cat} (async)')
-            else:
-              logger.debug(f'Results found for {primetype} in category {cat} (async)')
-            p[race][cat][primetype] = res
-            ts = ts + 1
-        logger.debug(f'Successfully fetched all primes for race ID: {race} (async)')
-
-      self.raw = p
-      logger.info(
-        f'Successfully fetched prime data for {len(validated_ids)} race(s) (async)',
-      )
-
-      self.processed = self.raw
-      return self.processed
-
-    finally:
-      # Clean up temporary session if we created one
-      if owns_session and self._zp:
-        await self._zp.close()
+    return await self._fetch_parallel(*race_id)
 
 
 # ===============================================================================

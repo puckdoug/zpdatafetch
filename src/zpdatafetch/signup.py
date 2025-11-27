@@ -1,7 +1,10 @@
 """Unified Signup class with both sync and async fetch capabilities."""
 
+import asyncio
 from argparse import ArgumentParser
 from typing import Any
+
+import anyio
 
 from zpdatafetch.async_zp import AsyncZP
 from zpdatafetch.logging_config import get_logger, setup_logging
@@ -47,7 +50,8 @@ class Signup(ZP_obj):
   def __init__(self) -> None:
     """Initialize a new Signup instance."""
     super().__init__()
-    self._zp: AsyncZP | None = None
+    self._zp: AsyncZP | None = None  # Async session
+    self._zp_sync: ZP | None = None  # Sync session (for reference only)
     self.processed: dict[Any, Any] = {}
 
   # -------------------------------------------------------------------------------
@@ -61,12 +65,106 @@ class Signup(ZP_obj):
 
   # -------------------------------------------------------------------------------
   def set_zp_session(self, zp: ZP) -> None:
-    """Set the ZP session to use for sync fetching.
+    """Set the ZP session to use for fetching.
+
+    Cookies from this session will be shared with async client.
 
     Args:
       zp: ZP instance to use for API requests
     """
-    self._zp_session = zp
+    self._zp_sync = zp
+
+  # -------------------------------------------------------------------------------
+  async def _get_or_create_session(self) -> tuple[AsyncZP, bool]:
+    """Get or create an async session for fetching.
+
+    Returns:
+      Tuple of (AsyncZP session, owns_session flag)
+      If owns_session is True, caller must close the session
+    """
+    # Case 1: Use existing async session
+    if self._zp:
+      return (self._zp, False)
+
+    # Case 2: Convert sync session to async by copying cookies
+    if self._zp_sync:
+      async_zp = AsyncZP(skip_credential_check=True)
+      await async_zp.init_client()
+      async_zp._client.cookies = self._zp_sync._client.cookies
+      return (async_zp, True)
+
+    # Case 3: Create temporary session with login
+    temp_zp = AsyncZP(skip_credential_check=True)
+    await temp_zp.login()
+    return (temp_zp, True)
+
+  # -------------------------------------------------------------------------------
+  async def _fetch_parallel(self, *race_id_list: int) -> dict[Any, Any]:
+    """Fetch race signups in parallel using async requests.
+
+    Args:
+      *race_id_list: One or more race ID integers to fetch
+
+    Returns:
+      Dictionary mapping race IDs to their signup data
+    """
+    session, owns_session = await self._get_or_create_session()
+
+    try:
+      logger.info(f"Fetching race signups for {len(race_id_list)} race(s)")
+
+      # SECURITY: Validate all race IDs before processing
+      validated_ids = []
+      for r in race_id_list:
+        try:
+          # Convert to int if string, validate range
+          rid = int(r) if not isinstance(r, int) else r
+          if rid <= 0 or rid > 999999999:
+            raise ValueError(
+              f"Invalid race ID: {r}. Must be a positive integer.",
+            )
+          validated_ids.append(rid)
+        except (ValueError, TypeError) as e:
+          if isinstance(e, ValueError) and "Invalid race ID" in str(e):
+            raise
+          raise ValueError(
+            f"Invalid race ID: {r}. Must be a valid positive integer.",
+          ) from e
+
+      # Build list of fetch tasks using async URLs
+      fetch_tasks = []
+      for rid in validated_ids:
+        url = f"{self._url_async}{rid}{self._url_end_async}"
+        fetch_tasks.append(session.fetch_json(url))
+
+      # Execute all fetches in parallel
+      results = {}
+
+      async def fetch_and_store(idx: int, task: Any) -> None:
+        """Helper to fetch and store result."""
+        try:
+          result = await task
+          results[validated_ids[idx]] = result
+          logger.debug(
+            f"Successfully fetched signups for race ID: {validated_ids[idx]}",
+          )
+        except Exception as e:
+          logger.error(f"Failed to fetch race ID {validated_ids[idx]}: {e}")
+          raise
+
+      async with anyio.create_task_group() as tg:
+        for idx, task in enumerate(fetch_tasks):
+          tg.start_soon(fetch_and_store, idx, task)
+
+      self.raw = results
+      logger.info(f"Successfully fetched {len(validated_ids)} race signup list(s)")
+
+      self.processed = self.raw
+      return self.processed
+
+    finally:
+      if owns_session:
+        await session.close()
 
   # -------------------------------------------------------------------------------
   def fetch(self, *race_id_list: int) -> dict[Any, Any]:
@@ -86,53 +184,24 @@ class Signup(ZP_obj):
       ZPNetworkError: If network requests fail
       ZPAuthenticationError: If authentication fails
     """
-    logger.info(f"Fetching race signups for {len(race_id_list)} race(s)")
-
-    # SECURITY: Validate all race IDs before processing
-    validated_ids = []
-    for r in race_id_list:
-      try:
-        # Convert to int if string, validate range
-        rid = int(r) if not isinstance(r, int) else r
-        if rid <= 0 or rid > 999999999:
-          raise ValueError(
-            f"Invalid race ID: {r}. Must be a positive integer.",
-          )
-        validated_ids.append(rid)
-      except (ValueError, TypeError) as e:
-        if isinstance(e, ValueError) and "Invalid race ID" in str(e):
-          raise
-        raise ValueError(
-          f"Invalid race ID: {r}. Must be a valid positive integer.",
-        ) from e
-
-    # Use existing session if available, otherwise create new one
-    if hasattr(self, "_zp_session") and self._zp_session:
-      zp = self._zp_session
-      logger.debug("Using existing ZP session for signup fetch")
-    else:
-      zp = ZP()
-      logger.debug("Created new ZP session for signup fetch")
-    signups_by_race_id: dict[Any, Any] = {}
-
-    for race_id in validated_ids:
-      logger.debug(f"Fetching race signups for race ID: {race_id}")
-      url = f"{self._url}{race_id}{self._url_end}"
-      signups_by_race_id[race_id] = zp.fetch_json(url)
-      logger.debug(f"Successfully fetched signups for race ID: {race_id}")
-
-    self.raw = signups_by_race_id
-    logger.info(f"Successfully fetched {len(race_id_list)} race signup list(s)")
-
-    self.processed = self.raw
-    return self.processed
+    try:
+      asyncio.get_running_loop()
+      raise RuntimeError(
+        "fetch() called from async context. Use afetch() instead, or "
+        "call fetch() from synchronous code.",
+      )
+    except RuntimeError as e:
+      if "fetch() called from async context" in str(e):
+        raise
+      # No running loop - safe to use asyncio.run()
+      return asyncio.run(self._fetch_parallel(*race_id_list))
 
   # -------------------------------------------------------------------------------
   async def afetch(self, *race_id: int) -> dict[Any, Any]:
-    """Fetch signup lists for one or more race IDs (asynchronous).
+    """Fetch signup lists for one or more race IDs (asynchronous interface).
 
-    Retrieves lists of riders signed up for races from Zwiftpower.
-    Stores results in the raw dictionary keyed by race ID.
+    Uses parallel async requests internally. Supports session sharing
+    via set_session() or set_zp_session().
 
     Args:
       *race_id: One or more race ID integers to fetch
@@ -145,49 +214,7 @@ class Signup(ZP_obj):
       ZPNetworkError: If network requests fail
       ZPAuthenticationError: If authentication fails
     """
-    if not self._zp:
-      # Create a temporary session if none provided
-      self._zp = AsyncZP()
-      await self._zp.login()
-      owns_session = True
-    else:
-      owns_session = False
-
-    try:
-      logger.info(
-        f"Fetching signup lists for {len(race_id)} race(s) (async)",
-      )
-
-      # SECURITY: Validate all race IDs before processing
-      validated_ids = []
-      for r in race_id:
-        try:
-          # Convert to int if string, validate range
-          rid = int(r) if not isinstance(r, int) else r
-          if rid <= 0 or rid > 999999999:
-            raise ValueError(
-              f"Invalid race ID: {r}. Must be a positive integer.",
-            )
-          validated_ids.append(rid)
-          logger.debug(f"Validated race ID: {rid}")
-        except (ValueError, TypeError) as e:
-          logger.error(f"Invalid race ID: {r}")
-          raise ValueError(f"Invalid race ID: {r}. {e}") from e
-
-      # Fetch signup lists for all validated IDs
-      for rid in validated_ids:
-        url = f"{self._url_async}{rid}{self._url_end_async}"
-        logger.debug(f"Fetching signup list from: {url}")
-        self.raw[rid] = await self._zp.fetch_json(url)
-        logger.info(f"Successfully fetched signup list for race ID: {rid}")
-
-      self.processed = self.raw
-      return self.processed
-
-    finally:
-      # Clean up temporary session if we created one
-      if owns_session and self._zp:
-        await self._zp.close()
+    return await self._fetch_parallel(*race_id)
 
 
 # ===============================================================================

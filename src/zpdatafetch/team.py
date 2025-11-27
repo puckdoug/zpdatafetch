@@ -1,7 +1,10 @@
 """Unified Team class with both sync and async fetch capabilities."""
 
+import asyncio
 from argparse import ArgumentParser
 from typing import Any
+
+import anyio
 
 from zpdatafetch.async_zp import AsyncZP
 from zpdatafetch.logging_config import get_logger, setup_logging
@@ -45,7 +48,8 @@ class Team(ZP_obj):
   def __init__(self) -> None:
     """Initialize a new Team instance."""
     super().__init__()
-    self._zp: AsyncZP | None = None
+    self._zp: AsyncZP | None = None  # Async session
+    self._zp_sync: ZP | None = None  # Sync session (for reference only)
     self.processed: dict[Any, Any] = {}
 
   # -------------------------------------------------------------------------------
@@ -59,12 +63,104 @@ class Team(ZP_obj):
 
   # -------------------------------------------------------------------------------
   def set_zp_session(self, zp: ZP) -> None:
-    """Set the ZP session to use for sync fetching.
+    """Set the ZP session to use for fetching.
+
+    Cookies from this session will be shared with async client.
 
     Args:
       zp: ZP instance to use for API requests
     """
-    self._zp_session = zp
+    self._zp_sync = zp
+
+  # -------------------------------------------------------------------------------
+  async def _get_or_create_session(self) -> tuple[AsyncZP, bool]:
+    """Get or create an async session for fetching.
+
+    Returns:
+      Tuple of (AsyncZP session, owns_session flag)
+      If owns_session is True, caller must close the session
+    """
+    # Case 1: Use existing async session
+    if self._zp:
+      return (self._zp, False)
+
+    # Case 2: Convert sync session to async by copying cookies
+    if self._zp_sync:
+      async_zp = AsyncZP(skip_credential_check=True)
+      await async_zp.init_client()
+      async_zp._client.cookies = self._zp_sync._client.cookies
+      return (async_zp, True)
+
+    # Case 3: Create temporary session with login
+    temp_zp = AsyncZP(skip_credential_check=True)
+    await temp_zp.login()
+    return (temp_zp, True)
+
+  # -------------------------------------------------------------------------------
+  async def _fetch_parallel(self, *team_id: int) -> dict[Any, Any]:
+    """Fetch team data in parallel using async requests.
+
+    Args:
+      *team_id: One or more team ID integers to fetch
+
+    Returns:
+      Dictionary mapping team IDs to their roster data
+    """
+    session, owns_session = await self._get_or_create_session()
+
+    try:
+      logger.info(f'Fetching team data for {len(team_id)} ID(s)')
+
+      # SECURITY: Validate all team IDs before processing
+      validated_ids = []
+      for t in team_id:
+        try:
+          # Convert to int if string, validate range
+          tid = int(t) if not isinstance(t, int) else t
+          if tid <= 0 or tid > 999999999:
+            raise ValueError(
+              f'Invalid team ID: {t}. Must be a positive integer.',
+            )
+          validated_ids.append(tid)
+        except (ValueError, TypeError) as e:
+          if isinstance(e, ValueError) and 'Invalid team ID' in str(e):
+            raise
+          raise ValueError(
+            f'Invalid team ID: {t}. Must be a valid positive integer.',
+          ) from e
+
+      # Build list of fetch tasks using async URLs
+      fetch_tasks = []
+      for tid in validated_ids:
+        url = f'{self._url}{tid}{self._url_end_async}'
+        fetch_tasks.append(session.fetch_json(url))
+
+      # Execute all fetches in parallel
+      results = {}
+
+      async def fetch_and_store(idx: int, task: Any) -> None:
+        """Helper to fetch and store result."""
+        try:
+          result = await task
+          results[validated_ids[idx]] = result
+          logger.debug(f'Successfully fetched data for team ID: {validated_ids[idx]}')
+        except Exception as e:
+          logger.error(f'Failed to fetch team ID {validated_ids[idx]}: {e}')
+          raise
+
+      async with anyio.create_task_group() as tg:
+        for idx, task in enumerate(fetch_tasks):
+          tg.start_soon(fetch_and_store, idx, task)
+
+      self.raw = results
+      logger.info(f'Successfully fetched {len(validated_ids)} team roster(s)')
+
+      self.processed = self.raw
+      return self.processed
+
+    finally:
+      if owns_session:
+        await session.close()
 
   # -------------------------------------------------------------------------------
   def fetch(self, *team_id: int) -> dict[Any, Any]:
@@ -84,53 +180,24 @@ class Team(ZP_obj):
       ZPNetworkError: If network requests fail
       ZPAuthenticationError: If authentication fails
     """
-    logger.info(f'Fetching team data for {len(team_id)} ID(s)')
-
-    # SECURITY: Validate all team IDs before processing
-    validated_ids = []
-    for t in team_id:
-      try:
-        # Convert to int if string, validate range
-        tid = int(t) if not isinstance(t, int) else t
-        if tid <= 0 or tid > 999999999:
-          raise ValueError(
-            f'Invalid team ID: {t}. Must be a positive integer.',
-          )
-        validated_ids.append(tid)
-      except (ValueError, TypeError) as e:
-        if isinstance(e, ValueError) and 'Invalid team ID' in str(e):
-          raise
-        raise ValueError(
-          f'Invalid team ID: {t}. Must be a valid positive integer.',
-        ) from e
-
-    # Use existing session if available, otherwise create new one
-    if hasattr(self, '_zp_session') and self._zp_session:
-      zp = self._zp_session
-      logger.debug('Using existing ZP session for team fetch')
-    else:
-      zp = ZP()
-      logger.debug('Created new ZP session for team fetch')
-    content: dict[Any, Any] = {}
-
-    for t in validated_ids:
-      logger.debug(f'Fetching team roster for team ID: {t}')
-      url = f'{self._url}{t}{self._url_end}'
-      content[t] = zp.fetch_json(url)
-      logger.debug(f'Successfully fetched data for team ID: {t}')
-
-    self.raw = content
-    logger.info(f'Successfully fetched {len(team_id)} team roster(s)')
-
-    self.processed = self.raw
-    return self.processed
+    try:
+      asyncio.get_running_loop()
+      raise RuntimeError(
+        'fetch() called from async context. Use afetch() instead, or '
+        'call fetch() from synchronous code.',
+      )
+    except RuntimeError as e:
+      if 'fetch() called from async context' in str(e):
+        raise
+      # No running loop - safe to use asyncio.run()
+      return asyncio.run(self._fetch_parallel(*team_id))
 
   # -------------------------------------------------------------------------------
   async def afetch(self, *team_id: int) -> dict[Any, Any]:
-    """Fetch team data for one or more team IDs (asynchronous).
+    """Fetch team data for one or more team IDs (asynchronous interface).
 
-    Retrieves team information from Zwiftpower cache.
-    Stores results in the raw dictionary keyed by team ID.
+    Uses parallel async requests internally. Supports session sharing
+    via set_session() or set_zp_session().
 
     Args:
       *team_id: One or more team ID integers to fetch
@@ -143,47 +210,7 @@ class Team(ZP_obj):
       ZPNetworkError: If network requests fail
       ZPAuthenticationError: If authentication fails
     """
-    if not self._zp:
-      # Create a temporary session if none provided
-      self._zp = AsyncZP()
-      await self._zp.login()
-      owns_session = True
-    else:
-      owns_session = False
-
-    try:
-      logger.info(f'Fetching team data for {len(team_id)} team(s) (async)')
-
-      # SECURITY: Validate all team IDs before processing
-      validated_ids = []
-      for t in team_id:
-        try:
-          # Convert to int if string, validate range
-          tid = int(t) if not isinstance(t, int) else t
-          if tid <= 0 or tid > 999999999:
-            raise ValueError(
-              f'Invalid team ID: {t}. Must be a positive integer.',
-            )
-          validated_ids.append(tid)
-          logger.debug(f'Validated team ID: {tid}')
-        except (ValueError, TypeError) as e:
-          logger.error(f'Invalid team ID: {t}')
-          raise ValueError(f'Invalid team ID: {t}. {e}') from e
-
-      # Fetch data for all validated team IDs
-      for tid in validated_ids:
-        url = f'{self._url}{tid}{self._url_end_async}'
-        logger.debug(f'Fetching team data from: {url}')
-        self.raw[tid] = await self._zp.fetch_json(url)
-        logger.info(f'Successfully fetched data for team ID: {tid}')
-
-      self.processed = self.raw
-      return self.processed
-
-    finally:
-      # Clean up temporary session if we created one
-      if owns_session and self._zp:
-        await self._zp.close()
+    return await self._fetch_parallel(*team_id)
 
 
 # ===============================================================================

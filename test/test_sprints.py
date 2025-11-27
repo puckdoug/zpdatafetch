@@ -17,33 +17,31 @@ def test_sprints_fetch_race_sprints(
   primes_test_data,
   sprints_handler,
 ):
-  from zpdatafetch.zp import ZP
+  from zpdatafetch.async_zp import AsyncZP
 
-  original_init = ZP.__init__
+  original_init = AsyncZP.__init__
 
   def mock_init(self, skip_credential_check=False):
     original_init(self, skip_credential_check=True)
-    self.init_client(
-      httpx.Client(
-        follow_redirects=True,
-        transport=httpx.MockTransport(sprints_handler),
-      ),
+    self._client = httpx.AsyncClient(
+      follow_redirects=True,
+      transport=httpx.MockTransport(sprints_handler),
     )
 
-  ZP.__init__ = mock_init
+  AsyncZP.__init__ = mock_init
 
   try:
-    # Mock primes.fetch to avoid real API call
-    with patch.object(sprints.primes, 'fetch') as mock_primes_fetch:
-      mock_primes_fetch.return_value = primes_test_data
+    # Mock primes.afetch to avoid real API call
+    with patch.object(sprints.primes, 'afetch') as mock_primes_afetch:
+      mock_primes_afetch.return_value = primes_test_data
       sprints.primes.raw = primes_test_data
 
       race_sprints = sprints.fetch(3590800)
       assert 3590800 in race_sprints
       assert race_sprints[3590800] == sprints_test_data
-      mock_primes_fetch.assert_called_once_with(3590800)
+      mock_primes_afetch.assert_called_once_with(3590800)
   finally:
-    ZP.__init__ = original_init
+    AsyncZP.__init__ = original_init
 
 
 def test_sprints_shares_zp_session_with_primes(
@@ -52,48 +50,48 @@ def test_sprints_shares_zp_session_with_primes(
   primes_test_data,
   sprints_handler,
 ):
-  """Test that sprints shares the ZP session with primes to avoid double login."""
+  """Test that sprints shares the AsyncZP session with primes to avoid double login."""
   from unittest.mock import patch
 
-  from zpdatafetch.zp import ZP
+  from zpdatafetch.async_zp import AsyncZP
 
-  original_init = ZP.__init__
+  original_init = AsyncZP.__init__
   login_count = {'count': 0}
 
   def mock_init(self, skip_credential_check=False):
     original_init(self, skip_credential_check=True)
-    login_count['count'] += 1  # Track how many ZP instances are created
-    self.init_client(
-      httpx.Client(
-        follow_redirects=True,
-        transport=httpx.MockTransport(sprints_handler),
-      ),
+    login_count['count'] += 1  # Track how many AsyncZP instances are created
+    self._client = httpx.AsyncClient(
+      follow_redirects=True,
+      transport=httpx.MockTransport(sprints_handler),
     )
 
-  ZP.__init__ = mock_init
+  AsyncZP.__init__ = mock_init
 
   try:
-    # Mock primes.fetch to avoid real API call but verify set_zp_session is called
-    with patch.object(sprints.primes, 'fetch') as mock_primes_fetch:
-      with patch.object(sprints.primes, 'set_zp_session') as mock_set_zp_session:
-        mock_primes_fetch.return_value = primes_test_data
+    # Mock primes.afetch to avoid real API call but verify set_session is called
+    with patch.object(sprints.primes, 'afetch') as mock_primes_afetch:
+      with patch.object(sprints.primes, 'set_session') as mock_set_session:
+        mock_primes_afetch.return_value = primes_test_data
         sprints.primes.raw = primes_test_data
 
         sprints.fetch(3590800)
 
-        # Verify only ONE ZP instance was created (not two)
-        assert login_count['count'] == 1, 'Should only create one ZP session'
+        # Verify only ONE AsyncZP instance was created (not two)
+        assert login_count['count'] == 1, 'Should only create one AsyncZP session'
 
-        # Verify set_zp_session was called to share the session
+        # Verify set_session was called to share the session
         assert (
-          mock_set_zp_session.called
-        ), 'Should call set_zp_session to share ZP instance'
-        # Verify the session passed is a ZP instance
-        call_args = mock_set_zp_session.call_args[0]
+          mock_set_session.called
+        ), 'Should call set_session to share AsyncZP instance'
+        # Verify the session passed is an AsyncZP instance
+        call_args = mock_set_session.call_args[0]
         assert len(call_args) == 1
-        assert isinstance(call_args[0], ZP), 'Should pass ZP instance to primes'
+        assert isinstance(
+          call_args[0], AsyncZP
+        ), 'Should pass AsyncZP instance to primes'
 
-        # Verify primes.fetch was called
-        mock_primes_fetch.assert_called_once_with(3590800)
+        # Verify primes.afetch was called
+        mock_primes_afetch.assert_called_once_with(3590800)
   finally:
-    ZP.__init__ = original_init
+    AsyncZP.__init__ = original_init
