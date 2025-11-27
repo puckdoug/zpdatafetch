@@ -4,6 +4,7 @@ This module provides the ZRResult class for fetching and storing race result
 data from the Zwiftracing API, including per-rider finishes and rating changes.
 """
 
+import asyncio
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
@@ -89,6 +90,7 @@ class ZRResult(ZR_obj):
   _race: dict = field(default_factory=dict, init=False, repr=False)
   _verbose: bool = field(default=False, init=False, repr=False)
   _zr: AsyncZR_obj | None = field(default=None, init=False, repr=False)
+  _zr_sync: ZR_obj | None = field(default=None, init=False, repr=False)
 
   # -----------------------------------------------------------------------
   def set_session(self, zr: AsyncZR_obj) -> None:
@@ -101,30 +103,45 @@ class ZRResult(ZR_obj):
 
   # -----------------------------------------------------------------------
   def set_zr_session(self, zr: ZR_obj) -> None:
-    """Set the ZR_obj session to use for sync fetching.
+    """Set the ZR_obj session to use for fetching.
+
+    Session will be converted to async for internal use.
 
     Args:
       zr: ZR_obj instance to use for API requests
     """
-    self._zr_session = zr
+    self._zr_sync = zr
 
   # -----------------------------------------------------------------------
-  def fetch(self, race_id: int | None = None) -> None:
-    """Fetch race result data from the Zwiftracing API (synchronous).
+  async def _get_or_create_session(self) -> tuple[AsyncZR_obj, bool]:
+    """Get or create an async session for fetching.
 
-    Fetches all rider results for a specific race ID from the Zwiftracing API.
+    Returns:
+      Tuple of (AsyncZR_obj session, owns_session flag)
+      If owns_session is True, caller must close the session
+    """
+    # Case 1: Use existing async session
+    if self._zr:
+      return (self._zr, False)
+
+    # Case 2: Have sync session - create new async session
+    # Note: ZR doesn't use cookies like ZP, so we just create a new async session
+    if self._zr_sync:
+      async_zr = AsyncZR_obj()
+      await async_zr.init_client()
+      return (async_zr, True)
+
+    # Case 3: Create temporary session
+    temp_zr = AsyncZR_obj()
+    await temp_zr.init_client()
+    return (temp_zr, True)
+
+  # -----------------------------------------------------------------------
+  async def _afetch_internal(self, race_id: int | None = None) -> None:
+    """Internal async fetch implementation.
 
     Args:
       race_id: The race ID to fetch (uses self.race_id if not provided)
-
-    Raises:
-      ZRNetworkError: If the API request fails
-      ZRConfigError: If authorization is not configured
-
-    Example:
-      result = ZRResult()
-      result.fetch(race_id=3590800)
-      print(result.json())
     """
     # Use provided value or default
     if race_id is not None:
@@ -142,33 +159,66 @@ class ZRResult(ZR_obj):
         'Zwiftracing authorization not found. Please run "zrdata config" to set it up.',
       )
 
-    logger.debug(f'Fetching results for race_id={self.race_id}')
+    session, owns_session = await self._get_or_create_session()
 
-    # Endpoint is /public/results/{race_id}
-    endpoint = f'/public/results/{self.race_id}'
-
-    # Fetch JSON from API
-    headers = {'Authorization': config.authorization}
     try:
-      # Use existing session if available, otherwise use self
-      if hasattr(self, '_zr_session') and self._zr_session:
-        logger.debug('Using existing ZR session for result fetch')
-        self._raw = self._zr_session.fetch_json(endpoint, headers=headers)
-      else:
-        logger.debug('Using own instance for result fetch')
-        self._raw = self.fetch_json(endpoint, headers=headers)
+      logger.debug(f'Fetching results for race_id={self.race_id}')
+
+      # Endpoint is /public/results/{race_id}
+      endpoint = f'/public/results/{self.race_id}'
+
+      # Fetch JSON from API
+      headers = {'Authorization': config.authorization}
+      self._raw = await session.fetch_json(endpoint, headers=headers)
+
+      # Parse response
+      self._parse_response()
+      logger.info(f'Successfully fetched results for race_id={self.race_id}')
     except ZRNetworkError as e:
       logger.error(f'Failed to fetch race result: {e}')
       raise
+    finally:
+      if owns_session:
+        await session.close()
 
-    # Parse response
-    self._parse_response()
+  # -----------------------------------------------------------------------
+  def fetch(self, race_id: int | None = None) -> None:
+    """Fetch race result data from the Zwiftracing API (synchronous interface).
+
+    Uses async implementation internally for consistency and efficiency.
+    Fetches all rider results for a specific race ID from the Zwiftracing API.
+
+    Args:
+      race_id: The race ID to fetch (uses self.race_id if not provided)
+
+    Raises:
+      ZRNetworkError: If the API request fails
+      ZRConfigError: If authorization is not configured
+      RuntimeError: If called from async context (use afetch() instead)
+
+    Example:
+      result = ZRResult()
+      result.fetch(race_id=3590800)
+      print(result.json())
+    """
+    try:
+      asyncio.get_running_loop()
+      raise RuntimeError(
+        'fetch() called from async context. Use afetch() instead, or '
+        'call fetch() from synchronous code.',
+      )
+    except RuntimeError as e:
+      if 'fetch() called from async context' in str(e):
+        raise
+      # No running loop - safe to use asyncio.run()
+      asyncio.run(self._afetch_internal(race_id))
 
   # -----------------------------------------------------------------------
   async def afetch(self, race_id: int | None = None) -> None:
-    """Fetch race result data from the Zwiftracing API (asynchronous).
+    """Fetch race result data from the Zwiftracing API (asynchronous interface).
 
-    Fetches all rider results for a specific race ID from the Zwiftracing API.
+    Uses shared internal async implementation. Supports session sharing
+    via set_session() or set_zr_session().
 
     Args:
       race_id: The race ID to fetch (uses self.race_id if not provided)
@@ -183,50 +233,7 @@ class ZRResult(ZR_obj):
       await result.afetch(race_id=3590800)
       print(result.json())
     """
-    # Use provided value or default
-    if race_id is not None:
-      self.race_id = race_id
-
-    if self.race_id == 0:
-      logger.warning('No race_id provided for fetch')
-      return
-
-    # Get authorization from config
-    config = Config()
-    config.load()
-    if not config.authorization:
-      raise ZRConfigError(
-        'Zwiftracing authorization not found. Please run "zrdata config" to set it up.',
-      )
-
-    logger.debug(f'Fetching results for race_id={self.race_id} (async)')
-
-    # Create temporary session if none provided
-    if not self._zr:
-      self._zr = AsyncZR_obj()
-      await self._zr.init_client()
-      owns_session = True
-    else:
-      owns_session = False
-
-    try:
-      # Endpoint is /public/results/{race_id}
-      endpoint = f'/public/results/{self.race_id}'
-
-      # Fetch JSON from API
-      headers = {'Authorization': config.authorization}
-      self._raw = await self._zr.fetch_json(endpoint, headers=headers)
-
-      # Parse response
-      self._parse_response()
-      logger.info(f'Successfully fetched results for race_id={self.race_id}')
-    except ZRNetworkError as e:
-      logger.error(f'Failed to fetch race result: {e}')
-      raise
-    finally:
-      # Clean up temporary session if we created one
-      if owns_session and self._zr:
-        await self._zr.close()
+    await self._afetch_internal(race_id)
 
   # -----------------------------------------------------------------------
   def _parse_response(self) -> None:

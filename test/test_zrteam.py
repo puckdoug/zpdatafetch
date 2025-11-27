@@ -3,7 +3,7 @@
 Tests the team roster data structures and fetching functionality.
 """
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -175,10 +175,16 @@ class TestZRTeamFetch:
       mock_config_class.return_value = mock_config
       mock_config.authorization = "test-auth-header"
 
-      with patch.object(team, "fetch_json", return_value={}):
+      with patch("zrdatafetch.zrteam.AsyncZR_obj") as mock_async_zr_class:
+        mock_zr = MagicMock()
+        mock_async_zr_class.return_value = mock_zr
+        mock_zr.init_client = AsyncMock()
+        mock_zr.fetch_json = AsyncMock(return_value={})
+        mock_zr.close = AsyncMock()
+
         team.fetch()
-        team.fetch_json.assert_called_once()
-        call_args = team.fetch_json.call_args
+        mock_zr.fetch_json.assert_called_once()
+        call_args = mock_zr.fetch_json.call_args
         assert "/public/clubs/456/0" in call_args[0]
 
   def test_fetch_with_team_id_parameter(self):
@@ -190,7 +196,13 @@ class TestZRTeamFetch:
       mock_config_class.return_value = mock_config
       mock_config.authorization = "test-auth-header"
 
-      with patch.object(team, "fetch_json", return_value={}):
+      with patch("zrdatafetch.zrteam.AsyncZR_obj") as mock_async_zr_class:
+        mock_zr = MagicMock()
+        mock_async_zr_class.return_value = mock_zr
+        mock_zr.init_client = AsyncMock()
+        mock_zr.fetch_json = AsyncMock(return_value={})
+        mock_zr.close = AsyncMock()
+
         team.fetch(team_id=456)
         assert team.team_id == 456
 

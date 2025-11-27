@@ -4,6 +4,7 @@ This module provides the ZRRider class for fetching and storing rider
 rating data from the Zwiftracing API.
 """
 
+import asyncio
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
@@ -86,6 +87,7 @@ class ZRRider(ZR_obj):
   _rider: dict = field(default_factory=dict, init=False, repr=False)
   _verbose: bool = field(default=False, init=False, repr=False)
   _zr: AsyncZR_obj | None = field(default=None, init=False, repr=False)
+  _zr_sync: ZR_obj | None = field(default=None, init=False, repr=False)
 
   # -----------------------------------------------------------------------
   def set_session(self, zr: AsyncZR_obj) -> None:
@@ -98,103 +100,49 @@ class ZRRider(ZR_obj):
 
   # -----------------------------------------------------------------------
   def set_zr_session(self, zr: ZR_obj) -> None:
-    """Set the ZR_obj session to use for sync fetching.
+    """Set the ZR_obj session to use for fetching.
+
+    Session will be converted to async for internal use.
 
     Args:
       zr: ZR_obj instance to use for API requests
     """
-    self._zr_session = zr
+    self._zr_sync = zr
 
   # -----------------------------------------------------------------------
-  def fetch(self, zwift_id: int | None = None, epoch: int | None = None) -> None:
-    """Fetch rider rating data from the Zwiftracing API (synchronous).
+  async def _get_or_create_session(self) -> tuple[AsyncZR_obj, bool]:
+    """Get or create an async session for fetching.
 
-    Fetches the rider's current or historical rating data based on the
-    provided zwift_id and optional epoch (unix timestamp).
-
-    Args:
-      zwift_id: Rider's Zwift ID (uses self.zwift_id if not provided)
-      epoch: Unix timestamp for historical data (uses self.epoch if not provided)
-
-    Raises:
-      ZRNetworkError: If the API request fails
-      ZRConfigError: If authorization is not configured
-
-    Example:
-      rider = ZRRider()
-      rider.fetch(zwift_id=12345)
-      print(rider.json())
+    Returns:
+      Tuple of (AsyncZR_obj session, owns_session flag)
+      If owns_session is True, caller must close the session
     """
-    # Use provided values or defaults
-    if zwift_id is not None:
-      self.zwift_id = zwift_id
-    if epoch is not None:
-      self.epoch = epoch
+    # Case 1: Use existing async session
+    if self._zr:
+      return (self._zr, False)
 
-    if self.zwift_id == 0:
-      logger.warning('No zwift_id provided for fetch')
-      return
+    # Case 2: Have sync session - create new async session
+    if self._zr_sync:
+      async_zr = AsyncZR_obj()
+      await async_zr.init_client()
+      return (async_zr, True)
 
-    # Get authorization from config
-    config = Config()
-    config.load()
-    if not config.authorization:
-      raise ZRConfigError(
-        'Zwiftracing authorization not found. Please run "zrdata config" to set it up.',
-      )
-
-    logger.debug(
-      f'Fetching rider for zwift_id={self.zwift_id}, epoch={self.epoch}',
-    )
-
-    # Build endpoint
-    if self.epoch >= 0:
-      endpoint = f'/public/riders/{self.zwift_id}/{self.epoch}'
-    else:
-      endpoint = f'/public/riders/{self.zwift_id}'
-
-    # Fetch JSON from API
-    headers = {'Authorization': config.authorization}
-    try:
-      # Use existing session if available, otherwise use self
-      if hasattr(self, '_zr_session') and self._zr_session:
-        logger.debug('Using existing ZR session for rider fetch')
-        self._raw = self._zr_session.fetch_json(endpoint, headers=headers)
-      else:
-        logger.debug('Using own instance for rider fetch')
-        self._raw = self.fetch_json(endpoint, headers=headers)
-    except ZRNetworkError as e:
-      logger.error(f'Failed to fetch rider: {e}')
-      raise
-
-    # Parse response
-    self._parse_response()
+    # Case 3: Create temporary session
+    temp_zr = AsyncZR_obj()
+    await temp_zr.init_client()
+    return (temp_zr, True)
 
   # -----------------------------------------------------------------------
-  async def afetch(
+  async def _afetch_internal(
     self,
     zwift_id: int | None = None,
     epoch: int | None = None,
   ) -> None:
-    """Fetch rider rating data from the Zwiftracing API (asynchronous).
-
-    Fetches the rider's current or historical rating data based on the
-    provided zwift_id and optional epoch (unix timestamp).
+    """Internal async fetch implementation.
 
     Args:
       zwift_id: Rider's Zwift ID (uses self.zwift_id if not provided)
       epoch: Unix timestamp for historical data (uses self.epoch if not provided)
-
-    Raises:
-      ValueError: If zwift_id is invalid
-      ZRNetworkError: If the API request fails
-      ZRConfigError: If authorization is not configured
-
-    Example:
-      rider = ZRRider()
-      rider.set_session(zr)
-      await rider.afetch(zwift_id=12345)
-      print(rider.json())
     """
     # Use provided values or defaults
     if zwift_id is not None:
@@ -214,28 +162,22 @@ class ZRRider(ZR_obj):
         'Zwiftracing authorization not found. Please run "zrdata config" to set it up.',
       )
 
-    logger.debug(
-      f'Fetching rider for zwift_id={self.zwift_id}, epoch={self.epoch} (async)',
-    )
-
-    # Build endpoint
-    if self.epoch >= 0:
-      endpoint = f'/public/riders/{self.zwift_id}/{self.epoch}'
-    else:
-      endpoint = f'/public/riders/{self.zwift_id}'
-
-    # Create temporary session if none provided
-    if not self._zr:
-      self._zr = AsyncZR_obj()
-      await self._zr.init_client()
-      owns_session = True
-    else:
-      owns_session = False
+    session, owns_session = await self._get_or_create_session()
 
     try:
+      logger.debug(
+        f'Fetching rider for zwift_id={self.zwift_id}, epoch={self.epoch}',
+      )
+
+      # Build endpoint
+      if self.epoch >= 0:
+        endpoint = f'/public/riders/{self.zwift_id}/{self.epoch}'
+      else:
+        endpoint = f'/public/riders/{self.zwift_id}'
+
       # Fetch JSON from API
       headers = {'Authorization': config.authorization}
-      self._raw = await self._zr.fetch_json(endpoint, headers=headers)
+      self._raw = await session.fetch_json(endpoint, headers=headers)
 
       # Parse response
       self._parse_response()
@@ -246,9 +188,69 @@ class ZRRider(ZR_obj):
       logger.error(f'Failed to fetch rider: {e}')
       raise
     finally:
-      # Clean up temporary session if we created one
-      if owns_session and self._zr:
-        await self._zr.close()
+      if owns_session:
+        await session.close()
+
+  # -----------------------------------------------------------------------
+  def fetch(self, zwift_id: int | None = None, epoch: int | None = None) -> None:
+    """Fetch rider rating data from the Zwiftracing API (synchronous interface).
+
+    Uses async implementation internally for consistency and efficiency.
+    Fetches the rider's current or historical rating data based on the
+    provided zwift_id and optional epoch (unix timestamp).
+
+    Args:
+      zwift_id: Rider's Zwift ID (uses self.zwift_id if not provided)
+      epoch: Unix timestamp for historical data (uses self.epoch if not provided)
+
+    Raises:
+      ZRNetworkError: If the API request fails
+      ZRConfigError: If authorization is not configured
+      RuntimeError: If called from async context (use afetch() instead)
+
+    Example:
+      rider = ZRRider()
+      rider.fetch(zwift_id=12345)
+      print(rider.json())
+    """
+    try:
+      asyncio.get_running_loop()
+      raise RuntimeError(
+        'fetch() called from async context. Use afetch() instead, or '
+        'call fetch() from synchronous code.',
+      )
+    except RuntimeError as e:
+      if 'fetch() called from async context' in str(e):
+        raise
+      # No running loop - safe to use asyncio.run()
+      asyncio.run(self._afetch_internal(zwift_id, epoch))
+
+  # -----------------------------------------------------------------------
+  async def afetch(
+    self,
+    zwift_id: int | None = None,
+    epoch: int | None = None,
+  ) -> None:
+    """Fetch rider rating data from the Zwiftracing API (asynchronous interface).
+
+    Uses shared internal async implementation. Supports session sharing
+    via set_session() or set_zr_session().
+
+    Args:
+      zwift_id: Rider's Zwift ID (uses self.zwift_id if not provided)
+      epoch: Unix timestamp for historical data (uses self.epoch if not provided)
+
+    Raises:
+      ZRNetworkError: If the API request fails
+      ZRConfigError: If authorization is not configured
+
+    Example:
+      rider = ZRRider()
+      rider.set_session(zr)
+      await rider.afetch(zwift_id=12345)
+      print(rider.json())
+    """
+    await self._afetch_internal(zwift_id, epoch)
 
   # -----------------------------------------------------------------------
   def _parse_response(self) -> None:
