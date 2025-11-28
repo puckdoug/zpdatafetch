@@ -4,12 +4,12 @@ This module provides async/await compatible interfaces for the Zwiftpower API,
 allowing for concurrent requests and better performance in async applications.
 """
 
+import importlib.util
 import json
 import sys
 from pathlib import Path
 from typing import Any
 
-import anyio
 import httpx
 from bs4 import BeautifulSoup
 
@@ -24,11 +24,21 @@ from exceptions import AuthenticationError as AuthenticationError  # noqa: E402
 from exceptions import ConfigError as ConfigError  # noqa: E402
 from exceptions import NetworkError as NetworkError  # noqa: E402
 
+# Import AsyncBaseHTTPClient and fetch_with_retry_async using importlib pattern
+_http_base_spec = importlib.util.spec_from_file_location(
+  'http_client_base',
+  Path(__file__).parent.parent / 'http_client_base.py',
+)
+_http_base = importlib.util.module_from_spec(_http_base_spec)
+_http_base_spec.loader.exec_module(_http_base)
+AsyncBaseHTTPClient = _http_base.AsyncBaseHTTPClient
+fetch_with_retry_async = _http_base.fetch_with_retry_async
+
 logger = get_logger(__name__)
 
 
 # ===============================================================================
-class AsyncZP:
+class AsyncZP(AsyncBaseHTTPClient):
   """Async version of the core ZP class for interacting with Zwiftpower API.
 
   This class provides async/await compatible methods for authentication,
@@ -53,7 +63,7 @@ class AsyncZP:
 
   _client: httpx.AsyncClient | None = None
   _login_url: str = (
-    "https://zwiftpower.com/ucp.php?mode=login&login=external&oauth_service=oauthzpsso"
+    'https://zwiftpower.com/ucp.php?mode=login&login=external&oauth_service=oauthzpsso'
   )
   _shared_client: httpx.AsyncClient | None = None
   _owns_client: bool = False
@@ -86,9 +96,11 @@ class AsyncZP:
       )
 
     self._owns_client = not shared_client
+    # Initialize shared client immediately (non-async)
+    # This ensures _shared_client is available for tests
     if shared_client and AsyncZP._shared_client is None:
-      logger.debug("Creating shared async HTTP client for connection pooling")
-      AsyncZP._shared_client = httpx.AsyncClient(follow_redirects=True)
+      logger.debug('Creating shared async HTTP client for connection pooling')
+      AsyncZP._shared_client = httpx.AsyncClient(follow_redirects=True, verify=True)
 
   # -------------------------------------------------------------------------------
   def clear_credentials(self) -> None:
@@ -100,15 +112,15 @@ class AsyncZP:
     SECURITY: This method helps prevent credentials from being exposed if the
     process is dumped or inspected while credentials are in memory.
     """
-    logger.debug("Clearing credentials from memory")
+    logger.debug('Clearing credentials from memory')
     # Overwrite credentials with dummy data before deletion
     if self.username:
-      self.username = "*" * len(self.username)
-      self.username = ""
+      self.username = '*' * len(self.username)
+      self.username = ''
     if self.password:
-      self.password = "*" * len(self.password)
-      self.password = ""
-    logger.debug("Credentials cleared")
+      self.password = '*' * len(self.password)
+      self.password = ''
+    logger.debug('Credentials cleared')
 
   # -------------------------------------------------------------------------------
   async def login(self) -> None:
@@ -121,40 +133,40 @@ class AsyncZP:
       NetworkError: If network requests fail
       AuthenticationError: If login form cannot be parsed or auth fails
     """
-    logger.info("Logging in to Zwiftpower (async)")
+    logger.info('Logging in to Zwiftpower (async)')
 
     if not self._client:
       await self.init_client()
 
     try:
-      logger.debug(f"Fetching url: {self._login_url}")
+      logger.debug(f'Fetching url: {self._login_url}')
       page = await self._client.get(self._login_url)
       page.raise_for_status()
     except httpx.HTTPStatusError as e:
-      logger.error(f"Failed to fetch login page: {e}")
-      raise NetworkError(f"Failed to fetch login page: {e}") from e
+      logger.error(f'Failed to fetch login page: {e}')
+      raise NetworkError(f'Failed to fetch login page: {e}') from e
     except httpx.RequestError as e:
-      logger.error(f"Network error during login: {e}")
-      raise NetworkError(f"Network error during login: {e}") from e
+      logger.error(f'Network error during login: {e}')
+      raise NetworkError(f'Network error during login: {e}') from e
 
-    self._client.cookies.get("phpbb3_lswlk_sid")
+    self._client.cookies.get('phpbb3_lswlk_sid')
 
     try:
-      soup = BeautifulSoup(page.text, "lxml")
-      if not soup.form or "action" not in soup.form.attrs:
-        logger.error("Login form not found on page")
+      soup = BeautifulSoup(page.text, 'lxml')
+      if not soup.form or 'action' not in soup.form.attrs:
+        logger.error('Login form not found on page')
         raise AuthenticationError(
-          "Login form not found on page. Zwiftpower may have changed their login flow.",
+          'Login form not found on page. Zwiftpower may have changed their login flow.',
         )
-      login_url_from_form = soup.form["action"][0:]
-      logger.debug(f"Extracted login form URL: {login_url_from_form}")
+      login_url_from_form = soup.form['action'][0:]
+      logger.debug(f'Extracted login form URL: {login_url_from_form}')
     except (AttributeError, KeyError) as e:
-      logger.error(f"Could not parse login form: {e}")
-      raise AuthenticationError(f"Could not parse login form: {e}") from e
+      logger.error(f'Could not parse login form: {e}')
+      raise AuthenticationError(f'Could not parse login form: {e}') from e
 
-    data = {"username": self.username, "password": self.password}
+    data = {'username': self.username, 'password': self.password}
     # SECURITY: Do NOT log the data dict or login URL - it contains credentials
-    logger.debug("Submitting authentication credentials to login endpoint")
+    logger.debug('Submitting authentication credentials to login endpoint')
 
     try:
       self.login_response = await self._client.post(
@@ -165,126 +177,40 @@ class AsyncZP:
       self.login_response.raise_for_status()
 
       # Check if login was actually successful
-      if "ucp.php" in str(self.login_response.url) and "mode=login" in str(
+      if 'ucp.php' in str(self.login_response.url) and 'mode=login' in str(
         self.login_response.url,
       ):
-        logger.error("Authentication failed - redirected back to login page")
+        logger.error('Authentication failed - redirected back to login page')
         raise AuthenticationError(
-          "Login failed. Please check your username and password.",
+          'Login failed. Please check your username and password.',
         )
-      logger.info("Successfully authenticated with Zwiftpower")
+      logger.info('Successfully authenticated with Zwiftpower')
     except httpx.HTTPStatusError as e:
-      logger.error(f"HTTP error during authentication: {e}")
-      raise NetworkError(f"HTTP error during authentication: {e}") from e
+      logger.error(f'HTTP error during authentication: {e}')
+      raise NetworkError(f'HTTP error during authentication: {e}') from e
     except httpx.RequestError as e:
-      logger.error(f"Network error during authentication: {e}")
-      raise NetworkError(f"Network error during authentication: {e}") from e
+      logger.error(f'Network error during authentication: {e}')
+      raise NetworkError(f'Network error during authentication: {e}') from e
 
   # -------------------------------------------------------------------------------
-  async def init_client(
-    self,
-    client: httpx.AsyncClient | None = None,
-  ) -> None:
-    """Initialize or replace the async HTTP client.
+  async def _create_client(self) -> httpx.AsyncClient:
+    """Create and configure an async HTTP client.
 
-    Args:
-      client: Optional httpx.AsyncClient instance to use. If None, uses shared
-        client if available, otherwise creates a new client.
-    """
-    logger.debug("Initializing httpx async client")
-
-    if client:
-      logger.debug("Using provided httpx async client")
-      self._client = client
-    elif AsyncZP._shared_client is not None:
-      logger.debug("Using shared async HTTP client for connection pooling")
-      self._client = AsyncZP._shared_client
-    else:
-      logger.debug(
-        "Creating new httpx async client with HTTPS certificate verification",
-      )
-      # SECURITY: Explicitly enable certificate verification for HTTPS
-      self._client = httpx.AsyncClient(follow_redirects=True, verify=True)
-
-  # -------------------------------------------------------------------------------
-  async def _fetch_with_retry(
-    self,
-    url: str,
-    method: str = "GET",
-    max_retries: int = 3,
-    backoff_factor: float = 1.0,
-    **kwargs: Any,
-  ) -> httpx.Response:
-    """Fetch URL with exponential backoff retry logic (async).
-
-    Retries on transient errors (connection errors, timeouts) but not on
-    client errors (4xx) or authentication errors.
-
-    Args:
-      url: URL to fetch
-      method: HTTP method (default: 'GET')
-      max_retries: Maximum number of retry attempts (default: 3)
-      backoff_factor: Multiplier for exponential backoff (default: 1.0)
-      **kwargs: Additional arguments to pass to httpx client method
+    SECURITY: All connections use HTTPS with certificate verification enabled.
+    This protects against man-in-the-middle attacks.
 
     Returns:
-      httpx.Response: The successful response
-
-    Raises:
-      NetworkError: If all retries are exhausted
+      Configured httpx.AsyncClient instance
     """
-    if self._client is None:
+    logger.debug('Creating new httpx async client with HTTPS certificate verification')
+    # SECURITY: Explicitly enable certificate verification for HTTPS
+    return httpx.AsyncClient(follow_redirects=True, verify=True)
+
+  # -------------------------------------------------------------------------------
+  async def _before_request(self, url: str, method: str = 'GET', **kwargs: Any) -> None:
+    """Ensure logged in before making requests."""
+    if not self._client:
       await self.login()
-
-    last_exception: Exception | None = None
-
-    for attempt in range(max_retries):
-      try:
-        logger.debug(f"Attempt {attempt + 1}/{max_retries}: {method} {url}")
-        response = await self._client.request(method, url, **kwargs)
-        response.raise_for_status()
-        return response
-      except (httpx.ConnectError, httpx.TimeoutException) as e:
-        last_exception = e
-        if attempt == max_retries - 1:
-          break
-        wait_time = backoff_factor * (2**attempt)
-        logger.warning(
-          f"Transient network error on attempt {attempt + 1}: {e}. "
-          f"Retrying in {wait_time:.1f}s...",
-        )
-        await anyio.sleep(wait_time)
-      except httpx.HTTPStatusError as e:
-        if 500 <= e.response.status_code < 600:
-          last_exception = e
-          if attempt == max_retries - 1:
-            break
-          wait_time = backoff_factor * (2**attempt)
-          logger.warning(
-            f"Server error ({e.response.status_code}) on attempt "
-            f"{attempt + 1}: {e}. Retrying in {wait_time:.1f}s...",
-          )
-          await anyio.sleep(wait_time)
-        else:
-          raise NetworkError(f"HTTP error: {e}") from e
-      except httpx.RequestError as e:
-        last_exception = e
-        if attempt == max_retries - 1:
-          break
-        wait_time = backoff_factor * (2**attempt)
-        logger.warning(
-          f"Request error on attempt {attempt + 1}: {e}. "
-          f"Retrying in {wait_time:.1f}s...",
-        )
-        await anyio.sleep(wait_time)
-
-    if last_exception:
-      logger.error(f"Max retries ({max_retries}) exhausted: {last_exception}")
-      raise NetworkError(
-        f"Failed after {max_retries} attempts: {last_exception}",
-      ) from last_exception
-
-    raise NetworkError(f"Unexpected error fetching {url}")
 
   # -------------------------------------------------------------------------------
   def login_url(self, url: str | None = None) -> str:
@@ -325,30 +251,34 @@ class AsyncZP:
       NetworkError: If the HTTP request fails after retries
     """
     try:
-      logger.debug(f"Fetching JSON from: {endpoint}")
-      pres = await self._fetch_with_retry(
+      logger.debug(f'Fetching JSON from: {endpoint}')
+      if not self._client:
+        await self.init_client()
+      pres = await fetch_with_retry_async(
+        self._client,
         endpoint,
-        method="GET",
+        method='GET',
         max_retries=max_retries,
+        logger=logger,
       )
 
       try:
         res = pres.json()
-        logger.debug(f"Successfully fetched and parsed JSON from {endpoint}")
+        logger.debug(f'Successfully fetched and parsed JSON from {endpoint}')
       except json.decoder.JSONDecodeError:
         logger.warning(
-          f"Could not decode JSON from {endpoint}, returning empty dict",
+          f'Could not decode JSON from {endpoint}, returning empty dict',
         )
         res = {}
       return res
     except NetworkError:
       raise
     except httpx.HTTPStatusError as e:
-      logger.error(f"HTTP error fetching {endpoint}: {e}")
-      raise NetworkError(f"HTTP error fetching {endpoint}: {e}") from e
+      logger.error(f'HTTP error fetching {endpoint}: {e}')
+      raise NetworkError(f'HTTP error fetching {endpoint}: {e}') from e
     except httpx.RequestError as e:
-      logger.error(f"Network error fetching {endpoint}: {e}")
-      raise NetworkError(f"Network error fetching {endpoint}: {e}") from e
+      logger.error(f'Network error fetching {endpoint}: {e}')
+      raise NetworkError(f'Network error fetching {endpoint}: {e}') from e
 
   # -------------------------------------------------------------------------------
   async def fetch_page(
@@ -372,89 +302,61 @@ class AsyncZP:
       NetworkError: If the HTTP request fails after retries
     """
     try:
-      logger.debug(f"Fetching HTML page from: {endpoint}")
-      pres = await self._fetch_with_retry(
+      logger.debug(f'Fetching HTML page from: {endpoint}')
+      if not self._client:
+        await self.init_client()
+      pres = await fetch_with_retry_async(
+        self._client,
         endpoint,
-        method="GET",
+        method='GET',
         max_retries=max_retries,
+        logger=logger,
       )
-      logger.debug(f"Successfully fetched HTML from {endpoint}")
+      logger.debug(f'Successfully fetched HTML from {endpoint}')
       return pres.text
     except NetworkError:
       raise
     except httpx.HTTPStatusError as e:
-      logger.error(f"HTTP error fetching {endpoint}: {e}")
-      raise NetworkError(f"HTTP error fetching {endpoint}: {e}") from e
+      logger.error(f'HTTP error fetching {endpoint}: {e}')
+      raise NetworkError(f'HTTP error fetching {endpoint}: {e}') from e
     except httpx.RequestError as e:
-      logger.error(f"Network error fetching {endpoint}: {e}")
-      raise NetworkError(f"Network error fetching {endpoint}: {e}") from e
+      logger.error(f'Network error fetching {endpoint}: {e}')
+      raise NetworkError(f'Network error fetching {endpoint}: {e}') from e
 
   # -------------------------------------------------------------------------------
-  @classmethod
-  async def close_shared_session(cls) -> None:
-    """Close the shared async client if it exists.
-
-    This should be called when your application is shutting down to ensure
-    the shared connection pool is properly closed. Only needed if you used
-    shared_client=True when creating instances.
-
-    Example:
-      await AsyncZP.close_shared_session()
-    """
-    if cls._shared_client:
-      logger.debug("Closing shared async HTTP client")
-      await cls._shared_client.aclose()
-      cls._shared_client = None
-      logger.debug("Shared async client closed")
+  async def _on_close(self) -> None:
+    """Hook called when closing - clear credentials."""
+    self.clear_credentials()
 
   # -------------------------------------------------------------------------------
   async def close(self) -> None:
-    """Close the HTTP client and clean up resources.
-
-    This method should be called when you're done with the AsyncZP instance
-    to ensure proper cleanup of network resources.
-    """
-    if self._client and self._owns_client:
-      try:
-        await self._client.aclose()
-        logger.debug("Async HTTP client closed successfully")
-      except Exception as e:
-        logger.error(f"Could not close async client properly: {e}")
+    """Compatibility wrapper for aclose() to match test expectations."""
+    await self.aclose()
 
   # -------------------------------------------------------------------------------
-  async def __aenter__(self) -> "AsyncZP":
-    """Enter async context manager - return self for use in 'async with' statement."""
-    return self
+  async def _fetch_with_retry(
+    self,
+    url: str,
+    method: str = 'GET',
+    max_retries: int = 3,
+    backoff_factor: float = 1.0,
+    **kwargs: Any,
+  ) -> httpx.Response:
+    """Compatibility wrapper for fetch_with_retry_async.
 
-  # -------------------------------------------------------------------------------
-  async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> bool:
-    """Exit async context manager - ensure cleanup always happens.
-
-    Args:
-      exc_type: Exception type if an exception occurred
-      exc_val: Exception value if an exception occurred
-      exc_tb: Exception traceback if an exception occurred
-
-    Returns:
-      False to propagate any exceptions that occurred
+    Deprecated: Use fetch_with_retry_async() directly. This method exists
+    only for backward compatibility with existing tests.
     """
-    await self.close()
-    return False
-
-  # -------------------------------------------------------------------------------
-  def __del__(self) -> None:
-    """Fallback cleanup if context manager not used.
-
-    Note: This uses a synchronous close which may not work properly
-    for async clients. Always prefer using async with or explicitly
-    calling await close().
-    """
-    # We can't call async close() from __del__, so just log a warning
-    if self._client and self._owns_client:
-      logger.warning(
-        'AsyncZP instance deleted without proper cleanup. '
-        'Use "async with AsyncZP()" or call "await zp.close()" explicitly.',
-      )
+    if not self._client:
+      await self.login()
+    return await fetch_with_retry_async(
+      self._client,
+      url,
+      method=method,
+      max_retries=max_retries,
+      backoff_factor=backoff_factor,
+      logger=logger,
+    )
 
   # -------------------------------------------------------------------------------
   @staticmethod
@@ -468,13 +370,13 @@ class AsyncZP:
       String representation of the penalty
     """
     penalties = {
-      0: "none",
-      10: "time",
-      20: "upgrade",
-      30: "DSQ",
-      40: "DSQ",
+      0: 'none',
+      10: 'time',
+      20: 'upgrade',
+      30: 'DSQ',
+      40: 'DSQ',
     }
-    return penalties.get(label, "unknown")
+    return penalties.get(label, 'unknown')
 
   # -------------------------------------------------------------------------------
   @staticmethod
@@ -488,13 +390,13 @@ class AsyncZP:
       Category letter (A, B, C, D, E)
     """
     categories = {
-      10: "A",
-      20: "B",
-      30: "C",
-      40: "D",
-      50: "E",
+      10: 'A',
+      20: 'B',
+      30: 'C',
+      40: 'D',
+      50: 'E',
     }
-    return categories.get(div, "unknown")
+    return categories.get(div, 'unknown')
 
   # -------------------------------------------------------------------------------
   @staticmethod
@@ -508,10 +410,10 @@ class AsyncZP:
       Category name string
     """
     categories = {
-      10: "A",
-      20: "B",
-      30: "C",
-      40: "D",
-      50: "E",
+      10: 'A',
+      20: 'B',
+      30: 'C',
+      40: 'D',
+      50: 'E',
     }
-    return categories.get(div, "unknown")
+    return categories.get(div, 'unknown')

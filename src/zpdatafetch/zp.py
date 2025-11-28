@@ -1,6 +1,6 @@
+import importlib.util
 import json
 import sys
-import time
 from pathlib import Path
 from typing import Any
 
@@ -16,11 +16,21 @@ if _parent_dir not in sys.path:
 
 from exceptions import AuthenticationError, ConfigError, NetworkError  # noqa: E402
 
+# Import BaseHTTPClient and fetch_with_retry_sync using importlib pattern
+_http_base_spec = importlib.util.spec_from_file_location(
+  'http_client_base',
+  Path(__file__).parent.parent / 'http_client_base.py',
+)
+_http_base = importlib.util.module_from_spec(_http_base_spec)
+_http_base_spec.loader.exec_module(_http_base)
+BaseHTTPClient = _http_base.BaseHTTPClient
+fetch_with_retry_sync = _http_base.fetch_with_retry_sync
+
 logger = get_logger(__name__)
 
 
 # ===============================================================================
-class ZP:
+class ZP(BaseHTTPClient):
   """Core class for interacting with the Zwiftpower API.
 
   This class handles authentication, session management, and HTTP requests
@@ -73,7 +83,7 @@ class ZP:
     self._owns_client = not shared_client
     if shared_client and ZP._shared_client is None:
       logger.debug('Creating shared HTTP client for connection pooling')
-      ZP._shared_client = httpx.Client(follow_redirects=True)
+      ZP._shared_client = self._create_client()
 
   # -------------------------------------------------------------------------------
   def clear_credentials(self) -> None:
@@ -167,112 +177,24 @@ class ZP:
       raise NetworkError(f'Network error during authentication: {e}') from e
 
   # -------------------------------------------------------------------------------
-  def init_client(self, client: httpx.Client | None = None) -> None:
-    """Initialize or replace the HTTP client.
-
-    Allows a custom httpx.Client to be injected, useful for testing
-    with mocked HTTP transports. If no client is provided, uses the
-    shared client if available, otherwise creates a new one.
+  def _create_client(self) -> httpx.Client:
+    """Create and configure an HTTP client.
 
     SECURITY: All connections use HTTPS with certificate verification enabled.
     This protects against man-in-the-middle attacks.
 
-    Args:
-      client: Optional httpx.Client instance to use. If None, uses shared
-        client if available, otherwise creates a new client.
+    Returns:
+      Configured httpx.Client instance
     """
-    logger.debug('Initializing httpx client')
-
-    if client:
-      logger.debug('Using provided httpx client')
-      self._client = client
-    elif ZP._shared_client is not None:
-      logger.debug('Using shared HTTP client for connection pooling')
-      self._client = ZP._shared_client
-    else:
-      logger.debug('Creating new httpx client with HTTPS certificate verification')
-      # SECURITY: Explicitly enable certificate verification for HTTPS connections
-      self._client = httpx.Client(follow_redirects=True, verify=True)
+    logger.debug('Creating new httpx client with HTTPS certificate verification')
+    # SECURITY: Explicitly enable certificate verification for HTTPS connections
+    return httpx.Client(follow_redirects=True, verify=True)
 
   # -------------------------------------------------------------------------------
-  def _fetch_with_retry(
-    self,
-    url: str,
-    method: str = 'GET',
-    max_retries: int = 3,
-    backoff_factor: float = 1.0,
-    **kwargs: Any,
-  ) -> httpx.Response:
-    """Fetch URL with exponential backoff retry logic.
-
-    Retries on transient errors (connection errors, timeouts) but not on
-    client errors (4xx) or authentication errors.
-
-    Args:
-      url: URL to fetch
-      method: HTTP method (default: 'GET')
-      max_retries: Maximum number of retry attempts (default: 3)
-      backoff_factor: Multiplier for exponential backoff (default: 1.0)
-      **kwargs: Additional arguments to pass to httpx client method
-
-    Returns:
-      httpx.Response: The successful response
-
-    Raises:
-      NetworkError: If all retries are exhausted
-    """
-    if self._client is None:
+  def _before_request(self, url: str, method: str = 'GET', **kwargs: Any) -> None:
+    """Ensure logged in before making requests."""
+    if not self._client:
       self.login()
-
-    last_exception: Exception | None = None
-
-    for attempt in range(max_retries):
-      try:
-        logger.debug(f'Attempt {attempt + 1}/{max_retries}: {method} {url}')
-        response = self._client.request(method, url, **kwargs)
-        response.raise_for_status()
-        return response
-      except (httpx.ConnectError, httpx.TimeoutException) as e:
-        last_exception = e
-        if attempt == max_retries - 1:
-          break
-        wait_time = backoff_factor * (2**attempt)
-        logger.warning(
-          f'Transient network error on attempt {attempt + 1}: {e}. '
-          f'Retrying in {wait_time:.1f}s...',
-        )
-        time.sleep(wait_time)
-      except httpx.HTTPStatusError as e:
-        if 500 <= e.response.status_code < 600:
-          last_exception = e
-          if attempt == max_retries - 1:
-            break
-          wait_time = backoff_factor * (2**attempt)
-          logger.warning(
-            f'Server error ({e.response.status_code}) on attempt '
-            f'{attempt + 1}: {e}. Retrying in {wait_time:.1f}s...',
-          )
-          time.sleep(wait_time)
-        else:
-          raise NetworkError(f'HTTP error: {e}') from e
-      except httpx.RequestError as e:
-        last_exception = e
-        if attempt == max_retries - 1:
-          break
-        wait_time = backoff_factor * (2**attempt)
-        logger.warning(
-          f'Request error on attempt {attempt + 1}: {e}. '
-          f'Retrying in {wait_time:.1f}s...',
-        )
-        time.sleep(wait_time)
-
-    if last_exception:
-      logger.error(f'Max retries ({max_retries}) exhausted: {last_exception}')
-      raise NetworkError(
-        f'Failed after {max_retries} attempts: {last_exception}',
-      ) from last_exception
-
-    raise NetworkError(f'Unexpected error fetching {url}')
 
   # -------------------------------------------------------------------------------
   def login_url(self, url: str | None = None) -> str:
@@ -313,10 +235,14 @@ class ZP:
     """
     try:
       logger.debug(f'Fetching JSON from: {endpoint}')
-      pres = self._fetch_with_retry(
+      if not self._client:
+        self.init_client()
+      pres = fetch_with_retry_sync(
+        self._client,
         endpoint,
         method='GET',
         max_retries=max_retries,
+        logger=logger,
       )
 
       try:
@@ -357,10 +283,14 @@ class ZP:
     try:
       logger.debug(f'Fetching page from: {endpoint}')
 
-      pres = self._fetch_with_retry(
+      if not self._client:
+        self.init_client()
+      pres = fetch_with_retry_sync(
+        self._client,
         endpoint,
         method='GET',
         max_retries=max_retries,
+        logger=logger,
       )
       res = pres.text
       logger.debug(f'Successfully fetched page from {endpoint}')
@@ -399,63 +329,34 @@ class ZP:
         logger.error(f'Could not close shared client properly: {e}')
 
   # -------------------------------------------------------------------------------
-  def close(self) -> None:
-    """Close the HTTP client and clean up resources.
-
-    Closes the HTTP client and clears credentials from memory.
-    Only closes the client if this instance owns it. Shared clients
-    should be closed via close_shared_session().
-    """
-    # Clear credentials first for security
+  def _on_close(self) -> None:
+    """Hook called when closing - clear credentials."""
     self.clear_credentials()
 
-    if self._client and self._owns_client:
-      try:
-        self._client.close()
-        logger.debug('HTTP client closed successfully')
-      except Exception as e:
-        logger.error(f'Could not close client properly: {e}')
-    elif self._client and not self._owns_client:
-      logger.debug('Skipping close of shared client')
-
   # -------------------------------------------------------------------------------
-  def __enter__(self) -> 'ZP':
-    """Enter context manager - return self for use in 'with' statement.
+  def _fetch_with_retry(
+    self,
+    url: str,
+    method: str = 'GET',
+    max_retries: int = 3,
+    backoff_factor: float = 1.0,
+    **kwargs: Any,
+  ) -> httpx.Response:
+    """Compatibility wrapper for fetch_with_retry_sync.
 
-    Returns:
-      The ZP instance for use within the context block.
-
-    Example:
-      with ZP() as zp:
-          zp.login()
-          data = zp.fetch_json(url)
+    Deprecated: Use fetch_with_retry_sync() directly. This method exists
+    only for backward compatibility with existing tests.
     """
-    logger.debug('Entering ZP context manager')
-    return self
-
-  # -------------------------------------------------------------------------------
-  def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> bool:
-    """Exit context manager - ensure cleanup always happens.
-
-    Guarantees that the HTTP client is closed when exiting the context,
-    whether normally or due to an exception.
-
-    Args:
-      exc_type: Exception type if an exception occurred, None otherwise.
-      exc_val: Exception value if an exception occurred, None otherwise.
-      exc_tb: Exception traceback if an exception occurred, None otherwise.
-
-    Returns:
-      False to propagate any exceptions that occurred.
-    """
-    logger.debug('Exiting ZP context manager')
-    self.close()
-    return False
-
-  # -------------------------------------------------------------------------------
-  def __del__(self) -> None:
-    """Cleanup on object destruction."""
-    self.close()
+    if not self._client:
+      self.login()
+    return fetch_with_retry_sync(
+      self._client,
+      url,
+      method=method,
+      max_retries=max_retries,
+      backoff_factor=backoff_factor,
+      logger=logger,
+    )
 
   # -------------------------------------------------------------------------------
   @classmethod
