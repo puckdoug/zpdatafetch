@@ -6,17 +6,17 @@ for secure storage.
 
 import sys
 from getpass import getpass
-from typing import Any
 
 import keyring
 
+from zpdatafetch.config_base import BaseConfig
 from zrdatafetch.logging_config import get_logger
 
 logger = get_logger(__name__)
 
 
 # ===============================================================================
-class Config:
+class ZRConfig(BaseConfig):
   """Manages Zwiftracing API credentials using system keyring.
 
   Stores and retrieves the authorization header from the system keyring
@@ -24,51 +24,53 @@ class Config:
   library.
 
   Attributes:
-    domain: Keyring service name (default: 'zrdatafetch')
     authorization: Zwiftracing API authorization header value
-    kr: Reference to the active keyring backend
   """
 
-  domain: str = 'zrdatafetch'
   authorization: str = ''
-  _test_domain_override: str | None = None  # Class variable for test domain override
 
   # -----------------------------------------------------------------------
-  def __init__(self) -> None:
-    """Initialize Config and set up keyring access.
+  def _get_domain(self) -> str:
+    """Return the keyring domain for Zwiftracing credentials.
 
-    Uses test domain override if set (for testing), otherwise uses
-    default 'zrdatafetch' domain.
+    Returns:
+      Domain name 'zrdatafetch'
     """
-    self.kr: Any = keyring.get_keyring()
-    logger.debug(f'Using keyring backend: {type(self.kr).__name__}')
+    return 'zrdatafetch'
 
-    # Use test domain if set
-    if Config._test_domain_override:
-      self.domain = Config._test_domain_override
-      logger.debug(f'Using test domain override: {self.domain}')
+  # -----------------------------------------------------------------------
+  def _prompt_for_credentials(self, authorization: str = '') -> None:
+    """Prompt for Zwiftracing API authorization header.
+
+    Args:
+      authorization: Zwiftracing API authorization header (prompts if empty)
+    """
+    if authorization:
+      self.authorization = authorization
+      logger.debug('Using provided authorization')
     else:
-      logger.debug(f'Using default domain: {self.domain}')
+      self.authorization = getpass(
+        'Zwiftracing API authorization header (for use with zrdatafetch): ',
+      )
+      logger.debug('Authorization entered interactively')
+
+    keyring.set_password(self.domain, 'authorization', self.authorization)
 
   # -----------------------------------------------------------------------
-  def set_keyring(self, kr: Any) -> None:
-    """Set a custom keyring backend.
-
-    Args:
-      kr: Keyring backend instance (e.g., PlaintextKeyring for testing)
-    """
-    logger.debug(f'Setting custom keyring backend: {type(kr).__name__}')
-    keyring.set_keyring(kr)
+  def _clear_credentials_impl(self) -> None:
+    """Clear authorization from memory."""
+    if self.authorization:
+      self.authorization = '*' * len(self.authorization)
+      self.authorization = ''
 
   # -----------------------------------------------------------------------
-  def replace_domain(self, domain: str) -> None:
-    """Change the keyring service domain.
+  def _verify_exists_impl(self) -> bool:
+    """Check if authorization is set.
 
-    Args:
-      domain: New domain name to use for keyring operations
+    Returns:
+      True if authorization is set, False otherwise
     """
-    logger.debug(f'Changing domain from {self.domain} to {domain}')
-    self.domain = domain
+    return bool(self.authorization)
 
   # -----------------------------------------------------------------------
   def save(self) -> None:
@@ -95,60 +97,9 @@ class Config:
     else:
       logger.debug('No authorization found in keyring')
 
-  # -----------------------------------------------------------------------
-  def setup(self, authorization: str = '') -> None:
-    """Configure Zwiftracing API authorization interactively or programmatically.
 
-    If authorization is not provided, prompts the user interactively.
-    Saves authorization to keyring after collection.
-
-    Args:
-      authorization: Zwiftracing API authorization header (prompts if empty)
-    """
-    logger.info('Setting up Zwiftracing authorization')
-
-    if authorization:
-      self.authorization = authorization
-      logger.debug('Using provided authorization')
-    else:
-      self.authorization = getpass(
-        'Zwiftracing API authorization header (for use with zrdatafetch): ',
-      )
-      logger.debug('Authorization entered interactively')
-
-    keyring.set_password(self.domain, 'authorization', self.authorization)
-    logger.info('Authorization setup completed')
-
-  # -----------------------------------------------------------------------
-  def clear_credentials(self) -> None:
-    """Securely clear credentials from memory.
-
-    Overwrites authorization with placeholder values before clearing.
-    This reduces the risk of credential recovery from memory dumps.
-
-    SECURITY NOTE:
-      Python strings are immutable, so this provides best-effort protection.
-      For applications requiring higher security, use dedicated processes with
-      memory protection or containers with appropriate isolation.
-    """
-    logger.debug('Clearing authorization from memory')
-    if self.authorization:
-      self.authorization = '*' * len(self.authorization)
-      self.authorization = ''
-    logger.debug('Authorization cleared from memory')
-
-  # -----------------------------------------------------------------------
-  def verify_credentials_exist(self) -> bool:
-    """Verify that authorization is configured in keyring.
-
-    Checks if authorization is present without exposing it.
-    This is a safer alternative to dump() for credential verification.
-
-    Returns:
-      True if authorization is set, False otherwise
-    """
-    logger.debug('Checking if authorization exists in keyring')
-    return bool(self.authorization)
+# Backwards compatibility alias
+Config = ZRConfig
 
 
 # ===============================================================================

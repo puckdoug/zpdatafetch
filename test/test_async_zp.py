@@ -20,22 +20,18 @@ async def async_zp():
 @pytest.mark.anyio
 async def test_async_init_without_credentials():
   """Test AsyncZP initialization fails without credentials."""
-  import zpdatafetch.config
+  from zpdatafetch import Config
 
-  original_config_init = zpdatafetch.config.Config.__init__
-
-  def mock_config_init(self):
-    original_config_init(self)
-    self.username = ''
-    self.password = ''
-
-  zpdatafetch.config.Config.__init__ = mock_config_init
+  # Save original override and clear it so Config uses default domain
+  original_override = Config._test_domain_override
+  Config._test_domain_override = None
 
   try:
     with pytest.raises(ZPConfigError):
       AsyncZP()
   finally:
-    zpdatafetch.config.Config.__init__ = original_config_init
+    # Restore original override
+    Config._test_domain_override = original_override
 
 
 @pytest.mark.anyio
@@ -60,14 +56,14 @@ async def test_async_login_success(login_page, logged_in_page):
 
   def handler(request):
     match request.method:
-      case 'GET':
+      case "GET":
         return httpx.Response(200, text=login_page)
-      case 'POST':
+      case "POST":
         return httpx.Response(200, text=logged_in_page)
 
   async with AsyncZP(skip_credential_check=True) as zp:
-    zp.username = 'testuser'
-    zp.password = 'testpass'
+    zp.username = "testuser"
+    zp.password = "testpass"
     await zp.init_client(
       httpx.AsyncClient(
         follow_redirects=True,
@@ -84,18 +80,18 @@ async def test_async_login_missing_form():
   """Test login fails when form is missing."""
 
   def handler(request):
-    return httpx.Response(200, text='<html><body>No form here</body></html>')
+    return httpx.Response(200, text="<html><body>No form here</body></html>")
 
   async with AsyncZP(skip_credential_check=True) as zp:
-    zp.username = 'testuser'
-    zp.password = 'testpass'
+    zp.username = "testuser"
+    zp.password = "testpass"
     await zp.init_client(
       httpx.AsyncClient(
         follow_redirects=True,
         transport=httpx.MockTransport(handler),
       ),
     )
-    with pytest.raises(ZPAuthenticationError, match='Login form not found'):
+    with pytest.raises(ZPAuthenticationError, match="Login form not found"):
       await zp.login()
 
 
@@ -104,28 +100,28 @@ async def test_async_login_network_error():
   """Test login handles network errors."""
 
   def handler(request):
-    raise httpx.ConnectError('Connection failed')
+    raise httpx.ConnectError("Connection failed")
 
   async with AsyncZP(skip_credential_check=True) as zp:
-    zp.username = 'testuser'
-    zp.password = 'testpass'
+    zp.username = "testuser"
+    zp.password = "testpass"
     await zp.init_client(
       httpx.AsyncClient(
         follow_redirects=True,
         transport=httpx.MockTransport(handler),
       ),
     )
-    with pytest.raises(ZPNetworkError, match='Network error during login'):
+    with pytest.raises(ZPNetworkError, match="Network error during login"):
       await zp.login()
 
 
 @pytest.mark.anyio
 async def test_async_fetch_json_success():
   """Test successful async JSON fetch."""
-  test_data = {'key': 'value', 'number': 42}
+  test_data = {"key": "value", "number": 42}
 
   def handler(request):
-    if 'login' in str(request.url):
+    if "login" in str(request.url):
       return httpx.Response(
         200,
         text='<html><form action="/login"></form></html>',
@@ -133,15 +129,15 @@ async def test_async_fetch_json_success():
     return httpx.Response(200, json=test_data)
 
   async with AsyncZP(skip_credential_check=True) as zp:
-    zp.username = 'testuser'
-    zp.password = 'testpass'
+    zp.username = "testuser"
+    zp.password = "testpass"
     await zp.init_client(
       httpx.AsyncClient(
         follow_redirects=True,
         transport=httpx.MockTransport(handler),
       ),
     )
-    result = await zp.fetch_json('https://zwiftpower.com/api/test')
+    result = await zp.fetch_json("https://zwiftpower.com/api/test")
     assert result == test_data
 
 
@@ -150,33 +146,33 @@ async def test_async_fetch_json_invalid_json():
   """Test fetch_json handles invalid JSON gracefully."""
 
   def handler(request):
-    if 'login' in str(request.url):
+    if "login" in str(request.url):
       return httpx.Response(
         200,
         text='<html><form action="/login"></form></html>',
       )
-    return httpx.Response(200, text='This is not JSON')
+    return httpx.Response(200, text="This is not JSON")
 
   async with AsyncZP(skip_credential_check=True) as zp:
-    zp.username = 'testuser'
-    zp.password = 'testpass'
+    zp.username = "testuser"
+    zp.password = "testpass"
     await zp.init_client(
       httpx.AsyncClient(
         follow_redirects=True,
         transport=httpx.MockTransport(handler),
       ),
     )
-    result = await zp.fetch_json('https://zwiftpower.com/api/test')
+    result = await zp.fetch_json("https://zwiftpower.com/api/test")
     assert result == {}
 
 
 @pytest.mark.anyio
 async def test_async_fetch_page_success():
   """Test successful async page fetch."""
-  test_html = '<html><body>Test Page</body></html>'
+  test_html = "<html><body>Test Page</body></html>"
 
   def handler(request):
-    if 'login' in str(request.url):
+    if "login" in str(request.url):
       return httpx.Response(
         200,
         text='<html><form action="/login"></form></html>',
@@ -184,15 +180,15 @@ async def test_async_fetch_page_success():
     return httpx.Response(200, text=test_html)
 
   async with AsyncZP(skip_credential_check=True) as zp:
-    zp.username = 'testuser'
-    zp.password = 'testpass'
+    zp.username = "testuser"
+    zp.password = "testpass"
     await zp.init_client(
       httpx.AsyncClient(
         follow_redirects=True,
         transport=httpx.MockTransport(handler),
       ),
     )
-    result = await zp.fetch_page('https://zwiftpower.com/page/test')
+    result = await zp.fetch_page("https://zwiftpower.com/page/test")
     assert result == test_html
 
 
@@ -203,7 +199,7 @@ async def test_async_retry_on_transient_error():
 
   def handler(request):
     nonlocal call_count
-    if 'login' in str(request.url):
+    if "login" in str(request.url):
       return httpx.Response(
         200,
         text='<html><form action="/login"></form></html>',
@@ -212,21 +208,21 @@ async def test_async_retry_on_transient_error():
     call_count += 1
     if call_count == 1:
       # First call fails
-      return httpx.Response(500, text='Server Error')
+      return httpx.Response(500, text="Server Error")
     # Second call succeeds
-    return httpx.Response(200, json={'status': 'ok'})
+    return httpx.Response(200, json={"status": "ok"})
 
   async with AsyncZP(skip_credential_check=True) as zp:
-    zp.username = 'testuser'
-    zp.password = 'testpass'
+    zp.username = "testuser"
+    zp.password = "testpass"
     await zp.init_client(
       httpx.AsyncClient(
         follow_redirects=True,
         transport=httpx.MockTransport(handler),
       ),
     )
-    result = await zp.fetch_json('https://zwiftpower.com/api/test')
-    assert result == {'status': 'ok'}
+    result = await zp.fetch_json("https://zwiftpower.com/api/test")
+    assert result == {"status": "ok"}
     assert call_count == 2  # Verify retry happened
 
 
@@ -234,28 +230,28 @@ async def test_async_retry_on_transient_error():
 async def test_async_clear_credentials():
   """Test credential clearing."""
   async with AsyncZP(skip_credential_check=True) as zp:
-    zp.username = 'testuser'
-    zp.password = 'testpass'
+    zp.username = "testuser"
+    zp.password = "testpass"
     zp.clear_credentials()
-    assert zp.username == ''
-    assert zp.password == ''
+    assert zp.username == ""
+    assert zp.password == ""
 
 
 @pytest.mark.anyio
 async def test_async_static_methods():
   """Test static helper methods."""
-  assert AsyncZP.set_pen(0) == 'none'
-  assert AsyncZP.set_pen(10) == 'time'
-  assert AsyncZP.set_pen(30) == 'DSQ'
-  assert AsyncZP.set_pen(99) == 'unknown'
+  assert AsyncZP.set_pen(0) == "none"
+  assert AsyncZP.set_pen(10) == "time"
+  assert AsyncZP.set_pen(30) == "DSQ"
+  assert AsyncZP.set_pen(99) == "unknown"
 
-  assert AsyncZP.set_rider_category(10) == 'A'
-  assert AsyncZP.set_rider_category(20) == 'B'
-  assert AsyncZP.set_rider_category(30) == 'C'
-  assert AsyncZP.set_rider_category(99) == 'unknown'
+  assert AsyncZP.set_rider_category(10) == "A"
+  assert AsyncZP.set_rider_category(20) == "B"
+  assert AsyncZP.set_rider_category(30) == "C"
+  assert AsyncZP.set_rider_category(99) == "unknown"
 
-  assert AsyncZP.set_category(10) == 'A'
-  assert AsyncZP.set_category(40) == 'D'
+  assert AsyncZP.set_category(10) == "A"
+  assert AsyncZP.set_category(40) == "D"
 
 
 @pytest.mark.anyio
@@ -264,18 +260,18 @@ async def test_async_login_url():
   async with AsyncZP(skip_credential_check=True) as zp:
     original_url = zp.login_url()
     assert original_url == (
-      'https://zwiftpower.com/ucp.php?mode=login&login=external&oauth_service=oauthzpsso'
+      "https://zwiftpower.com/ucp.php?mode=login&login=external&oauth_service=oauthzpsso"
     )
 
-    new_url = 'https://test.example.com/login'
+    new_url = "https://test.example.com/login"
     zp.login_url(new_url)
     assert zp.login_url() == new_url
 
 
 @pytest.mark.xfail(
   sys.version_info >= (3, 14),
-  reason='httpcore 1.1.x incompatible with Python 3.14 typing.Union - '
-  'upstream issue encode/httpcore, fixed in 1.2.0+',
+  reason="httpcore 1.1.x incompatible with Python 3.14 typing.Union - "
+  "upstream issue encode/httpcore, fixed in 1.2.0+",
   strict=False,
 )
 @pytest.mark.anyio
