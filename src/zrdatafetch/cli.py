@@ -9,13 +9,21 @@ The CLI matches the zpdata interface:
   zrdata team <id>         Fetch team roster
 """
 
-import logging
+import importlib.util
 import sys
-from argparse import ArgumentParser
+from pathlib import Path
 
 from zrdatafetch import Config, ZRResult, ZRRider, ZRTeam
 from zrdatafetch.logging_config import setup_logging
 from zrdatafetch.zr import ZR_obj
+
+# Import shared CLI utilities
+_cli_base_spec = importlib.util.spec_from_file_location(
+  'cli_base',
+  Path(__file__).parent.parent / 'cli_base.py',
+)
+_cli_base = importlib.util.module_from_spec(_cli_base_spec)
+_cli_base_spec.loader.exec_module(_cli_base)
 
 
 # ===============================================================================
@@ -33,36 +41,14 @@ def main() -> int | None:
   desc = """
 Module for fetching Zwiftracing data using the Zwiftracing API
   """
-  p = ArgumentParser(description=desc)
-  p.add_argument(
-    '-v',
-    '--verbose',
-    action='store_true',
-    help='enable INFO level logging to console',
+
+  # Create parser with common arguments
+  p = _cli_base.create_base_parser(
+    description=desc,
+    command_metavar='{config,rider,result,team}',
   )
-  p.add_argument(
-    '-vv',
-    '--debug',
-    action='store_true',
-    help='enable DEBUG level logging to console',
-  )
-  p.add_argument(
-    '--log-file',
-    type=str,
-    metavar='PATH',
-    help='path to log file (enables file logging)',
-  )
-  p.add_argument(
-    '-r',
-    '--raw',
-    action='store_true',
-    help='print the raw results returned to screen',
-  )
-  p.add_argument(
-    '--noaction',
-    action='store_true',
-    help='report what would be done without actually fetching data',
-  )
+
+  # Add zrdatafetch-specific arguments
   p.add_argument(
     '--batch',
     action='store_true',
@@ -79,73 +65,43 @@ Module for fetching Zwiftracing data using the Zwiftracing API
     action='store_true',
     help='use premium tier rate limits (higher request quotas)',
   )
-  p.add_argument(
-    'cmd',
-    nargs='?',
-    metavar='{config,rider,result,team}',
-    help='which command to run',
-  )
-  p.add_argument(
-    'id',
-    nargs='*',
-    help='ID(s) to search for',
-  )
 
   # Use parse_intermixed_args to handle flags after positional arguments
   # This allows: zrdata rider --noaction 12345 67890
   args = p.parse_intermixed_args()
 
   # Configure logging based on arguments
-  if args.debug:
-    setup_logging(log_file=args.log_file, console_level=logging.DEBUG)
-  elif args.verbose:
-    setup_logging(log_file=args.log_file, console_level=logging.INFO)
-  elif args.log_file:
-    # File logging only, no console output
-    setup_logging(log_file=args.log_file, force_console=False)
-  # else: use default ERROR-only logging to stderr
+  _cli_base.configure_logging_from_args(args, setup_logging)
 
   # Set premium tier mode if requested
   if args.premium:
     ZR_obj.set_premium_mode(True)
 
   # Handle no command
-  if not args.cmd:
-    p.print_help()
+  if not _cli_base.validate_command_provided(args.cmd, p):
     return None
 
   # Route to appropriate command
   match args.cmd:
     case 'config':
-      c = Config()
-      c.load()
-      if c.verify_credentials_exist():
-        print('Authorization is already configured in keyring')
-      else:
-        c.setup()
-        print('Authorization configured successfully')
+      _cli_base.handle_config_command(Config, check_first=True)
       return None
     case 'rider':
       # Handle batch file input
       if args.batch_file:
-        try:
-          with open(args.batch_file) as f:
-            args.id = [line.strip() for line in f if line.strip()]
-        except OSError as e:
-          print(f'Error reading batch file: {e}')
+        ids = _cli_base.read_ids_from_file(args.batch_file)
+        if ids is None:
           return 1
+        args.id = ids
 
-      if not args.id:
-        print('Error: rider command requires at least one ID')
+      if not _cli_base.validate_ids_provided(args.id, 'rider'):
         return 1
 
       if args.noaction:
         if args.batch or args.batch_file:
           print(f'Would fetch {len(args.id)} riders using batch POST')
         else:
-          print(f'Would fetch rider data for: {", ".join(args.id)}')
-        if args.raw:
-          print('(raw output format)')
+          _cli_base.format_noaction_output('rider', args.id, args.raw)
         return None
 
       # Handle batch request
@@ -182,14 +138,11 @@ Module for fetching Zwiftracing data using the Zwiftracing API
             print(f'Error fetching rider {zwift_id}: {e}')
             return 1
     case 'result':
-      if not args.id:
-        print('Error: result command requires at least one ID')
+      if not _cli_base.validate_ids_provided(args.id, 'result'):
         return 1
 
       if args.noaction:
-        print(f'Would fetch result data for: {", ".join(args.id)}')
-        if args.raw:
-          print('(raw output format)')
+        _cli_base.format_noaction_output('result', args.id, args.raw)
         return None
 
       # Fetch and display result data
@@ -208,14 +161,11 @@ Module for fetching Zwiftracing data using the Zwiftracing API
           print(f'Error fetching result {race_id}: {e}')
           return 1
     case 'team':
-      if not args.id:
-        print('Error: team command requires at least one ID')
+      if not _cli_base.validate_ids_provided(args.id, 'team'):
         return 1
 
       if args.noaction:
-        print(f'Would fetch team data for: {", ".join(args.id)}')
-        if args.raw:
-          print('(raw output format)')
+        _cli_base.format_noaction_output('team', args.id, args.raw)
         return None
 
       # Fetch and display team data
@@ -235,9 +185,8 @@ Module for fetching Zwiftracing data using the Zwiftracing API
           return 1
     case _:
       # Invalid command
-      print(f'Error: invalid command "{args.cmd}"')
-      print('Valid commands: config, rider, result, team')
-      return 1
+      if not _cli_base.validate_command_name(args.cmd, ('rider', 'result', 'team')):
+        return 1
 
   return None
 

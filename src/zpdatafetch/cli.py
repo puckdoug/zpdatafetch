@@ -5,13 +5,21 @@ functionality including cyclist profiles, race results, signups,
 team rosters, and prime data.
 """
 
+import importlib.util
 import json
-import logging
 import sys
-from argparse import ArgumentParser
+from pathlib import Path
 
 from zpdatafetch import Config, Cyclist, Primes, Result, Signup, Sprints, Team
 from zpdatafetch.logging_config import setup_logging
+
+# Import shared CLI utilities
+_cli_base_spec = importlib.util.spec_from_file_location(
+  'cli_base',
+  Path(__file__).parent.parent / 'cli_base.py',
+)
+_cli_base = importlib.util.module_from_spec(_cli_base_spec)
+_cli_base_spec.loader.exec_module(_cli_base)
 
 
 # ===============================================================================
@@ -33,98 +41,41 @@ def main() -> int | None:
   desc = """
 Module for fetching zwiftpower data using the Zwifpower API
   """
-  p = ArgumentParser(description=desc)
-  p.add_argument(
-    '-v',
-    '--verbose',
-    action='store_true',
-    help='verbose output',
-  )
-  p.add_argument(
-    '-vv',
-    '--debug',
-    action='store_true',
-    help='enable DEBUG level logging',
-  )
-  p.add_argument(
-    '--log-file',
-    type=str,
-    metavar='PATH',
-    help='path to log file (enables file logging)',
-  )
-  p.add_argument(
-    '-r',
-    '--raw',
-    action='store_true',
-    help='print the raw results returned to screen',
-  )
-  p.add_argument(
-    '--noaction',
-    action='store_true',
-    help='report what would be done without actually fetching data',
-  )
-  p.add_argument(
-    'cmd',
-    nargs='?',
-    metavar='{config,cyclist,primes,result,signup,sprints,team}',
-    help='which command to run',
-  )
-  p.add_argument(
-    'id',
-    nargs='*',
-    help='ID(s) to search for',
+
+  # Create parser with common arguments
+  p = _cli_base.create_base_parser(
+    description=desc,
+    command_metavar='{config,cyclist,primes,result,signup,sprints,team}',
   )
 
   # Use parse_intermixed_args to handle flags after positional arguments
   # This allows: zpdata cyclist --noaction 123 456
   args = p.parse_intermixed_args()
 
-  # Configure logging based on arguments (output to stderr)
-  if args.debug:
-    setup_logging(
-      log_file=args.log_file,
-      console_level=logging.DEBUG,
-      force_console=True,
-    )
-  elif args.verbose:
-    setup_logging(
-      log_file=args.log_file,
-      console_level=logging.INFO,
-      force_console=True,
-    )
-  elif args.log_file:
-    # File logging only, no console output
-    setup_logging(log_file=args.log_file, force_console=False)
-  # else: use default ERROR-only logging to stderr
+  # Configure logging based on arguments
+  _cli_base.configure_logging_from_args(args, setup_logging)
 
-  # Handle commands
-  if not args.cmd:
-    p.print_help()
+  # Handle missing command
+  if not _cli_base.validate_command_provided(args.cmd, p):
     return None
 
+  # Handle config command
   if args.cmd == 'config':
-    c = Config()
-    c.setup()
+    _cli_base.handle_config_command(Config, check_first=False)
     return None
 
-  # For non-config commands, validate we have a valid command
+  # For non-config commands, validate command name
   valid_commands = ('cyclist', 'primes', 'result', 'signup', 'sprints', 'team')
-  if args.cmd not in valid_commands:
-    # The 'cmd' might actually be an ID if user didn't provide a command
-    print(f'Error: invalid command "{args.cmd}"')
-    print(f'Valid commands: {", ".join(valid_commands)}')
+  if not _cli_base.validate_command_name(args.cmd, valid_commands):
     return 1
 
-  # For non-config commands, we need an ID
-  if not args.id:
-    print(f'Error: {args.cmd} command requires at least one ID')
+  # For non-config commands, validate we have IDs
+  if not _cli_base.validate_ids_provided(args.id, args.cmd):
     return 1
 
   # Handle --noaction flag (report what would be done without fetching)
   if args.noaction:
-    print(f'Would fetch {args.cmd} data for: {", ".join(args.id)}')
-    if args.raw:
-      print('(raw output format)')
+    _cli_base.format_noaction_output(args.cmd, args.id, args.raw)
     return None
 
   # Map command to class and fetch
