@@ -8,12 +8,7 @@ from zpdatafetch.result import Result
 from zpdatafetch.signup import Signup
 from zpdatafetch.sprints import Sprints
 from zpdatafetch.team import Team
-from zpdatafetch.zp import (
-  ZP,
-  ZPAuthenticationError,
-  ZPConfigError,
-  ZPNetworkError,
-)
+from zpdatafetch.zp import ZP
 
 # Backwards compatibility aliases for async classes
 # Note: These classes now support both sync (fetch) and async (afetch) methods
@@ -33,9 +28,6 @@ __all__ = [
   'Config',
   'Signup',
   'Team',
-  'ZPAuthenticationError',
-  'ZPNetworkError',
-  'ZPConfigError',
   'setup_logging',
   # Asynchronous API
   'AsyncZP',

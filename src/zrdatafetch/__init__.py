@@ -21,18 +21,22 @@ For command-line usage:
   zrdata team 456
 """
 
+import sys
+from pathlib import Path
+
 from zrdatafetch.async_zr import AsyncZR_obj
 from zrdatafetch.config import Config
-from zrdatafetch.exceptions import (
-  ZRAuthenticationError,
-  ZRConfigError,
-  ZRNetworkError,
-)
 from zrdatafetch.logging_config import setup_logging
 from zrdatafetch.zr import ZR_obj
 from zrdatafetch.zrresult import ZRResult, ZRRiderResult
 from zrdatafetch.zrrider import ZRRider
 from zrdatafetch.zrteam import ZRTeam, ZRTeamRider
+
+_parent_dir = str(Path(__file__).parent.parent)
+if _parent_dir not in sys.path:
+  sys.path.insert(0, _parent_dir)
+
+from exceptions import AuthenticationError, ConfigError, NetworkError  # noqa: E402
 
 # Backwards compatibility aliases for async classes
 # Note: These classes now support both sync (fetch) and async (afetch) methods
@@ -42,24 +46,24 @@ AsyncZRTeam = ZRTeam
 
 __all__ = [
   # Base classes
-  'ZR_obj',
-  'AsyncZR_obj',
+  "ZR_obj",
+  "AsyncZR_obj",
   # Configuration
-  'Config',
+  "Config",
   # Data classes (synchronous)
-  'ZRRider',
-  'ZRResult',
-  'ZRRiderResult',
-  'ZRTeam',
-  'ZRTeamRider',
+  "ZRRider",
+  "ZRResult",
+  "ZRRiderResult",
+  "ZRTeam",
+  "ZRTeamRider",
   # Data classes (asynchronous) - Aliases for backwards compatibility
-  'AsyncZRRider',  # Alias for ZRRider (supports both sync and async)
-  'AsyncZRResult',  # Alias for ZRResult (supports both sync and async)
-  'AsyncZRTeam',  # Alias for ZRTeam (supports both sync and async)
+  "AsyncZRRider",  # Alias for ZRRider (supports both sync and async)
+  "AsyncZRResult",  # Alias for ZRResult (supports both sync and async)
+  "AsyncZRTeam",  # Alias for ZRTeam (supports both sync and async)
   # Exceptions
-  'ZRAuthenticationError',
-  'ZRNetworkError',
-  'ZRConfigError',
+  "AuthenticationError",
+  "NetworkError",
+  "ConfigError",
   # Logging
-  'setup_logging',
+  "setup_logging",
 ]

@@ -5,14 +5,21 @@ allowing for concurrent requests and better performance in async applications.
 """
 
 import json
+import sys
+from pathlib import Path
 from typing import Any
 
 import anyio
 import httpx
 
-from zrdatafetch.exceptions import ZRNetworkError
 from zrdatafetch.logging_config import get_logger
 from zrdatafetch.rate_limiter import RateLimiter
+
+_parent_dir = str(Path(__file__).parent.parent)
+if _parent_dir not in sys.path:
+  sys.path.insert(0, _parent_dir)
+
+from exceptions import NetworkError as NetworkError  # noqa: E402
 
 logger = get_logger(__name__)
 
@@ -124,7 +131,7 @@ class AsyncZR_obj:
       httpx.Response: The successful response
 
     Raises:
-      ZRNetworkError: If all retries are exhausted or rate limit exceeded
+      NetworkError: If all retries are exhausted or rate limit exceeded
     """
     if self._client is None:
       await self.init_client()
@@ -160,7 +167,7 @@ class AsyncZR_obj:
         # Handle rate limit error (429)
         if e.response.status_code == 429:
           tier = self.rate_limiter.tier
-          raise ZRNetworkError(
+          raise NetworkError(
             f'Rate limit exceeded ({tier} tier). '
             f'Status: {e.response.status_code}. '
             f'Current rate limit status: {self.rate_limiter.get_status()}',
@@ -177,7 +184,7 @@ class AsyncZR_obj:
           )
           await anyio.sleep(wait_time)
         else:
-          raise ZRNetworkError(f'HTTP error: {e}') from e
+          raise NetworkError(f'HTTP error: {e}') from e
 
       except httpx.RequestError as e:
         last_exception = e
@@ -192,11 +199,11 @@ class AsyncZR_obj:
 
     if last_exception:
       logger.error(f'Max retries ({max_retries}) exhausted: {last_exception}')
-      raise ZRNetworkError(
+      raise NetworkError(
         f'Failed after {max_retries} attempts: {last_exception}',
       ) from last_exception
 
-    raise ZRNetworkError(f'Unexpected error fetching {endpoint}')
+    raise NetworkError(f'Unexpected error fetching {endpoint}')
 
   # -------------------------------------------------------------------------------
   async def fetch_json(
@@ -224,7 +231,7 @@ class AsyncZR_obj:
       if JSON decoding fails
 
     Raises:
-      ZRNetworkError: If the HTTP request fails after retries
+      NetworkError: If the HTTP request fails after retries
 
     Example:
       # GET request
@@ -258,14 +265,14 @@ class AsyncZR_obj:
         )
         res = {}
       return res
-    except ZRNetworkError:
+    except NetworkError:
       raise
     except httpx.HTTPStatusError as e:
       logger.error(f'HTTP error fetching {endpoint}: {e}')
-      raise ZRNetworkError(f'HTTP error fetching {endpoint}: {e}') from e
+      raise NetworkError(f'HTTP error fetching {endpoint}: {e}') from e
     except httpx.RequestError as e:
       logger.error(f'Network error fetching {endpoint}: {e}')
-      raise ZRNetworkError(f'Network error fetching {endpoint}: {e}') from e
+      raise NetworkError(f'Network error fetching {endpoint}: {e}') from e
 
   # -------------------------------------------------------------------------------
   @classmethod

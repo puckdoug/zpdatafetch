@@ -179,8 +179,8 @@ class Cyclist(ZP_obj):
 
     Raises:
       ValueError: If any ID is invalid (non-positive or too large)
-      ZPNetworkError: If network requests fail
-      ZPAuthenticationError: If authentication fails
+      NetworkError: If network requests fail
+      AuthenticationError: If authentication fails
     """
     try:
       asyncio.get_running_loop()
@@ -211,8 +211,8 @@ class Cyclist(ZP_obj):
 
     Raises:
       ValueError: If any ID is invalid (non-positive or too large)
-      ZPNetworkError: If network requests fail
-      ZPAuthenticationError: If authentication fails
+      NetworkError: If network requests fail
+      AuthenticationError: If authentication fails
     """
     return await self._fetch_parallel(*zwift_id)
 

@@ -5,14 +5,22 @@ rating data from the Zwiftracing API.
 """
 
 import asyncio
+import sys
 from dataclasses import asdict, dataclass, field
+from pathlib import Path
 from typing import Any
 
 from zrdatafetch.async_zr import AsyncZR_obj
 from zrdatafetch.config import Config
-from zrdatafetch.exceptions import ZRConfigError, ZRNetworkError
 from zrdatafetch.logging_config import get_logger
 from zrdatafetch.zr import ZR_obj
+
+_parent_dir = str(Path(__file__).parent.parent)
+if _parent_dir not in sys.path:
+  sys.path.insert(0, _parent_dir)
+
+from exceptions import ConfigError as ConfigError  # noqa: E402
+from exceptions import NetworkError as NetworkError  # noqa: E402
 
 logger = get_logger(__name__)
 
@@ -69,18 +77,18 @@ class ZRRider(ZR_obj):
   # Public attributes (in __init__)
   zwift_id: int = 0
   epoch: int = -1
-  name: str = 'Nobody'
-  gender: str = 'M'
+  name: str = "Nobody"
+  gender: str = "M"
   current_rating: float = 0.0
-  current_rank: str = 'Unranked'
+  current_rank: str = "Unranked"
   max30_rating: float = 0.0
-  max30_rank: str = 'Unranked'
+  max30_rank: str = "Unranked"
   max90_rating: float = 0.0
-  max90_rank: str = 'Unranked'
+  max90_rank: str = "Unranked"
   drs_rating: float = 0.0
-  drs_rank: str = 'Unranked'
+  drs_rank: str = "Unranked"
   zrcs: float = 0.0
-  source: str = 'none'
+  source: str = "none"
 
   # Private attributes (not in __init__)
   _raw: dict = field(default_factory=dict, init=False, repr=False)
@@ -151,14 +159,14 @@ class ZRRider(ZR_obj):
       self.epoch = epoch
 
     if self.zwift_id == 0:
-      logger.warning('No zwift_id provided for fetch')
+      logger.warning("No zwift_id provided for fetch")
       return
 
     # Get authorization from config
     config = Config()
     config.load()
     if not config.authorization:
-      raise ZRConfigError(
+      raise ConfigError(
         'Zwiftracing authorization not found. Please run "zrdata config" to set it up.',
       )
 
@@ -166,26 +174,26 @@ class ZRRider(ZR_obj):
 
     try:
       logger.debug(
-        f'Fetching rider for zwift_id={self.zwift_id}, epoch={self.epoch}',
+        f"Fetching rider for zwift_id={self.zwift_id}, epoch={self.epoch}",
       )
 
       # Build endpoint
       if self.epoch >= 0:
-        endpoint = f'/public/riders/{self.zwift_id}/{self.epoch}'
+        endpoint = f"/public/riders/{self.zwift_id}/{self.epoch}"
       else:
-        endpoint = f'/public/riders/{self.zwift_id}'
+        endpoint = f"/public/riders/{self.zwift_id}"
 
       # Fetch JSON from API
-      headers = {'Authorization': config.authorization}
+      headers = {"Authorization": config.authorization}
       self._raw = await session.fetch_json(endpoint, headers=headers)
 
       # Parse response
       self._parse_response()
       logger.info(
-        f'Successfully fetched rider {self.name} (zwift_id={self.zwift_id})',
+        f"Successfully fetched rider {self.name} (zwift_id={self.zwift_id})",
       )
-    except ZRNetworkError as e:
-      logger.error(f'Failed to fetch rider: {e}')
+    except NetworkError as e:
+      logger.error(f"Failed to fetch rider: {e}")
       raise
     finally:
       if owns_session:
@@ -204,8 +212,8 @@ class ZRRider(ZR_obj):
       epoch: Unix timestamp for historical data (uses self.epoch if not provided)
 
     Raises:
-      ZRNetworkError: If the API request fails
-      ZRConfigError: If authorization is not configured
+      NetworkError: If the API request fails
+      ConfigError: If authorization is not configured
       RuntimeError: If called from async context (use afetch() instead)
 
     Example:
@@ -216,11 +224,11 @@ class ZRRider(ZR_obj):
     try:
       asyncio.get_running_loop()
       raise RuntimeError(
-        'fetch() called from async context. Use afetch() instead, or '
-        'call fetch() from synchronous code.',
+        "fetch() called from async context. Use afetch() instead, or "
+        "call fetch() from synchronous code.",
       )
     except RuntimeError as e:
-      if 'fetch() called from async context' in str(e):
+      if "fetch() called from async context" in str(e):
         raise
       # No running loop - safe to use asyncio.run()
       asyncio.run(self._afetch_internal(zwift_id, epoch))
@@ -241,8 +249,8 @@ class ZRRider(ZR_obj):
       epoch: Unix timestamp for historical data (uses self.epoch if not provided)
 
     Raises:
-      ZRNetworkError: If the API request fails
-      ZRConfigError: If authorization is not configured
+      NetworkError: If the API request fails
+      ConfigError: If authorization is not configured
 
     Example:
       rider = ZRRider()
@@ -260,67 +268,67 @@ class ZRRider(ZR_obj):
     the object's attributes. Silently uses defaults if fields are missing.
     """
     if not self._raw:
-      logger.warning('No data to parse')
+      logger.warning("No data to parse")
       return
 
     self._rider = self._raw
 
     # Check for error in response
-    if 'message' in self._rider:
+    if "message" in self._rider:
       logger.error(f"API error: {self._rider['message']}")
       return
 
     # Check for required fields
-    if 'name' not in self._rider or 'race' not in self._rider:
-      logger.warning('Missing required fields (name or race) in response')
+    if "name" not in self._rider or "race" not in self._rider:
+      logger.warning("Missing required fields (name or race) in response")
       return
 
     try:
-      self.name = self._rider.get('name', 'Nobody')
-      self.gender = self._rider.get('gender', 'M')
+      self.name = self._rider.get("name", "Nobody")
+      self.gender = self._rider.get("gender", "M")
 
       # ZRCS (compound score)
-      power = self._rider.get('power', {})
-      self.zrcs = power.get('compoundScore', 0.0)
+      power = self._rider.get("power", {})
+      self.zrcs = power.get("compoundScore", 0.0)
 
       # Current rating
-      race = self._rider.get('race', {})
-      current = race.get('current', {})
-      self.current_rating = current.get('rating', 0.0)
-      current_mixed = current.get('mixed', {})
-      self.current_rank = current_mixed.get('category', 'Unranked')
+      race = self._rider.get("race", {})
+      current = race.get("current", {})
+      self.current_rating = current.get("rating", 0.0)
+      current_mixed = current.get("mixed", {})
+      self.current_rank = current_mixed.get("category", "Unranked")
 
       # Max90 rating
-      max90 = race.get('max90', {})
-      max90_rating = max90.get('rating')
+      max90 = race.get("max90", {})
+      max90_rating = max90.get("rating")
       if max90_rating is not None:
         self.max90_rating = max90_rating
-      max90_mixed = max90.get('mixed', {})
-      self.max90_rank = max90_mixed.get('category', 'Unranked')
+      max90_mixed = max90.get("mixed", {})
+      self.max90_rank = max90_mixed.get("category", "Unranked")
 
       # Max30 rating
-      max30 = race.get('max30', {})
-      max30_rating = max30.get('rating')
+      max30 = race.get("max30", {})
+      max30_rating = max30.get("rating")
       if max30_rating is not None:
         self.max30_rating = max30_rating
-      max30_mixed = max30.get('mixed', {})
-      self.max30_rank = max30_mixed.get('category', 'Unranked')
+      max30_mixed = max30.get("mixed", {})
+      self.max30_rank = max30_mixed.get("category", "Unranked")
 
       # Determine DRS (derived rating score)
-      if self.max30_rank != 'Unranked':
+      if self.max30_rank != "Unranked":
         self.drs_rating = self.max30_rating
         self.drs_rank = self.max30_rank
-        self.source = 'max30'
-      elif self.max90_rank != 'Unranked':
+        self.source = "max30"
+      elif self.max90_rank != "Unranked":
         self.drs_rating = self.max90_rating
         self.drs_rank = self.max90_rank
-        self.source = 'max90'
+        self.source = "max90"
 
       logger.debug(
-        f'Successfully parsed rider {self.name} (zwift_id={self.zwift_id})',
+        f"Successfully parsed rider {self.name} (zwift_id={self.zwift_id})",
       )
     except (KeyError, TypeError) as e:
-      logger.error(f'Error parsing response: {e}')
+      logger.error(f"Error parsing response: {e}")
 
   # -----------------------------------------------------------------------
   @staticmethod
@@ -328,7 +336,7 @@ class ZRRider(ZR_obj):
     *zwift_ids: int,
     epoch: int | None = None,
     zr: ZR_obj | None = None,
-  ) -> dict[int, 'ZRRider']:
+  ) -> dict[int, "ZRRider"]:
     """Fetch multiple riders in a single request (POST, synchronous).
 
     Uses the Zwiftracing API batch endpoint to fetch current or historical
@@ -345,8 +353,8 @@ class ZRRider(ZR_obj):
 
     Raises:
       ValueError: If more than 1000 IDs provided
-      ZRNetworkError: If the API request fails
-      ZRConfigError: If authorization is not configured
+      NetworkError: If the API request fails
+      ConfigError: If authorization is not configured
 
     Example:
       # With session
@@ -362,57 +370,57 @@ class ZRRider(ZR_obj):
       riders = ZRRider.fetch_batch(12345, 67890, epoch=1704067200, zr=zr)
     """
     if len(zwift_ids) > 1000:
-      raise ValueError('Maximum 1000 rider IDs per batch request')
+      raise ValueError("Maximum 1000 rider IDs per batch request")
 
     if len(zwift_ids) == 0:
-      logger.warning('No rider IDs provided for batch fetch')
+      logger.warning("No rider IDs provided for batch fetch")
       return {}
 
     # Get authorization from config
     config = Config()
     config.load()
     if not config.authorization:
-      raise ZRConfigError(
+      raise ConfigError(
         'Zwiftracing authorization not found. Please run "zrdata config" to set it up.',
       )
 
-    logger.debug(f'Fetching batch of {len(zwift_ids)} riders, epoch={epoch}')
+    logger.debug(f"Fetching batch of {len(zwift_ids)} riders, epoch={epoch}")
 
     # Build endpoint
     if epoch is not None:
-      endpoint = f'/public/riders/{epoch}'
+      endpoint = f"/public/riders/{epoch}"
     else:
-      endpoint = '/public/riders'
+      endpoint = "/public/riders"
 
     # Fetch JSON from API using POST
-    headers = {'Authorization': config.authorization}
+    headers = {"Authorization": config.authorization}
     try:
       # Use provided session or create temporary instance
       if zr is not None:
-        logger.debug('Using provided ZR session for batch fetch')
+        logger.debug("Using provided ZR session for batch fetch")
         raw_data = zr.fetch_json(
           endpoint,
           headers=headers,
           json=list(zwift_ids),
-          method='POST',
+          method="POST",
         )
       else:
-        logger.debug('Creating temporary ZR instance for batch fetch')
+        logger.debug("Creating temporary ZR instance for batch fetch")
         rider_obj = ZRRider()
         raw_data = rider_obj.fetch_json(
           endpoint,
           headers=headers,
           json=list(zwift_ids),
-          method='POST',
+          method="POST",
         )
-    except ZRNetworkError as e:
-      logger.error(f'Failed to fetch batch: {e}')
+    except NetworkError as e:
+      logger.error(f"Failed to fetch batch: {e}")
       raise
 
     # Parse response into individual ZRRider objects
     results = {}
     if not isinstance(raw_data, list):
-      logger.error('Expected list of riders in batch response')
+      logger.error("Expected list of riders in batch response")
       return results
 
     for rider_data in raw_data:
@@ -421,13 +429,13 @@ class ZRRider(ZR_obj):
         rider._raw = rider_data
         rider._parse_response()
         results[rider.zwift_id] = rider
-        logger.debug(f'Parsed batch rider: {rider.name} (zwift_id={rider.zwift_id})')
+        logger.debug(f"Parsed batch rider: {rider.name} (zwift_id={rider.zwift_id})")
       except (KeyError, TypeError) as e:
-        logger.warning(f'Skipping malformed rider in batch response: {e}')
+        logger.warning(f"Skipping malformed rider in batch response: {e}")
         continue
 
     logger.info(
-      f'Successfully fetched {len(results)}/{len(zwift_ids)} riders in batch',
+      f"Successfully fetched {len(results)}/{len(zwift_ids)} riders in batch",
     )
     return results
 
@@ -437,7 +445,7 @@ class ZRRider(ZR_obj):
     *zwift_ids: int,
     epoch: int | None = None,
     zr: AsyncZR_obj | None = None,
-  ) -> dict[int, 'ZRRider']:
+  ) -> dict[int, "ZRRider"]:
     """Fetch multiple riders in a single request (POST, asynchronous).
 
     Uses the Zwiftracing API batch endpoint to fetch current or historical
@@ -454,8 +462,8 @@ class ZRRider(ZR_obj):
 
     Raises:
       ValueError: If more than 1000 IDs provided
-      ZRNetworkError: If the API request fails
-      ZRConfigError: If authorization is not configured
+      NetworkError: If the API request fails
+      ConfigError: If authorization is not configured
 
     Example:
       # With session
@@ -471,22 +479,22 @@ class ZRRider(ZR_obj):
       riders = await ZRRider.afetch_batch(12345, 67890, epoch=1704067200, zr=zr)
     """
     if len(zwift_ids) > 1000:
-      raise ValueError('Maximum 1000 rider IDs per batch request')
+      raise ValueError("Maximum 1000 rider IDs per batch request")
 
     if len(zwift_ids) == 0:
-      logger.warning('No rider IDs provided for batch fetch')
+      logger.warning("No rider IDs provided for batch fetch")
       return {}
 
     # Get authorization from config
     config = Config()
     config.load()
     if not config.authorization:
-      raise ZRConfigError(
+      raise ConfigError(
         'Zwiftracing authorization not found. Please run "zrdata config" to set it up.',
       )
 
     logger.debug(
-      f'Fetching batch of {len(zwift_ids)} riders, epoch={epoch} (async)',
+      f"Fetching batch of {len(zwift_ids)} riders, epoch={epoch} (async)",
     )
 
     # Create temporary session if none provided
@@ -500,15 +508,15 @@ class ZRRider(ZR_obj):
     try:
       # Build endpoint
       if epoch is not None:
-        endpoint = f'/public/riders/{epoch}'
+        endpoint = f"/public/riders/{epoch}"
       else:
-        endpoint = '/public/riders'
+        endpoint = "/public/riders"
 
       # Fetch JSON from API using POST
-      headers = {'Authorization': config.authorization}
+      headers = {"Authorization": config.authorization}
       raw_data = await zr.fetch_json(
         endpoint,
-        method='POST',
+        method="POST",
         headers=headers,
         json=list(zwift_ids),
       )
@@ -516,7 +524,7 @@ class ZRRider(ZR_obj):
       # Parse response into individual ZRRider objects
       results = {}
       if not isinstance(raw_data, list):
-        logger.error('Expected list of riders in batch response')
+        logger.error("Expected list of riders in batch response")
         return results
 
       for rider_data in raw_data:
@@ -526,19 +534,19 @@ class ZRRider(ZR_obj):
           rider._parse_response()
           results[rider.zwift_id] = rider
           logger.debug(
-            f'Parsed batch rider: {rider.name} (zwift_id={rider.zwift_id})',
+            f"Parsed batch rider: {rider.name} (zwift_id={rider.zwift_id})",
           )
         except (KeyError, TypeError) as e:
-          logger.warning(f'Skipping malformed rider in batch response: {e}')
+          logger.warning(f"Skipping malformed rider in batch response: {e}")
           continue
 
       logger.info(
-        f'Successfully fetched {len(results)}/{len(zwift_ids)} riders in batch (async)',
+        f"Successfully fetched {len(results)}/{len(zwift_ids)} riders in batch (async)",
       )
       return results
 
-    except ZRNetworkError as e:
-      logger.error(f'Failed to fetch batch: {e}')
+    except NetworkError as e:
+      logger.error(f"Failed to fetch batch: {e}")
       raise
     finally:
       # Clean up temporary session if we created one
@@ -552,4 +560,4 @@ class ZRRider(ZR_obj):
     Returns:
       Dictionary with all public attributes
     """
-    return {k: v for k, v in asdict(self).items() if not k.startswith('_')}
+    return {k: v for k, v in asdict(self).items() if not k.startswith("_")}

@@ -5,13 +5,20 @@ serialization for all Zwiftracing data classes.
 """
 
 import json
+import sys
+from pathlib import Path
 from typing import Any, ClassVar
 
 import httpx
 
-from zrdatafetch.exceptions import ZRNetworkError
 from zrdatafetch.logging_config import get_logger
 from zrdatafetch.rate_limiter import RateLimiter
+
+_parent_dir = str(Path(__file__).parent.parent)
+if _parent_dir not in sys.path:
+  sys.path.insert(0, _parent_dir)
+
+from exceptions import NetworkError as NetworkError  # noqa: E402
 
 logger = get_logger(__name__)
 
@@ -106,7 +113,7 @@ class ZR_obj:
 
     Makes an HTTP request (GET or POST) to the specified endpoint and returns
     the parsed JSON response. Handles errors with proper logging and raises
-    ZRNetworkError for any failures. Respects rate limits.
+    NetworkError for any failures. Respects rate limits.
 
     Args:
       endpoint: API endpoint path (e.g., '/public/riders/123')
@@ -119,7 +126,7 @@ class ZR_obj:
       Parsed JSON response (dict or list)
 
     Raises:
-      ZRNetworkError: If the request fails for any reason
+      NetworkError: If the request fails for any reason
         (HTTP error, network error, invalid JSON, rate limit exceeded, etc.)
 
     Example:
@@ -145,7 +152,7 @@ class ZR_obj:
     endpoint_type = RateLimiter.get_endpoint_type(method, endpoint)
     if not rate_limiter.can_request(endpoint_type):
       wait_time = rate_limiter.wait_time(endpoint_type)
-      raise ZRNetworkError(
+      raise NetworkError(
         f'Rate limit exceeded ({rate_limiter.tier} tier). '
         f'Please wait {wait_time:.1f}s before retrying. '
         f'Current rate limit status: {rate_limiter.get_status()}',
@@ -159,7 +166,7 @@ class ZR_obj:
 
       # Handle 429 rate limit errors specifically
       if response.status_code == 429:
-        raise ZRNetworkError(
+        raise NetworkError(
           f'Rate limit exceeded ({rate_limiter.tier} tier). '
           f'Status: 429 Too Many Requests. '
           f'Current rate limit status: {rate_limiter.get_status()}',
@@ -173,15 +180,15 @@ class ZR_obj:
 
     except httpx.HTTPStatusError as e:
       logger.error(f'HTTP error {method} {endpoint}: {e.response.status_code}')
-      raise ZRNetworkError(
+      raise NetworkError(
         f'HTTP {e.response.status_code}: {e.response.reason_phrase}',
       ) from e
     except httpx.RequestError as e:
       logger.error(f'Network error {method} {endpoint}: {e}')
-      raise ZRNetworkError(f'Network error: {e}') from e
+      raise NetworkError(f'Network error: {e}') from e
     except json.JSONDecodeError as e:
       logger.error(f'Invalid JSON from {endpoint}: {e}')
-      raise ZRNetworkError(f'Invalid JSON response: {e}') from e
+      raise NetworkError(f'Invalid JSON response: {e}') from e
 
   # -------------------------------------------------------------------------------
   def json(self) -> str:

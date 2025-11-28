@@ -159,8 +159,8 @@ class Primes(ZP_obj):
 
     Raises:
       ValueError: If any race ID is invalid
-      ZPNetworkError: If network requests fail
-      ZPAuthenticationError: If authentication fails
+      NetworkError: If network requests fail
+      AuthenticationError: If authentication fails
     """
     # Get session (shared or temporary)
     session, owns_session = await self._get_or_create_session()
@@ -261,8 +261,8 @@ class Primes(ZP_obj):
 
     Raises:
       ValueError: If any race ID is invalid
-      ZPNetworkError: If network requests fail
-      ZPAuthenticationError: If authentication fails
+      NetworkError: If network requests fail
+      AuthenticationError: If authentication fails
     """
     try:
       asyncio.get_running_loop()
@@ -291,8 +291,8 @@ class Primes(ZP_obj):
 
     Raises:
       ValueError: If any race ID is invalid
-      ZPNetworkError: If network requests fail
-      ZPAuthenticationError: If authentication fails
+      NetworkError: If network requests fail
+      AuthenticationError: If authentication fails
     """
     return await self._fetch_parallel(*race_id)
 
