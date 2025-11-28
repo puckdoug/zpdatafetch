@@ -3,13 +3,23 @@
 Manages Zwiftpower credentials using the system keyring for secure storage.
 """
 
+import importlib.util
 import sys
 from getpass import getpass
+from pathlib import Path
 
 import keyring
 
-from zpdatafetch.config_base import BaseConfig
 from zpdatafetch.logging_config import get_logger
+
+# Import BaseConfig from parent src directory
+_config_base_spec = importlib.util.spec_from_file_location(
+  'config_base',
+  Path(__file__).parent.parent / 'config_base.py',
+)
+_config_base = importlib.util.module_from_spec(_config_base_spec)
+_config_base_spec.loader.exec_module(_config_base)
+BaseConfig = _config_base.BaseConfig
 
 logger = get_logger(__name__)
 
@@ -27,8 +37,8 @@ class ZPConfig(BaseConfig):
     password: Zwiftpower password
   """
 
-  username: str = ""
-  password: str = ""
+  username: str = ''
+  password: str = ''
 
   # -----------------------------------------------------------------------
   def _get_domain(self) -> str:
@@ -37,10 +47,10 @@ class ZPConfig(BaseConfig):
     Returns:
       Domain name 'zpdatafetch'
     """
-    return "zpdatafetch"
+    return 'zpdatafetch'
 
   # -----------------------------------------------------------------------
-  def _prompt_for_credentials(self, username: str = "", password: str = "") -> None:
+  def _prompt_for_credentials(self, username: str = '', password: str = '') -> None:
     """Prompt for Zwiftpower username and password.
 
     Args:
@@ -49,31 +59,31 @@ class ZPConfig(BaseConfig):
     """
     if username:
       self.username = username
-      logger.debug("Using provided username")
+      logger.debug('Using provided username')
     else:
-      self.username = input("zwiftpower username (for use with zpdatafetch): ")
-      logger.debug("Username entered interactively")
-      keyring.set_password(self.domain, "username", self.username)
+      self.username = input('zwiftpower username (for use with zpdatafetch): ')
+      logger.debug('Username entered interactively')
+      keyring.set_password(self.domain, 'username', self.username)
 
     if password:
       self.password = password
-      logger.debug("Using provided password")
+      logger.debug('Using provided password')
     else:
       self.password = getpass(
-        "zwiftpower password (for use with zpdatafetch): ",
+        'zwiftpower password (for use with zpdatafetch): ',
       )
-      logger.debug("Password entered interactively")
-      keyring.set_password(self.domain, "password", self.password)
+      logger.debug('Password entered interactively')
+      keyring.set_password(self.domain, 'password', self.password)
 
   # -----------------------------------------------------------------------
   def _clear_credentials_impl(self) -> None:
     """Clear username and password from memory."""
     if self.username:
-      self.username = "*" * len(self.username)
-      self.username = ""
+      self.username = '*' * len(self.username)
+      self.username = ''
     if self.password:
-      self.password = "*" * len(self.password)
-      self.password = ""
+      self.password = '*' * len(self.password)
+      self.password = ''
 
   # -----------------------------------------------------------------------
   def _verify_exists_impl(self) -> bool:
@@ -90,10 +100,10 @@ class ZPConfig(BaseConfig):
 
     Stores both username and password under the configured domain.
     """
-    logger.debug(f"Saving credentials to keyring domain: {self.domain}")
-    keyring.set_password(self.domain, "username", self.username)
-    keyring.set_password(self.domain, "password", self.password)
-    logger.info("Credentials saved successfully")
+    logger.debug(f'Saving credentials to keyring domain: {self.domain}')
+    keyring.set_password(self.domain, 'username', self.username)
+    keyring.set_password(self.domain, 'password', self.password)
+    logger.info('Credentials saved successfully')
 
   # -----------------------------------------------------------------------
   def load(self) -> None:
@@ -102,20 +112,20 @@ class ZPConfig(BaseConfig):
     Retrieves username and password from the configured domain.
     Updates instance attributes if credentials are found.
     """
-    logger.debug(f"Loading credentials from keyring domain: {self.domain}")
-    u = keyring.get_password(self.domain, "username")
+    logger.debug(f'Loading credentials from keyring domain: {self.domain}')
+    u = keyring.get_password(self.domain, 'username')
     if u:
       self.username = u
-      logger.debug("Username loaded from keyring")
+      logger.debug('Username loaded from keyring')
     else:
-      logger.debug("No username found in keyring")
+      logger.debug('No username found in keyring')
 
-    p = keyring.get_password(self.domain, "password")
+    p = keyring.get_password(self.domain, 'password')
     if p:
       self.password = p
-      logger.debug("Password loaded from keyring")
+      logger.debug('Password loaded from keyring')
     else:
-      logger.debug("No password found in keyring")
+      logger.debug('No password found in keyring')
 
 
 # Backwards compatibility alias
@@ -127,11 +137,11 @@ def main() -> None:
   c = Config()
   c.load()
   if c.verify_credentials_exist():
-    print("Credentials are configured in keyring")
+    print('Credentials are configured in keyring')
   else:
-    print("No credentials found in keyring")
+    print('No credentials found in keyring')
 
 
 # ===============================================================================
-if __name__ == "__main__":
+if __name__ == '__main__':
   sys.exit(main())
