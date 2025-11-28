@@ -6,36 +6,10 @@ import httpx
 from bs4 import BeautifulSoup
 
 from zpdatafetch.config import Config
+from zpdatafetch.exceptions import ZPAuthenticationError, ZPConfigError, ZPNetworkError
 from zpdatafetch.logging_config import get_logger
 
 logger = get_logger(__name__)
-
-
-# ===============================================================================
-class ZPAuthenticationError(Exception):
-  """Raised when authentication with Zwiftpower fails.
-
-  This exception is raised when login credentials are rejected,
-  the login form cannot be found, or authentication otherwise fails.
-  """
-
-
-# ===============================================================================
-class ZPNetworkError(Exception):
-  """Raised when network requests to Zwiftpower fail.
-
-  This exception is raised for HTTP errors, connection errors,
-  timeouts, and other network-related issues.
-  """
-
-
-# ===============================================================================
-class ZPConfigError(Exception):
-  """Raised when configuration is invalid or missing.
-
-  This exception is raised when credentials are not found in the keyring
-  or other configuration issues are detected.
-  """
 
 
 # ===============================================================================
@@ -57,7 +31,7 @@ class ZP:
 
   _client: httpx.Client | None = None
   _login_url: str = (
-    'https://zwiftpower.com/ucp.php?mode=login&login=external&oauth_service=oauthzpsso'
+    "https://zwiftpower.com/ucp.php?mode=login&login=external&oauth_service=oauthzpsso"
   )
   _shared_client: httpx.Client | None = None
   _owns_client: bool = False
@@ -91,7 +65,7 @@ class ZP:
 
     self._owns_client = not shared_client
     if shared_client and ZP._shared_client is None:
-      logger.debug('Creating shared HTTP client for connection pooling')
+      logger.debug("Creating shared HTTP client for connection pooling")
       ZP._shared_client = httpx.Client(follow_redirects=True)
 
   # -------------------------------------------------------------------------------
@@ -104,15 +78,15 @@ class ZP:
     SECURITY: This method helps prevent credentials from being exposed if the
     process is dumped or inspected while credentials are in memory.
     """
-    logger.debug('Clearing credentials from memory')
+    logger.debug("Clearing credentials from memory")
     # Overwrite credentials with dummy data before deletion
     if self.username:
-      self.username = '*' * len(self.username)
-      self.username = ''
+      self.username = "*" * len(self.username)
+      self.username = ""
     if self.password:
-      self.password = '*' * len(self.password)
-      self.password = ''
-    logger.debug('Credentials cleared')
+      self.password = "*" * len(self.password)
+      self.password = ""
+    logger.debug("Credentials cleared")
 
   # -------------------------------------------------------------------------------
   def login(self) -> None:
@@ -125,40 +99,40 @@ class ZP:
       ZPNetworkError: If network requests fail
       ZPAuthenticationError: If login form cannot be parsed or auth fails
     """
-    logger.info('Logging in to Zwiftpower')
+    logger.info("Logging in to Zwiftpower")
 
     if not self._client:
       self.init_client()
 
     try:
-      logger.debug(f'Fetching url: {self._login_url}')
+      logger.debug(f"Fetching url: {self._login_url}")
       page = self._client.get(self._login_url)
       page.raise_for_status()
     except httpx.HTTPStatusError as e:
-      logger.error(f'Failed to fetch login page: {e}')
-      raise ZPNetworkError(f'Failed to fetch login page: {e}') from e
+      logger.error(f"Failed to fetch login page: {e}")
+      raise ZPNetworkError(f"Failed to fetch login page: {e}") from e
     except httpx.RequestError as e:
-      logger.error(f'Network error during login: {e}')
-      raise ZPNetworkError(f'Network error during login: {e}') from e
+      logger.error(f"Network error during login: {e}")
+      raise ZPNetworkError(f"Network error during login: {e}") from e
 
-    self._client.cookies.get('phpbb3_lswlk_sid')
+    self._client.cookies.get("phpbb3_lswlk_sid")
 
     try:
-      soup = BeautifulSoup(page.text, 'lxml')
-      if not soup.form or 'action' not in soup.form.attrs:
-        logger.error('Login form not found on page')
+      soup = BeautifulSoup(page.text, "lxml")
+      if not soup.form or "action" not in soup.form.attrs:
+        logger.error("Login form not found on page")
         raise ZPAuthenticationError(
-          'Login form not found on page. Zwiftpower may have changed their login flow.',
+          "Login form not found on page. Zwiftpower may have changed their login flow.",
         )
-      login_url_from_form = soup.form['action'][0:]
-      logger.debug(f'Extracted login form URL: {login_url_from_form}')
+      login_url_from_form = soup.form["action"][0:]
+      logger.debug(f"Extracted login form URL: {login_url_from_form}")
     except (AttributeError, KeyError) as e:
-      logger.error(f'Could not parse login form: {e}')
-      raise ZPAuthenticationError(f'Could not parse login form: {e}') from e
+      logger.error(f"Could not parse login form: {e}")
+      raise ZPAuthenticationError(f"Could not parse login form: {e}") from e
 
-    data = {'username': self.username, 'password': self.password}
+    data = {"username": self.username, "password": self.password}
     # SECURITY: Do NOT log the data dict or login URL - it contains credentials
-    logger.debug('Submitting authentication credentials to login endpoint')
+    logger.debug("Submitting authentication credentials to login endpoint")
 
     try:
       self.login_response = self._client.post(
@@ -170,20 +144,20 @@ class ZP:
 
       # Check if login was actually successful by looking for error indicators
       # If we're redirected back to a login/ucp page, authentication likely failed
-      if 'ucp.php' in str(self.login_response.url) and 'mode=login' in str(
+      if "ucp.php" in str(self.login_response.url) and "mode=login" in str(
         self.login_response.url,
       ):
-        logger.error('Authentication failed - redirected back to login page')
+        logger.error("Authentication failed - redirected back to login page")
         raise ZPAuthenticationError(
-          'Login failed. Please check your username and password.',
+          "Login failed. Please check your username and password.",
         )
-      logger.info('Successfully authenticated with Zwiftpower')
+      logger.info("Successfully authenticated with Zwiftpower")
     except httpx.HTTPStatusError as e:
-      logger.error(f'HTTP error during authentication: {e}')
-      raise ZPNetworkError(f'HTTP error during authentication: {e}') from e
+      logger.error(f"HTTP error during authentication: {e}")
+      raise ZPNetworkError(f"HTTP error during authentication: {e}") from e
     except httpx.RequestError as e:
-      logger.error(f'Network error during authentication: {e}')
-      raise ZPNetworkError(f'Network error during authentication: {e}') from e
+      logger.error(f"Network error during authentication: {e}")
+      raise ZPNetworkError(f"Network error during authentication: {e}") from e
 
   # -------------------------------------------------------------------------------
   def init_client(self, client: httpx.Client | None = None) -> None:
@@ -200,16 +174,16 @@ class ZP:
       client: Optional httpx.Client instance to use. If None, uses shared
         client if available, otherwise creates a new client.
     """
-    logger.debug('Initializing httpx client')
+    logger.debug("Initializing httpx client")
 
     if client:
-      logger.debug('Using provided httpx client')
+      logger.debug("Using provided httpx client")
       self._client = client
     elif ZP._shared_client is not None:
-      logger.debug('Using shared HTTP client for connection pooling')
+      logger.debug("Using shared HTTP client for connection pooling")
       self._client = ZP._shared_client
     else:
-      logger.debug('Creating new httpx client with HTTPS certificate verification')
+      logger.debug("Creating new httpx client with HTTPS certificate verification")
       # SECURITY: Explicitly enable certificate verification for HTTPS connections
       self._client = httpx.Client(follow_redirects=True, verify=True)
 
@@ -217,7 +191,7 @@ class ZP:
   def _fetch_with_retry(
     self,
     url: str,
-    method: str = 'GET',
+    method: str = "GET",
     max_retries: int = 3,
     backoff_factor: float = 1.0,
     **kwargs: Any,
@@ -247,7 +221,7 @@ class ZP:
 
     for attempt in range(max_retries):
       try:
-        logger.debug(f'Attempt {attempt + 1}/{max_retries}: {method} {url}')
+        logger.debug(f"Attempt {attempt + 1}/{max_retries}: {method} {url}")
         response = self._client.request(method, url, **kwargs)
         response.raise_for_status()
         return response
@@ -257,8 +231,8 @@ class ZP:
           break
         wait_time = backoff_factor * (2**attempt)
         logger.warning(
-          f'Transient network error on attempt {attempt + 1}: {e}. '
-          f'Retrying in {wait_time:.1f}s...',
+          f"Transient network error on attempt {attempt + 1}: {e}. "
+          f"Retrying in {wait_time:.1f}s...",
         )
         time.sleep(wait_time)
       except httpx.HTTPStatusError as e:
@@ -268,30 +242,30 @@ class ZP:
             break
           wait_time = backoff_factor * (2**attempt)
           logger.warning(
-            f'Server error ({e.response.status_code}) on attempt '
-            f'{attempt + 1}: {e}. Retrying in {wait_time:.1f}s...',
+            f"Server error ({e.response.status_code}) on attempt "
+            f"{attempt + 1}: {e}. Retrying in {wait_time:.1f}s...",
           )
           time.sleep(wait_time)
         else:
-          raise ZPNetworkError(f'HTTP error: {e}') from e
+          raise ZPNetworkError(f"HTTP error: {e}") from e
       except httpx.RequestError as e:
         last_exception = e
         if attempt == max_retries - 1:
           break
         wait_time = backoff_factor * (2**attempt)
         logger.warning(
-          f'Request error on attempt {attempt + 1}: {e}. '
-          f'Retrying in {wait_time:.1f}s...',
+          f"Request error on attempt {attempt + 1}: {e}. "
+          f"Retrying in {wait_time:.1f}s...",
         )
         time.sleep(wait_time)
 
     if last_exception:
-      logger.error(f'Max retries ({max_retries}) exhausted: {last_exception}')
+      logger.error(f"Max retries ({max_retries}) exhausted: {last_exception}")
       raise ZPNetworkError(
-        f'Failed after {max_retries} attempts: {last_exception}',
+        f"Failed after {max_retries} attempts: {last_exception}",
       ) from last_exception
 
-    raise ZPNetworkError(f'Unexpected error fetching {url}')
+    raise ZPNetworkError(f"Unexpected error fetching {url}")
 
   # -------------------------------------------------------------------------------
   def login_url(self, url: str | None = None) -> str:
@@ -331,30 +305,30 @@ class ZP:
       ZPNetworkError: If the HTTP request fails after retries
     """
     try:
-      logger.debug(f'Fetching JSON from: {endpoint}')
+      logger.debug(f"Fetching JSON from: {endpoint}")
       pres = self._fetch_with_retry(
         endpoint,
-        method='GET',
+        method="GET",
         max_retries=max_retries,
       )
 
       try:
         res = pres.json()
-        logger.debug(f'Successfully fetched and parsed JSON from {endpoint}')
+        logger.debug(f"Successfully fetched and parsed JSON from {endpoint}")
       except json.decoder.JSONDecodeError:
         logger.warning(
-          f'Could not decode JSON from {endpoint}, returning empty dict',
+          f"Could not decode JSON from {endpoint}, returning empty dict",
         )
         res = {}
       return res
     except ZPNetworkError:
       raise
     except httpx.HTTPStatusError as e:
-      logger.error(f'HTTP error fetching {endpoint}: {e}')
-      raise ZPNetworkError(f'HTTP error fetching {endpoint}: {e}') from e
+      logger.error(f"HTTP error fetching {endpoint}: {e}")
+      raise ZPNetworkError(f"HTTP error fetching {endpoint}: {e}") from e
     except httpx.RequestError as e:
-      logger.error(f'Network error fetching {endpoint}: {e}')
-      raise ZPNetworkError(f'Network error fetching {endpoint}: {e}') from e
+      logger.error(f"Network error fetching {endpoint}: {e}")
+      raise ZPNetworkError(f"Network error fetching {endpoint}: {e}") from e
 
   # -------------------------------------------------------------------------------
   def fetch_page(self, endpoint: str, max_retries: int = 3) -> str:
@@ -374,24 +348,24 @@ class ZP:
       ZPNetworkError: If the HTTP request fails after retries
     """
     try:
-      logger.debug(f'Fetching page from: {endpoint}')
+      logger.debug(f"Fetching page from: {endpoint}")
 
       pres = self._fetch_with_retry(
         endpoint,
-        method='GET',
+        method="GET",
         max_retries=max_retries,
       )
       res = pres.text
-      logger.debug(f'Successfully fetched page from {endpoint}')
+      logger.debug(f"Successfully fetched page from {endpoint}")
       return res
     except ZPNetworkError:
       raise
     except httpx.HTTPStatusError as e:
-      logger.error(f'HTTP error fetching {endpoint}: {e}')
-      raise ZPNetworkError(f'HTTP error fetching {endpoint}: {e}') from e
+      logger.error(f"HTTP error fetching {endpoint}: {e}")
+      raise ZPNetworkError(f"HTTP error fetching {endpoint}: {e}") from e
     except httpx.RequestError as e:
-      logger.error(f'Network error fetching {endpoint}: {e}')
-      raise ZPNetworkError(f'Network error fetching {endpoint}: {e}') from e
+      logger.error(f"Network error fetching {endpoint}: {e}")
+      raise ZPNetworkError(f"Network error fetching {endpoint}: {e}") from e
 
   # -------------------------------------------------------------------------------
   @classmethod
@@ -412,10 +386,10 @@ class ZP:
     if cls._shared_client is not None:
       try:
         cls._shared_client.close()
-        logger.debug('Shared HTTP client closed successfully')
+        logger.debug("Shared HTTP client closed successfully")
         cls._shared_client = None
       except Exception as e:
-        logger.error(f'Could not close shared client properly: {e}')
+        logger.error(f"Could not close shared client properly: {e}")
 
   # -------------------------------------------------------------------------------
   def close(self) -> None:
@@ -431,14 +405,14 @@ class ZP:
     if self._client and self._owns_client:
       try:
         self._client.close()
-        logger.debug('HTTP client closed successfully')
+        logger.debug("HTTP client closed successfully")
       except Exception as e:
-        logger.error(f'Could not close client properly: {e}')
+        logger.error(f"Could not close client properly: {e}")
     elif self._client and not self._owns_client:
-      logger.debug('Skipping close of shared client')
+      logger.debug("Skipping close of shared client")
 
   # -------------------------------------------------------------------------------
-  def __enter__(self) -> 'ZP':
+  def __enter__(self) -> "ZP":
     """Enter context manager - return self for use in 'with' statement.
 
     Returns:
@@ -449,7 +423,7 @@ class ZP:
           zp.login()
           data = zp.fetch_json(url)
     """
-    logger.debug('Entering ZP context manager')
+    logger.debug("Entering ZP context manager")
     return self
 
   # -------------------------------------------------------------------------------
@@ -467,7 +441,7 @@ class ZP:
     Returns:
       False to propagate any exceptions that occurred.
     """
-    logger.debug('Exiting ZP context manager')
+    logger.debug("Exiting ZP context manager")
     self.close()
     return False
 
@@ -489,17 +463,17 @@ class ZP:
     """
     match label:
       case 0:
-        return 'E'
+        return "E"
       case 1:
-        return 'A'
+        return "A"
       case 2:
-        return 'B'
+        return "B"
       case 3:
-        return 'C'
+        return "C"
       case 4:
-        return 'D'
+        return "D"
       case 5:
-        return 'E'
+        return "E"
       case _:
         return str(label)
 
@@ -516,15 +490,15 @@ class ZP:
     """
     match div:
       case 0:
-        return ''
+        return ""
       case 10:
-        return 'A'
+        return "A"
       case 20:
-        return 'B'
+        return "B"
       case 30:
-        return 'C'
+        return "C"
       case 40:
-        return 'D'
+        return "D"
       case _:
         return str(div)
 
@@ -541,15 +515,15 @@ class ZP:
     """
     match div:
       case 0:
-        return 'E'
+        return "E"
       case 10:
-        return 'A'
+        return "A"
       case 20:
-        return 'B'
+        return "B"
       case 30:
-        return 'C'
+        return "C"
       case 40:
-        return 'D'
+        return "D"
       case _:
         return str(div)
 
@@ -568,5 +542,5 @@ def main() -> None:
 
 
 # ===============================================================================
-if __name__ == '__main__':
+if __name__ == "__main__":
   main()

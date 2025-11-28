@@ -1,7 +1,7 @@
-"""Custom exceptions for zrdatafetch module.
+"""Custom exceptions for zpdatafetch module.
 
 Provides typed exceptions for different error conditions when interacting
-with the Zwiftracing API. These are aliases to the shared exception classes
+with the Zwiftpower API. These are aliases to the shared exception classes
 for backward compatibility.
 """
 
@@ -14,7 +14,7 @@ if _parent_dir not in sys.path:
 
 from exceptions import AuthenticationError, ConfigError, NetworkError  # noqa: E402
 
-# Backward-compatible aliases for zrdatafetch
-ZRAuthenticationError = AuthenticationError
-ZRNetworkError = NetworkError
-ZRConfigError = ConfigError
+# Backward-compatible aliases for zpdatafetch
+ZPAuthenticationError = AuthenticationError
+ZPNetworkError = NetworkError
+ZPConfigError = ConfigError
