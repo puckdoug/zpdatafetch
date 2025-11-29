@@ -4,6 +4,7 @@ import asyncio
 import datetime
 import re
 from argparse import ArgumentParser
+from collections.abc import Coroutine
 from typing import Any
 
 import anyio
@@ -209,7 +210,10 @@ class Primes(ZP_obj):
       logger.info(f'Sending {len(fetch_tasks)} requests in parallel')
       results = [None] * len(fetch_tasks)
 
-      async def fetch_and_store(idx: int, task: Any) -> None:
+      async def fetch_and_store(
+        idx: int,
+        task: Coroutine[Any, Any, dict[str, Any]],
+      ) -> None:
         """Fetch a single URL and store the result."""
         try:
           results[idx] = await task

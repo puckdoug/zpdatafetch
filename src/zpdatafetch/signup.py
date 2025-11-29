@@ -2,6 +2,7 @@
 
 import asyncio
 from argparse import ArgumentParser
+from collections.abc import Coroutine
 from typing import Any
 
 import anyio
@@ -140,7 +141,10 @@ class Signup(ZP_obj):
       # Execute all fetches in parallel
       results = {}
 
-      async def fetch_and_store(idx: int, task: Any) -> None:
+      async def fetch_and_store(
+        idx: int,
+        task: Coroutine[Any, Any, dict[str, Any]],
+      ) -> None:
         """Helper to fetch and store result."""
         try:
           result = await task

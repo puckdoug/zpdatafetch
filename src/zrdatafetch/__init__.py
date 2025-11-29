@@ -60,7 +60,7 @@ __all__ = [
 ]
 
 
-def __getattr__(name):
+def __getattr__(name: str) -> type[Exception]:
   """Lazy import of exceptions to avoid circular imports."""
   if name == 'AuthenticationError':
     from shared.exceptions import AuthenticationError

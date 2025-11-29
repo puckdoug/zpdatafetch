@@ -100,6 +100,32 @@ exclude = [
 line-length = 80
 indent-width = 2
 
+[tool.ruff.lint]
+select = [
+  "E",  # pycodestyle errors
+  "W",  # pycodestyle warnings
+  "F",  # pyflakes
+  "I",  # isort
+  "UP",  # pyupgrade
+  "ANN",  # flake8-annotations (type hints)
+]
+ignore = [
+  "ANN101",  # Missing type annotation for self
+  "ANN102",  # Missing type annotation for cls
+]
+
+# Per-file ignores for justified Any usage
+[tool.ruff.lint.per-file-ignores]
+# Context manager methods require Any for exc_type, exc_val, exc_tb per Python protocol
+"src/shared/http_client.py" = ["ANN401"]
+"src/zrdatafetch/async_zr.py" = ["ANN401"]
+# **kwargs pass-through to httpx - Any is appropriate for forwarding
+"src/zpdatafetch/async_zp.py" = ["ANN401"]
+"src/zpdatafetch/zp.py" = ["ANN401"]
+"src/zrdatafetch/zr.py" = ["ANN401"]
+# Abstract methods with flexible kwargs - documented in docstrings
+"src/shared/config.py" = ["ANN401"]
+
 [tool.ruff.format]
 quote-style = "single"
 indent-style = "space"
@@ -123,3 +149,29 @@ commands = pytest {posargs}
 deps =
   pytest
 """
+
+[tool.ty]
+# Python environment configuration
+[tool.ty.environment]
+python-version = "3.10"  # Minimum supported version
+# root paths auto-detected from project structure
+
+# File discovery
+[tool.ty.src]
+include = ["src/**/*.py"]
+exclude = [
+  "**/__pycache__",
+  "**/.*",
+  "build",
+  "dist",
+]
+respect-ignore-files = true  # Honor .gitignore
+
+# Terminal output
+[tool.ty.terminal]
+output-format = "full"  # or "concise" for CI
+error-on-warning = false  # Start permissive, can tighten later
+
+# Rule configuration (customize as needed)
+[tool.ty.rules]
+# Start with defaults, can add specific rule overrides later
