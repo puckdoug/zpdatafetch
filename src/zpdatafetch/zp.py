@@ -1,30 +1,13 @@
-import importlib.util
 import json
-import sys
-from pathlib import Path
 from typing import Any
 
 import httpx
 from bs4 import BeautifulSoup
 
+from shared.exceptions import AuthenticationError, ConfigError, NetworkError
+from shared.http_client import BaseHTTPClient, fetch_with_retry_sync
 from zpdatafetch.config import Config
 from zpdatafetch.logging_config import get_logger
-
-_parent_dir = str(Path(__file__).parent.parent)
-if _parent_dir not in sys.path:
-  sys.path.insert(0, _parent_dir)
-
-from exceptions import AuthenticationError, ConfigError, NetworkError  # noqa: E402
-
-# Import BaseHTTPClient and fetch_with_retry_sync using importlib pattern
-_http_base_spec = importlib.util.spec_from_file_location(
-  'http_client_base',
-  Path(__file__).parent.parent / 'http_client_base.py',
-)
-_http_base = importlib.util.module_from_spec(_http_base_spec)
-_http_base_spec.loader.exec_module(_http_base)
-BaseHTTPClient = _http_base.BaseHTTPClient
-fetch_with_retry_sync = _http_base.fetch_with_retry_sync
 
 logger = get_logger(__name__)
 

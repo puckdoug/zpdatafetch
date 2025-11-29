@@ -5,22 +5,14 @@ data from the Zwiftracing API, including per-rider finishes and rating changes.
 """
 
 import asyncio
-import sys
 from dataclasses import asdict, dataclass, field
-from pathlib import Path
 from typing import Any
 
+from shared.exceptions import ConfigError, NetworkError
 from zrdatafetch.async_zr import AsyncZR_obj
 from zrdatafetch.config import Config
 from zrdatafetch.logging_config import get_logger
 from zrdatafetch.zr import ZR_obj
-
-_parent_dir = str(Path(__file__).parent.parent)
-if _parent_dir not in sys.path:
-  sys.path.insert(0, _parent_dir)
-
-from exceptions import ConfigError as ConfigError  # noqa: E402
-from exceptions import NetworkError as NetworkError  # noqa: E402
 
 logger = get_logger(__name__)
 
@@ -47,7 +39,7 @@ class ZRRiderResult:
   zwift_id: int = 0
   position: int = 0
   position_in_category: int = 0
-  category: str = ""
+  category: str = ''
   time: float = 0.0
   gap: float = 0.0
   rating_before: float = 0.0
@@ -156,7 +148,7 @@ class ZRResult(ZR_obj):
       self.race_id = race_id
 
     if self.race_id == 0:
-      logger.warning("No race_id provided for fetch")
+      logger.warning('No race_id provided for fetch')
       return
 
     # Get authorization from config
@@ -170,20 +162,20 @@ class ZRResult(ZR_obj):
     session, owns_session = await self._get_or_create_session()
 
     try:
-      logger.debug(f"Fetching results for race_id={self.race_id}")
+      logger.debug(f'Fetching results for race_id={self.race_id}')
 
       # Endpoint is /public/results/{race_id}
-      endpoint = f"/public/results/{self.race_id}"
+      endpoint = f'/public/results/{self.race_id}'
 
       # Fetch JSON from API
-      headers = {"Authorization": config.authorization}
+      headers = {'Authorization': config.authorization}
       self._raw = await session.fetch_json(endpoint, headers=headers)
 
       # Parse response
       self._parse_response()
-      logger.info(f"Successfully fetched results for race_id={self.race_id}")
+      logger.info(f'Successfully fetched results for race_id={self.race_id}')
     except NetworkError as e:
-      logger.error(f"Failed to fetch race result: {e}")
+      logger.error(f'Failed to fetch race result: {e}')
       raise
     finally:
       if owns_session:
@@ -212,11 +204,11 @@ class ZRResult(ZR_obj):
     try:
       asyncio.get_running_loop()
       raise RuntimeError(
-        "fetch() called from async context. Use afetch() instead, or "
-        "call fetch() from synchronous code.",
+        'fetch() called from async context. Use afetch() instead, or '
+        'call fetch() from synchronous code.',
       )
     except RuntimeError as e:
-      if "fetch() called from async context" in str(e):
+      if 'fetch() called from async context' in str(e):
         raise
       # No running loop - safe to use asyncio.run()
       asyncio.run(self._afetch_internal(race_id))
@@ -251,45 +243,45 @@ class ZRResult(ZR_obj):
     objects for each participant. Silently handles missing or malformed data.
     """
     if not self._raw:
-      logger.warning("No data to parse")
+      logger.warning('No data to parse')
       return
 
     self._race = self._raw
 
     # Check for error in response
-    if isinstance(self._race, dict) and "message" in self._race:
+    if isinstance(self._race, dict) and 'message' in self._race:
       logger.error(f"API error: {self._race['message']}")
       return
 
     # Response should be a list of rider results
     if not isinstance(self._race, list):
-      logger.warning("Expected list of results, got different format")
+      logger.warning('Expected list of results, got different format')
       return
 
     try:
       for rider_data in self._race:
         try:
           result = ZRRiderResult(
-            zwift_id=rider_data.get("riderId", 0),
-            position=rider_data.get("position", 0),
-            position_in_category=rider_data.get("positionInCategory", 0),
-            category=rider_data.get("category", ""),
-            time=float(rider_data.get("time", 0.0)),
-            gap=float(rider_data.get("gap", 0.0)),
-            rating_before=float(rider_data.get("ratingBefore", 0.0)),
-            rating=float(rider_data.get("rating", 0.0)),
-            rating_delta=float(rider_data.get("ratingDelta", 0.0)),
+            zwift_id=rider_data.get('riderId', 0),
+            position=rider_data.get('position', 0),
+            position_in_category=rider_data.get('positionInCategory', 0),
+            category=rider_data.get('category', ''),
+            time=float(rider_data.get('time', 0.0)),
+            gap=float(rider_data.get('gap', 0.0)),
+            rating_before=float(rider_data.get('ratingBefore', 0.0)),
+            rating=float(rider_data.get('rating', 0.0)),
+            rating_delta=float(rider_data.get('ratingDelta', 0.0)),
           )
           self.results.append(result)
         except (KeyError, TypeError, ValueError) as e:
-          logger.warning(f"Skipping malformed rider result: {e}")
+          logger.warning(f'Skipping malformed rider result: {e}')
           continue
 
       logger.debug(
-        f"Successfully parsed {len(self.results)} race results for race_id={self.race_id}",
+        f'Successfully parsed {len(self.results)} race results for race_id={self.race_id}',
       )
     except Exception as e:
-      logger.error(f"Error parsing response: {e}")
+      logger.error(f'Error parsing response: {e}')
 
   # -----------------------------------------------------------------------
   def to_dict(self) -> dict[str, Any]:
@@ -299,6 +291,6 @@ class ZRResult(ZR_obj):
       Dictionary with all public attributes and results as dicts
     """
     return {
-      "race_id": self.race_id,
-      "results": [r.to_dict() for r in self.results],
+      'race_id': self.race_id,
+      'results': [r.to_dict() for r in self.results],
     }

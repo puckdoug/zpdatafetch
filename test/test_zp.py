@@ -1,17 +1,10 @@
 import sys
-from pathlib import Path
 
 import httpx
 import pytest
 
+from shared.exceptions import AuthenticationError, NetworkError
 from zpdatafetch.zp import ZP
-
-_parent_dir = str(Path(__file__).parent.parent / "src")
-if _parent_dir not in sys.path:
-  sys.path.insert(0, _parent_dir)
-
-from exceptions import AuthenticationError as AuthenticationError  # noqa: E402
-from exceptions import NetworkError as NetworkError  # noqa: E402
 
 
 def test_fetch_login_page(

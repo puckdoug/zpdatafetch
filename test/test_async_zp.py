@@ -1,20 +1,16 @@
 """Tests for the async ZP API."""
 
 import sys
-from pathlib import Path
 
 import httpx
 import pytest
 
+from shared.exceptions import (
+  AuthenticationError,
+  ConfigError,
+  NetworkError,
+)
 from zpdatafetch.async_zp import AsyncZP
-
-_parent_dir = str(Path(__file__).parent.parent / 'src')
-if _parent_dir not in sys.path:
-  sys.path.insert(0, _parent_dir)
-
-from exceptions import AuthenticationError as AuthenticationError  # noqa: E402
-from exceptions import ConfigError as ConfigError  # noqa: E402
-from exceptions import NetworkError as NetworkError  # noqa: E402
 
 
 @pytest.fixture

@@ -10,7 +10,7 @@ from typing import Any
 
 import keyring
 
-from zpdatafetch.logging_config import get_logger
+from shared.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -45,15 +45,15 @@ class BaseConfig(ABC):
     subclass-provided default domain.
     """
     self.kr: Any = keyring.get_keyring()
-    logger.debug(f'Using keyring backend: {type(self.kr).__name__}')
+    logger.debug(f"Using keyring backend: {type(self.kr).__name__}")
 
     # Use test domain if set (check on actual class, not BaseConfig)
     if self.__class__._test_domain_override:
       self.domain = self.__class__._test_domain_override
-      logger.debug(f'Using test domain override: {self.domain}')
+      logger.debug(f"Using test domain override: {self.domain}")
     else:
       self.domain = self._get_domain()
-      logger.debug(f'Using default domain: {self.domain}')
+      logger.debug(f"Using default domain: {self.domain}")
 
   # -----------------------------------------------------------------------
   @abstractmethod
@@ -124,7 +124,7 @@ class BaseConfig(ABC):
     Args:
       kr: Keyring backend instance (e.g., PlaintextKeyring for testing)
     """
-    logger.debug(f'Setting custom keyring backend: {type(kr).__name__}')
+    logger.debug(f"Setting custom keyring backend: {type(kr).__name__}")
     keyring.set_keyring(kr)
 
   # -----------------------------------------------------------------------
@@ -134,7 +134,7 @@ class BaseConfig(ABC):
     Args:
       domain: New domain name to use for keyring operations
     """
-    logger.debug(f'Changing domain from {self.domain} to {domain}')
+    logger.debug(f"Changing domain from {self.domain} to {domain}")
     self.domain = domain
 
   # -----------------------------------------------------------------------
@@ -147,10 +147,10 @@ class BaseConfig(ABC):
     Args:
       **kwargs: Optional pre-provided credential values (varies by subclass)
     """
-    logger.info('Setting up credentials')
+    logger.info("Setting up credentials")
     self._prompt_for_credentials(**kwargs)
     self.save()
-    logger.info('Credentials setup completed')
+    logger.info("Credentials setup completed")
 
   # -----------------------------------------------------------------------
   def clear_credentials(self) -> None:
@@ -164,9 +164,9 @@ class BaseConfig(ABC):
       For applications requiring higher security, use dedicated processes with
       memory protection or containers with appropriate isolation.
     """
-    logger.debug('Clearing credentials from memory')
+    logger.debug("Clearing credentials from memory")
     self._clear_credentials_impl()
-    logger.debug('Credentials cleared from memory')
+    logger.debug("Credentials cleared from memory")
 
   # -----------------------------------------------------------------------
   def verify_credentials_exist(self) -> bool:
@@ -178,5 +178,5 @@ class BaseConfig(ABC):
     Returns:
       True if all required credentials are set, False otherwise
     """
-    logger.debug('Checking if credentials exist')
+    logger.debug("Checking if credentials exist")
     return self._verify_exists_impl()

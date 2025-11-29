@@ -27,52 +27,52 @@ def create_base_parser(
 
   # Logging arguments
   parser.add_argument(
-    "-v",
-    "--verbose",
-    action="store_true",
-    help="enable verbose output (INFO level logging)",
+    '-v',
+    '--verbose',
+    action='store_true',
+    help='enable verbose output (INFO level logging)',
   )
   parser.add_argument(
-    "-vv",
-    "--debug",
-    action="store_true",
-    help="enable debug output (DEBUG level logging)",
+    '-vv',
+    '--debug',
+    action='store_true',
+    help='enable debug output (DEBUG level logging)',
   )
   parser.add_argument(
-    "--log-file",
+    '--log-file',
     type=str,
-    metavar="PATH",
-    help="write logging output to file",
+    metavar='PATH',
+    help='write logging output to file',
   )
 
   # Output format arguments
   parser.add_argument(
-    "-r",
-    "--raw",
-    action="store_true",
-    help="print raw result data (no JSON formatting)",
+    '-r',
+    '--raw',
+    action='store_true',
+    help='print raw result data as received from the server',
   )
 
   # Dry-run argument
   parser.add_argument(
-    "--noaction",
-    action="store_true",
-    help="show what would be done without actually fetching data",
+    '--noaction',
+    action='store_true',
+    help='show what would be done without actually fetching data',
   )
 
   # Commands
   parser.add_argument(
-    "cmd",
-    nargs="?",
-    metavar="CMD",
-    help=f"command to execute: {command_metavar}",
+    'cmd',
+    nargs='?',
+    metavar='CMD',
+    help=f'command to execute: {command_metavar}',
   )
 
   # IDs
   parser.add_argument(
-    "id",
-    nargs="*",
-    help="ID(s) for the command",
+    'id',
+    nargs='*',
+    help='ID(s) for the command',
   )
 
   return parser
@@ -122,10 +122,10 @@ def handle_config_command(
   if check_first:
     c.load()
     if c.verify_credentials_exist():
-      print("Authorization is already configured in keyring")
+      print('Authorization is already configured in keyring')
     else:
       c.setup()
-      print("Authorization configured successfully")
+      print('Authorization configured successfully')
   else:
     c.setup()
 
@@ -182,7 +182,7 @@ def validate_ids_provided(
     True if IDs provided, False otherwise.
   """
   if not ids:
-    print(f"Error: {cmd} command requires one or more IDs")
+    print(f'Error: {cmd} command requires one or more IDs')
     return False
   return True
 
@@ -199,10 +199,10 @@ def format_noaction_output(
     ids: List of IDs that would be fetched
     raw: Whether raw format would be used
   """
-  id_str = ", ".join(ids)
-  print(f"Would fetch {cmd} data for: {id_str}")
+  id_str = ', '.join(ids)
+  print(f'Would fetch {cmd} data for: {id_str}')
   if raw:
-    print("(raw output format)")
+    print('(raw output format)')
 
 
 def read_ids_from_file(filepath: str) -> list[str] | None:
@@ -218,5 +218,5 @@ def read_ids_from_file(filepath: str) -> list[str] | None:
     with open(filepath) as f:
       return [line.strip() for line in f if line.strip()]
   except OSError as e:
-    print(f"Error reading batch file: {e}")
+    print(f'Error reading batch file: {e}')
     return None

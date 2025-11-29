@@ -5,20 +5,13 @@ serialization for all Zwiftracing data classes.
 """
 
 import json
-import sys
-from pathlib import Path
 from typing import Any, ClassVar
 
 import httpx
 
+from shared.exceptions import NetworkError
 from zrdatafetch.logging_config import get_logger
 from zrdatafetch.rate_limiter import RateLimiter
-
-_parent_dir = str(Path(__file__).parent.parent)
-if _parent_dir not in sys.path:
-  sys.path.insert(0, _parent_dir)
-
-from exceptions import NetworkError as NetworkError  # noqa: E402
 
 logger = get_logger(__name__)
 

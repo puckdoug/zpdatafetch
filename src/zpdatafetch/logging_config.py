@@ -7,29 +7,19 @@ Provides flexible logging setup that:
 - Allows programmatic configuration via setup_logging()
 """
 
-import importlib.util
 import logging
 from pathlib import Path
 
-# Import the shared logging base module using importlib to avoid circular imports
-_logging_base_spec = importlib.util.spec_from_file_location(
-  'logging_base',
-  Path(__file__).parent.parent / 'logging_base.py',
+from shared.logging import (
+  _init_default_logging_for_package,
+  get_logger,
+  setup_logging_for_package,
 )
-_logging_base = importlib.util.module_from_spec(_logging_base_spec)
-_logging_base_spec.loader.exec_module(_logging_base)
 
-
-def get_logger(name: str) -> logging.Logger:
-  """Get a logger instance for the given module name.
-
-  Args:
-    name: Module name (typically __name__)
-
-  Returns:
-    Configured logger instance
-  """
-  return _logging_base.get_logger(name)
+__all__ = [
+  'get_logger',
+  'setup_logging',
+]
 
 
 def setup_logging(
@@ -67,7 +57,7 @@ def setup_logging(
     # Console logging only (interactive mode)
     setup_logging(console_level='INFO')
   """
-  _logging_base.setup_logging_for_package(
+  setup_logging_for_package(
     'zpdatafetch',
     log_file=log_file,
     console_level=console_level,
@@ -82,7 +72,7 @@ def _init_default_logging() -> None:
   Sets up minimal logging that only shows errors on stderr.
   This is called automatically on module import.
   """
-  _logging_base._init_default_logging_for_package('zpdatafetch')
+  _init_default_logging_for_package('zpdatafetch')
 
 
 # Initialize default logging on import

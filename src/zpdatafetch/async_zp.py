@@ -4,35 +4,20 @@ This module provides async/await compatible interfaces for the Zwiftpower API,
 allowing for concurrent requests and better performance in async applications.
 """
 
-import importlib.util
 import json
-import sys
-from pathlib import Path
 from typing import Any
 
 import httpx
 from bs4 import BeautifulSoup
 
+from shared.exceptions import (
+  AuthenticationError,
+  ConfigError,
+  NetworkError,
+)
+from shared.http_client import AsyncBaseHTTPClient, fetch_with_retry_async
 from zpdatafetch.config import Config
 from zpdatafetch.logging_config import get_logger
-
-_parent_dir = str(Path(__file__).parent.parent)
-if _parent_dir not in sys.path:
-  sys.path.insert(0, _parent_dir)
-
-from exceptions import AuthenticationError as AuthenticationError  # noqa: E402
-from exceptions import ConfigError as ConfigError  # noqa: E402
-from exceptions import NetworkError as NetworkError  # noqa: E402
-
-# Import AsyncBaseHTTPClient and fetch_with_retry_async using importlib pattern
-_http_base_spec = importlib.util.spec_from_file_location(
-  'http_client_base',
-  Path(__file__).parent.parent / 'http_client_base.py',
-)
-_http_base = importlib.util.module_from_spec(_http_base_spec)
-_http_base_spec.loader.exec_module(_http_base)
-AsyncBaseHTTPClient = _http_base.AsyncBaseHTTPClient
-fetch_with_retry_async = _http_base.fetch_with_retry_async
 
 logger = get_logger(__name__)
 

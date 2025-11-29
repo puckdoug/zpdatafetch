@@ -4,23 +4,13 @@ Manages Zwiftracing API authorization credentials using the system keyring
 for secure storage.
 """
 
-import importlib.util
 import sys
 from getpass import getpass
-from pathlib import Path
 
 import keyring
 
+from shared.config import BaseConfig
 from zrdatafetch.logging_config import get_logger
-
-# Import BaseConfig from parent src directory
-_config_base_spec = importlib.util.spec_from_file_location(
-  'config_base',
-  Path(__file__).parent.parent / 'config_base.py',
-)
-_config_base = importlib.util.module_from_spec(_config_base_spec)
-_config_base_spec.loader.exec_module(_config_base)
-BaseConfig = _config_base.BaseConfig
 
 logger = get_logger(__name__)
 

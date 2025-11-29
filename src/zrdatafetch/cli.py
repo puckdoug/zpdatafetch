@@ -9,21 +9,21 @@ The CLI matches the zpdata interface:
   zrdata team <id>         Fetch team roster
 """
 
-import importlib.util
 import sys
-from pathlib import Path
 
+from shared.cli import (
+  configure_logging_from_args,
+  create_base_parser,
+  format_noaction_output,
+  handle_config_command,
+  read_ids_from_file,
+  validate_command_name,
+  validate_command_provided,
+  validate_ids_provided,
+)
 from zrdatafetch import Config, ZRResult, ZRRider, ZRTeam
 from zrdatafetch.logging_config import setup_logging
 from zrdatafetch.zr import ZR_obj
-
-# Import shared CLI utilities
-_cli_base_spec = importlib.util.spec_from_file_location(
-  'cli_base',
-  Path(__file__).parent.parent / 'cli_base.py',
-)
-_cli_base = importlib.util.module_from_spec(_cli_base_spec)
-_cli_base_spec.loader.exec_module(_cli_base)
 
 
 # ===============================================================================
@@ -43,7 +43,7 @@ Module for fetching Zwiftracing data using the Zwiftracing API
   """
 
   # Create parser with common arguments
-  p = _cli_base.create_base_parser(
+  p = create_base_parser(
     description=desc,
     command_metavar='{config,rider,result,team}',
   )
@@ -71,37 +71,37 @@ Module for fetching Zwiftracing data using the Zwiftracing API
   args = p.parse_intermixed_args()
 
   # Configure logging based on arguments
-  _cli_base.configure_logging_from_args(args, setup_logging)
+  configure_logging_from_args(args, setup_logging)
 
   # Set premium tier mode if requested
   if args.premium:
     ZR_obj.set_premium_mode(True)
 
   # Handle no command
-  if not _cli_base.validate_command_provided(args.cmd, p):
+  if not validate_command_provided(args.cmd, p):
     return None
 
   # Route to appropriate command
   match args.cmd:
     case 'config':
-      _cli_base.handle_config_command(Config, check_first=True)
+      handle_config_command(Config, check_first=True)
       return None
     case 'rider':
       # Handle batch file input
       if args.batch_file:
-        ids = _cli_base.read_ids_from_file(args.batch_file)
+        ids = read_ids_from_file(args.batch_file)
         if ids is None:
           return 1
         args.id = ids
 
-      if not _cli_base.validate_ids_provided(args.id, 'rider'):
+      if not validate_ids_provided(args.id, 'rider'):
         return 1
 
       if args.noaction:
         if args.batch or args.batch_file:
           print(f'Would fetch {len(args.id)} riders using batch POST')
         else:
-          _cli_base.format_noaction_output('rider', args.id, args.raw)
+          format_noaction_output('rider', args.id, args.raw)
         return None
 
       # Handle batch request
@@ -138,11 +138,11 @@ Module for fetching Zwiftracing data using the Zwiftracing API
             print(f'Error fetching rider {zwift_id}: {e}')
             return 1
     case 'result':
-      if not _cli_base.validate_ids_provided(args.id, 'result'):
+      if not validate_ids_provided(args.id, 'result'):
         return 1
 
       if args.noaction:
-        _cli_base.format_noaction_output('result', args.id, args.raw)
+        format_noaction_output('result', args.id, args.raw)
         return None
 
       # Fetch and display result data
@@ -161,11 +161,11 @@ Module for fetching Zwiftracing data using the Zwiftracing API
           print(f'Error fetching result {race_id}: {e}')
           return 1
     case 'team':
-      if not _cli_base.validate_ids_provided(args.id, 'team'):
+      if not validate_ids_provided(args.id, 'team'):
         return 1
 
       if args.noaction:
-        _cli_base.format_noaction_output('team', args.id, args.raw)
+        format_noaction_output('team', args.id, args.raw)
         return None
 
       # Fetch and display team data
@@ -185,7 +185,7 @@ Module for fetching Zwiftracing data using the Zwiftracing API
           return 1
     case _:
       # Invalid command
-      if not _cli_base.validate_command_name(args.cmd, ('rider', 'result', 'team')):
+      if not validate_command_name(args.cmd, ('rider', 'result', 'team')):
         return 1
 
   return None

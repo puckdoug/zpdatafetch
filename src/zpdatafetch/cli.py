@@ -5,21 +5,20 @@ functionality including cyclist profiles, race results, signups,
 team rosters, and prime data.
 """
 
-import importlib.util
 import json
 import sys
-from pathlib import Path
 
+from shared.cli import (
+  configure_logging_from_args,
+  create_base_parser,
+  format_noaction_output,
+  handle_config_command,
+  validate_command_name,
+  validate_command_provided,
+  validate_ids_provided,
+)
 from zpdatafetch import Config, Cyclist, Primes, Result, Signup, Sprints, Team
 from zpdatafetch.logging_config import setup_logging
-
-# Import shared CLI utilities
-_cli_base_spec = importlib.util.spec_from_file_location(
-  'cli_base',
-  Path(__file__).parent.parent / 'cli_base.py',
-)
-_cli_base = importlib.util.module_from_spec(_cli_base_spec)
-_cli_base_spec.loader.exec_module(_cli_base)
 
 
 # ===============================================================================
@@ -43,7 +42,7 @@ Module for fetching zwiftpower data using the Zwifpower API
   """
 
   # Create parser with common arguments
-  p = _cli_base.create_base_parser(
+  p = create_base_parser(
     description=desc,
     command_metavar='{config,cyclist,primes,result,signup,sprints,team}',
   )
@@ -53,29 +52,29 @@ Module for fetching zwiftpower data using the Zwifpower API
   args = p.parse_intermixed_args()
 
   # Configure logging based on arguments
-  _cli_base.configure_logging_from_args(args, setup_logging)
+  configure_logging_from_args(args, setup_logging)
 
   # Handle missing command
-  if not _cli_base.validate_command_provided(args.cmd, p):
+  if not validate_command_provided(args.cmd, p):
     return None
 
   # Handle config command
   if args.cmd == 'config':
-    _cli_base.handle_config_command(Config, check_first=False)
+    handle_config_command(Config, check_first=False)
     return None
 
   # For non-config commands, validate command name
   valid_commands = ('cyclist', 'primes', 'result', 'signup', 'sprints', 'team')
-  if not _cli_base.validate_command_name(args.cmd, valid_commands):
+  if not validate_command_name(args.cmd, valid_commands):
     return 1
 
   # For non-config commands, validate we have IDs
-  if not _cli_base.validate_ids_provided(args.id, args.cmd):
+  if not validate_ids_provided(args.id, args.cmd):
     return 1
 
   # Handle --noaction flag (report what would be done without fetching)
   if args.noaction:
-    _cli_base.format_noaction_output(args.cmd, args.id, args.raw)
+    format_noaction_output(args.cmd, args.id, args.raw)
     return None
 
   # Map command to class and fetch

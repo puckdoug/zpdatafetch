@@ -3,19 +3,12 @@
 Tests the race result data structures and fetching functionality.
 """
 
-import sys
-from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from shared.exceptions import ConfigError
 from zrdatafetch import ZRResult, ZRRiderResult
-
-_parent_dir = str(Path(__file__).parent.parent / 'src')
-if _parent_dir not in sys.path:
-  sys.path.insert(0, _parent_dir)
-
-from exceptions import ConfigError as ConfigError  # noqa: E402
 
 
 # ===============================================================================
@@ -34,7 +27,7 @@ class TestZRRiderResultInitialization:
     result = ZRRiderResult()
     assert result.zwift_id == 0
     assert result.position == 0
-    assert result.category == ''
+    assert result.category == ""
     assert result.time == 0.0
     assert result.gap == 0.0
     assert result.rating_before == 0.0
@@ -47,7 +40,7 @@ class TestZRRiderResultInitialization:
       zwift_id=12345,
       position=5,
       position_in_category=3,
-      category='B',
+      category="B",
       time=1234.5,
       gap=45.2,
       rating_before=2200.0,
@@ -57,7 +50,7 @@ class TestZRRiderResultInitialization:
     assert result.zwift_id == 12345
     assert result.position == 5
     assert result.position_in_category == 3
-    assert result.category == 'B'
+    assert result.category == "B"
     assert result.time == 1234.5
     assert result.gap == 45.2
     assert result.rating_before == 2200.0
@@ -66,13 +59,13 @@ class TestZRRiderResultInitialization:
 
   def test_zrrider_result_to_dict(self):
     """Test ZRRiderResult.to_dict()."""
-    result = ZRRiderResult(zwift_id=12345, position=1, category='A')
+    result = ZRRiderResult(zwift_id=12345, position=1, category="A")
     d = result.to_dict()
-    assert d['zwift_id'] == 12345
-    assert d['position'] == 1
-    assert d['category'] == 'A'
-    assert 'gap' in d
-    assert 'rating_delta' in d
+    assert d["zwift_id"] == 12345
+    assert d["position"] == 1
+    assert d["category"] == "A"
+    assert "gap" in d
+    assert "rating_delta" in d
 
 
 # ===============================================================================
@@ -116,19 +109,19 @@ class TestZRResultIsZRObj:
   def test_zrresult_has_get_client(self):
     """Test that ZRResult has get_client method."""
     result = ZRResult()
-    assert hasattr(result, 'get_client')
+    assert hasattr(result, "get_client")
     assert callable(result.get_client)
 
   def test_zrresult_has_close_client(self):
     """Test that ZRResult has close_client method."""
     result = ZRResult()
-    assert hasattr(result, 'close_client')
+    assert hasattr(result, "close_client")
     assert callable(result.close_client)
 
   def test_zrresult_has_fetch_json(self):
     """Test that ZRResult has fetch_json method."""
     result = ZRResult()
-    assert hasattr(result, 'fetch_json')
+    assert hasattr(result, "fetch_json")
     assert callable(result.fetch_json)
 
 
@@ -147,10 +140,10 @@ class TestZRResultFetch:
     """Test that fetch requires authorization in config."""
     result = ZRResult(race_id=3590800)
 
-    with patch('zrdatafetch.zrresult.Config') as mock_config_class:
+    with patch("zrdatafetch.zrresult.Config") as mock_config_class:
       mock_config = MagicMock()
       mock_config_class.return_value = mock_config
-      mock_config.authorization = ''  # Empty authorization
+      mock_config.authorization = ""  # Empty authorization
 
       with pytest.raises(ConfigError):
         result.fetch()
@@ -159,10 +152,10 @@ class TestZRResultFetch:
     """Test fetch with race_id but no authorization."""
     result = ZRResult(race_id=3590800)
 
-    with patch('zrdatafetch.zrresult.Config') as mock_config_class:
+    with patch("zrdatafetch.zrresult.Config") as mock_config_class:
       mock_config = MagicMock()
       mock_config_class.return_value = mock_config
-      mock_config.authorization = ''
+      mock_config.authorization = ""
 
       with pytest.raises(ConfigError):
         result.fetch()
@@ -171,12 +164,12 @@ class TestZRResultFetch:
     """Test that fetch calls fetch_json with correct endpoint."""
     result = ZRResult(race_id=3590800)
 
-    with patch('zrdatafetch.zrresult.Config') as mock_config_class:
+    with patch("zrdatafetch.zrresult.Config") as mock_config_class:
       mock_config = MagicMock()
       mock_config_class.return_value = mock_config
-      mock_config.authorization = 'test-auth-header'
+      mock_config.authorization = "test-auth-header"
 
-      with patch('zrdatafetch.zrresult.AsyncZR_obj') as mock_async_zr_class:
+      with patch("zrdatafetch.zrresult.AsyncZR_obj") as mock_async_zr_class:
         mock_zr = MagicMock()
         mock_async_zr_class.return_value = mock_zr
         mock_zr.init_client = AsyncMock()
@@ -186,18 +179,18 @@ class TestZRResultFetch:
         result.fetch()
         mock_zr.fetch_json.assert_called_once()
         call_args = mock_zr.fetch_json.call_args
-        assert '/public/results/3590800' in call_args[0]
+        assert "/public/results/3590800" in call_args[0]
 
   def test_fetch_with_epoch_parameter(self):
     """Test fetch with epoch parameter."""
     result = ZRResult(race_id=3590800)
 
-    with patch('zrdatafetch.zrresult.Config') as mock_config_class:
+    with patch("zrdatafetch.zrresult.Config") as mock_config_class:
       mock_config = MagicMock()
       mock_config_class.return_value = mock_config
-      mock_config.authorization = 'test-auth-header'
+      mock_config.authorization = "test-auth-header"
 
-      with patch('zrdatafetch.zrresult.AsyncZR_obj') as mock_async_zr_class:
+      with patch("zrdatafetch.zrresult.AsyncZR_obj") as mock_async_zr_class:
         mock_zr = MagicMock()
         mock_async_zr_class.return_value = mock_zr
         mock_zr.init_client = AsyncMock()
@@ -223,7 +216,7 @@ class TestZRResultParseResponse:
   def test_parse_response_with_error_message(self):
     """Test parsing response with error message."""
     result = ZRResult(race_id=3590800)
-    result._raw = {'message': 'Race not found'}
+    result._raw = {"message": "Race not found"}
     result._parse_response()
     assert len(result.results) == 0
 
@@ -232,24 +225,24 @@ class TestZRResultParseResponse:
     result = ZRResult(race_id=3590800)
     result._raw = [
       {
-        'riderId': 12345,
-        'position': 1,
-        'category': 'A',
-        'time': 1234.5,
-        'gap': 0.0,
-        'rating': 2250.0,
-        'ratingBefore': 2240.0,
-        'ratingDelta': 10.0,
+        "riderId": 12345,
+        "position": 1,
+        "category": "A",
+        "time": 1234.5,
+        "gap": 0.0,
+        "rating": 2250.0,
+        "ratingBefore": 2240.0,
+        "ratingDelta": 10.0,
       },
       {
-        'riderId': 67890,
-        'position': 2,
-        'category': 'A',
-        'time': 1245.3,
-        'gap': 10.8,
-        'rating': 2200.0,
-        'ratingBefore': 2195.0,
-        'ratingDelta': 5.0,
+        "riderId": 67890,
+        "position": 2,
+        "category": "A",
+        "time": 1245.3,
+        "gap": 10.8,
+        "rating": 2200.0,
+        "ratingBefore": 2195.0,
+        "ratingDelta": 5.0,
       },
     ]
     result._parse_response()
@@ -257,7 +250,7 @@ class TestZRResultParseResponse:
     assert len(result.results) == 2
     assert result.results[0].zwift_id == 12345
     assert result.results[0].position == 1
-    assert result.results[0].category == 'A'
+    assert result.results[0].category == "A"
     assert result.results[1].zwift_id == 67890
     assert result.results[1].position == 2
 
@@ -266,8 +259,8 @@ class TestZRResultParseResponse:
     result = ZRResult(race_id=3590800)
     result._raw = [
       {
-        'riderId': 12345,
-        'position': 1,
+        "riderId": 12345,
+        "position": 1,
         # Missing other fields - should use defaults
       },
     ]
@@ -276,7 +269,7 @@ class TestZRResultParseResponse:
     assert len(result.results) == 1
     assert result.results[0].zwift_id == 12345
     assert result.results[0].position == 1
-    assert result.results[0].category == ''
+    assert result.results[0].category == ""
     assert result.results[0].gap == 0.0
 
   def test_parse_response_malformed_data(self):
@@ -287,18 +280,18 @@ class TestZRResultParseResponse:
     result = ZRResult(race_id=3590800)
     result._raw = [
       {
-        'riderId': 12345,
-        'position': 1,
-        'category': 'A',
+        "riderId": 12345,
+        "position": 1,
+        "category": "A",
       },
       {
-        'riderId': 'not_a_number',  # Accepted as-is since int() conversion happens on field
-        'position': 2,
+        "riderId": "not_a_number",  # Accepted as-is since int() conversion happens on field
+        "position": 2,
       },
       {
-        'riderId': 67890,
-        'position': 3,
-        'category': 'B',
+        "riderId": 67890,
+        "position": 3,
+        "category": "B",
       },
     ]
     result._parse_response()
@@ -306,13 +299,13 @@ class TestZRResultParseResponse:
     # All riders should be parsed since we don't validate zwift_id type
     assert len(result.results) == 3
     assert result.results[0].zwift_id == 12345
-    assert result.results[1].zwift_id == 'not_a_number'
+    assert result.results[1].zwift_id == "not_a_number"
     assert result.results[2].zwift_id == 67890
 
   def test_parse_response_invalid_type(self):
     """Test parsing response that's not a list."""
     result = ZRResult(race_id=3590800)
-    result._raw = {'error': 'Not a list'}
+    result._raw = {"error": "Not a list"}
     result._parse_response()
     # Should handle gracefully
     assert len(result.results) == 0
@@ -326,10 +319,10 @@ class TestZRResultParseResponse:
     result = ZRResult(race_id=3590800)
     result._raw = [
       {
-        'riderId': 12345,
-        'position': 1,
-        'rating': None,  # None value causes skip
-        'gap': None,
+        "riderId": 12345,
+        "position": 1,
+        "rating": None,  # None value causes skip
+        "gap": None,
       },
     ]
     result._parse_response()
@@ -349,17 +342,17 @@ class TestZRResultSerialization:
     result = ZRResult(race_id=3590800, results=[r1, r2])
 
     d = result.to_dict()
-    assert d['race_id'] == 3590800
-    assert len(d['results']) == 2
-    assert d['results'][0]['zwift_id'] == 12345
-    assert d['results'][1]['zwift_id'] == 67890
+    assert d["race_id"] == 3590800
+    assert len(d["results"]) == 2
+    assert d["results"][0]["zwift_id"] == 12345
+    assert d["results"][1]["zwift_id"] == 67890
 
   def test_to_dict_empty(self):
     """Test to_dict with no results."""
     result = ZRResult(race_id=3590800)
     d = result.to_dict()
-    assert d['race_id'] == 3590800
-    assert d['results'] == []
+    assert d["race_id"] == 3590800
+    assert d["results"] == []
 
   def test_json_output(self):
     """Test JSON serialization."""
@@ -368,8 +361,8 @@ class TestZRResultSerialization:
 
     json_str = result.json()
     assert isinstance(json_str, str)
-    assert '3590800' in json_str
-    assert '12345' in json_str
+    assert "3590800" in json_str
+    assert "12345" in json_str
 
 
 # ===============================================================================
@@ -382,7 +375,7 @@ class TestZRResultIntegration:
 
     # Simulate multiple riders
     riders_data = [
-      {'riderId': i, 'position': i, 'category': 'A' if i < 10 else 'B'}
+      {"riderId": i, "position": i, "category": "A" if i < 10 else "B"}
       for i in range(1, 51)  # 50 riders
     ]
 
@@ -399,25 +392,25 @@ class TestZRResultIntegration:
     result = ZRResult(race_id=3590800)
     result._raw = [
       {
-        'riderId': 1,
-        'position': 1,
-        'rating': 2250.0,
-        'ratingBefore': 2240.0,
-        'ratingDelta': 10.0,
+        "riderId": 1,
+        "position": 1,
+        "rating": 2250.0,
+        "ratingBefore": 2240.0,
+        "ratingDelta": 10.0,
       },
       {
-        'riderId': 2,
-        'position': 2,
-        'rating': 2200.0,
-        'ratingBefore': 2205.0,
-        'ratingDelta': -5.0,
+        "riderId": 2,
+        "position": 2,
+        "rating": 2200.0,
+        "ratingBefore": 2205.0,
+        "ratingDelta": -5.0,
       },
       {
-        'riderId': 3,
-        'position': 3,
-        'rating': 2180.0,
-        'ratingBefore': 2175.0,
-        'ratingDelta': 5.0,
+        "riderId": 3,
+        "position": 3,
+        "rating": 2180.0,
+        "ratingBefore": 2175.0,
+        "ratingDelta": 5.0,
       },
     ]
     result._parse_response()
