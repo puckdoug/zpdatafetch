@@ -7,6 +7,7 @@ from typing import Any
 
 import anyio
 
+from shared.validation import ValidationError, validate_id_list
 from zpdatafetch.async_zp import AsyncZP
 from zpdatafetch.logging_config import get_logger, setup_logging
 from zpdatafetch.zp import ZP
@@ -113,22 +114,11 @@ class Cyclist(ZP_obj):
       logger.info(f'Fetching cyclist data for {len(zwift_id)} ID(s)')
 
       # SECURITY: Validate all Zwift IDs before processing
-      validated_ids = []
-      for z in zwift_id:
-        try:
-          # Convert to int if string, validate range
-          zid = int(z) if not isinstance(z, int) else z
-          if zid <= 0 or zid > 999999999:
-            raise ValueError(
-              f'Invalid Zwift ID: {z}. Must be a positive integer.',
-            )
-          validated_ids.append(zid)
-        except (ValueError, TypeError) as e:
-          if isinstance(e, ValueError) and 'Invalid Zwift ID' in str(e):
-            raise
-          raise ValueError(
-            f'Invalid Zwift ID: {z}. Must be a valid positive integer.',
-          ) from e
+      try:
+        validated_ids = validate_id_list(list(zwift_id), id_type='zwift')
+      except ValidationError as e:
+        logger.error(f'ID validation failed: {e}')
+        raise
 
       # Build list of fetch tasks (JSON only, not profile pages)
       fetch_tasks = []

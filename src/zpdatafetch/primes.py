@@ -9,6 +9,7 @@ from typing import Any
 
 import anyio
 
+from shared.validation import ValidationError, validate_id_list
 from zpdatafetch.async_zp import AsyncZP
 from zpdatafetch.logging_config import get_logger, setup_logging
 from zpdatafetch.zp import ZP
@@ -170,24 +171,12 @@ class Primes(ZP_obj):
       logger.info(f'Fetching prime data for {len(race_id)} race(s)')
 
       # SECURITY: Validate all race IDs before processing
-      validated_ids = []
-      for r in race_id:
-        try:
-          # Convert to int if string, validate range
-          rid = int(r) if not isinstance(r, int) else r
-          if rid <= 0 or rid > 999999999:
-            raise ValueError(
-              f'Invalid race ID: {r}. Must be a positive integer.',
-            )
-          validated_ids.append(rid)
-          logger.debug(f'Validated race ID: {rid}')
-        except (ValueError, TypeError) as e:
-          if isinstance(e, ValueError) and 'Invalid race ID' in str(e):
-            raise
-          logger.error(f'Invalid race ID: {r}')
-          raise ValueError(
-            f'Invalid race ID: {r}. Must be a valid positive integer.',
-          ) from e
+      try:
+        validated_ids = validate_id_list(list(race_id), id_type='race')
+        logger.debug(f'Validated {len(validated_ids)} race IDs')
+      except ValidationError as e:
+        logger.error(f'ID validation failed: {e}')
+        raise
 
       p: dict[Any, Any] = {}
       ts = int(re.sub(r'\.', '', str(datetime.datetime.now().timestamp())[:-3]))

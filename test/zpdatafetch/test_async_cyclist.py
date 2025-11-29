@@ -1,5 +1,7 @@
 """Tests for Cyclist with async (afetch) methods."""
 
+import sys
+
 import httpx
 import pytest
 
@@ -10,20 +12,20 @@ from zpdatafetch.cyclist import Cyclist
 @pytest.mark.anyio
 async def test_async_cyclist_fetch(login_page, logged_in_page):
   """Test AsyncCyclist fetch functionality."""
-  test_data = {'zwid': 123456, 'name': 'Test Cyclist'}
+  test_data = {"zwid": 123456, "name": "Test Cyclist"}
 
   def handler(request):
-    if request.method == 'GET' and 'login' in str(request.url):
+    if request.method == "GET" and "login" in str(request.url):
       return httpx.Response(200, text=login_page)
-    if request.method == 'POST':
+    if request.method == "POST":
       return httpx.Response(200, text=logged_in_page)
-    if '123456' in str(request.url):
+    if "123456" in str(request.url):
       return httpx.Response(200, json=test_data)
     return httpx.Response(404)
 
   async with AsyncZP(skip_credential_check=True) as zp:
-    zp.username = 'testuser'
-    zp.password = 'testpass'
+    zp.username = "testuser"
+    zp.password = "testpass"
     await zp.init_client(
       httpx.AsyncClient(
         follow_redirects=True,
@@ -53,7 +55,7 @@ async def test_async_cyclist_invalid_id():
       await cyclist.afetch(-1)  # Invalid: negative
 
     with pytest.raises(ValueError):
-      await cyclist.afetch(9999999999)  # Invalid: too large
+      await cyclist.afetch(sys.maxsize + 1)  # Invalid: too large
 
 
 @pytest.mark.anyio
@@ -61,19 +63,19 @@ async def test_async_multiple_fetches(login_page, logged_in_page):
   """Test fetching multiple IDs with async API."""
 
   def handler(request):
-    if request.method == 'GET' and 'login' in str(request.url):
+    if request.method == "GET" and "login" in str(request.url):
       return httpx.Response(200, text=login_page)
-    if request.method == 'POST':
+    if request.method == "POST":
       return httpx.Response(200, text=logged_in_page)
-    if '123456' in str(request.url):
-      return httpx.Response(200, json={'zwid': 123456})
-    if '789012' in str(request.url):
-      return httpx.Response(200, json={'zwid': 789012})
+    if "123456" in str(request.url):
+      return httpx.Response(200, json={"zwid": 123456})
+    if "789012" in str(request.url):
+      return httpx.Response(200, json={"zwid": 789012})
     return httpx.Response(404)
 
   async with AsyncZP(skip_credential_check=True) as zp:
-    zp.username = 'testuser'
-    zp.password = 'testpass'
+    zp.username = "testuser"
+    zp.password = "testpass"
     await zp.init_client(
       httpx.AsyncClient(
         follow_redirects=True,
@@ -93,20 +95,20 @@ async def test_async_multiple_fetches(login_page, logged_in_page):
 @pytest.mark.anyio
 async def test_async_data_class_json_output(login_page, logged_in_page):
   """Test JSON serialization of async data classes."""
-  test_data = {'zwid': 123456, 'name': 'Test'}
+  test_data = {"zwid": 123456, "name": "Test"}
 
   def handler(request):
-    if request.method == 'GET' and 'login' in str(request.url):
+    if request.method == "GET" and "login" in str(request.url):
       return httpx.Response(200, text=login_page)
-    if request.method == 'POST':
+    if request.method == "POST":
       return httpx.Response(200, text=logged_in_page)
-    if '123456' in str(request.url):
+    if "123456" in str(request.url):
       return httpx.Response(200, json=test_data)
     return httpx.Response(404)
 
   async with AsyncZP(skip_credential_check=True) as zp:
-    zp.username = 'testuser'
-    zp.password = 'testpass'
+    zp.username = "testuser"
+    zp.password = "testpass"
     await zp.init_client(
       httpx.AsyncClient(
         follow_redirects=True,
@@ -120,7 +122,7 @@ async def test_async_data_class_json_output(login_page, logged_in_page):
 
     # Test json() method
     json_str = cyclist.json()
-    assert '123456' in json_str
+    assert "123456" in json_str
 
     # Test asdict() method
     data_dict = cyclist.asdict()
@@ -128,4 +130,4 @@ async def test_async_data_class_json_output(login_page, logged_in_page):
 
     # Test __str__() method
     str_repr = str(cyclist)
-    assert '123456' in str_repr
+    assert "123456" in str_repr

@@ -125,6 +125,12 @@ ignore = [
 "src/zrdatafetch/zr.py" = ["ANN401"]
 # Abstract methods with flexible kwargs - documented in docstrings
 "src/shared/config.py" = ["ANN401"]
+# Validation error messages with sys.maxsize are naturally long
+"src/shared/validation.py" = ["E501"]
+# zpdatafetch files have decorative comment lines that exceed 80 chars
+"src/zpdatafetch/*.py" = ["E501"]
+# Test files don't need return type annotations
+"test/**/*.py" = ["ANN201"]
 
 [tool.ruff.format]
 quote-style = "single"

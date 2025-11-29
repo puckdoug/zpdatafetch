@@ -7,6 +7,7 @@ from typing import Any
 
 import anyio
 
+from shared.validation import ValidationError, validate_id_list
 from zpdatafetch.async_zp import AsyncZP
 from zpdatafetch.logging_config import get_logger, setup_logging
 from zpdatafetch.zp import ZP
@@ -113,22 +114,11 @@ class Team(ZP_obj):
       logger.info(f'Fetching team data for {len(team_id)} ID(s)')
 
       # SECURITY: Validate all team IDs before processing
-      validated_ids = []
-      for t in team_id:
-        try:
-          # Convert to int if string, validate range
-          tid = int(t) if not isinstance(t, int) else t
-          if tid <= 0 or tid > 999999999:
-            raise ValueError(
-              f'Invalid team ID: {t}. Must be a positive integer.',
-            )
-          validated_ids.append(tid)
-        except (ValueError, TypeError) as e:
-          if isinstance(e, ValueError) and 'Invalid team ID' in str(e):
-            raise
-          raise ValueError(
-            f'Invalid team ID: {t}. Must be a valid positive integer.',
-          ) from e
+      try:
+        validated_ids = validate_id_list(list(team_id), id_type='team')
+      except ValidationError as e:
+        logger.error(f'ID validation failed: {e}')
+        raise
 
       # Build list of fetch tasks using async URLs
       fetch_tasks = []
