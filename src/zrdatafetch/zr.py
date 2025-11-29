@@ -9,6 +9,7 @@ from typing import Any, ClassVar
 
 import httpx
 
+from shared.error_helpers import format_network_error
 from shared.exceptions import NetworkError
 from zrdatafetch.logging_config import get_logger
 from zrdatafetch.rate_limiter import RateLimiter
@@ -174,14 +175,23 @@ class ZR_obj:
     except httpx.HTTPStatusError as e:
       logger.error(f'HTTP error {method} {endpoint}: {e.response.status_code}')
       raise NetworkError(
-        f'HTTP {e.response.status_code}: {e.response.reason_phrase}',
+        format_network_error(
+          f'{method.lower()} request',
+          endpoint,
+          e,
+          status_code=e.response.status_code,
+        ),
       ) from e
     except httpx.RequestError as e:
       logger.error(f'Network error {method} {endpoint}: {e}')
-      raise NetworkError(f'Network error: {e}') from e
+      raise NetworkError(
+        format_network_error(f'{method.lower()} request', endpoint, e),
+      ) from e
     except json.JSONDecodeError as e:
       logger.error(f'Invalid JSON from {endpoint}: {e}')
-      raise NetworkError(f'Invalid JSON response: {e}') from e
+      raise NetworkError(
+        format_network_error('parse JSON response', endpoint, e),
+      ) from e
 
   # -------------------------------------------------------------------------------
   def json(self) -> str:

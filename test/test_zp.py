@@ -34,7 +34,7 @@ def test_login_network_error_on_get(zp, login_page):
     httpx.Client(follow_redirects=True, transport=httpx.MockTransport(handler)),
   )
 
-  with pytest.raises(NetworkError, match="Network error during login"):
+  with pytest.raises(NetworkError, match="Failed to fetch login page"):
     zp.login()
 
 
@@ -58,7 +58,7 @@ def test_login_missing_form(zp):
     httpx.Client(follow_redirects=True, transport=httpx.MockTransport(handler)),
   )
 
-  with pytest.raises(AuthenticationError, match="Login form not found"):
+  with pytest.raises(AuthenticationError, match="Failed to parse login form"):
     zp.login()
 
 

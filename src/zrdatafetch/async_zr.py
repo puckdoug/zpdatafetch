@@ -10,6 +10,7 @@ from typing import Any
 import anyio
 import httpx
 
+from shared.error_helpers import format_network_error
 from shared.exceptions import NetworkError
 from zrdatafetch.logging_config import get_logger
 from zrdatafetch.rate_limiter import RateLimiter
@@ -177,7 +178,14 @@ class AsyncZR_obj:
           )
           await anyio.sleep(wait_time)
         else:
-          raise NetworkError(f'HTTP error: {e}') from e
+          raise NetworkError(
+            format_network_error(
+              'fetch endpoint',
+              endpoint,
+              e,
+              status_code=e.response.status_code,
+            ),
+          ) from e
 
       except httpx.RequestError as e:
         last_exception = e
@@ -193,10 +201,12 @@ class AsyncZR_obj:
     if last_exception:
       logger.error(f'Max retries ({max_retries}) exhausted: {last_exception}')
       raise NetworkError(
-        f'Failed after {max_retries} attempts: {last_exception}',
+        format_network_error('fetch endpoint', endpoint, last_exception),
       ) from last_exception
 
-    raise NetworkError(f'Unexpected error fetching {endpoint}')
+    raise NetworkError(
+      format_network_error('fetch endpoint', endpoint, Exception('Unknown error')),
+    )
 
   # -------------------------------------------------------------------------------
   async def fetch_json(
@@ -262,10 +272,19 @@ class AsyncZR_obj:
       raise
     except httpx.HTTPStatusError as e:
       logger.error(f'HTTP error fetching {endpoint}: {e}')
-      raise NetworkError(f'HTTP error fetching {endpoint}: {e}') from e
+      raise NetworkError(
+        format_network_error(
+          'fetch JSON data',
+          endpoint,
+          e,
+          status_code=e.response.status_code,
+        ),
+      ) from e
     except httpx.RequestError as e:
       logger.error(f'Network error fetching {endpoint}: {e}')
-      raise NetworkError(f'Network error fetching {endpoint}: {e}') from e
+      raise NetworkError(
+        format_network_error('fetch JSON data', endpoint, e),
+      ) from e
 
   # -------------------------------------------------------------------------------
   @classmethod

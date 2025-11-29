@@ -10,6 +10,7 @@ from typing import Any
 import httpx
 from bs4 import BeautifulSoup
 
+from shared.error_helpers import format_auth_error, format_network_error
 from shared.exceptions import (
   AuthenticationError,
   ConfigError,
@@ -129,10 +130,19 @@ class AsyncZP(AsyncBaseHTTPClient):
       page.raise_for_status()
     except httpx.HTTPStatusError as e:
       logger.error(f'Failed to fetch login page: {e}')
-      raise NetworkError(f'Failed to fetch login page: {e}') from e
+      raise NetworkError(
+        format_network_error(
+          'fetch login page',
+          self._login_url,
+          e,
+          status_code=e.response.status_code,
+        ),
+      ) from e
     except httpx.RequestError as e:
       logger.error(f'Network error during login: {e}')
-      raise NetworkError(f'Network error during login: {e}') from e
+      raise NetworkError(
+        format_network_error('fetch login page', self._login_url, e),
+      ) from e
 
     self._client.cookies.get('phpbb3_lswlk_sid')
 
@@ -141,13 +151,25 @@ class AsyncZP(AsyncBaseHTTPClient):
       if not soup.form or 'action' not in soup.form.attrs:
         logger.error('Login form not found on page')
         raise AuthenticationError(
-          'Login form not found on page. Zwiftpower may have changed their login flow.',
+          format_auth_error(
+            'parse login form',
+            self._login_url,
+            Exception('Login form not found on page'),
+            suggestion='Zwiftpower may have changed their login flow. Contact support if this persists.',
+          ),
         )
       login_url_from_form = soup.form['action'][0:]
       logger.debug(f'Extracted login form URL: {login_url_from_form}')
     except (AttributeError, KeyError) as e:
       logger.error(f'Could not parse login form: {e}')
-      raise AuthenticationError(f'Could not parse login form: {e}') from e
+      raise AuthenticationError(
+        format_auth_error(
+          'parse login form',
+          self._login_url,
+          e,
+          suggestion='The login page structure may have changed. Check Zwiftpower is working normally.',
+        ),
+      ) from e
 
     data = {'username': self.username, 'password': self.password}
     # SECURITY: Do NOT log the data dict or login URL - it contains credentials
@@ -167,15 +189,33 @@ class AsyncZP(AsyncBaseHTTPClient):
       ):
         logger.error('Authentication failed - redirected back to login page')
         raise AuthenticationError(
-          'Login failed. Please check your username and password.',
+          format_auth_error(
+            'authenticate with Zwiftpower',
+            login_url_from_form,
+            Exception('Authentication failed'),
+            suggestion='Your username or password is incorrect. Verify your credentials.',
+          ),
         )
       logger.info('Successfully authenticated with Zwiftpower')
     except httpx.HTTPStatusError as e:
       logger.error(f'HTTP error during authentication: {e}')
-      raise NetworkError(f'HTTP error during authentication: {e}') from e
+      raise NetworkError(
+        format_network_error(
+          'authenticate with Zwiftpower',
+          login_url_from_form,
+          e,
+          status_code=e.response.status_code,
+        ),
+      ) from e
     except httpx.RequestError as e:
       logger.error(f'Network error during authentication: {e}')
-      raise NetworkError(f'Network error during authentication: {e}') from e
+      raise NetworkError(
+        format_network_error(
+          'authenticate with Zwiftpower',
+          login_url_from_form,
+          e,
+        ),
+      ) from e
 
   # -------------------------------------------------------------------------------
   async def _create_client(self) -> httpx.AsyncClient:
@@ -260,10 +300,19 @@ class AsyncZP(AsyncBaseHTTPClient):
       raise
     except httpx.HTTPStatusError as e:
       logger.error(f'HTTP error fetching {endpoint}: {e}')
-      raise NetworkError(f'HTTP error fetching {endpoint}: {e}') from e
+      raise NetworkError(
+        format_network_error(
+          'fetch JSON data',
+          endpoint,
+          e,
+          status_code=e.response.status_code,
+        ),
+      ) from e
     except httpx.RequestError as e:
       logger.error(f'Network error fetching {endpoint}: {e}')
-      raise NetworkError(f'Network error fetching {endpoint}: {e}') from e
+      raise NetworkError(
+        format_network_error('fetch JSON data', endpoint, e),
+      ) from e
 
   # -------------------------------------------------------------------------------
   async def fetch_page(
@@ -303,10 +352,19 @@ class AsyncZP(AsyncBaseHTTPClient):
       raise
     except httpx.HTTPStatusError as e:
       logger.error(f'HTTP error fetching {endpoint}: {e}')
-      raise NetworkError(f'HTTP error fetching {endpoint}: {e}') from e
+      raise NetworkError(
+        format_network_error(
+          'fetch page',
+          endpoint,
+          e,
+          status_code=e.response.status_code,
+        ),
+      ) from e
     except httpx.RequestError as e:
       logger.error(f'Network error fetching {endpoint}: {e}')
-      raise NetworkError(f'Network error fetching {endpoint}: {e}') from e
+      raise NetworkError(
+        format_network_error('fetch page', endpoint, e),
+      ) from e
 
   # -------------------------------------------------------------------------------
   async def _on_close(self) -> None:

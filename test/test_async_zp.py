@@ -95,7 +95,7 @@ async def test_async_login_missing_form():
         transport=httpx.MockTransport(handler),
       ),
     )
-    with pytest.raises(AuthenticationError, match='Login form not found'):
+    with pytest.raises(AuthenticationError, match='Failed to parse login form'):
       await zp.login()
 
 
@@ -115,7 +115,7 @@ async def test_async_login_network_error():
         transport=httpx.MockTransport(handler),
       ),
     )
-    with pytest.raises(NetworkError, match='Network error during login'):
+    with pytest.raises(NetworkError, match='Failed to fetch login page'):
       await zp.login()
 
 
