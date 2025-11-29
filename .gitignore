@@ -1,6 +1,7 @@
 .envrc
 tmp/
 local/
+planning/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
