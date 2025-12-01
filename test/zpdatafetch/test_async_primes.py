@@ -1,5 +1,7 @@
 """Tests for Primes with async (afetch) methods."""
 
+import json
+
 import httpx
 import pytest
 
@@ -23,7 +25,7 @@ async def test_async_primes_fetch(login_page, logged_in_page):
     if request.method == 'POST':
       return httpx.Response(200, text=logged_in_page)
     if 'event_primes' in str(request.url) and '3590800' in str(request.url):
-      return httpx.Response(200, json=test_data)
+      return httpx.Response(200, text=json.dumps(test_data))
     return httpx.Response(404)
 
   async with AsyncZP(skip_credential_check=True) as zp:

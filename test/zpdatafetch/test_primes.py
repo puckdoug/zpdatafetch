@@ -1,3 +1,5 @@
+import json
+
 import httpx
 
 from zpdatafetch import Primes
@@ -26,7 +28,7 @@ def test_primes_fetch(primes, login_page, logged_in_page):
     if request.method == 'POST':
       return httpx.Response(200, text=logged_in_page)
     if 'event_primes' in str(request.url):
-      return httpx.Response(200, json=test_data)
+      return httpx.Response(200, text=json.dumps(test_data))
     return httpx.Response(404)
 
   from zpdatafetch.zp import ZP

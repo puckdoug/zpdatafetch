@@ -1,5 +1,6 @@
 """Tests for the async ZP API."""
 
+import json
 import sys
 
 import httpx
@@ -130,7 +131,7 @@ async def test_async_fetch_json_success():
         200,
         text='<html><form action="/login"></form></html>',
       )
-    return httpx.Response(200, json=test_data)
+    return httpx.Response(200, text=json.dumps(test_data))
 
   async with AsyncZP(skip_credential_check=True) as zp:
     zp.username = 'testuser'
@@ -142,7 +143,7 @@ async def test_async_fetch_json_success():
       ),
     )
     result = await zp.fetch_json('https://zwiftpower.com/api/test')
-    assert result == test_data
+    assert result == json.dumps(test_data)
 
 
 @pytest.mark.anyio
@@ -167,7 +168,7 @@ async def test_async_fetch_json_invalid_json():
       ),
     )
     result = await zp.fetch_json('https://zwiftpower.com/api/test')
-    assert result == {}
+    assert result == 'This is not JSON'
 
 
 @pytest.mark.anyio
@@ -214,7 +215,7 @@ async def test_async_retry_on_transient_error():
       # First call fails
       return httpx.Response(500, text='Server Error')
     # Second call succeeds
-    return httpx.Response(200, json={'status': 'ok'})
+    return httpx.Response(200, text=json.dumps({'status': 'ok'}))
 
   async with AsyncZP(skip_credential_check=True) as zp:
     zp.username = 'testuser'
@@ -226,7 +227,7 @@ async def test_async_retry_on_transient_error():
       ),
     )
     result = await zp.fetch_json('https://zwiftpower.com/api/test')
-    assert result == {'status': 'ok'}
+    assert result == json.dumps({'status': 'ok'})
     assert call_count == 2  # Verify retry happened
 
 

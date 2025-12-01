@@ -1,4 +1,3 @@
-import json
 from typing import Any
 
 import httpx
@@ -238,20 +237,18 @@ class ZP(BaseHTTPClient):
     return self._login_url
 
   # -------------------------------------------------------------------------------
-  def fetch_json(self, endpoint: str, max_retries: int = 3) -> dict[str, Any]:
-    """Fetch JSON data from a Zwiftpower endpoint.
+  def fetch_json(self, endpoint: str, max_retries: int = 3) -> str:
+    """Fetch JSON data from a Zwiftpower endpoint and return as raw string.
 
     Automatically logs in if not already authenticated. Retries on transient
-    network errors. Returns an empty dict if the response cannot be decoded
-    as JSON.
+    network errors.
 
     Args:
       endpoint: Full URL of the JSON endpoint to fetch
       max_retries: Maximum number of retry attempts for transient errors
 
     Returns:
-      Dictionary containing the parsed JSON response, or empty dict if
-      JSON decoding fails
+      Raw JSON response as a string
 
     Raises:
       NetworkError: If the HTTP request fails after retries
@@ -268,14 +265,8 @@ class ZP(BaseHTTPClient):
         logger=logger,
       )
 
-      try:
-        res = pres.json()
-        logger.debug(f'Successfully fetched and parsed JSON from {endpoint}')
-      except json.decoder.JSONDecodeError:
-        logger.warning(
-          f'Could not decode JSON from {endpoint}, returning empty dict',
-        )
-        res = {}
+      res = pres.text
+      logger.debug(f'Successfully fetched raw JSON from {endpoint}')
       return res
     except NetworkError:
       raise

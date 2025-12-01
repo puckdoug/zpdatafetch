@@ -1,3 +1,5 @@
+import json
+
 import httpx
 
 
@@ -22,7 +24,7 @@ def test_cyclist_fetch_single_id(cyclist, login_page, logged_in_page):
     if request.method == 'POST':
       return httpx.Response(200, text=logged_in_page)
     if 'profile' in str(request.url) and '_all.json' in str(request.url):
-      return httpx.Response(200, json=test_data)
+      return httpx.Response(200, text=json.dumps(test_data))
     return httpx.Response(404)
 
   from zpdatafetch.async_zp import AsyncZP
@@ -54,9 +56,9 @@ def test_cyclist_fetch_multiple_ids(cyclist, login_page, logged_in_page):
     if request.method == 'POST':
       return httpx.Response(200, text=logged_in_page)
     if '123456' in str(request.url) and '_all.json' in str(request.url):
-      return httpx.Response(200, json={'id': 123456})
+      return httpx.Response(200, text=json.dumps({'id': 123456}))
     if '789012' in str(request.url) and '_all.json' in str(request.url):
-      return httpx.Response(200, json={'id': 789012})
+      return httpx.Response(200, text=json.dumps({'id': 789012}))
     return httpx.Response(404)
 
   from zpdatafetch.async_zp import AsyncZP
@@ -83,19 +85,19 @@ def test_cyclist_fetch_multiple_ids(cyclist, login_page, logged_in_page):
 
 
 def test_cyclist_json_output(cyclist):
-  cyclist.raw = {123: {'name': 'Test'}}
+  cyclist.raw = {123: json.dumps({'name': 'Test'})}
   json_str = cyclist.json()
   assert '123' in json_str
   assert 'Test' in json_str
 
 
 def test_cyclist_asdict(cyclist):
-  test_data = {123: {'name': 'Test'}}
-  cyclist.raw = test_data
-  assert cyclist.asdict() == test_data
+  test_json = json.dumps({'name': 'Test'})
+  cyclist.raw = {123: test_json}
+  assert cyclist.asdict() == {123: test_json}
 
 
 def test_cyclist_str(cyclist):
-  test_data = {123: {'name': 'Test'}}
-  cyclist.raw = test_data
-  assert str(cyclist) == str(test_data)
+  test_json = json.dumps({'name': 'Test'})
+  cyclist.raw = {123: test_json}
+  assert str(cyclist) == str({123: test_json})

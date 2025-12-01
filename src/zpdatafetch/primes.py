@@ -2,6 +2,7 @@
 
 import asyncio
 import datetime
+import json
 import re
 from argparse import ArgumentParser
 from collections.abc import Coroutine
@@ -9,6 +10,7 @@ from typing import Any
 
 import anyio
 
+from shared.json_helpers import parse_json_safe
 from shared.validation import ValidationError, validate_id_list
 from zpdatafetch.async_zp import AsyncZP
 from zpdatafetch.logging_config import get_logger, setup_logging
@@ -197,41 +199,65 @@ class Primes(ZP_obj):
 
       # Fetch all URLs in parallel using anyio for cross-backend compatibility
       logger.info(f'Sending {len(fetch_tasks)} requests in parallel')
-      results = [None] * len(fetch_tasks)
+      results_raw = [None] * len(fetch_tasks)
+      results_parsed = [None] * len(fetch_tasks)
 
       async def fetch_and_store(
         idx: int,
-        task: Coroutine[Any, Any, dict[str, Any]],
+        task: Coroutine[Any, Any, str],
       ) -> None:
         """Fetch a single URL and store the result."""
         try:
-          results[idx] = await task
+          raw_json = await task
+          results_raw[idx] = raw_json
+          # Parse JSON for processing
+          race, cat, primetype = url_mapping[idx]
+          parsed = parse_json_safe(raw_json, context=f'prime {race}/{cat}/{primetype}')
+          results_parsed[idx] = parsed if isinstance(parsed, dict) else {}
         except Exception as e:
-          results[idx] = e
+          results_raw[idx] = e
+          results_parsed[idx] = e
 
       async with anyio.create_task_group() as tg:
         for idx, task in enumerate(fetch_tasks):
           tg.start_soon(fetch_and_store, idx, task)
 
-      # Process results
-      for idx, result in enumerate(results):
+      # Build nested structures for raw (strings) and processed (dicts)
+      p_raw: dict[Any, Any] = {}
+      p_processed: dict[Any, Any] = {}
+
+      for race in validated_ids:
+        p_raw[race] = {}
+        p_processed[race] = {}
+        for cat in self._cat:
+          p_raw[race][cat] = {}
+          p_processed[race][cat] = {}
+
+      # Organize results into nested structure
+      for idx, (raw_result, parsed_result) in enumerate(
+        zip(results_raw, results_parsed, strict=False),
+      ):
         race, cat, primetype = url_mapping[idx]
 
-        if isinstance(result, Exception):
+        if isinstance(raw_result, Exception):
           logger.error(
-            f'Error fetching {primetype} for race {race} cat {cat}: {result}',
+            f'Error fetching {primetype} for race {race} cat {cat}: {raw_result}',
           )
-          p[race][cat][primetype] = {'data': [], 'error': str(result)}
+          error_json = json.dumps({'data': [], 'error': str(raw_result)})
+          p_raw[race][cat][primetype] = error_json
+          p_processed[race][cat][primetype] = {'data': [], 'error': str(raw_result)}
         else:
-          if 'data' not in result or len(result['data']) == 0:
+          p_raw[race][cat][primetype] = raw_result
+          p_processed[race][cat][primetype] = parsed_result
+
+          if 'data' not in parsed_result or len(parsed_result.get('data', [])) == 0:
             logger.debug(f'No results for {primetype} in category {cat}')
           else:
             logger.debug(f'Results found for {primetype} in category {cat}')
-          p[race][cat][primetype] = result
 
-      self.raw = p
+      self.raw = p_raw
+      self.processed = p_processed
       logger.info(f'Successfully fetched prime data for {len(validated_ids)} race(s)')
-      self.processed = self.raw
       return self.processed
 
     finally:

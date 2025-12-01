@@ -5,6 +5,7 @@ After Phase 4, these tests should fail, proving __post_init__() validation was a
 """
 
 import sys
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -87,12 +88,21 @@ class TestZRRiderBatchValidation:
 
   def test_batch_accepts_invalid_ids_currently(self):
     """FAILING TEST: fetch_batch doesn't validate individual IDs."""
-    rider = ZRRider()
-    try:
-      rider.fetch_batch(-1, 0, sys.maxsize, 123)
-      pytest.skip('Validation not implemented yet - gap exists')
-    except ValueError:
-      pass
+    with patch('zrdatafetch.zrrider.Config') as mock_config_class:
+      mock_config = MagicMock()
+      mock_config_class.return_value = mock_config
+      mock_config.authorization = 'Bearer test-token'
+
+      with patch('zrdatafetch.zrrider.ZRRider.fetch_json') as mock_fetch:
+        # Mock response with valid rider data
+        mock_fetch.return_value = '[{"name": "Test", "gender": "M", "power": {"compoundScore": 250.0}, "race": {"current": {"rating": 2250.0, "mixed": {"category": "A"}}, "max30": {"rating": 2240.0, "mixed": {"category": "A"}}, "max90": {"rating": 2200.0, "mixed": {"category": "B"}}}}]'
+
+        rider = ZRRider()
+        try:
+          rider.fetch_batch(-1, 0, sys.maxsize, 123)
+          pytest.skip('Validation not implemented yet - gap exists')
+        except ValueError:
+          pass
 
   def test_batch_accepts_too_many_ids_currently(self):
     """FAILING TEST: fetch_batch doesn't validate batch size."""

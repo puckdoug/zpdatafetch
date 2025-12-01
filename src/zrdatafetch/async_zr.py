@@ -4,7 +4,6 @@ This module provides async/await compatible interfaces for the Zwiftracing API,
 allowing for concurrent requests and better performance in async applications.
 """
 
-import json
 from typing import Any
 
 import anyio

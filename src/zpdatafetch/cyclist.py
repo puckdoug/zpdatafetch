@@ -7,6 +7,7 @@ from typing import Any
 
 import anyio
 
+from shared.json_helpers import parse_json_safe
 from shared.validation import ValidationError, validate_id_list
 from zpdatafetch.async_zp import AsyncZP
 from zpdatafetch.logging_config import get_logger, setup_logging
@@ -127,18 +128,25 @@ class Cyclist(ZP_obj):
         fetch_tasks.append(session.fetch_json(url))
 
       # Execute all fetches in parallel
-      results = {}
+      results_raw: dict[int, str] = {}
+      results_processed: dict[int, dict[str, Any]] = {}
 
       async def fetch_and_store(
         idx: int,
-        task: Coroutine[Any, Any, dict[str, Any]],
+        task: Coroutine[Any, Any, str],
       ) -> None:
         """Helper to fetch and store result."""
         try:
-          result = await task
-          results[validated_ids[idx]] = result
+          raw_json = await task
+          zid = validated_ids[idx]
+          results_raw[zid] = raw_json
+
+          # Parse for processed dict
+          parsed = parse_json_safe(raw_json, context=f'cyclist {zid}')
+          results_processed[zid] = parsed if isinstance(parsed, dict) else {}
+
           logger.debug(
-            f'Successfully fetched profile for Zwift ID: {validated_ids[idx]}',
+            f'Successfully fetched profile for Zwift ID: {zid}',
           )
         except Exception as e:
           logger.error(f'Failed to fetch Zwift ID {validated_ids[idx]}: {e}')
@@ -148,10 +156,10 @@ class Cyclist(ZP_obj):
         for idx, task in enumerate(fetch_tasks):
           tg.start_soon(fetch_and_store, idx, task)
 
-      self.raw = results
+      self.raw = results_raw
       logger.info(f'Successfully fetched {len(validated_ids)} cyclist profile(s)')
 
-      self.processed = self.raw
+      self.processed = results_processed
       return self.processed
 
     finally:

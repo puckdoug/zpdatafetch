@@ -2,12 +2,11 @@
 
 import json
 import logging
-from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
-def parse_json_safe(raw: str, context: str = "data") -> dict | list:
+def parse_json_safe(raw: str, context: str = 'data') -> dict | list:
   """Parse JSON string to Python object with error handling.
 
   Args:
@@ -24,14 +23,14 @@ def parse_json_safe(raw: str, context: str = "data") -> dict | list:
     {}  # logs warning
   """
   if not raw or not raw.strip():
-    logger.warning(f"Empty or whitespace-only {context}, returning empty dict")
+    logger.warning(f'Empty or whitespace-only {context}, returning empty dict')
     return {}
 
   try:
     result = json.loads(raw)
-    logger.debug(f"Successfully parsed {context}")
+    logger.debug(f'Successfully parsed {context}')
     return result
   except json.JSONDecodeError as e:
-    logger.error(f"Failed to parse {context}: {e}")
-    logger.debug(f"Raw data (first 200 chars): {raw[:200]}...")
+    logger.error(f'Failed to parse {context}: {e}')
+    logger.debug(f'Raw data (first 200 chars): {raw[:200]}...')
     return {}

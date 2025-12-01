@@ -1,5 +1,7 @@
 """Tests for Team with async (afetch) methods."""
 
+import json
+
 import httpx
 import pytest
 
@@ -18,7 +20,7 @@ async def test_async_team_fetch(login_page, logged_in_page):
     if request.method == 'POST':
       return httpx.Response(200, text=logged_in_page)
     if '/123.' in str(request.url):
-      return httpx.Response(200, json=test_data)
+      return httpx.Response(200, text=json.dumps(test_data))
     return httpx.Response(404)
 
   async with AsyncZP(skip_credential_check=True) as zp:

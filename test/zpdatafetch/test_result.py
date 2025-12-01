@@ -1,5 +1,6 @@
-import httpx
+import json
 
+import httpx
 
 
 def test_result(result):
@@ -12,19 +13,19 @@ def test_result_initialization(result):
 
 def test_result_fetch_race_results(result, login_page, logged_in_page):
   test_data = {
-    "data": [
-      {"position": 1, "name": "Winner", "time": "01:23:45"},
-      {"position": 2, "name": "Second Place", "time": "01:24:12"},
+    'data': [
+      {'position': 1, 'name': 'Winner', 'time': '01:23:45'},
+      {'position': 2, 'name': 'Second Place', 'time': '01:24:12'},
     ],
   }
 
   def handler(request):
-    if "login" in str(request.url) and request.method == "GET":
+    if 'login' in str(request.url) and request.method == 'GET':
       return httpx.Response(200, text=login_page)
-    if request.method == "POST":
+    if request.method == 'POST':
       return httpx.Response(200, text=logged_in_page)
-    if "results" in str(request.url) and "_view.json" in str(request.url):
-      return httpx.Response(200, json=test_data)
+    if 'results' in str(request.url) and '_view.json' in str(request.url):
+      return httpx.Response(200, text=json.dumps(test_data))
     return httpx.Response(404)
 
   from zpdatafetch.async_zp import AsyncZP
@@ -34,7 +35,8 @@ def test_result_fetch_race_results(result, login_page, logged_in_page):
   def mock_init(self, skip_credential_check=False):
     original_init(self, skip_credential_check=True)
     self._client = httpx.AsyncClient(
-      follow_redirects=True, transport=httpx.MockTransport(handler),
+      follow_redirects=True,
+      transport=httpx.MockTransport(handler),
     )
 
   AsyncZP.__init__ = mock_init

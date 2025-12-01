@@ -7,6 +7,7 @@ from typing import Any
 
 import anyio
 
+from shared.json_helpers import parse_json_safe
 from shared.validation import ValidationError, validate_id_list
 from zpdatafetch.async_zp import AsyncZP
 from zpdatafetch.logging_config import get_logger, setup_logging
@@ -42,12 +43,12 @@ class Signup(ZP_obj):
   """
 
   # Sync version uses different endpoint than async
-  _url: str = 'https://zwiftpower.com/cache3/results/'
-  _url_end: str = '_signups.json'
+  _url: str = "https://zwiftpower.com/cache3/results/"
+  _url_end: str = "_signups.json"
 
   # Async version uses different URLs
-  _url_async: str = 'https://zwiftpower.com/cache3/lists/'
-  _url_end_async: str = '_zwift.json'
+  _url_async: str = "https://zwiftpower.com/cache3/lists/"
+  _url_end_async: str = "_zwift.json"
 
   def __init__(self) -> None:
     """Initialize a new Signup instance."""
@@ -113,47 +114,56 @@ class Signup(ZP_obj):
     session, owns_session = await self._get_or_create_session()
 
     try:
-      logger.info(f'Fetching race signups for {len(race_id_list)} race(s)')
+      logger.info(f"Fetching race signups for {len(race_id_list)} race(s)")
 
       # SECURITY: Validate all race IDs before processing
       try:
-        validated_ids = validate_id_list(list(race_id_list), id_type='race')
+        validated_ids = validate_id_list(list(race_id_list), id_type="race")
       except ValidationError as e:
-        logger.error(f'ID validation failed: {e}')
+        logger.error(f"ID validation failed: {e}")
         raise
 
       # Build list of fetch tasks using async URLs
       fetch_tasks = []
       for rid in validated_ids:
-        url = f'{self._url_async}{rid}{self._url_end_async}'
+        url = f"{self._url_async}{rid}{self._url_end_async}"
         fetch_tasks.append(session.fetch_json(url))
 
       # Execute all fetches in parallel
-      results = {}
+
+      results_raw: dict[int, str] = {}
+
+      results_processed: dict[int, dict[str, Any]] = {}
 
       async def fetch_and_store(
         idx: int,
-        task: Coroutine[Any, Any, dict[str, Any]],
+        task: Coroutine[Any, Any, str],
       ) -> None:
         """Helper to fetch and store result."""
         try:
-          result = await task
-          results[validated_ids[idx]] = result
+          raw_json = await task
+          event_id = validated_ids[idx]
+          results_raw[event_id] = raw_json
+
+          # Parse for processed dict
+          parsed = parse_json_safe(raw_json, context=f"signup {event_id}")
+          results_processed[event_id] = parsed if isinstance(parsed, dict) else {}
+
           logger.debug(
-            f'Successfully fetched signups for race ID: {validated_ids[idx]}',
+            f"Successfully fetched event ID: {event_id}",
           )
         except Exception as e:
-          logger.error(f'Failed to fetch race ID {validated_ids[idx]}: {e}')
+          logger.error(f"Failed to fetch race ID {validated_ids[idx]}: {e}")
           raise
 
       async with anyio.create_task_group() as tg:
         for idx, task in enumerate(fetch_tasks):
           tg.start_soon(fetch_and_store, idx, task)
 
-      self.raw = results
-      logger.info(f'Successfully fetched {len(validated_ids)} race signup list(s)')
+      self.raw = results_raw
+      logger.info(f"Successfully fetched {len(validated_ids)} race signup list(s)")
 
-      self.processed = self.raw
+      self.processed = results_processed
       return self.processed
 
     finally:
@@ -181,11 +191,11 @@ class Signup(ZP_obj):
     try:
       asyncio.get_running_loop()
       raise RuntimeError(
-        'fetch() called from async context. Use afetch() instead, or '
-        'call fetch() from synchronous code.',
+        "fetch() called from async context. Use afetch() instead, or "
+        "call fetch() from synchronous code.",
       )
     except RuntimeError as e:
-      if 'fetch() called from async context' in str(e):
+      if "fetch() called from async context" in str(e):
         raise
       # No running loop - safe to use asyncio.run()
       return asyncio.run(self._fetch_parallel(*race_id_list))
@@ -214,30 +224,30 @@ class Signup(ZP_obj):
 # ===============================================================================
 def main() -> None:
   p = ArgumentParser(
-    description='Module for fetching race signup data using the Zwiftpower API',
+    description="Module for fetching race signup data using the Zwiftpower API",
   )
   p.add_argument(
-    '--verbose',
-    '-v',
-    action='count',
+    "--verbose",
+    "-v",
+    action="count",
     default=0,
-    help='increase output verbosity (-v for INFO, -vv for DEBUG)',
+    help="increase output verbosity (-v for INFO, -vv for DEBUG)",
   )
   p.add_argument(
-    '--raw',
-    '-r',
-    action='store_const',
+    "--raw",
+    "-r",
+    action="store_const",
     const=True,
-    help='print all returned data',
+    help="print all returned data",
   )
-  p.add_argument('race_id', type=int, nargs='+', help='one or more race_ids')
+  p.add_argument("race_id", type=int, nargs="+", help="one or more race_ids")
   args = p.parse_args()
 
   # Configure logging based on verbosity level (output to stderr)
   if args.verbose >= 2:
-    setup_logging(console_level='DEBUG', force_console=True)
+    setup_logging(console_level="DEBUG", force_console=True)
   elif args.verbose == 1:
-    setup_logging(console_level='INFO', force_console=True)
+    setup_logging(console_level="INFO", force_console=True)
 
   x = Signup()
 
@@ -248,5 +258,5 @@ def main() -> None:
 
 
 # ===============================================================================
-if __name__ == '__main__':
+if __name__ == "__main__":
   main()

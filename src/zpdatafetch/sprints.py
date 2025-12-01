@@ -7,6 +7,7 @@ from typing import Any
 
 import anyio
 
+from shared.json_helpers import parse_json_safe
 from zpdatafetch.async_zp import AsyncZP
 from zpdatafetch.logging_config import get_logger, setup_logging
 from zpdatafetch.primes import Primes
@@ -138,18 +139,27 @@ class Sprints(ZP_obj):
         fetch_tasks.append(session.fetch_json(url))
 
       # Execute all fetches in parallel
-      results = {}
+
+      results_raw: dict[int, str] = {}
+
+      results_processed: dict[int, dict[str, Any]] = {}
 
       async def fetch_and_store(
         idx: int,
-        task: Coroutine[Any, Any, dict[str, Any]],
+        task: Coroutine[Any, Any, str],
       ) -> None:
         """Helper to fetch and store result."""
         try:
-          result = await task
-          results[validated_ids[idx]] = result
+          raw_json = await task
+          race_id = validated_ids[idx]
+          results_raw[race_id] = raw_json
+
+          # Parse for processed dict
+          parsed = parse_json_safe(raw_json, context=f'sprint {race_id}')
+          results_processed[race_id] = parsed if isinstance(parsed, dict) else {}
+
           logger.debug(
-            f'Successfully fetched sprints for race ID: {validated_ids[idx]}',
+            f'Successfully fetched sprint ID: {race_id}',
           )
         except Exception as e:
           logger.error(f'Failed to fetch race ID {validated_ids[idx]}: {e}')
@@ -159,7 +169,8 @@ class Sprints(ZP_obj):
         for idx, task in enumerate(fetch_tasks):
           tg.start_soon(fetch_and_store, idx, task)
 
-      self.raw = results
+      self.raw = results_raw
+      self.processed = results_processed
       logger.info(f'Successfully fetched {len(validated_ids)} race sprint(s)')
 
       # Share the session with primes to avoid second login
@@ -195,7 +206,7 @@ class Sprints(ZP_obj):
     banners: list[dict[str, Any]] = []
 
     # Loop through primes data structure: race_id -> category -> prime_type -> data
-    for race_id, categories in self.primes.raw.items():
+    for race_id, categories in self.primes.processed.items():
       logger.debug(f'Processing race ID: {race_id}')
       for category, prime_types in categories.items():
         for prime_type, prime_data in prime_types.items():
@@ -241,11 +252,11 @@ class Sprints(ZP_obj):
       id_to_name[sprint_id] = name
       logger.debug(f'Mapping sprint_id {sprint_id} -> {name}')
 
-    # Deep copy raw data to processed
-    self.processed = copy.deepcopy(self.raw)
+    # Start with a deep copy of processed data (already parsed from raw JSON)
+    enriched = copy.deepcopy(self.processed)
 
-    # Loop through the processed data structure
-    for race_id, race_data in self.processed.items():
+    # Loop through the enriched data structure and modify it
+    for race_id, race_data in enriched.items():
       logger.debug(f'Processing race ID: {race_id}')
 
       # race_data should be a dict or list of dicts
@@ -268,6 +279,8 @@ class Sprints(ZP_obj):
                       )
                   rider[section] = enriched_section
 
+    # Update processed with enriched data
+    self.processed = enriched
     logger.info(f'Enriched sprint data for {len(self.processed)} race(s)')
     return self.processed
 
