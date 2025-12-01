@@ -17,10 +17,10 @@ def zr_race_result_fixture():
   /public/results/{race_id} endpoint, useful for testing parsing logic.
 
   Returns:
-    dict: Parsed JSON response containing race metadata and results array
+    str: Raw JSON string response containing race metadata and results array
   """
   fixture_path = (
     Path(__file__).parent.parent / 'fixtures' / 'zr_race_result_4613373.json'
   )
-  with open(fixture_path, encoding="utf-8") as f:
-    return json.load(f)
+  with open(fixture_path, encoding='utf-8') as f:
+    return f.read()

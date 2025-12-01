@@ -5,10 +5,12 @@ rating data from the Zwiftracing API.
 """
 
 import asyncio
+import json
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
 from shared.exceptions import ConfigError, NetworkError
+from shared.json_helpers import parse_json_safe
 from zrdatafetch.async_zr import AsyncZR_obj
 from zrdatafetch.config import Config
 from zrdatafetch.logging_config import get_logger
@@ -83,7 +85,7 @@ class ZRRider(ZR_obj):
   source: str = 'none'
 
   # Private attributes (not in __init__)
-  _raw: dict = field(default_factory=dict, init=False, repr=False)
+  _raw: str = field(default='', init=False, repr=False)
   _rider: dict = field(default_factory=dict, init=False, repr=False)
   _verbose: bool = field(default=False, init=False, repr=False)
   _zr: AsyncZR_obj | None = field(default=None, init=False, repr=False)
@@ -263,7 +265,13 @@ class ZRRider(ZR_obj):
       logger.warning('No data to parse')
       return
 
-    self._rider = self._raw
+    # Parse JSON string to dict
+    parsed = parse_json_safe(self._raw, context=f'rider {self.zwift_id}')
+    if not isinstance(parsed, dict):
+      logger.error(f'Expected dict for rider data, got {type(parsed).__name__}')
+      return
+
+    self._rider = parsed
 
     # Check for error in response
     if 'message' in self._rider:
@@ -411,14 +419,18 @@ class ZRRider(ZR_obj):
 
     # Parse response into individual ZRRider objects
     results = {}
-    if not isinstance(raw_data, list):
+
+    # Parse the raw string to get list of rider dicts
+    parsed = parse_json_safe(raw_data, context='batch riders')
+    if not isinstance(parsed, list):
       logger.error('Expected list of riders in batch response')
       return results
 
-    for rider_data in raw_data:
+    for rider_data in parsed:
       try:
         rider = ZRRider()
-        rider._raw = rider_data
+        # Convert dict back to JSON string for storage in _raw
+        rider._raw = json.dumps(rider_data)
         rider._parse_response()
         results[rider.zwift_id] = rider
         logger.debug(f'Parsed batch rider: {rider.name} (zwift_id={rider.zwift_id})')
@@ -515,14 +527,18 @@ class ZRRider(ZR_obj):
 
       # Parse response into individual ZRRider objects
       results = {}
-      if not isinstance(raw_data, list):
+
+      # Parse the raw string to get list of rider dicts
+      parsed = parse_json_safe(raw_data, context='batch riders (async)')
+      if not isinstance(parsed, list):
         logger.error('Expected list of riders in batch response')
         return results
 
-      for rider_data in raw_data:
+      for rider_data in parsed:
         try:
           rider = ZRRider()
-          rider._raw = rider_data
+          # Convert dict back to JSON string for storage in _raw
+          rider._raw = json.dumps(rider_data)
           rider._parse_response()
           results[rider.zwift_id] = rider
           logger.debug(

@@ -29,41 +29,7 @@ class TestAsyncZRTeamFetch:
       team = ZRTeam()
       team.set_session(zr)
       # Mock response by directly setting _raw
-      team._raw = {
-        'name': 'Test Team',
-        'riders': [
-          {
-            'riderId': 12345,
-            'name': 'Rider 1',
-            'gender': 'M',
-            'height': 180.0,
-            'weight': 75.0,
-            'race': {
-              'current': {
-                'rating': 3.2,
-                'mixed': {'category': 'A'},
-                'womens': {'category': ''},
-              },
-              'max30': {
-                'rating': 3.5,
-                'mixed': {'category': 'A'},
-                'womens': {'category': ''},
-              },
-              'max90': {
-                'rating': 3.0,
-                'mixed': {'category': 'B'},
-                'womens': {'category': ''},
-              },
-            },
-            'power': {
-              'AWC': 10000.0,
-              'CP': 280.0,
-              'compoundScore': 2.5,
-              'w5': 1500.0,
-            },
-          },
-        ],
-      }
+      team._raw = '{"name": "Test Team", "riders": [{"riderId": 12345, "name": "Rider 1", "gender": "M", "height": 180.0, "weight": 75.0, "race": {"current": {"rating": 3.2, "mixed": {"category": "A"}, "womens": {"category": ""}}, "max30": {"rating": 3.5, "mixed": {"category": "A"}, "womens": {"category": ""}}, "max90": {"rating": 3.0, "mixed": {"category": "B"}, "womens": {"category": ""}}}, "power": {"AWC": 10000.0, "CP": 280.0, "compoundScore": 2.5, "w5": 1500.0}}]}'
       team.team_id = 456
       team._parse_response()
       assert team.team_name == 'Test Team'
@@ -76,10 +42,7 @@ class TestAsyncZRTeamFetch:
     async with AsyncZR_obj() as zr:
       team = ZRTeam()
       team.set_session(zr)
-      team._raw = {
-        'name': 'Test Team',
-        'riders': [],
-      }
+      team._raw = '{"name": "Test Team", "riders": []}'
       team.team_id = 456
       team._parse_response()
       assert team.team_name == 'Test Team'
@@ -91,16 +54,7 @@ class TestAsyncZRTeamFetch:
     async with AsyncZR_obj() as zr:
       team = ZRTeam()
       team.set_session(zr)
-      team._raw = {
-        'name': 'Test Team',
-        'riders': [
-          {
-            'riderId': 12345,
-            'name': 'Rider 1',
-            # Missing race, power, and other fields
-          },
-        ],
-      }
+      team._raw = '{"name": "Test Team", "riders": [{"riderId": 12345, "name": "Rider 1"}]}'
       team.team_id = 456
       team._parse_response()
       assert len(team.riders) == 1
@@ -112,40 +66,7 @@ class TestAsyncZRTeamFetch:
     """Test fetch with mocked session."""
     mock_zr = AsyncMock(spec=AsyncZR_obj)
     mock_zr.fetch_json = AsyncMock(
-      return_value={
-        'name': 'Mock Team',
-        'riders': [
-          {
-            'riderId': 12345,
-            'name': 'Mock Rider',
-            'gender': 'M',
-            'height': 175.0,
-            'weight': 70.0,
-            'race': {
-              'current': {
-                'rating': 3.5,
-                'mixed': {'category': 'A'},
-                'womens': {'category': ''},
-              },
-              'max30': {
-                'rating': 3.8,
-                'mixed': {'category': 'A'},
-                'womens': {'category': ''},
-              },
-              'max90': {
-                'rating': 3.2,
-                'mixed': {'category': 'B'},
-                'womens': {'category': ''},
-              },
-            },
-            'power': {
-              'AWC': 12000.0,
-              'CP': 290.0,
-              'compoundScore': 2.8,
-            },
-          },
-        ],
-      },
+      return_value='{"name": "Mock Team", "riders": [{"riderId": 12345, "name": "Mock Rider", "gender": "M", "height": 175.0, "weight": 70.0, "race": {"current": {"rating": 3.5, "mixed": {"category": "A"}, "womens": {"category": ""}}, "max30": {"rating": 3.8, "mixed": {"category": "A"}, "womens": {"category": ""}}, "max90": {"rating": 3.2, "mixed": {"category": "B"}, "womens": {"category": ""}}}, "power": {"AWC": 12000.0, "CP": 290.0, "compoundScore": 2.8}}]}',
     )
 
     with patch('zrdatafetch.zrteam.Config') as mock_config_class:

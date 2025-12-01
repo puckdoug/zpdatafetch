@@ -10,6 +10,7 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 
 from shared.exceptions import ConfigError, NetworkError
+from shared.json_helpers import parse_json_safe
 from zrdatafetch.async_zr import AsyncZR_obj
 from zrdatafetch.config import Config
 from zrdatafetch.logging_config import get_logger
@@ -133,7 +134,7 @@ class ZRTeam(ZR_obj):
   riders: list[ZRTeamRider] = field(default_factory=list)
 
   # Private attributes (not in __init__)
-  _raw: dict = field(default_factory=dict, init=False, repr=False)
+  _raw: str = field(default='', init=False, repr=False)
   _team: dict = field(default_factory=dict, init=False, repr=False)
   _verbose: bool = field(default=False, init=False, repr=False)
   _zr: AsyncZR_obj | None = field(default=None, init=False, repr=False)
@@ -293,16 +294,17 @@ class ZRTeam(ZR_obj):
       logger.warning('No data to parse')
       return
 
-    self._team = self._raw
-
-    # Check for error in response
-    if isinstance(self._team, dict) and 'message' in self._team:
-      logger.error(f"API error: {self._team['message']}")
+    # Parse JSON string to dict
+    parsed = parse_json_safe(self._raw, context=f'team {self.team_id}')
+    if not isinstance(parsed, dict):
+      logger.error(f'Expected dict for team data, got {type(parsed).__name__}')
       return
 
-    # Response should be a dict with team info
-    if not isinstance(self._team, dict):
-      logger.warning('Expected dict response, got different format')
+    self._team = parsed
+
+    # Check for error in response
+    if 'message' in self._team:
+      logger.error(f"API error: {self._team['message']}")
       return
 
     try:

@@ -26,7 +26,6 @@ class TestZR_objClientManagement:
     # Mock httpx.Client to prevent real connections
     with patch('httpx.Client') as mock_client_class:
       mock_client = MagicMock()
-      # mock_client.base_url = 'https://zwift-ranking.herokuapp.com'
       mock_client.base_url = 'https://api.zwiftracing.app/api'
       mock_client_class.return_value = mock_client
 
@@ -83,7 +82,7 @@ class TestZR_objFetchJson:
 
     # Mock the HTTP response
     mock_response = MagicMock()
-    mock_response.json.return_value = {'id': 123, 'name': 'Test Rider'}
+    mock_response.text = '{"id": 123, "name": "Test Rider"}'
 
     with patch.object(ZR_obj, 'get_client') as mock_get_client:
       mock_client = MagicMock()
@@ -92,7 +91,7 @@ class TestZR_objFetchJson:
 
       result = obj.fetch_json('/public/riders/123')
 
-      assert result == {'id': 123, 'name': 'Test Rider'}
+      assert result == '{"id": 123, "name": "Test Rider"}'
       mock_client.get.assert_called_once()
 
   def test_fetch_json_http_error(self):
@@ -128,25 +127,22 @@ class TestZR_objFetchJson:
       with pytest.raises(NetworkError):
         obj.fetch_json('/public/riders/123')
 
-  def test_fetch_json_invalid_json(self):
-    """Test that invalid JSON responses are properly wrapped."""
+  def test_fetch_json_returns_text(self):
+    """Test that fetch_json returns raw text from response."""
     obj = ZR_obj()
 
-    # Create a mock response that raises JSONDecodeError
+    # Create a mock response with text
     mock_response = MagicMock()
-    mock_response.json.side_effect = json.JSONDecodeError(
-      'Invalid JSON',
-      '',
-      0,
-    )
+    mock_response.text = '{"id": 123}'
 
     with patch.object(ZR_obj, 'get_client') as mock_get_client:
       mock_client = MagicMock()
       mock_client.get.return_value = mock_response
       mock_get_client.return_value = mock_client
 
-      with pytest.raises(NetworkError):
-        obj.fetch_json('/public/riders/123')
+      result = obj.fetch_json('/public/riders/123')
+      assert result == '{"id": 123}'
+      assert isinstance(result, str)
 
 
 # ===============================================================================

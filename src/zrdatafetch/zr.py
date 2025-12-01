@@ -27,8 +27,6 @@ class ZR_obj:
     - JSON serialization
     - Rate limiting with standard/premium tiers
 
-  The Zwiftracing API base URL is: https://zwift-ranking.herokuapp.com
-
   Attributes:
     _client: Shared HTTP client for connection pooling
     _base_url: Base URL for all API requests
@@ -36,7 +34,6 @@ class ZR_obj:
   """
 
   _client: ClassVar[httpx.Client | None] = None
-  # _base_url: ClassVar[str] = 'https://zwift-ranking.herokuapp.com'
   _base_url: ClassVar[str] = 'https://api.zwiftracing.app/api'
   _premium_mode: ClassVar[bool] = False  # Default to standard tier
 
@@ -103,12 +100,12 @@ class ZR_obj:
     method: str = 'GET',
     premium: bool = False,
     **kwargs: Any,
-  ) -> dict | list:
-    """Fetch JSON data from an API endpoint.
+  ) -> str:
+    """Fetch JSON data from an API endpoint and return as raw string.
 
     Makes an HTTP request (GET or POST) to the specified endpoint and returns
-    the parsed JSON response. Handles errors with proper logging and raises
-    NetworkError for any failures. Respects rate limits.
+    the raw JSON response as a string. Handles errors with proper logging and
+    raises NetworkError for any failures. Respects rate limits.
 
     Args:
       endpoint: API endpoint path (e.g., '/public/riders/123')
@@ -118,25 +115,25 @@ class ZR_obj:
         (e.g., headers, params, json, etc.)
 
     Returns:
-      Parsed JSON response (dict or list)
+      Raw JSON response as a string
 
     Raises:
       NetworkError: If the request fails for any reason
-        (HTTP error, network error, invalid JSON, rate limit exceeded, etc.)
+        (HTTP error, network error, rate limit exceeded, etc.)
 
     Example:
       # GET request
-      data = obj.fetch_json('/public/riders/12345')
-      # Returns dict with rider data
+      raw_data = obj.fetch_json('/public/riders/12345')
+      # Returns JSON string: '{"zwiftId": 12345, "name": "..."}'
 
       # POST request (batch)
-      data = obj.fetch_json(
+      raw_data = obj.fetch_json(
         '/public/riders',
         method='POST',
         headers={'Authorization': 'token'},
         json=[12345, 67890]
       )
-      # Returns list of rider dicts
+      # Returns JSON string: '[{"zwiftId": 12345, ...}, {...}]'
     """
     client = self.get_client()
     # Use provided premium parameter, or fall back to class-level setting
@@ -171,7 +168,7 @@ class ZR_obj:
 
       # Record successful request for rate limiting
       rate_limiter.record_request(endpoint_type)
-      return response.json()
+      return response.text
 
     except httpx.HTTPStatusError as e:
       logger.error(f'HTTP error {method} {endpoint}: {e.response.status_code}')
@@ -187,11 +184,6 @@ class ZR_obj:
       logger.error(f'Network error {method} {endpoint}: {e}')
       raise NetworkError(
         format_network_error(f'{method.lower()} request', endpoint, e),
-      ) from e
-    except json.JSONDecodeError as e:
-      logger.error(f'Invalid JSON from {endpoint}: {e}')
-      raise NetworkError(
-        format_network_error('parse JSON response', endpoint, e),
       ) from e
 
   # -------------------------------------------------------------------------------

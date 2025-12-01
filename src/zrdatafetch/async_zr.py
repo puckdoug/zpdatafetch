@@ -39,7 +39,6 @@ class AsyncZR_obj:
     _client: httpx.AsyncClient instance
   """
 
-  # _base_url: str = 'https://zwift-ranking.herokuapp.com'
   _base_url: str = 'https://api.zwiftracing.app/api'
   _shared_client: httpx.AsyncClient | None = None
   _owns_client: bool = False
@@ -216,12 +215,12 @@ class AsyncZR_obj:
     method: str = 'GET',
     max_retries: int = 3,
     **kwargs: Any,
-  ) -> dict | list:
-    """Fetch JSON data from a Zwiftracing endpoint (async).
+  ) -> str:
+    """Fetch JSON data from a Zwiftracing endpoint and return as raw string (async).
 
     Automatically initializes client if needed. Retries on transient
-    network errors. Returns an empty dict if the response cannot be decoded
-    as JSON.
+    network errors. Returns the raw JSON response text without parsing.
+    This allows the caller to store the unprocessed data and parse it later.
 
     Args:
       endpoint: API endpoint path (e.g., '/public/riders/123')
@@ -231,25 +230,25 @@ class AsyncZR_obj:
         (e.g., headers, params, json, etc.)
 
     Returns:
-      Dictionary or list containing the parsed JSON response, or empty dict
-      if JSON decoding fails
+      Raw JSON response as string
 
     Raises:
       NetworkError: If the HTTP request fails after retries
+      httpx.HTTPStatusError: If response has error status
 
     Example:
       # GET request
-      data = await zr.fetch_json('/public/riders/12345')
-      # Returns dict with rider data
+      raw_json = await zr.fetch_json('/public/riders/12345')
+      data = json.loads(raw_json)  # Parse when needed
 
       # POST request (batch)
-      data = await zr.fetch_json(
+      raw_json = await zr.fetch_json(
         '/public/riders',
         method='POST',
         headers={'Authorization': 'token'},
         json=[12345, 67890]
       )
-      # Returns list of rider dicts
+      data = json.loads(raw_json)  # Parse when needed
     """
     try:
       logger.debug(f'Fetching JSON from: {endpoint}')
@@ -260,14 +259,8 @@ class AsyncZR_obj:
         **kwargs,
       )
 
-      try:
-        res = pres.json()
-        logger.debug(f'Successfully fetched and parsed JSON from {endpoint}')
-      except json.decoder.JSONDecodeError:
-        logger.warning(
-          f'Could not decode JSON from {endpoint}, returning empty dict',
-        )
-        res = {}
+      res = pres.text
+      logger.debug(f'Successfully fetched raw JSON from {endpoint}')
       return res
     except NetworkError:
       raise

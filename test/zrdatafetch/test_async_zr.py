@@ -129,7 +129,7 @@ class TestAsyncZRObjFetchJson:
     with patch('httpx.AsyncClient') as mock_client_class:
       mock_client = AsyncMock()
       mock_response = MagicMock()
-      mock_response.json.return_value = {'test': 'data'}
+      mock_response.text = '{"test": "data"}'
       mock_client.request.return_value = mock_response
       mock_client_class.return_value = mock_client
 
@@ -140,22 +140,22 @@ class TestAsyncZRObjFetchJson:
 
       # Client should have been initialized
       assert zr._client is not None
-      assert result == {'test': 'data'}
+      assert result == '{"test": "data"}'
 
   @pytest.mark.anyio
-  async def test_fetch_json_returns_dict(self):
-    """Test fetch_json returns dict for JSON response."""
+  async def test_fetch_json_returns_string(self):
+    """Test fetch_json returns raw JSON string."""
     with patch('httpx.AsyncClient') as mock_client_class:
       mock_client = AsyncMock()
       mock_response = MagicMock()
-      mock_response.json.return_value = {'id': 12345, 'name': 'Test Rider'}
+      mock_response.text = '{"id": 12345, "name": "Test Rider"}'
       mock_client.request.return_value = mock_response
       mock_client_class.return_value = mock_client
 
       zr = AsyncZR_obj()
       result = await zr.fetch_json('/public/riders/12345')
 
-      assert result == {'id': 12345, 'name': 'Test Rider'}
+      assert result == '{"id": 12345, "name": "Test Rider"}'
       mock_client.request.assert_called_once()
 
   @pytest.mark.anyio
@@ -164,7 +164,7 @@ class TestAsyncZRObjFetchJson:
     with patch('httpx.AsyncClient') as mock_client_class:
       mock_client = AsyncMock()
       mock_response = MagicMock()
-      mock_response.json.return_value = [{'id': 12345}, {'id': 67890}]
+      mock_response.text = '[{"id": 12345}, {"id": 67890}]'
       mock_client.request.return_value = mock_response
       mock_client_class.return_value = mock_client
 
@@ -175,7 +175,7 @@ class TestAsyncZRObjFetchJson:
         json=[12345, 67890],
       )
 
-      assert result == [{'id': 12345}, {'id': 67890}]
+      assert result == '[{"id": 12345}, {"id": 67890}]'
       # Verify POST was used
       call_args = mock_client.request.call_args
       assert call_args[0][0] == 'POST' or call_args.kwargs.get('method') == 'POST'
@@ -186,7 +186,7 @@ class TestAsyncZRObjFetchJson:
     with patch('httpx.AsyncClient') as mock_client_class:
       mock_client = AsyncMock()
       mock_response = MagicMock()
-      mock_response.json.return_value = {'id': 12345}
+      mock_response.text = '{"id": 12345}'
       mock_client.request.return_value = mock_response
       mock_client_class.return_value = mock_client
 
@@ -196,7 +196,7 @@ class TestAsyncZRObjFetchJson:
         headers={'Authorization': 'token'},
       )
 
-      assert result == {'id': 12345}
+      assert result == '{"id": 12345}'
       # Verify headers were passed
       call_args = mock_client.request.call_args
       assert 'Authorization' in (call_args.kwargs.get('headers', {}) or {})

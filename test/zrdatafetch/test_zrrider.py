@@ -46,7 +46,7 @@ class TestZRRiderInitialization:
   def test_zrrider_private_attributes(self):
     """Test that private attributes are initialized."""
     rider = ZRRider()
-    assert rider._raw == {}
+    assert rider._raw == ""
     assert rider._rider == {}
     assert rider._verbose is False
 
@@ -65,7 +65,7 @@ class TestZRRiderDataclass:
   def test_zrrider_to_dict_excludes_private(self):
     """Test to_dict excludes private attributes."""
     rider = ZRRider()
-    rider._raw = {"some": "data"}
+    rider._raw = '{"some": "data"}'
     d = rider.to_dict()
     assert "_raw" not in d
     assert "_rider" not in d
@@ -142,7 +142,7 @@ class TestZRRiderParseResponse:
   def test_parse_response_empty(self):
     """Test parsing empty response."""
     rider = ZRRider()
-    rider._raw = {}
+    rider._raw = '{}'
     with patch("zrdatafetch.zrrider.logger"):
       rider._parse_response()
     # Should not raise, just log warning
@@ -150,7 +150,7 @@ class TestZRRiderParseResponse:
   def test_parse_response_with_error_message(self):
     """Test parsing response with error message."""
     rider = ZRRider()
-    rider._raw = {"message": "Rider not found"}
+    rider._raw = '{"message": "Rider not found"}'
     with patch("zrdatafetch.zrrider.logger"):
       rider._parse_response()
     # Should log error but not raise
@@ -158,7 +158,7 @@ class TestZRRiderParseResponse:
   def test_parse_response_missing_required_fields(self):
     """Test parsing response missing required fields."""
     rider = ZRRider()
-    rider._raw = {"other": "data"}  # Missing 'name' and 'race'
+    rider._raw = '{"other": "data"}'
     with patch("zrdatafetch.zrrider.logger"):
       rider._parse_response()
     # Should log warning but not raise
@@ -166,25 +166,7 @@ class TestZRRiderParseResponse:
   def test_parse_response_with_valid_data(self):
     """Test parsing valid response data."""
     rider = ZRRider()
-    rider._raw = {
-      "name": "Test Rider",
-      "gender": "F",
-      "power": {"compoundScore": 95.5},
-      "race": {
-        "current": {
-          "rating": 100.0,
-          "mixed": {"category": "A"},
-        },
-        "max30": {
-          "rating": 105.0,
-          "mixed": {"category": "A"},
-        },
-        "max90": {
-          "rating": 98.0,
-          "mixed": {"category": "B"},
-        },
-      },
-    }
+    rider._raw = '{"name": "Test Rider", "gender": "F", "power": {"compoundScore": 95.5}, "race": {"current": {"rating": 100.0, "mixed": {"category": "A"}}, "max30": {"rating": 105.0, "mixed": {"category": "A"}}, "max90": {"rating": 98.0, "mixed": {"category": "B"}}}}'
 
     rider._parse_response()
 
@@ -201,22 +183,7 @@ class TestZRRiderParseResponse:
   def test_parse_response_drs_from_max30(self):
     """Test that DRS comes from max30 when available."""
     rider = ZRRider()
-    rider._raw = {
-      "name": "Test",
-      "gender": "M",
-      "power": {"compoundScore": 0.0},
-      "race": {
-        "current": {"rating": 90.0, "mixed": {"category": "B"}},
-        "max30": {
-          "rating": 105.0,
-          "mixed": {"category": "A"},
-        },
-        "max90": {
-          "rating": 100.0,
-          "mixed": {"category": "A"},
-        },
-      },
-    }
+    rider._raw = '{"name": "Test", "gender": "M", "power": {"compoundScore": 0.0}, "race": {"current": {"rating": 90.0, "mixed": {"category": "B"}}, "max30": {"rating": 105.0, "mixed": {"category": "A"}}, "max90": {"rating": 100.0, "mixed": {"category": "A"}}}}'
 
     rider._parse_response()
 
@@ -227,19 +194,7 @@ class TestZRRiderParseResponse:
   def test_parse_response_drs_from_max90_when_max30_unranked(self):
     """Test that DRS falls back to max90 when max30 is unranked."""
     rider = ZRRider()
-    rider._raw = {
-      "name": "Test",
-      "gender": "M",
-      "power": {"compoundScore": 0.0},
-      "race": {
-        "current": {"rating": 90.0, "mixed": {"category": "B"}},
-        "max30": {"rating": None, "mixed": {"category": "Unranked"}},
-        "max90": {
-          "rating": 100.0,
-          "mixed": {"category": "A"},
-        },
-      },
-    }
+    rider._raw = '{"name": "Test", "gender": "M", "power": {"compoundScore": 0.0}, "race": {"current": {"rating": 90.0, "mixed": {"category": "B"}}, "max30": {"rating": null, "mixed": {"category": "Unranked"}}, "max90": {"rating": 100.0, "mixed": {"category": "A"}}}}'
 
     rider._parse_response()
 
@@ -250,15 +205,7 @@ class TestZRRiderParseResponse:
   def test_parse_response_handles_missing_power(self):
     """Test parsing when power data is missing."""
     rider = ZRRider()
-    rider._raw = {
-      "name": "Test",
-      "gender": "M",
-      "race": {
-        "current": {"rating": 90.0, "mixed": {"category": "B"}},
-        "max30": {"rating": 100.0, "mixed": {"category": "A"}},
-        "max90": {"rating": 95.0, "mixed": {"category": "B"}},
-      },
-    }
+    rider._raw = '{"name": "Test", "gender": "M", "race": {"current": {"rating": 90.0, "mixed": {"category": "B"}}, "max30": {"rating": 100.0, "mixed": {"category": "A"}}, "max90": {"rating": 95.0, "mixed": {"category": "B"}}}}'
 
     rider._parse_response()
 
@@ -268,16 +215,7 @@ class TestZRRiderParseResponse:
   def test_parse_response_handles_missing_nested_fields(self):
     """Test parsing with missing nested rating fields."""
     rider = ZRRider()
-    rider._raw = {
-      "name": "Test",
-      "gender": "M",
-      "power": {},
-      "race": {
-        "current": {},
-        "max30": {},
-        "max90": {},
-      },
-    }
+    rider._raw = '{"name": "Test", "gender": "M", "power": {}, "race": {"current": {}, "max30": {}, "max90": {}}}'
 
     rider._parse_response()
 
@@ -354,18 +292,7 @@ class TestZRRiderBatchFetch:
       mock_config.authorization = "test-token"
 
       with patch("zrdatafetch.zrrider.ZRRider.fetch_json") as mock_fetch:
-        mock_fetch.return_value = [
-          {
-            "name": "Test Rider",
-            "gender": "M",
-            "power": {"compoundScore": 250.0},
-            "race": {
-              "current": {"rating": 2250.0, "mixed": {"category": "A"}},
-              "max30": {"rating": 2240.0, "mixed": {"category": "A"}},
-              "max90": {"rating": 2200.0, "mixed": {"category": "B"}},
-            },
-          },
-        ]
+        mock_fetch.return_value = '[{"name": "Test Rider", "gender": "M", "power": {"compoundScore": 250.0}, "race": {"current": {"rating": 2250.0, "mixed": {"category": "A"}}, "max30": {"rating": 2240.0, "mixed": {"category": "A"}}, "max90": {"rating": 2200.0, "mixed": {"category": "B"}}}}]'
 
         ZRRider.fetch_batch(12345)
 
@@ -383,28 +310,7 @@ class TestZRRiderBatchFetch:
       mock_config.authorization = "test-token"
 
       with patch("zrdatafetch.zrrider.ZRRider.fetch_json") as mock_fetch:
-        mock_fetch.return_value = [
-          {
-            "name": "Rider 1",
-            "gender": "M",
-            "power": {"compoundScore": 250.0},
-            "race": {
-              "current": {"rating": 2250.0, "mixed": {"category": "A"}},
-              "max30": {"rating": 2240.0, "mixed": {"category": "A"}},
-              "max90": {"rating": 2200.0, "mixed": {"category": "B"}},
-            },
-          },
-          {
-            "name": "Rider 2",
-            "gender": "F",
-            "power": {"compoundScore": 200.0},
-            "race": {
-              "current": {"rating": 2100.0, "mixed": {"category": "B"}},
-              "max30": {"rating": 2090.0, "mixed": {"category": "B"}},
-              "max90": {"rating": 2050.0, "mixed": {"category": "C"}},
-            },
-          },
-        ]
+        mock_fetch.return_value = '[{"name": "Rider 1", "gender": "M", "power": {"compoundScore": 250.0}, "race": {"current": {"rating": 2250.0, "mixed": {"category": "A"}}, "max30": {"rating": 2240.0, "mixed": {"category": "A"}}, "max90": {"rating": 2200.0, "mixed": {"category": "B"}}}}, {"name": "Rider 2", "gender": "F", "power": {"compoundScore": 200.0}, "race": {"current": {"rating": 2100.0, "mixed": {"category": "B"}}, "max30": {"rating": 2090.0, "mixed": {"category": "B"}}, "max90": {"rating": 2050.0, "mixed": {"category": "C"}}}}]'
 
         result = ZRRider.fetch_batch(12345, 67890)
 
@@ -421,7 +327,7 @@ class TestZRRiderBatchFetch:
       mock_config.authorization = "test-token"
 
       with patch("zrdatafetch.zrrider.ZRRider.fetch_json") as mock_fetch:
-        mock_fetch.return_value = []
+        mock_fetch.return_value = '[]'
 
         ZRRider.fetch_batch(12345, 67890, epoch=1704067200)
 
@@ -437,7 +343,7 @@ class TestZRRiderBatchFetch:
       mock_config.authorization = "test-token"
 
       with patch("zrdatafetch.zrrider.ZRRider.fetch_json") as mock_fetch:
-        mock_fetch.return_value = []
+        mock_fetch.return_value = '[]'
 
         ZRRider.fetch_batch(12345)
 
@@ -454,22 +360,7 @@ class TestZRRiderBatchFetch:
       mock_config.authorization = "test-token"
 
       with patch("zrdatafetch.zrrider.ZRRider.fetch_json") as mock_fetch:
-        mock_fetch.return_value = [
-          {
-            "name": "Valid Rider",
-            "gender": "M",
-            "power": {"compoundScore": 250.0},
-            "race": {
-              "current": {"rating": 2250.0, "mixed": {"category": "A"}},
-              "max30": {"rating": 2240.0, "mixed": {"category": "A"}},
-              "max90": {"rating": 2200.0, "mixed": {"category": "B"}},
-            },
-          },
-          {
-            # Missing required fields - will be skipped
-            "name": "No Race Data",
-          },
-        ]
+        mock_fetch.return_value = '[{"name": "Valid Rider", "gender": "M", "power": {"compoundScore": 250.0}, "race": {"current": {"rating": 2250.0, "mixed": {"category": "A"}}, "max30": {"rating": 2240.0, "mixed": {"category": "A"}}, "max90": {"rating": 2200.0, "mixed": {"category": "B"}}}}, {"name": "No Race Data"}]'
 
         result = ZRRider.fetch_batch(12345, 67890)
 
@@ -484,7 +375,7 @@ class TestZRRiderBatchFetch:
       mock_config.authorization = "test-token"
 
       with patch("zrdatafetch.zrrider.ZRRider.fetch_json") as mock_fetch:
-        mock_fetch.return_value = {"error": "Not a list"}
+        mock_fetch.return_value = '{"error": "Not a list"}'
 
         result = ZRRider.fetch_batch(12345)
 
@@ -498,7 +389,7 @@ class TestZRRiderBatchFetch:
       mock_config.authorization = "test-token"
 
       with patch("zrdatafetch.zrrider.ZRRider.fetch_json") as mock_fetch:
-        mock_fetch.return_value = []
+        mock_fetch.return_value = '[]'
 
         # Should not raise
         result = ZRRider.fetch_batch(*range(1000))

@@ -4,12 +4,12 @@ This module provides the ZRResult class for fetching and storing race result
 data from the Zwiftracing API, including per-rider finishes and rating changes.
 """
 
-import ast
 import asyncio
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
 from shared.exceptions import ConfigError, NetworkError
+from shared.json_helpers import parse_json_safe
 from zrdatafetch.async_zr import AsyncZR_obj
 from zrdatafetch.config import Config
 from zrdatafetch.logging_config import get_logger
@@ -87,7 +87,7 @@ class ZRResult(ZR_obj):
   results: list[ZRRiderResult] = field(default_factory=list)
 
   # Private attributes (not in __init__)
-  _raw: dict = field(default_factory=dict, init=False, repr=False)
+  _raw: str = field(default='', init=False, repr=False)
   _race: dict = field(default_factory=dict, init=False, repr=False)
   _verbose: bool = field(default=False, init=False, repr=False)
   _zr: AsyncZR_obj | None = field(default=None, init=False, repr=False)
@@ -260,21 +260,22 @@ class ZRResult(ZR_obj):
       logger.warning('No data to parse')
       return
 
-    # The response is already a dictionary (from JSON parsing)
-    # No need for ast.literal_eval
-    if isinstance(self._raw, str):
-      self._race = ast.literal_eval(self._raw)
-    else:
-      self._race = self._raw
+    # Parse JSON string to dict
+    parsed = parse_json_safe(self._raw, context=f'race result {self.race_id}')
+    if not isinstance(parsed, dict):
+      logger.error(f'Expected dict for race result data, got {type(parsed).__name__}')
+      return
+
+    self._race = parsed
 
     # Check for error in response
-    if isinstance(self._race, dict) and 'message' in self._race:
+    if 'message' in self._race:
       logger.error(f"API error: {self._race['message']}")
       return
 
     # Response should be a dict with a 'results' key
-    if not isinstance(self._race, dict):
-      logger.warning('Expected dict with results, got different format')
+    if 'results' not in self._race:
+      logger.warning('Expected dict with results key, missing in response')
       return
 
     # Validate that we have the expected race_id

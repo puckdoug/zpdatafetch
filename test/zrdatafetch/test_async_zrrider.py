@@ -29,16 +29,7 @@ class TestAsyncZRRiderFetch:
       rider = ZRRider()
       rider.set_session(zr)
       # Mock response by directly setting _raw
-      rider._raw = {
-        'name': 'Test Rider',
-        'gender': 'M',
-        'power': {'compoundScore': 2.5},
-        'race': {
-          'current': {'rating': 3.2, 'mixed': {'category': 'A'}},
-          'max30': {'rating': 3.5, 'mixed': {'category': 'A'}},
-          'max90': {'rating': 3.0, 'mixed': {'category': 'B'}},
-        },
-      }
+      rider._raw = '{"name": "Test Rider", "gender": "M", "power": {"compoundScore": 2.5}, "race": {"current": {"rating": 3.2, "mixed": {"category": "A"}}, "max30": {"rating": 3.5, "mixed": {"category": "A"}}, "max90": {"rating": 3.0, "mixed": {"category": "B"}}}}'
       rider.zwift_id = 12345
       rider._parse_response()
       assert rider.name == 'Test Rider'
@@ -57,16 +48,7 @@ class TestAsyncZRRiderFetch:
     """Test fetch calls the session with correct endpoint."""
     mock_zr = AsyncMock(spec=AsyncZR_obj)
     mock_zr.fetch_json = AsyncMock(
-      return_value={
-        'name': 'Mock Rider',
-        'gender': 'F',
-        'power': {'compoundScore': 3.0},
-        'race': {
-          'current': {'rating': 4.0, 'mixed': {'category': 'A'}},
-          'max30': {'rating': 4.5, 'mixed': {'category': 'A'}},
-          'max90': {'rating': 3.8, 'mixed': {'category': 'A'}},
-        },
-      },
+      return_value='{"name": "Mock Rider", "gender": "F", "power": {"compoundScore": 3.0}, "race": {"current": {"rating": 4.0, "mixed": {"category": "A"}}, "max30": {"rating": 4.5, "mixed": {"category": "A"}}, "max90": {"rating": 3.8, "mixed": {"category": "A"}}}}',
     )
 
     with patch('zrdatafetch.zrrider.Config') as mock_config_class:
@@ -94,7 +76,7 @@ class TestAsyncZRRiderFetch:
   async def test_fetch_with_epoch(self):
     """Test fetch includes epoch in endpoint when provided."""
     mock_zr = AsyncMock(spec=AsyncZR_obj)
-    mock_zr.fetch_json = AsyncMock(return_value={})
+    mock_zr.fetch_json = AsyncMock(return_value='{}')
 
     with patch('zrdatafetch.zrrider.Config') as mock_config_class:
       mock_config = MagicMock()
@@ -135,28 +117,7 @@ class TestAsyncZRRiderFetchBatch:
     """Test batch fetch with mocked session."""
     mock_zr = AsyncMock(spec=AsyncZR_obj)
     mock_zr.fetch_json = AsyncMock(
-      return_value=[
-        {
-          'name': 'Rider 1',
-          'gender': 'M',
-          'power': {'compoundScore': 2.5},
-          'race': {
-            'current': {'rating': 3.2, 'mixed': {'category': 'A'}},
-            'max30': {'rating': 3.5, 'mixed': {'category': 'A'}},
-            'max90': {'rating': 3.0, 'mixed': {'category': 'B'}},
-          },
-        },
-        {
-          'name': 'Rider 2',
-          'gender': 'F',
-          'power': {'compoundScore': 2.8},
-          'race': {
-            'current': {'rating': 2.9, 'mixed': {'category': 'B'}},
-            'max30': {'rating': 3.1, 'mixed': {'category': 'A'}},
-            'max90': {'rating': 2.7, 'mixed': {'category': 'B'}},
-          },
-        },
-      ],
+      return_value='[{"name": "Rider 1", "gender": "M", "power": {"compoundScore": 2.5}, "race": {"current": {"rating": 3.2, "mixed": {"category": "A"}}, "max30": {"rating": 3.5, "mixed": {"category": "A"}}, "max90": {"rating": 3.0, "mixed": {"category": "B"}}}}, {"name": "Rider 2", "gender": "F", "power": {"compoundScore": 2.8}, "race": {"current": {"rating": 2.9, "mixed": {"category": "B"}}, "max30": {"rating": 3.1, "mixed": {"category": "A"}}, "max90": {"rating": 2.7, "mixed": {"category": "B"}}}}]',
     )
 
     with patch('zrdatafetch.zrrider.Config') as mock_config_class:
@@ -180,7 +141,7 @@ class TestAsyncZRRiderFetchBatch:
   async def test_fetch_batch_with_epoch(self):
     """Test batch fetch with historical epoch."""
     mock_zr = AsyncMock(spec=AsyncZR_obj)
-    mock_zr.fetch_json = AsyncMock(return_value=[])
+    mock_zr.fetch_json = AsyncMock(return_value='[]')
 
     with patch('zrdatafetch.zrrider.Config') as mock_config_class:
       mock_config = MagicMock()
