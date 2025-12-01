@@ -39,7 +39,8 @@ class AsyncZR_obj:
     _client: httpx.AsyncClient instance
   """
 
-  _base_url: str = 'https://zwift-ranking.herokuapp.com'
+  # _base_url: str = 'https://zwift-ranking.herokuapp.com'
+  _base_url: str = 'https://api.zwiftracing.app/api'
   _shared_client: httpx.AsyncClient | None = None
   _owns_client: bool = False
 

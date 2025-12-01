@@ -29,30 +29,40 @@ class TestAsyncZRResultFetch:
       result = ZRResult()
       result.set_session(zr)
       # Mock response by directly setting _raw
-      result._raw = [
-        {
-          'riderId': 12345,
-          'position': 1,
-          'positionInCategory': 1,
-          'category': 'A',
-          'time': 3600.0,
-          'gap': 0.0,
-          'ratingBefore': 3.2,
-          'rating': 3.5,
-          'ratingDelta': 0.3,
-        },
-        {
-          'riderId': 67890,
-          'position': 2,
-          'positionInCategory': 2,
-          'category': 'A',
-          'time': 3605.0,
-          'gap': 5.0,
-          'ratingBefore': 2.8,
-          'rating': 3.0,
-          'ratingDelta': 0.2,
-        },
-      ]
+      # New format: dict with metadata and results array
+      result._raw = {
+        'eventId': '3590800',
+        'time': 1733339700,
+        'routeId': '3356878261',
+        'distance': 16.22,
+        'title': 'Test Race',
+        'type': 'Race',
+        'subType': 'Points',
+        'results': [
+          {
+            'riderId': 12345,
+            'position': 1,
+            'positionInCategory': 1,
+            'category': 'A',
+            'time': 3600.0,
+            'gap': 0.0,
+            'ratingBefore': 3.2,
+            'rating': 3.5,
+            'ratingDelta': 0.3,
+          },
+          {
+            'riderId': 67890,
+            'position': 2,
+            'positionInCategory': 2,
+            'category': 'A',
+            'time': 3605.0,
+            'gap': 5.0,
+            'ratingBefore': 2.8,
+            'rating': 3.0,
+            'ratingDelta': 0.2,
+          },
+        ],
+      }
       result.race_id = 3590800
       result._parse_response()
       assert len(result.results) == 2
@@ -65,7 +75,14 @@ class TestAsyncZRResultFetch:
     async with AsyncZR_obj() as zr:
       result = ZRResult()
       result.set_session(zr)
-      result._raw = []
+      # New format: dict with empty results array
+      result._raw = {
+        'eventId': '3590800',
+        'time': 1733339700,
+        'title': 'Test Race',
+        'type': 'Race',
+        'results': [],
+      }
       result.race_id = 3590800
       result._parse_response()
       assert len(result.results) == 0
@@ -76,14 +93,21 @@ class TestAsyncZRResultFetch:
     async with AsyncZR_obj() as zr:
       result = ZRResult()
       result.set_session(zr)
-      result._raw = [
-        {
-          'riderId': 12345,
-          'position': 1,
-          # Missing other fields - should still parse with defaults
-          'ratingBefore': 3.2,
-        },
-      ]
+      # New format: dict with results array containing malformed data
+      result._raw = {
+        'eventId': '3590800',
+        'time': 1733339700,
+        'title': 'Test Race',
+        'type': 'Race',
+        'results': [
+          {
+            'riderId': 12345,
+            'position': 1,
+            # Missing other fields - should still parse with defaults
+            'ratingBefore': 3.2,
+          },
+        ],
+      }
       result.race_id = 3590800
       result._parse_response()
       assert len(result.results) == 1
@@ -92,20 +116,27 @@ class TestAsyncZRResultFetch:
   async def test_fetch_with_mocked_session(self):
     """Test fetch with mocked session."""
     mock_zr = AsyncMock(spec=AsyncZR_obj)
+    # New format: dict with metadata and results array
     mock_zr.fetch_json = AsyncMock(
-      return_value=[
-        {
-          'riderId': 12345,
-          'position': 1,
-          'positionInCategory': 1,
-          'category': 'A',
-          'time': 3600.0,
-          'gap': 0.0,
-          'ratingBefore': 3.2,
-          'rating': 3.5,
-          'ratingDelta': 0.3,
-        },
-      ],
+      return_value={
+        'eventId': '3590800',
+        'time': 1733339700,
+        'title': 'Test Race',
+        'type': 'Race',
+        'results': [
+          {
+            'riderId': 12345,
+            'position': 1,
+            'positionInCategory': 1,
+            'category': 'A',
+            'time': 3600.0,
+            'gap': 0.0,
+            'ratingBefore': 3.2,
+            'rating': 3.5,
+            'ratingDelta': 0.3,
+          },
+        ],
+      },
     )
 
     with patch('zrdatafetch.zrresult.Config') as mock_config_class:

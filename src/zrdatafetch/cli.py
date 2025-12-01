@@ -151,7 +151,7 @@ Module for fetching Zwiftracing data using the Zwiftracing API
           result = ZRResult(race_id=int(race_id))
           result.fetch()
           if args.raw:
-            print(result.to_dict())
+            print(result._raw)
           else:
             print(result.json())
         except ValueError:

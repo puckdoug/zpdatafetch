@@ -223,28 +223,34 @@ class TestZRResultParseResponse:
   def test_parse_response_with_valid_data(self):
     """Test parsing response with valid rider results."""
     result = ZRResult(race_id=3590800)
-    result._raw = [
-      {
-        "riderId": 12345,
-        "position": 1,
-        "category": "A",
-        "time": 1234.5,
-        "gap": 0.0,
-        "rating": 2250.0,
-        "ratingBefore": 2240.0,
-        "ratingDelta": 10.0,
-      },
-      {
-        "riderId": 67890,
-        "position": 2,
-        "category": "A",
-        "time": 1245.3,
-        "gap": 10.8,
-        "rating": 2200.0,
-        "ratingBefore": 2195.0,
-        "ratingDelta": 5.0,
-      },
-    ]
+    result._raw = {
+      "eventId": "3590800",
+      "time": 1733339700,
+      "title": "Test Race",
+      "type": "Race",
+      "results": [
+        {
+          "riderId": 12345,
+          "position": 1,
+          "category": "A",
+          "time": 1234.5,
+          "gap": 0.0,
+          "rating": 2250.0,
+          "ratingBefore": 2240.0,
+          "ratingDelta": 10.0,
+        },
+        {
+          "riderId": 67890,
+          "position": 2,
+          "category": "A",
+          "time": 1245.3,
+          "gap": 10.8,
+          "rating": 2200.0,
+          "ratingBefore": 2195.0,
+          "ratingDelta": 5.0,
+        },
+      ],
+    }
     result._parse_response()
 
     assert len(result.results) == 2
@@ -257,13 +263,19 @@ class TestZRResultParseResponse:
   def test_parse_response_missing_fields(self):
     """Test parsing response with missing fields (uses defaults)."""
     result = ZRResult(race_id=3590800)
-    result._raw = [
-      {
-        "riderId": 12345,
-        "position": 1,
-        # Missing other fields - should use defaults
-      },
-    ]
+    result._raw = {
+      "eventId": "3590800",
+      "time": 1733339700,
+      "title": "Test Race",
+      "type": "Race",
+      "results": [
+        {
+          "riderId": 12345,
+          "position": 1,
+          # Missing other fields - should use defaults
+        },
+      ],
+    }
     result._parse_response()
 
     assert len(result.results) == 1
@@ -278,22 +290,28 @@ class TestZRResultParseResponse:
     Note: Since zwift_id is not converted with int(), string values are accepted.
     """
     result = ZRResult(race_id=3590800)
-    result._raw = [
-      {
-        "riderId": 12345,
-        "position": 1,
-        "category": "A",
-      },
-      {
-        "riderId": "not_a_number",  # Accepted as-is since int() conversion happens on field
-        "position": 2,
-      },
-      {
-        "riderId": 67890,
-        "position": 3,
-        "category": "B",
-      },
-    ]
+    result._raw = {
+      "eventId": "3590800",
+      "time": 1733339700,
+      "title": "Test Race",
+      "type": "Race",
+      "results": [
+        {
+          "riderId": 12345,
+          "position": 1,
+          "category": "A",
+        },
+        {
+          "riderId": "not_a_number",  # Accepted as-is since int() conversion happens on field
+          "position": 2,
+        },
+        {
+          "riderId": 67890,
+          "position": 3,
+          "category": "B",
+        },
+      ],
+    }
     result._parse_response()
 
     # All riders should be parsed since we don't validate zwift_id type
@@ -317,14 +335,20 @@ class TestZRResultParseResponse:
     since float(None) raises TypeError.
     """
     result = ZRResult(race_id=3590800)
-    result._raw = [
-      {
-        "riderId": 12345,
-        "position": 1,
-        "rating": None,  # None value causes skip
-        "gap": None,
-      },
-    ]
+    result._raw = {
+      "eventId": "3590800",
+      "time": 1733339700,
+      "title": "Test Race",
+      "type": "Race",
+      "results": [
+        {
+          "riderId": 12345,
+          "position": 1,
+          "rating": None,  # None value causes skip
+          "gap": None,
+        },
+      ],
+    }
     result._parse_response()
 
     # Should skip riders with None values in float fields
@@ -379,7 +403,13 @@ class TestZRResultIntegration:
       for i in range(1, 51)  # 50 riders
     ]
 
-    result._raw = riders_data
+    result._raw = {
+      "eventId": "3590800",
+      "time": 1733339700,
+      "title": "Test Race",
+      "type": "Race",
+      "results": riders_data,
+    }
     result._parse_response()
 
     assert len(result.results) == 50
@@ -390,32 +420,128 @@ class TestZRResultIntegration:
   def test_rating_changes_across_results(self):
     """Test tracking rating changes for multiple riders."""
     result = ZRResult(race_id=3590800)
-    result._raw = [
-      {
-        "riderId": 1,
-        "position": 1,
-        "rating": 2250.0,
-        "ratingBefore": 2240.0,
-        "ratingDelta": 10.0,
-      },
-      {
-        "riderId": 2,
-        "position": 2,
-        "rating": 2200.0,
-        "ratingBefore": 2205.0,
-        "ratingDelta": -5.0,
-      },
-      {
-        "riderId": 3,
-        "position": 3,
-        "rating": 2180.0,
-        "ratingBefore": 2175.0,
-        "ratingDelta": 5.0,
-      },
-    ]
+    result._raw = {
+      "eventId": "3590800",
+      "time": 1733339700,
+      "title": "Test Race",
+      "type": "Race",
+      "results": [
+        {
+          "riderId": 1,
+          "position": 1,
+          "rating": 2250.0,
+          "ratingBefore": 2240.0,
+          "ratingDelta": 10.0,
+        },
+        {
+          "riderId": 2,
+          "position": 2,
+          "rating": 2200.0,
+          "ratingBefore": 2205.0,
+          "ratingDelta": -5.0,
+        },
+        {
+          "riderId": 3,
+          "position": 3,
+          "rating": 2180.0,
+          "ratingBefore": 2175.0,
+          "ratingDelta": 5.0,
+        },
+      ],
+    }
     result._parse_response()
 
     assert len(result.results) == 3
     assert result.results[0].rating_delta == 10.0  # Winner gained rating
     assert result.results[1].rating_delta == -5.0  # Second lost rating
     assert result.results[2].rating_delta == 5.0  # Third gained rating
+
+
+# ===============================================================================
+class TestZRResultWithRealAPIData:
+  """Test ZRResult with real API response data from fixtures."""
+
+  def test_parse_real_race_result_fixture(self, zr_race_result_fixture):
+    """Test parsing real API response from race ID 4613373.
+
+    This test uses actual API response data captured from the
+    /public/results/4613373 endpoint to ensure the parser handles
+    real-world data correctly.
+    """
+    result = ZRResult(race_id=4613373)
+    result._raw = zr_race_result_fixture
+    result._parse_response()
+
+    # Verify race metadata was parsed
+    assert result.race_id == 4613373
+
+    # Verify we parsed all results (fixture has 96 riders)
+    assert len(result.results) == 96
+
+    # Verify first place finisher details
+    first_place = result.results[0]
+    assert first_place.zwift_id == 17055
+    assert first_place.position == 1
+    assert first_place.position_in_category == 1
+    assert first_place.category == 'A'
+    assert first_place.time == 1458.972
+    assert first_place.gap == 0
+    assert first_place.rating_before == 1296.6930670897686
+    assert first_place.rating == 1316.9768400807513
+    assert first_place.rating_delta == 20.283772990982694
+
+    # Verify a mid-pack finisher (26th in the results list)
+    mid_pack = result.results[25]
+    assert mid_pack.zwift_id == 784914
+    assert mid_pack.position == 2  # Note: duplicate position in data
+    assert mid_pack.category == 'A'
+    assert mid_pack.gap == -1.626
+
+    # Verify last finisher
+    last_finisher = result.results[-1]
+    assert last_finisher.zwift_id == 4481868
+    assert last_finisher.position == 73
+    assert last_finisher.category == 'D'
+    assert last_finisher.rating == 843.7772805535022
+
+    # Verify different categories are represented
+    categories = {r.category for r in result.results}
+    assert 'A' in categories
+    assert 'B' in categories
+    assert 'C' in categories
+    assert 'D' in categories
+
+  def test_fixture_has_expected_structure(self, zr_race_result_fixture):
+    """Test that the fixture has the expected API response structure."""
+    # Verify top-level keys
+    assert 'eventId' in zr_race_result_fixture
+    assert 'time' in zr_race_result_fixture
+    assert 'routeId' in zr_race_result_fixture
+    assert 'distance' in zr_race_result_fixture
+    assert 'title' in zr_race_result_fixture
+    assert 'type' in zr_race_result_fixture
+    assert 'subType' in zr_race_result_fixture
+    assert 'results' in zr_race_result_fixture
+
+    # Verify metadata values
+    assert zr_race_result_fixture['eventId'] == '4613373'
+    assert zr_race_result_fixture['title'] == 'DRS Winter Warriors - Metals'
+    assert zr_race_result_fixture['type'] == 'Race'
+    assert zr_race_result_fixture['subType'] == 'Points'
+    assert zr_race_result_fixture['distance'] == 16.22
+
+    # Verify results array structure
+    assert isinstance(zr_race_result_fixture['results'], list)
+    assert len(zr_race_result_fixture['results']) > 0
+
+    # Verify first result has expected fields
+    first_result = zr_race_result_fixture['results'][0]
+    assert 'riderId' in first_result
+    assert 'name' in first_result
+    assert 'position' in first_result
+    assert 'category' in first_result
+    assert 'time' in first_result
+    assert 'gap' in first_result
+    assert 'rating' in first_result
+    assert 'ratingBefore' in first_result
+    assert 'ratingDelta' in first_result

@@ -4,6 +4,7 @@ This module provides the ZRResult class for fetching and storing race result
 data from the Zwiftracing API, including per-rider finishes and rating changes.
 """
 
+import ast
 import asyncio
 from dataclasses import asdict, dataclass, field
 from typing import Any
@@ -143,6 +144,7 @@ class ZRResult(ZR_obj):
     Args:
       race_id: The race ID to fetch (uses self.race_id if not provided)
     """
+
     # Use provided value or default
     if race_id is not None:
       self.race_id = race_id
@@ -241,25 +243,55 @@ class ZRResult(ZR_obj):
 
     Extracts rider results from the raw API response and creates ZRRiderResult
     objects for each participant. Silently handles missing or malformed data.
+
+    The API response format is a dictionary with metadata and a 'results' array:
+    {
+      'eventId': '4613373',
+      'time': 1733339700,
+      'routeId': '3356878261',
+      'distance': 16.22,
+      'title': 'DRS Winter Warriors - Metals',
+      'type': 'Race',
+      'subType': 'Points',
+      'results': [...]
+    }
     """
     if not self._raw:
       logger.warning('No data to parse')
       return
 
-    self._race = self._raw
+    # The response is already a dictionary (from JSON parsing)
+    # No need for ast.literal_eval
+    if isinstance(self._raw, str):
+      self._race = ast.literal_eval(self._raw)
+    else:
+      self._race = self._raw
 
     # Check for error in response
     if isinstance(self._race, dict) and 'message' in self._race:
       logger.error(f"API error: {self._race['message']}")
       return
 
-    # Response should be a list of rider results
-    if not isinstance(self._race, list):
-      logger.warning('Expected list of results, got different format')
+    # Response should be a dict with a 'results' key
+    if not isinstance(self._race, dict):
+      logger.warning('Expected dict with results, got different format')
+      return
+
+    # Validate that we have the expected race_id
+    event_id = self._race.get('eventId')
+    if event_id and str(event_id) != str(self.race_id):
+      logger.warning(
+        f'Event ID mismatch: expected {self.race_id}, got {event_id}',
+      )
+
+    # Extract the results array
+    results_data = self._race.get('results', [])
+    if not results_data:
+      logger.warning('No results found in response')
       return
 
     try:
-      for rider_data in self._race:
+      for rider_data in results_data:
         try:
           result = ZRRiderResult(
             zwift_id=rider_data.get('riderId', 0),

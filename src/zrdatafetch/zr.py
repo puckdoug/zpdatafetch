@@ -36,7 +36,8 @@ class ZR_obj:
   """
 
   _client: ClassVar[httpx.Client | None] = None
-  _base_url: ClassVar[str] = 'https://zwift-ranking.herokuapp.com'
+  # _base_url: ClassVar[str] = 'https://zwift-ranking.herokuapp.com'
+  _base_url: ClassVar[str] = 'https://api.zwiftracing.app/api'
   _premium_mode: ClassVar[bool] = False  # Default to standard tier
 
   # -------------------------------------------------------------------------------

@@ -26,7 +26,8 @@ class TestZR_objClientManagement:
     # Mock httpx.Client to prevent real connections
     with patch('httpx.Client') as mock_client_class:
       mock_client = MagicMock()
-      mock_client.base_url = 'https://zwift-ranking.herokuapp.com'
+      # mock_client.base_url = 'https://zwift-ranking.herokuapp.com'
+      mock_client.base_url = 'https://api.zwiftracing.app/api'
       mock_client_class.return_value = mock_client
 
       client = ZR_obj.get_client()
