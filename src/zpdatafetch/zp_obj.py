@@ -7,13 +7,20 @@ class ZP_obj:
 
   Provides common functionality for storing and serializing data fetched
   from Zwiftpower API endpoints. All data classes (Cyclist, Team, Result,
-  Signup, Primes) inherit from this base class.
+  Signup, Primes, Sprints) inherit from this base class.
 
   Logging is done via the standard logging module. Configure logging using
   zpdatafetch.logging_config.setup_logging() for detailed output.
 
   Attributes:
-    raw: Dictionary containing the raw data from the API
+    raw: Dictionary mapping IDs to raw JSON strings from the API
+    processed: Dictionary mapping IDs to parsed data dictionaries
+
+  Note:
+    The raw attribute stores the original JSON string responses from the
+    API before any parsing or validation. Each ID maps to its unprocessed
+    JSON string. This ensures we always have access to the exact data
+    received for debugging and logging purposes.
   """
 
   def __init__(self) -> None:

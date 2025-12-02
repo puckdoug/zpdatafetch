@@ -1,6 +1,6 @@
 [project]
 name = "zpdatafetch"
-version = "1.6.2"
+version = "1.7.0"
 description = "A package for fetching data from Zwiftpower and Zwiftracing.app"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -61,6 +61,7 @@ venv = "3.12"
 venvPath = ".."
 
 [tool.pytest.ini_options]
+pythonpath = ["src"]
 filterwarnings = [
   # HTTPX warnings from libraries
   "ignore:.*strip_cdata.*HTMLParser().*:DeprecationWarning",

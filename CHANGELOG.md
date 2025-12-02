@@ -1,5 +1,60 @@
 # Changelog
 
+## [1.7.0]
+
+### Changed
+
+- **BREAKING: Raw data storage refactoring** - All data classes now store truly raw JSON strings in `_raw`/`raw` attributes instead of parsed dictionaries
+  - **zpdatafetch package**: `raw` attribute now stores `dict[int, str]` (mapping IDs to JSON strings) instead of `dict[int, dict]`
+    - Added new `processed` attribute storing `dict[int, dict[str, Any]]` with parsed data
+    - Affects: `Cyclist`, `Result`, `Team`, `Primes`, `Sprints`, `Signup` classes
+    - `Primes` and `Sprints` maintain their nested structure in both `raw` and `processed` attributes
+  - **zrdatafetch package**: `_raw` attribute now stores raw JSON strings instead of parsed dictionaries
+    - Affects: `ZRRider`, `ZRResult`, `ZRTeam` classes
+    - Parsing happens explicitly via `_parse_response()` method
+  - All `fetch_json()` methods now return `str` instead of `dict[str, Any]`
+  - JSON parsing centralized using `parse_json_safe()` helper with context-aware error messages
+- Reorganized codebase structure with shared utilities in `./shared` module
+  - Created `shared.json_helpers` module for centralized JSON parsing
+  - Created `shared.validation` module for input validation
+  - Created `shared.exceptions` module for exception hierarchy
+  - Created `shared.config` module for base configuration classes
+  - Created `shared.http_client` module for HTTP client utilities
+  - Created `shared.error_helpers` module for error formatting
+  - Created `shared.logging` module for logging configuration
+  - Created `shared.cli` module for CLI utilities
+- Improved error messages with more context and actionable suggestions
+- Enhanced type handling and input validation across all modules
+- Reorganized test structure for better maintainability
+- Updated Zwiftracing.app API endpoints to use new server
+
+### Added
+
+- New `shared` package containing reusable utilities for both zpdatafetch and zrdatafetch
+- `parse_json_safe()` helper function with context-aware error messages
+- Context information in all JSON parsing operations for better debugging
+- Comprehensive test coverage for raw data storage refactoring
+
+### Fixed
+
+- Fixed test isolation issues - `test_batch_accepts_invalid_ids_currently` now properly mocks both Config and fetch_json to avoid real API calls
+- Removed unused imports: `json` from multiple ZP and ZR modules, `Any` from json_helpers, `ValidationError` and `validate_id_list` from sprints
+- Fixed ZRResult to handle format delivered by new ZwiftRacing endpoint with updated fixture for future testing
+- Fixed inconsistent data storage - raw data is now truly raw across all classes
+- Fixed Sprints `extract_banners()` method to use `processed` attribute instead of `raw`
+- Fixed Sprints `enrich_sprints()` method to properly handle data enrichment
+
+### Developer Notes
+
+- Code quality improvements: Fixed multiple linting issues and removed code duplication
+- All changes maintain backward compatibility for end users through the unified `fetch()`/`afetch()` API
+
+## [1.6.2]
+
+### Changed
+
+- Updated underlying fetch used by the system to use async processes. This allows parallelizing fetches when more than one object is fetched or when more than one call is requried as with primes and sprints. Results in a slight speed-up.
+
 ## [1.6.1]
 
 ### Changed

@@ -80,6 +80,13 @@ class ZRResult(ZR_obj):
   Attributes:
     race_id: The race ID (Zwift event ID)
     results: List of ZRRiderResult objects for each participant
+    _raw: Raw JSON response string from API (unprocessed, for debugging)
+    _race: Parsed race data dictionary (internal)
+
+  Note:
+    The _raw attribute stores the original JSON string response from the
+    API before any parsing or validation. This ensures we always have
+    access to the exact data received for debugging and logging purposes.
   """
 
   # Public attributes (in __init__)
@@ -239,10 +246,18 @@ class ZRResult(ZR_obj):
 
   # -----------------------------------------------------------------------
   def _parse_response(self) -> None:
-    """Parse API response into result objects.
+    """Parse raw JSON string from _raw into structured result objects.
 
-    Extracts rider results from the raw API response and creates ZRRiderResult
-    objects for each participant. Silently handles missing or malformed data.
+    Converts the raw JSON string stored in self._raw into a Python dict
+    (self._race), then extracts individual rider results into ZRRiderResult
+    objects. Handles malformed JSON and missing fields gracefully.
+
+    The parsing is separated from fetching to ensure _raw always contains
+    the unprocessed response for debugging/logging purposes.
+
+    Side effects:
+      - Sets self._race to parsed dict
+      - Populates self.results list with ZRRiderResult objects
 
     The API response format is a dictionary with metadata and a 'results' array:
     {

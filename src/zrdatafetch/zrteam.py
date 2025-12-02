@@ -126,6 +126,13 @@ class ZRTeam(ZR_obj):
     team_id: The team/club ID
     team_name: Name of the team/club
     riders: List of ZRTeamRider objects for team members
+    _raw: Raw JSON response string from API (unprocessed, for debugging)
+    _team: Parsed team data dictionary (internal)
+
+  Note:
+    The _raw attribute stores the original JSON string response from the
+    API before any parsing or validation. This ensures we always have
+    access to the exact data received for debugging and logging purposes.
   """
 
   # Public attributes (in __init__)
@@ -285,10 +292,19 @@ class ZRTeam(ZR_obj):
 
   # -----------------------------------------------------------------------
   def _parse_response(self) -> None:
-    """Parse API response into team and rider objects.
+    """Parse raw JSON string from _raw into structured team data.
 
-    Extracts team information and all team member data from the raw API
-    response and creates ZRTeamRider objects for each member.
+    Converts the raw JSON string stored in self._raw into a Python dict
+    (self._team), then extracts team information and creates ZRTeamRider
+    objects for each team member. Handles malformed JSON and missing fields
+    gracefully.
+
+    The parsing is separated from fetching to ensure _raw always contains
+    the unprocessed response for debugging/logging purposes.
+
+    Side effects:
+      - Sets self._team to parsed dict
+      - Populates self.name, self.tag, and self.riders list
     """
     if not self._raw:
       logger.warning('No data to parse')

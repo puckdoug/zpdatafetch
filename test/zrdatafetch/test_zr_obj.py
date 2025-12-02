@@ -229,3 +229,77 @@ class TestZR_objIntegration:
       client3 = obj.get_client()
       assert client3 is not client1
       assert client3 is mock_client3
+
+
+# ===============================================================================
+class TestZR_objRawAttributeType:
+  """Test that _raw attribute properly stores string data."""
+
+  def test_fetch_json_returns_string(self):
+    """Test that fetch_json returns a string, not dict."""
+    obj = ZR_obj()
+
+    mock_response = MagicMock()
+    mock_response.text = '{"id": 123, "name": "Test"}'
+
+    with patch.object(ZR_obj, 'get_client') as mock_get_client:
+      mock_client = MagicMock()
+      mock_client.get.return_value = mock_response
+      mock_get_client.return_value = mock_client
+
+      result = obj.fetch_json('/public/test')
+
+      assert isinstance(result, str)
+      assert result == '{"id": 123, "name": "Test"}'
+
+  def test_fetch_json_returns_malformed_json_as_string(self):
+    """Test that fetch_json returns malformed JSON as string without parsing."""
+    obj = ZR_obj()
+
+    mock_response = MagicMock()
+    mock_response.text = '{invalid json}'
+
+    with patch.object(ZR_obj, 'get_client') as mock_get_client:
+      mock_client = MagicMock()
+      mock_client.get.return_value = mock_response
+      mock_get_client.return_value = mock_client
+
+      result = obj.fetch_json('/public/test')
+
+      # Should return the raw text, not attempt to parse
+      assert isinstance(result, str)
+      assert result == '{invalid json}'
+
+  def test_fetch_json_returns_empty_string(self):
+    """Test that fetch_json handles empty response."""
+    obj = ZR_obj()
+
+    mock_response = MagicMock()
+    mock_response.text = ''
+
+    with patch.object(ZR_obj, 'get_client') as mock_get_client:
+      mock_client = MagicMock()
+      mock_client.get.return_value = mock_response
+      mock_get_client.return_value = mock_client
+
+      result = obj.fetch_json('/public/test')
+
+      assert isinstance(result, str)
+      assert result == ''
+
+  def test_fetch_json_returns_whitespace_as_string(self):
+    """Test that fetch_json preserves whitespace-only responses."""
+    obj = ZR_obj()
+
+    mock_response = MagicMock()
+    mock_response.text = '   \n  \t  '
+
+    with patch.object(ZR_obj, 'get_client') as mock_get_client:
+      mock_client = MagicMock()
+      mock_client.get.return_value = mock_response
+      mock_get_client.return_value = mock_client
+
+      result = obj.fetch_json('/public/test')
+
+      assert isinstance(result, str)
+      assert result == '   \n  \t  '
