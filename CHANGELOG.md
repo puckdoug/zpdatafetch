@@ -1,6 +1,10 @@
 # Changelog
 
-## [1.7.0]
+## [1.7.1]
+
+- Resolved issue preventing signups and teams from fetching correctly in 1.7.0.
+
+## [1.7.0] - Yanked
 
 ### Changed
 
@@ -49,13 +53,13 @@
 - Code quality improvements: Fixed multiple linting issues and removed code duplication
 - All changes maintain backward compatibility for end users through the unified `fetch()`/`afetch()` API
 
-## [1.6.2]
+## [1.6.2] - Yanked
 
 ### Changed
 
 - Updated underlying fetch used by the system to use async processes. This allows parallelizing fetches when more than one object is fetched or when more than one call is requried as with primes and sprints. Results in a slight speed-up.
 
-## [1.6.1]
+## [1.6.1] - Yanked
 
 ### Changed
 

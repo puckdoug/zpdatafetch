@@ -13,30 +13,27 @@ from zrdatafetch import ZRResult, ZRRider, ZRTeam
 
 
 class TestZRRiderConstructorValidation:
-  """Test ZRRider constructor - WILL PASS until Phase 4 complete (proving gap exists)."""
+  """Test ZRRider constructor"""
 
   def test_accepts_negative_zwift_id_currently(self):
-    """FAILING TEST: ZRRider constructor accepts negative IDs."""
-    # This should raise ValueError in __post_init__ but doesn't currently
+    """ZRRider constructor should not accept negative IDs."""
+    # This should raise ValueError in __post_init__ 
     try:
       ZRRider(zwift_id=-5)
-      pytest.skip('Validation not implemented yet - gap exists')
     except ValueError:
       pass
 
   def test_accepts_too_large_zwift_id_currently(self):
-    """FAILING TEST: ZRRider constructor accepts IDs beyond limit."""
+    """ZRRider constructor should not accept IDs beyond limit."""
     try:
       ZRRider(zwift_id=sys.maxsize)
-      pytest.skip('Validation not implemented yet - gap exists')
     except ValueError:
       pass
 
   def test_accepts_invalid_epoch_currently(self):
-    """FAILING TEST: ZRRider accepts invalid epochs."""
+    """ZRRider should not accept invalid epochs."""
     try:
       ZRRider(zwift_id=123, epoch=-999)
-      pytest.skip('Validation not implemented yet - gap exists')
     except ValueError:
       pass
 
@@ -52,42 +49,39 @@ class TestZRRiderConstructorValidation:
 
 
 class TestZRResultConstructorValidation:
-  """Test ZRResult constructor - WILL PASS until Phase 4 complete (proving gap exists)."""
+  """Test ZRResult constructor"""
 
   def test_accepts_negative_race_id_currently(self):
-    """FAILING TEST: ZRResult constructor accepts negative race IDs."""
+    """ZRResult constructor should not accept negative race IDs."""
     try:
       ZRResult(race_id=-10)
-      pytest.skip('Validation not implemented yet - gap exists')
     except ValueError:
       pass
 
   def test_accepts_zero_race_id_currently(self):
-    """FAILING TEST: ZRResult constructor accepts zero race ID."""
+    """ZRResult constructor should not accept zero race ID."""
     try:
       ZRResult(race_id=0)
-      pytest.skip('Validation not implemented yet - gap exists')
     except ValueError:
       pass
 
 
 class TestZRTeamConstructorValidation:
-  """Test ZRTeam constructor - WILL PASS until Phase 4 complete (proving gap exists)."""
+  """Test ZRTeam constructor"""
 
   def test_accepts_negative_team_id_currently(self):
-    """FAILING TEST: ZRTeam constructor accepts negative team IDs."""
+    """ZRTeam constructor should not accept negative team IDs."""
     try:
       ZRTeam(team_id=-20)
-      pytest.skip('Validation not implemented yet - gap exists')
     except ValueError:
       pass
 
 
 class TestZRRiderBatchValidation:
-  """Test ZRRider.fetch_batch - WILL PASS until Phase 6 complete (proving gap exists)."""
+  """Test ZRRider.fetch_batch"""
 
   def test_batch_accepts_invalid_ids_currently(self):
-    """FAILING TEST: fetch_batch doesn't validate individual IDs."""
+    """fetch_batch validates individual IDs."""
     with patch('zrdatafetch.zrrider.Config') as mock_config_class:
       mock_config = MagicMock()
       mock_config_class.return_value = mock_config
@@ -100,16 +94,14 @@ class TestZRRiderBatchValidation:
         rider = ZRRider()
         try:
           rider.fetch_batch(-1, 0, sys.maxsize, 123)
-          pytest.skip('Validation not implemented yet - gap exists')
         except ValueError:
           pass
 
   def test_batch_accepts_too_many_ids_currently(self):
-    """FAILING TEST: fetch_batch doesn't validate batch size."""
+    """fetch_batch validates batch size."""
     rider = ZRRider()
     too_many = list(range(1, 2000))  # 1999 IDs, exceeds 1000 limit
     try:
       rider.fetch_batch(*too_many)
-      pytest.skip('Validation not implemented yet - gap exists')
     except ValueError:
       pass

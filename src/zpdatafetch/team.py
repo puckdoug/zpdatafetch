@@ -121,10 +121,10 @@ class Team(ZP_obj):
         logger.error(f'ID validation failed: {e}')
         raise
 
-      # Build list of fetch tasks using async URLs
+      # Build list of fetch tasks using correct URL ending
       fetch_tasks = []
       for tid in validated_ids:
-        url = f'{self._url}{tid}{self._url_end_async}'
+        url = f'{self._url}{tid}{self._url_end}'
         fetch_tasks.append(session.fetch_json(url))
 
       # Execute all fetches in parallel

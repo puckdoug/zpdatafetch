@@ -24,7 +24,7 @@ def test_signup_fetch_race_signups(signup, login_page, logged_in_page):
       return httpx.Response(200, text=login_page)
     if request.method == 'POST':
       return httpx.Response(200, text=logged_in_page)
-    if 'lists' in str(request.url) and '_zwift.json' in str(request.url):
+    if 'results' in str(request.url) and '_signups.json' in str(request.url):
       return httpx.Response(200, text=json.dumps(test_data))
     return httpx.Response(404)
 

@@ -1,6 +1,6 @@
 [project]
 name = "zpdatafetch"
-version = "1.7.0"
+version = "1.7.1"
 description = "A package for fetching data from Zwiftpower and Zwiftracing.app"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -62,6 +62,9 @@ venvPath = ".."
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
+markers = [
+  "live: marks tests that make real API calls (deselect with '-m \"not live\"')",
+]
 filterwarnings = [
   # HTTPX warnings from libraries
   "ignore:.*strip_cdata.*HTMLParser().*:DeprecationWarning",
@@ -130,8 +133,8 @@ ignore = [
 "src/shared/validation.py" = ["E501"]
 # zpdatafetch files have decorative comment lines that exceed 80 chars
 "src/zpdatafetch/*.py" = ["E501"]
-# Test files don't need return type annotations
-"test/**/*.py" = ["ANN201"]
+# Test files don't need type annotations (fixtures don't have types)
+"test/**/*.py" = ["ANN001", "ANN201"]
 
 [tool.ruff.format]
 quote-style = "single"
