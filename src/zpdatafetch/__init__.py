@@ -8,6 +8,7 @@ from zpdatafetch.result import Result
 from zpdatafetch.signup import Signup
 from zpdatafetch.sprints import Sprints
 from zpdatafetch.team import Team
+from zpdatafetch.league import League
 from zpdatafetch.zp import ZP
 
 # Backwards compatibility aliases for async classes
@@ -17,6 +18,7 @@ AsyncPrimes = Primes
 AsyncResult = Result
 AsyncSignup = Signup
 AsyncTeam = Team
+AsyncLeague = League
 
 __all__ = [
   # Synchronous API
@@ -28,6 +30,7 @@ __all__ = [
   'Config',
   'Signup',
   'Team',
+  'League',
   'setup_logging',
   # Asynchronous API
   'AsyncZP',
@@ -36,4 +39,5 @@ __all__ = [
   'AsyncResult',  # Alias for Result (supports both sync and async)
   'AsyncSignup',  # Alias for Signup (supports both sync and async)
   'AsyncTeam',  # Alias for Team (supports both sync and async)
+  'AsyncLeague',  # Alias for League (supports both sync and async)
 ]

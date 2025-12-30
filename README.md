@@ -28,7 +28,7 @@ This package provides two main command-line tools:
 
 | Tool         | API         | Purpose                              | Data Types                                        |
 | ------------ | ----------- | ------------------------------------ | ------------------------------------------------- |
-| **`zpdata`** | ZwiftPower  | Race rankings, signups, results      | Cyclist, Primes, Results, Signups, Sprints, Teams |
+| **`zpdata`** | ZwiftPower  | Race rankings, signups, results      | Cyclist, Primes, Results, Signups, Sprints, Teams, League |
 | **`zrdata`** | Zwiftracing | Rider ratings, race results, rosters | Rider Ratings, Race Results, Team Rosters         |
 
 Both tools support batch operations, flexible logging, and can be used as
@@ -45,6 +45,7 @@ stores for each API.
 - **Primes** - Prime results for Fastest Through Segment (FTS) and First Across the Line (FAL)
 - **Sprints** - Sprint data including sprint details and positions
 - **Team data** - Team rosters and member information
+- **League data** - League standings and Zwift Racing Score (ZRS) information
 
 ### For zrdata (Zwiftracing)
 
@@ -152,6 +153,7 @@ available classes are as follows:
 - Signup: fetch signups for a particular event by event id
 - Sprints: fetch sprints from one or more races using event id
 - Team: fetch team data by team id
+- League: fetch league standings by league id
 
 ## Zwiftracing Data (zrdata)
 

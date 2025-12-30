@@ -1,5 +1,16 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- New `League` endpoint for fetching league standings data from ZwiftPower
+  - Fetches data from `cache3/global/league_standings_{league_id}.json`
+  - Supports both synchronous `fetch()` and asynchronous `afetch()` methods
+  - Returns league standing data organized by league ID
+  - Full test coverage with sync and async tests
+- `league` command to zpdata CLI tool
+
 ## [1.7.1]
 
 - Resolved issue preventing signups and teams from fetching correctly in 1.7.0.

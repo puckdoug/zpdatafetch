@@ -17,7 +17,16 @@ from shared.cli import (
   validate_command_provided,
   validate_ids_provided,
 )
-from zpdatafetch import Config, Cyclist, Primes, Result, Signup, Sprints, Team
+from zpdatafetch import (
+  Config,
+  Cyclist,
+  League,
+  Primes,
+  Result,
+  Signup,
+  Sprints,
+  Team,
+)
 from zpdatafetch.logging_config import setup_logging
 
 
@@ -33,6 +42,7 @@ def main() -> int | None:
     - signup: Fetch race signups by race ID
     - sprints: Fetch race sprint data by race ID
     - team: Fetch team roster data by team ID
+    - league: Fetch league standing data by league ID
 
   Returns:
     None on success, or exit code on error
@@ -44,7 +54,7 @@ Module for fetching zwiftpower data using the Zwifpower API
   # Create parser with common arguments
   p = create_base_parser(
     description=desc,
-    command_metavar='{config,cyclist,primes,result,signup,sprints,team}',
+    command_metavar='{config,cyclist,league,primes,result,signup,sprints,team}',
   )
 
   # Use parse_intermixed_args to handle flags after positional arguments
@@ -64,7 +74,15 @@ Module for fetching zwiftpower data using the Zwifpower API
     return None
 
   # For non-config commands, validate command name
-  valid_commands = ('cyclist', 'primes', 'result', 'signup', 'sprints', 'team')
+  valid_commands = (
+    'cyclist',
+    'league',
+    'primes',
+    'result',
+    'signup',
+    'sprints',
+    'team',
+  )
   if not validate_command_name(args.cmd, valid_commands):
     return 1
 
@@ -78,11 +96,13 @@ Module for fetching zwiftpower data using the Zwifpower API
     return None
 
   # Map command to class and fetch
-  x: Cyclist | Primes | Result | Signup | Sprints | Team
+  x: Cyclist | League | Primes | Result | Signup | Sprints | Team
 
   match args.cmd:
     case 'cyclist':
       x = Cyclist()
+    case 'league':
+      x = League()
     case 'primes':
       x = Primes()
     case 'result':

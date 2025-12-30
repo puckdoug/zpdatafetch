@@ -27,6 +27,8 @@ RACE_ID_MIN = 1
 RACE_ID_MAX = sys.maxsize
 TEAM_ID_MIN = 1
 TEAM_ID_MAX = sys.maxsize
+LEAGUE_ID_MIN = 1
+LEAGUE_ID_MAX = sys.maxsize
 EPOCH_MIN = -1  # -1 means "current epoch"
 EPOCH_MAX = 2147483647  # Max 32-bit timestamp (2038-01-19)
 
@@ -125,6 +127,34 @@ def validate_team_id(value: int | str) -> int:
   return id_int
 
 
+def validate_league_id(value: int | str) -> int:
+  """Validate a league ID.
+
+  Args:
+      value: ID to validate (int or string)
+
+  Returns:
+      Validated integer ID
+
+  Raises:
+      ValidationError: If ID is invalid
+  """
+  try:
+    id_int = int(value) if not isinstance(value, int) else value
+  except (ValueError, TypeError) as e:
+    raise ValidationError(
+      f"Invalid league ID '{value}': must be an integer",
+    ) from e
+
+  if not (LEAGUE_ID_MIN <= id_int <= LEAGUE_ID_MAX):
+    raise ValidationError(
+      f'Invalid league ID {id_int}: must be between '
+      f'{LEAGUE_ID_MIN} and {LEAGUE_ID_MAX}',
+    )
+
+  return id_int
+
+
 def validate_epoch(value: int) -> int:
   """Validate an epoch parameter.
 
@@ -166,13 +196,13 @@ def validate_batch_size(count: int, max_size: int = MAX_BATCH_SIZE) -> None:
 
 def validate_id_list(
   ids: list[int | str],
-  id_type: Literal['zwift', 'race', 'team'] = 'zwift',
+  id_type: Literal['zwift', 'race', 'team', 'league'] = 'zwift',
 ) -> list[int]:
   """Validate a list of IDs.
 
   Args:
       ids: List of IDs to validate
-      id_type: Type of ID ('zwift', 'race', or 'team')
+      id_type: Type of ID ('zwift', 'race', 'team', or 'league')
 
   Returns:
       List of validated integer IDs
@@ -184,6 +214,7 @@ def validate_id_list(
     'zwift': validate_zwift_id,
     'race': validate_race_id,
     'team': validate_team_id,
+    'league': validate_league_id,
   }
 
   validator = validators[id_type]
