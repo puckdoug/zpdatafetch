@@ -1,12 +1,20 @@
 [project]
 name = "zpdatafetch"
-version = "1.7.1"
+version = "1.8.0"
 description = "A package for fetching data from Zwiftpower and Zwiftracing.app"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
 authors = [{ name = "Doug Morris", email = "doug@mhost.com" }]
-keywords = ["cycling", "data", "racing", "zwift", "zwiftpower"]
+keywords = [
+  "cycling",
+  "data",
+  "racing",
+  "vELO",
+  "zwift",
+  "zwiftpower",
+  "zwiftracing"
+]
 dependencies = [
   # Async support (anyio provides backend-agnostic async utilities)
   "anyio>=4.4.0",
