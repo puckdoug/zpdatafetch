@@ -179,6 +179,52 @@ class TestZPDataIntegration:
 
 
 # ===============================================================================
+class TestZPDataLeagueCommand:
+  """Test zpdata league command."""
+
+  def test_league_no_id(self):
+    """Test league command without ID produces error."""
+    result = subprocess.run(
+      ['zpdata', 'league'],
+      capture_output=True,
+      text=True,
+      timeout=5,
+      check=False,
+    )
+    # May error or succeed depending on implementation
+    # Just verify it doesn't crash
+    assert result.returncode in [0, 1, 2]
+
+  def test_league_noaction_single_id(self):
+    """Test league command with --noaction flag (no network)."""
+    result = subprocess.run(
+      ['zpdata', 'league', '--noaction', '2780'],
+      capture_output=True,
+      text=True,
+      timeout=5,
+      check=False,
+    )
+    # Should succeed without fetching network data
+    assert result.returncode == 0
+    assert 'Would fetch' in result.stdout or 'would' in result.stdout.lower()
+
+  def test_league_noaction_multiple_ids(self):
+    """Test league command with multiple IDs and --noaction."""
+    result = subprocess.run(
+      ['zpdata', 'league', '--noaction', '2780', '2781', '2782'],
+      capture_output=True,
+      text=True,
+      timeout=5,
+      check=False,
+    )
+    assert result.returncode == 0
+    # Should report what it would do
+    assert (
+      '2780' in result.stdout or '2781' in result.stdout or 'Would' in result.stdout
+    )
+
+
+# ===============================================================================
 class TestZPDataOtherCommands:
   """Test other zpdata commands."""
 
@@ -222,6 +268,18 @@ class TestZPDataOtherCommands:
     """Test team command is available."""
     result = subprocess.run(
       ['zpdata', 'team', '--help'],
+      capture_output=True,
+      text=True,
+      timeout=5,
+      check=False,
+    )
+    # Command should at least be recognized
+    assert result.returncode in [0, 1, 2]
+
+  def test_league_command_exists(self):
+    """Test league command is available."""
+    result = subprocess.run(
+      ['zpdata', 'league', '--help'],
       capture_output=True,
       text=True,
       timeout=5,

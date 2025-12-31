@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from zpdatafetch import ZP, Cyclist, Primes, Result, Signup, Sprints, Team
+from zpdatafetch import ZP, Cyclist, League, Primes, Result, Signup, Sprints, Team
 
 
 @pytest.fixture
@@ -47,6 +47,18 @@ def sprints():
 def team():
   """Fixture for Team instance."""
   return Team()
+
+
+@pytest.fixture
+def league():
+  """Fixture for League instance."""
+  return League()
+
+
+@pytest.fixture
+def league_ok():
+  """Test data for league endpoint."""
+  return {'data': [{'div': 1, 'name': 'Rider One', 'team_name': 'Test Team'}]}
 
 
 @pytest.fixture
