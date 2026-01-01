@@ -974,3 +974,7 @@ could use help:
 - [ ] Check if there are any objects not handled - Zwiftracing has a clean, documented API. Zwiftpower, not so much...
 - [ ] Update the interface to allow alternate keyrings
 - [ ] Open to suggestions...
+
+## Contributors
+
+- Emilio Garcia - [@byrd92](https://github.com/byrd92): League endpoint for Zwiftpower
