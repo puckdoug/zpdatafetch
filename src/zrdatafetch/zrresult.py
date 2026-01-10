@@ -99,6 +99,7 @@ class ZRResult(ZR_obj):
   _verbose: bool = field(default=False, init=False, repr=False)
   _zr: AsyncZR_obj | None = field(default=None, init=False, repr=False)
   _zr_sync: ZR_obj | None = field(default=None, init=False, repr=False)
+  _sync_mode: bool = field(default=False, init=False, repr=False)
 
   # -----------------------------------------------------------------------
   def set_session(self, zr: AsyncZR_obj) -> None:
@@ -191,6 +192,80 @@ class ZRResult(ZR_obj):
         await session.close()
 
   # -----------------------------------------------------------------------
+  def _fetch_sync(
+    self,
+    zwift_id: int | None = None,
+    epoch: int | None = None,
+  ) -> None:
+    """Synchronous fetch implementation (no async/await).
+
+    This method provides a clear, separate execution path for debugging.
+    Uses synchronous ZR_obj client directly with no async machinery.
+
+    Args:
+      zwift_id: ID for the fetch (uses self.race_id if not provided)
+      epoch: Unix timestamp for historical data (if applicable)
+    """
+    logger.info('Fetching result data in synchronous mode')
+
+    # Use provided values or defaults
+    if zwift_id is not None:
+      self.zwift_id = zwift_id
+    if epoch is not None:
+      self.epoch = epoch
+
+    if self.zwift_id == 0:
+      logger.warning('No zwift_id provided for fetch')
+      return
+
+    # Get authorization from config
+    config = Config()
+    config.load()
+    if not config.authorization:
+      raise ConfigError(
+        'Zwiftracing authorization not found. Please run "zrdata config" to set it up.',
+      )
+
+    # Create synchronous ZR_obj client
+    zr = ZR_obj()
+
+    try:
+      logger.debug(
+        f'Fetching result for zwift_id={self.zwift_id}, epoch={self.epoch}',
+      )
+
+      # Build endpoint (same logic as async version)
+      if hasattr(self, 'epoch') and self.epoch >= 0:
+        endpoint = f'/public/results/{self.zwift_id}/{self.epoch}'
+      else:
+        endpoint = f'/public/results/{self.zwift_id}'
+
+      # Synchronous fetch
+      headers = {'Authorization': config.authorization}
+      self._raw = zr.fetch_json(endpoint, headers=headers)
+
+      # Parse response (same as async)
+      self._parse_response()
+      logger.info(
+        f'Successfully fetched result (zwift_id={self.zwift_id}) in sync mode',
+      )
+    except NetworkError as e:
+      logger.error(f'Failed to fetch result: {e}')
+      raise
+
+  # -----------------------------------------------------------------------
+  @classmethod
+  def set_sync_mode(cls, enabled: bool) -> None:
+    """Enable or disable synchronous fetch mode.
+
+    Args:
+      enabled: True to enable sync mode, False for async (default)
+    """
+    cls._sync_mode = enabled
+    mode = 'synchronous' if enabled else 'asynchronous (parallel)'
+    logger.info(f'ZRResult fetch mode set to: {mode}')
+
+  # -----------------------------------------------------------------------
   def fetch(self, race_id: int | None = None) -> None:
     """Fetch race result data from the Zwiftracing API (synchronous interface).
 
@@ -210,6 +285,12 @@ class ZRResult(ZR_obj):
       result.fetch(race_id=3590800)
       print(result.json())
     """
+    # Check if sync mode is enabled
+    if self._sync_mode:
+      return self._fetch_sync(race_id, None)
+
+    # Default: use async implementation
+
     try:
       asyncio.get_running_loop()
       raise RuntimeError(
@@ -285,7 +366,7 @@ class ZRResult(ZR_obj):
 
     # Check for error in response
     if 'message' in self._race:
-      logger.error(f"API error: {self._race['message']}")
+      logger.error(f'API error: {self._race["message"]}')
       return
 
     # Response should be a dict with a 'results' key

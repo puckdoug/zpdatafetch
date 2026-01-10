@@ -77,6 +77,12 @@ Module for fetching Zwiftracing data using the Zwiftracing API
   if args.premium:
     ZR_obj.set_premium_mode(True)
 
+  # Handle --sync flag (enable synchronous mode)
+  if args.sync:
+    ZRRider.set_sync_mode(True)
+    ZRResult.set_sync_mode(True)
+    ZRTeam.set_sync_mode(True)
+
   # Handle no command
   if not validate_command_provided(args.cmd, p):
     return None

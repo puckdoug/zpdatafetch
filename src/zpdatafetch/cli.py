@@ -90,6 +90,16 @@ Module for fetching zwiftpower data using the Zwifpower API
   if not validate_ids_provided(args.id, args.cmd):
     return 1
 
+  # Handle --sync flag (enable synchronous mode)
+  if args.sync:
+    Cyclist.set_sync_mode(True)
+    League.set_sync_mode(True)
+    Primes.set_sync_mode(True)
+    Result.set_sync_mode(True)
+    Signup.set_sync_mode(True)
+    Sprints.set_sync_mode(True)
+    Team.set_sync_mode(True)
+
   # Handle --noaction flag (report what would be done without fetching)
   if args.noaction:
     format_noaction_output(args.cmd, args.id, args.raw)

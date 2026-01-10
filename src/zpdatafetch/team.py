@@ -47,6 +47,7 @@ class Team(ZP_obj):
 
   # Async version uses different URL ending
   _url_end_async: str = '.json'
+  _sync_mode: bool = False  # Class-level sync mode flag
 
   def __init__(self) -> None:
     """Initialize a new Team instance."""
@@ -167,6 +168,72 @@ class Team(ZP_obj):
         await session.close()
 
   # -------------------------------------------------------------------------------
+  # -------------------------------------------------------------------------------
+  # -------------------------------------------------------------------------------
+  def _fetch_sequential(self, *team_id: int) -> dict[Any, Any]:
+    """Fetch team data sequentially (synchronous mode).
+
+    This method provides a clear, separate execution path for debugging.
+    All requests are made synchronously in sequence, with no parallelization.
+
+    Args:
+      *team_id: One or more team ID integers to fetch
+
+    Returns:
+      Dictionary mapping team IDs to their data
+
+    Raises:
+      ValueError: If any ID is invalid
+      NetworkError: If network requests fail
+      AuthenticationError: If authentication fails
+    """
+    logger.info(f'Fetching team data in synchronous mode for {len(team_id)} ID(s)')
+
+    # SECURITY: Validate all IDs before processing
+    try:
+      validated_ids = validate_id_list(list(team_id), id_type='team')
+    except ValidationError as e:
+      logger.error(f'ID validation failed: {e}')
+      raise
+
+    # Create synchronous ZP session
+    zp = ZP()
+
+    results_raw: dict[int, str] = {}
+    results_processed: dict[int, dict[str, Any]] = {}
+
+    # Fetch each ID sequentially
+    for id_val in validated_ids:
+      logger.debug(f'Fetching team data for team ID: {id_val}')
+      url = f'{self._url}{id_val}{self._url_end}'
+
+      # Synchronous blocking call
+      raw_json = zp.fetch_json(url)
+      results_raw[id_val] = raw_json
+
+      # Process immediately (no parallel parsing)
+      parsed = parse_json_safe(raw_json, context=f'team {id_val}')
+      results_processed[id_val] = parsed if isinstance(parsed, dict) else {}
+
+      logger.debug(f'Successfully fetched team data for team ID: {id_val}')
+
+    self.raw = results_raw
+    self.processed = results_processed
+
+    logger.info(f'Successfully fetched {len(validated_ids)} team(s) in sync mode')
+    return self.processed
+
+  @classmethod
+  def set_sync_mode(cls, enabled: bool) -> None:
+    """Enable or disable synchronous fetch mode.
+
+    Args:
+      enabled: True to enable sync mode, False for async (default)
+    """
+    cls._sync_mode = enabled
+    mode = 'synchronous' if enabled else 'asynchronous (parallel)'
+    logger.info(f'Team fetch mode set to: {mode}')
+
   def fetch(self, *team_id: int) -> dict[Any, Any]:
     """Fetch team roster data for one or more team IDs (synchronous).
 
@@ -184,6 +251,11 @@ class Team(ZP_obj):
       NetworkError: If network requests fail
       AuthenticationError: If authentication fails
     """
+    # Check if sync mode is enabled
+    if self._sync_mode:
+      return self._fetch_sequential(*team_id)
+
+    # Default: use async parallel fetch
     try:
       asyncio.get_running_loop()
       raise RuntimeError(

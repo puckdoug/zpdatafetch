@@ -26,10 +26,10 @@ real free-threaded environment. Please do
 
 This package provides two main command-line tools:
 
-| Tool         | API         | Purpose                              | Data Types                                        |
-| ------------ | ----------- | ------------------------------------ | ------------------------------------------------- |
+| Tool         | API         | Purpose                              | Data Types                                                |
+| ------------ | ----------- | ------------------------------------ | --------------------------------------------------------- |
 | **`zpdata`** | ZwiftPower  | Race rankings, signups, results      | Cyclist, Primes, Results, Signups, Sprints, Teams, League |
-| **`zrdata`** | Zwiftracing | Rider ratings, race results, rosters | Rider Ratings, Race Results, Team Rosters         |
+| **`zrdata`** | Zwiftracing | Rider ratings, race results, rosters | Rider Ratings, Race Results, Team Rosters                 |
 
 Both tools support batch operations, flexible logging, and can be used as
 standalone CLI tools or imported as libraries. They maintain separate credential
@@ -57,6 +57,7 @@ stores for each API.
 ### Common Features
 
 - **Async support** - Concurrent fetching with asyncio or trio backends
+- **Synchronous debug mode** - `--sync` flag for sequential, non-parallel requests
 - **Connection pooling** - Efficient batch operations with shared HTTP client
 - **Flexible logging** - Console and file logging with multiple levels (DEBUG, INFO, WARNING, ERROR)
 - **Secure credentials** - System keyring integration for safe credential storage
@@ -97,7 +98,8 @@ cyclist rankings, race results, and event signups.
 ### Command-line example
 
 ```sh
-usage: zpdata [-h] [-v] [-vv] [--log-file PATH] [-r] [{config,cyclist,primes,result,signup,sprints,team}] [id ...]
+usage: zpdata [-h] [-v] [-vv] [--log-file PATH] [-r] [--noaction] [--sync]
+              [{config,cyclist,primes,result,signup,sprints,team}] [id ...]
 
 Module for fetching zwiftpower data using the Zwifpower API
 
@@ -112,6 +114,8 @@ options:
   -vv, --debug          enable DEBUG level logging to console
   --log-file PATH       path to log file (enables file logging)
   -r, --raw             print the raw results returned to screen
+  --noaction            show what would be done without actually fetching data
+  --sync                use synchronous (non-parallel) requests for debugging
 ```
 
 **Basic usage:**
@@ -131,6 +135,12 @@ zpdata --log-file zpdatafetch.log cyclist 1234567
 
 # Both console and file logging
 zpdata -v --log-file zpdatafetch.log cyclist 1234567
+
+# Synchronous mode for debugging (sequential, non-parallel requests)
+zpdata --sync cyclist 1234567
+
+# Debug mode with synchronous requests (ideal for troubleshooting)
+zpdata -vv --sync cyclist 1234567
 ```
 
 ### Library example (Synchronous API)
@@ -141,6 +151,24 @@ from zpdatafetch import Cyclist
 c = Cyclist()
 c.fetch(1234567) # fetch data for cyclist with zwift id 1234567
 print(c.json())
+```
+
+**Synchronous mode (library usage):**
+
+You can enable synchronous mode to force sequential, non-parallel requests. This provides a clear, separate execution path:
+
+```python
+from zpdatafetch import Cyclist
+
+# Enable synchronous mode for debugging (class-level setting)
+Cyclist.set_sync_mode(True)
+
+# All fetch calls now use sequential requests
+c = Cyclist()
+c.fetch(1234567, 2345678)  # Fetches sequentially, not in parallel
+
+# Disable sync mode when done
+Cyclist.set_sync_mode(False)
 ```
 
 The interface for each of the objects is effectively the same as the example
@@ -163,7 +191,8 @@ including rider ratings, race results, and team rosters.
 ### Command-line usage
 
 ```sh
-usage: zrdata [-h] [-v] [-vv] [--log-file PATH] [-r] [--noaction] [--batch] [--batch-file FILE]
+usage: zrdata [-h] [-v] [-vv] [--log-file PATH] [-r] [--noaction] [--sync]
+              [--batch] [--batch-file FILE] [--premium]
               [{config,rider,result,team}] [id ...]
 
 Module for fetching Zwiftracing data using the Zwiftracing API
@@ -180,8 +209,10 @@ options:
   --log-file PATH       path to log file (enables file logging)
   -r, --raw             print the raw results returned to screen
   --noaction            report what would be done without actually fetching data
+  --sync                use synchronous (non-parallel) requests for debugging
   --batch               use batch POST endpoint for multiple IDs (rider command only)
   --batch-file FILE     read IDs from file (one per line) for batch request (rider command only)
+  --premium             use premium tier rate limits (higher request quotas)
 ```
 
 **Note:** All objects support both synchronous (`fetch()`) and asynchronous (`afetch()`) methods. See the Async API section below for details.
@@ -225,6 +256,12 @@ zrdata -r rider 12345
 
 # Test what would be fetched without making requests
 zrdata --noaction --batch 12345 67890
+
+# Synchronous mode for debugging
+zrdata --sync rider 12345
+
+# Debug mode with synchronous requests (ideal for troubleshooting)
+zrdata -vv --sync rider 12345
 
 # Log to file
 zrdata --log-file zrdata.log rider 12345
@@ -290,6 +327,30 @@ print(f"Team: {team.team_name}")
 for rider in team.riders:
     print(f"  {rider.name}: {rider.current_rating}")
 ```
+
+**Synchronous mode (library usage):**
+
+You can enable synchronous mode to force sequential, non-parallel requests:
+
+```python
+from zrdatafetch import ZRRider, ZRResult, ZRTeam
+
+# Enable synchronous mode for debugging (class-level setting)
+ZRRider.set_sync_mode(True)
+ZRResult.set_sync_mode(True)
+ZRTeam.set_sync_mode(True)
+
+# All fetch calls now use sequential requests
+rider = ZRRider(zwift_id=12345)
+rider.fetch()  # Uses synchronous fetch path
+
+# Disable sync mode when done
+ZRRider.set_sync_mode(False)
+ZRResult.set_sync_mode(False)
+ZRTeam.set_sync_mode(False)
+```
+
+This provides a clear, separate execution path.
 
 **Note:** All data classes support both synchronous (`fetch()`) and asynchronous (`afetch()`) methods. See the Async API section below for details.
 

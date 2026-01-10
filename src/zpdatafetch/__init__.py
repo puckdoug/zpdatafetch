@@ -2,13 +2,13 @@
 from zpdatafetch.async_zp import AsyncZP
 from zpdatafetch.config import Config
 from zpdatafetch.cyclist import Cyclist
+from zpdatafetch.league import League
 from zpdatafetch.logging_config import setup_logging
 from zpdatafetch.primes import Primes
 from zpdatafetch.result import Result
 from zpdatafetch.signup import Signup
 from zpdatafetch.sprints import Sprints
 from zpdatafetch.team import Team
-from zpdatafetch.league import League
 from zpdatafetch.zp import ZP
 
 # Backwards compatibility aliases for async classes

@@ -60,6 +60,13 @@ def create_base_parser(
     help='show what would be done without actually fetching data',
   )
 
+  # Sync mode argument
+  parser.add_argument(
+    '--sync',
+    action='store_true',
+    help='use synchronous (non-parallel) requests',
+  )
+
   # Commands
   parser.add_argument(
     'cmd',

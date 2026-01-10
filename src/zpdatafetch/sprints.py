@@ -8,6 +8,7 @@ from typing import Any
 import anyio
 
 from shared.json_helpers import parse_json_safe
+from shared.validation import ValidationError, validate_id_list
 from zpdatafetch.async_zp import AsyncZP
 from zpdatafetch.logging_config import get_logger, setup_logging
 from zpdatafetch.primes import Primes
@@ -43,6 +44,7 @@ class Sprints(ZP_obj):
 
   # https://zwiftpower.com/api3.php?do=event_sprints&zid=<race_id>
   _url: str = 'https://zwiftpower.com/api3.php?do=event_sprints&zid='
+  _sync_mode: bool = False  # Class-level sync mode flag
 
   def __init__(self) -> None:
     """Initialize a new Sprints instance."""
@@ -285,6 +287,72 @@ class Sprints(ZP_obj):
     return self.processed
 
   # -------------------------------------------------------------------------------
+  # -------------------------------------------------------------------------------
+  # -------------------------------------------------------------------------------
+  def _fetch_sequential(self, *race_id: int) -> dict[Any, Any]:
+    """Fetch sprints data sequentially (synchronous mode).
+
+    This method provides a clear, separate execution path for debugging.
+    All requests are made synchronously in sequence, with no parallelization.
+
+    Args:
+      *race_id: One or more race ID integers to fetch
+
+    Returns:
+      Dictionary mapping race IDs to their data
+
+    Raises:
+      ValueError: If any ID is invalid
+      NetworkError: If network requests fail
+      AuthenticationError: If authentication fails
+    """
+    logger.info(f'Fetching sprints data in synchronous mode for {len(race_id)} ID(s)')
+
+    # SECURITY: Validate all IDs before processing
+    try:
+      validated_ids = validate_id_list(list(race_id), id_type='race')
+    except ValidationError as e:
+      logger.error(f'ID validation failed: {e}')
+      raise
+
+    # Create synchronous ZP session
+    zp = ZP()
+
+    results_raw: dict[int, str] = {}
+    results_processed: dict[int, dict[str, Any]] = {}
+
+    # Fetch each ID sequentially
+    for id_val in validated_ids:
+      logger.debug(f'Fetching sprints data for race ID: {id_val}')
+      url = f'{self._url}{id_val}'
+
+      # Synchronous blocking call
+      raw_json = zp.fetch_json(url)
+      results_raw[id_val] = raw_json
+
+      # Process immediately (no parallel parsing)
+      parsed = parse_json_safe(raw_json, context=f'sprints {id_val}')
+      results_processed[id_val] = parsed if isinstance(parsed, dict) else {}
+
+      logger.debug(f'Successfully fetched sprints data for race ID: {id_val}')
+
+    self.raw = results_raw
+    self.processed = results_processed
+
+    logger.info(f'Successfully fetched {len(validated_ids)} sprints(s) in sync mode')
+    return self.processed
+
+  @classmethod
+  def set_sync_mode(cls, enabled: bool) -> None:
+    """Enable or disable synchronous fetch mode.
+
+    Args:
+      enabled: True to enable sync mode, False for async (default)
+    """
+    cls._sync_mode = enabled
+    mode = 'synchronous' if enabled else 'asynchronous (parallel)'
+    logger.info(f'Sprints fetch mode set to: {mode}')
+
   def fetch(self, *race_id: int) -> dict[Any, Any]:
     """Fetch sprint data for one or more race IDs (synchronous).
 
@@ -302,6 +370,11 @@ class Sprints(ZP_obj):
       NetworkError: If network requests fail
       AuthenticationError: If authentication fails
     """
+    # Check if sync mode is enabled
+    if self._sync_mode:
+      return self._fetch_sequential(*race_id)
+
+    # Default: use async parallel fetch
     try:
       asyncio.get_running_loop()
       raise RuntimeError(

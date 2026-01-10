@@ -61,19 +61,19 @@ class ZRTeamRider:
   """
 
   zwift_id: int = 0
-  name: str = ''
-  gender: str = 'M'
+  name: str = ""
+  gender: str = "M"
   height: float = 0.0
   weight: float = 0.0
   current_rating: float = 0.0
-  current_category_mixed: str = ''
-  current_category_womens: str = ''
+  current_category_mixed: str = ""
+  current_category_womens: str = ""
   max30_rating: float = 0.0
-  max30_category_mixed: str = ''
-  max30_category_womens: str = ''
+  max30_category_mixed: str = ""
+  max30_category_womens: str = ""
   max90_rating: float = 0.0
-  max90_category_mixed: str = ''
-  max90_category_womens: str = ''
+  max90_category_mixed: str = ""
+  max90_category_womens: str = ""
   power_awc: float = 0.0
   power_cp: float = 0.0
   power_cs: float = 0.0
@@ -137,15 +137,16 @@ class ZRTeam(ZR_obj):
 
   # Public attributes (in __init__)
   team_id: int = 0
-  team_name: str = ''
+  team_name: str = ""
   riders: list[ZRTeamRider] = field(default_factory=list)
 
   # Private attributes (not in __init__)
-  _raw: str = field(default='', init=False, repr=False)
+  _raw: str = field(default="", init=False, repr=False)
   _team: dict = field(default_factory=dict, init=False, repr=False)
   _verbose: bool = field(default=False, init=False, repr=False)
   _zr: AsyncZR_obj | None = field(default=None, init=False, repr=False)
   _zr_sync: ZR_obj | None = field(default=None, init=False, repr=False)
+  _sync_mode: bool = field(default=False, init=False, repr=False)
 
   # -----------------------------------------------------------------------
   def set_session(self, zr: AsyncZR_obj) -> None:
@@ -236,6 +237,80 @@ class ZRTeam(ZR_obj):
         await session.close()
 
   # -----------------------------------------------------------------------
+  def _fetch_sync(
+    self,
+    zwift_id: int | None = None,
+    epoch: int | None = None,
+  ) -> None:
+    """Synchronous fetch implementation (no async/await).
+
+    This method provides a clear, separate execution path for debugging.
+    Uses synchronous ZR_obj client directly with no async machinery.
+
+    Args:
+      zwift_id: ID for the fetch (uses self.team_id if not provided)
+      epoch: Unix timestamp for historical data (if applicable)
+    """
+    logger.info('Fetching team data in synchronous mode')
+
+    # Use provided values or defaults
+    if zwift_id is not None:
+      self.zwift_id = zwift_id
+    if epoch is not None:
+      self.epoch = epoch
+
+    if self.zwift_id == 0:
+      logger.warning('No zwift_id provided for fetch')
+      return
+
+    # Get authorization from config
+    config = Config()
+    config.load()
+    if not config.authorization:
+      raise ConfigError(
+        'Zwiftracing authorization not found. Please run "zrdata config" to set it up.',
+      )
+
+    # Create synchronous ZR_obj client
+    zr = ZR_obj()
+
+    try:
+      logger.debug(
+        f'Fetching team for zwift_id={self.zwift_id}, epoch={self.epoch}',
+      )
+
+      # Build endpoint (same logic as async version)
+      if hasattr(self, 'epoch') and self.epoch >= 0:
+        endpoint = f'/public/teams/{self.zwift_id}/{self.epoch}'
+      else:
+        endpoint = f'/public/teams/{self.zwift_id}'
+
+      # Synchronous fetch
+      headers = {'Authorization': config.authorization}
+      self._raw = zr.fetch_json(endpoint, headers=headers)
+
+      # Parse response (same as async)
+      self._parse_response()
+      logger.info(
+        f'Successfully fetched team (zwift_id={self.zwift_id}) in sync mode',
+      )
+    except NetworkError as e:
+      logger.error(f'Failed to fetch team: {e}')
+      raise
+
+  # -----------------------------------------------------------------------
+  @classmethod
+  def set_sync_mode(cls, enabled: bool) -> None:
+    """Enable or disable synchronous fetch mode.
+
+    Args:
+      enabled: True to enable sync mode, False for async (default)
+    """
+    cls._sync_mode = enabled
+    mode = 'synchronous' if enabled else 'asynchronous (parallel)'
+    logger.info(f'ZRTeam fetch mode set to: {mode}')
+
+  # -----------------------------------------------------------------------
   def fetch(self, team_id: int | None = None) -> None:
     """Fetch team roster data from the Zwiftracing API (synchronous interface).
 
@@ -256,6 +331,12 @@ class ZRTeam(ZR_obj):
       team.fetch(team_id=456)
       print(team.json())
     """
+    # Check if sync mode is enabled
+    if self._sync_mode:
+      return self._fetch_sync(team_id, None)
+
+    # Default: use async implementation
+
     try:
       asyncio.get_running_loop()
       raise RuntimeError(
@@ -320,79 +401,79 @@ class ZRTeam(ZR_obj):
 
     # Check for error in response
     if 'message' in self._team:
-      logger.error(f"API error: {self._team['message']}")
+      logger.error(f'API error: {self._team["message"]}')
       return
 
     try:
       # Extract team name
-      self.team_name = self._team.get('name', '')
+      self.team_name = self._team.get("name", "")
 
       # Parse riders list
-      riders_list = self._team.get('riders', [])
+      riders_list = self._team.get("riders", [])
       if not isinstance(riders_list, list):
-        logger.warning('Expected riders to be a list')
+        logger.warning("Expected riders to be a list")
         return
 
       for rider_data in riders_list:
         try:
           # Extract nested structures safely
-          race = rider_data.get('race', {})
-          current = race.get('current', {})
-          max30 = race.get('max30', {})
-          max90 = race.get('max90', {})
-          power = rider_data.get('power', {})
+          race = rider_data.get("race", {})
+          current = race.get("current", {})
+          max30 = race.get("max30", {})
+          max90 = race.get("max90", {})
+          power = rider_data.get("power", {})
 
           # Extract categories
-          current_mixed = current.get('mixed', {})
-          current_womens = current.get('womens', {})
-          max30_mixed = max30.get('mixed', {})
-          max30_womens = max30.get('womens', {})
-          max90_mixed = max90.get('mixed', {})
-          max90_womens = max90.get('womens', {})
+          current_mixed = current.get("mixed", {})
+          current_womens = current.get("womens", {})
+          max30_mixed = max30.get("mixed", {})
+          max30_womens = max30.get("womens", {})
+          max90_mixed = max90.get("mixed", {})
+          max90_womens = max90.get("womens", {})
 
           rider = ZRTeamRider(
-            zwift_id=rider_data.get('riderId', 0),
-            name=rider_data.get('name', ''),
-            gender=rider_data.get('gender', 'M'),
-            height=float(rider_data.get('height', 0.0)),
-            weight=float(rider_data.get('weight', 0.0)),
-            current_rating=float(current.get('rating', 0.0)),
-            current_category_mixed=current_mixed.get('category', ''),
-            current_category_womens=current_womens.get('category', ''),
-            max30_rating=float(max30.get('rating', 0.0)),
-            max30_category_mixed=max30_mixed.get('category', ''),
-            max30_category_womens=max30_womens.get('category', ''),
-            max90_rating=float(max90.get('rating', 0.0)),
-            max90_category_mixed=max90_mixed.get('category', ''),
-            max90_category_womens=max90_womens.get('category', ''),
-            power_awc=float(power.get('AWC', 0.0)),
-            power_cp=float(power.get('CP', 0.0)),
-            power_cs=float(power.get('compoundScore', 0.0)),
-            power_w5=float(power.get('w5', 0.0)),
-            power_w15=float(power.get('w15', 0.0)),
-            power_w30=float(power.get('w30', 0.0)),
-            power_w60=float(power.get('w60', 0.0)),
-            power_w120=float(power.get('w120', 0.0)),
-            power_w300=float(power.get('w300', 0.0)),
-            power_w1200=float(power.get('w1200', 0.0)),
-            power_wkg5=float(power.get('wkg5', 0.0)),
-            power_wkg15=float(power.get('wkg15', 0.0)),
-            power_wkg30=float(power.get('wkg30', 0.0)),
-            power_wkg60=float(power.get('wkg60', 0.0)),
-            power_wkg120=float(power.get('wkg120', 0.0)),
-            power_wkg300=float(power.get('wkg300', 0.0)),
-            power_wkg1200=float(power.get('wkg1200', 0.0)),
+            zwift_id=rider_data.get("riderId", 0),
+            name=rider_data.get("name", ""),
+            gender=rider_data.get("gender", "M"),
+            height=float(rider_data.get("height", 0.0)),
+            weight=float(rider_data.get("weight", 0.0)),
+            current_rating=float(current.get("rating", 0.0)),
+            current_category_mixed=current_mixed.get("category", ""),
+            current_category_womens=current_womens.get("category", ""),
+            max30_rating=float(max30.get("rating", 0.0)),
+            max30_category_mixed=max30_mixed.get("category", ""),
+            max30_category_womens=max30_womens.get("category", ""),
+            max90_rating=float(max90.get("rating", 0.0)),
+            max90_category_mixed=max90_mixed.get("category", ""),
+            max90_category_womens=max90_womens.get("category", ""),
+            power_awc=float(power.get("AWC", 0.0)),
+            power_cp=float(power.get("CP", 0.0)),
+            power_cs=float(power.get("compoundScore", 0.0)),
+            power_w5=float(power.get("w5", 0.0)),
+            power_w15=float(power.get("w15", 0.0)),
+            power_w30=float(power.get("w30", 0.0)),
+            power_w60=float(power.get("w60", 0.0)),
+            power_w120=float(power.get("w120", 0.0)),
+            power_w300=float(power.get("w300", 0.0)),
+            power_w1200=float(power.get("w1200", 0.0)),
+            power_wkg5=float(power.get("wkg5", 0.0)),
+            power_wkg15=float(power.get("wkg15", 0.0)),
+            power_wkg30=float(power.get("wkg30", 0.0)),
+            power_wkg60=float(power.get("wkg60", 0.0)),
+            power_wkg120=float(power.get("wkg120", 0.0)),
+            power_wkg300=float(power.get("wkg300", 0.0)),
+            power_wkg1200=float(power.get("wkg1200", 0.0)),
           )
           self.riders.append(rider)
         except (KeyError, TypeError, ValueError) as e:
-          logger.warning(f'Skipping malformed rider in team: {e}')
+          logger.warning(f"Skipping malformed rider in team: {e}")
           continue
 
       logger.debug(
-        f'Successfully parsed {len(self.riders)} team members from team_id={self.team_id}',
+        f"Successfully parsed {len(self.riders)} team members from team_id={self.team_id}",
       )
     except Exception as e:
-      logger.error(f'Error parsing response: {e}')
+      logger.error(f"Error parsing response: {e}")
 
   # -----------------------------------------------------------------------
   def to_dict(self) -> dict[str, Any]:
@@ -402,7 +483,7 @@ class ZRTeam(ZR_obj):
       Dictionary with all public attributes and riders as dicts
     """
     return {
-      'team_id': self.team_id,
-      'team_name': self.team_name,
-      'riders': [r.to_dict() for r in self.riders],
+      "team_id": self.team_id,
+      "team_name": self.team_name,
+      "riders": [r.to_dict() for r in self.riders],
     }

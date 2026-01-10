@@ -44,6 +44,7 @@ class League(ZP_obj):
   _url: str = 'https://zwiftpower.com/cache3/global/'
   _url_prefix: str = 'league_standings_'
   _url_end: str = '.json'
+  _sync_mode: bool = False  # Class-level sync mode flag
 
   def __init__(self) -> None:
     """Initialize a new League instance."""
@@ -164,6 +165,72 @@ class League(ZP_obj):
         await session.close()
 
   # -------------------------------------------------------------------------------
+  # -------------------------------------------------------------------------------
+  # -------------------------------------------------------------------------------
+  def _fetch_sequential(self, *league_id: int) -> dict[Any, Any]:
+    """Fetch league data sequentially (synchronous mode).
+
+    This method provides a clear, separate execution path for debugging.
+    All requests are made synchronously in sequence, with no parallelization.
+
+    Args:
+      *league_id: One or more league ID integers to fetch
+
+    Returns:
+      Dictionary mapping league IDs to their data
+
+    Raises:
+      ValueError: If any ID is invalid
+      NetworkError: If network requests fail
+      AuthenticationError: If authentication fails
+    """
+    logger.info(f'Fetching league data in synchronous mode for {len(league_id)} ID(s)')
+
+    # SECURITY: Validate all IDs before processing
+    try:
+      validated_ids = validate_id_list(list(league_id), id_type='league')
+    except ValidationError as e:
+      logger.error(f'ID validation failed: {e}')
+      raise
+
+    # Create synchronous ZP session
+    zp = ZP()
+
+    results_raw: dict[int, str] = {}
+    results_processed: dict[int, dict[str, Any]] = {}
+
+    # Fetch each ID sequentially
+    for id_val in validated_ids:
+      logger.debug(f'Fetching league data for league ID: {id_val}')
+      url = f'{self._url}{self._url_prefix}{id_val}{self._url_end}'
+
+      # Synchronous blocking call
+      raw_json = zp.fetch_json(url)
+      results_raw[id_val] = raw_json
+
+      # Process immediately (no parallel parsing)
+      parsed = parse_json_safe(raw_json, context=f'league {id_val}')
+      results_processed[id_val] = parsed if isinstance(parsed, dict) else {}
+
+      logger.debug(f'Successfully fetched league data for league ID: {id_val}')
+
+    self.raw = results_raw
+    self.processed = results_processed
+
+    logger.info(f'Successfully fetched {len(validated_ids)} league(s) in sync mode')
+    return self.processed
+
+  @classmethod
+  def set_sync_mode(cls, enabled: bool) -> None:
+    """Enable or disable synchronous fetch mode.
+
+    Args:
+      enabled: True to enable sync mode, False for async (default)
+    """
+    cls._sync_mode = enabled
+    mode = 'synchronous' if enabled else 'asynchronous (parallel)'
+    logger.info(f'League fetch mode set to: {mode}')
+
   def fetch(self, *league_id: int) -> dict[Any, Any]:
     """Fetch league data for one or more league IDs (synchronous).
 
@@ -181,6 +248,11 @@ class League(ZP_obj):
       NetworkError: If network requests fail
       AuthenticationError: If authentication fails
     """
+    # Check if sync mode is enabled
+    if self._sync_mode:
+      return self._fetch_sequential(*league_id)
+
+    # Default: use async parallel fetch
     try:
       asyncio.get_running_loop()
       raise RuntimeError(

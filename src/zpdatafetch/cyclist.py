@@ -45,6 +45,7 @@ class Cyclist(ZP_obj):
   _url: str = 'https://zwiftpower.com/cache3/profile/'
   _profile: str = 'https://zwiftpower.com/profile.php?z='
   _url_end: str = '_all.json'
+  _sync_mode: bool = False  # Class-level sync mode flag
 
   def __init__(self) -> None:
     """Initialize a new Cyclist instance."""
@@ -167,6 +168,74 @@ class Cyclist(ZP_obj):
         await session.close()
 
   # -------------------------------------------------------------------------------
+  @classmethod
+  def set_sync_mode(cls, enabled: bool) -> None:
+    """Enable or disable synchronous fetch mode.
+
+    Args:
+      enabled: True to enable sync mode, False for async (default)
+    """
+    cls._sync_mode = enabled
+    mode = 'synchronous' if enabled else 'asynchronous (parallel)'
+    logger.info(f'Cyclist fetch mode set to: {mode}')
+
+  # -------------------------------------------------------------------------------
+  def _fetch_sequential(self, *zwift_id: int) -> dict[Any, Any]:
+    """Fetch cyclist data sequentially (synchronous mode).
+
+    This method provides a clear, separate execution path for debugging.
+    All requests are made synchronously in sequence, with no parallelization.
+
+    Args:
+      *zwift_id: One or more Zwift ID integers to fetch
+
+    Returns:
+      Dictionary mapping Zwift IDs to their profile data
+
+    Raises:
+      ValueError: If any ID is invalid (non-positive or too large)
+      NetworkError: If network requests fail
+      AuthenticationError: If authentication fails
+    """
+    logger.info(f'Fetching cyclist data in synchronous mode for {len(zwift_id)} ID(s)')
+
+    # SECURITY: Validate all Zwift IDs before processing
+    try:
+      validated_ids = validate_id_list(list(zwift_id), id_type='zwift')
+    except ValidationError as e:
+      logger.error(f'ID validation failed: {e}')
+      raise
+
+    # Create synchronous ZP session
+    zp = ZP()
+
+    results_raw: dict[int, str] = {}
+    results_processed: dict[int, dict[str, Any]] = {}
+
+    # Fetch each ID sequentially
+    for zid in validated_ids:
+      logger.debug(f'Fetching cyclist profile for Zwift ID: {zid}')
+      url = f'{self._url}{zid}{self._url_end}'
+
+      # Synchronous blocking call
+      raw_json = zp.fetch_json(url)
+      results_raw[zid] = raw_json
+
+      # Process immediately (no parallel parsing)
+      parsed = parse_json_safe(raw_json, context=f'cyclist {zid}')
+      results_processed[zid] = parsed if isinstance(parsed, dict) else {}
+
+      logger.debug(f'Successfully fetched profile for Zwift ID: {zid}')
+
+    self.raw = results_raw
+    self.processed = results_processed
+
+    logger.info(
+      f'Successfully fetched {len(validated_ids)} cyclist profile(s) in sync mode',
+    )
+    return self.processed
+
+  # -------------------------------------------------------------------------------
   def fetch(self, *zwift_id: int) -> dict[Any, Any]:
     """Fetch cyclist profile data for one or more Zwift IDs (synchronous).
 
@@ -184,6 +253,11 @@ class Cyclist(ZP_obj):
       NetworkError: If network requests fail
       AuthenticationError: If authentication fails
     """
+    # Check if sync mode is enabled
+    if self._sync_mode:
+      return self._fetch_sequential(*zwift_id)
+
+    # Default: use async parallel fetch
     try:
       asyncio.get_running_loop()
       raise RuntimeError(

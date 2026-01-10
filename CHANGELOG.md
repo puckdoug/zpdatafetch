@@ -1,5 +1,15 @@
 # Changelog
 
+## [unreleased]
+
+### Added
+
+- **Synchronous debug mode** - New `--sync` command-line flag and `set_sync_mode()` method for all data classes
+  - Forces sequential, non-parallel requests
+  - Provides clear, separate execution path
+  - Library usage: `Cyclist.set_sync_mode(True)` to enable, `Cyclist.set_sync_mode(False)` to disable
+  - CLI usage: `zpdata --sync cyclist 123456` or `zrdata --sync rider 123456`
+
 ## [1.8.0]
 
 ### Added
