@@ -47,7 +47,7 @@ class TestZRRiderInitialization:
     """Test that private attributes are initialized."""
     rider = ZRRider()
     assert rider._raw == ''
-    assert rider._rider == {}
+    assert rider._fetched == {}
     assert rider._verbose is False
 
 
@@ -68,7 +68,7 @@ class TestZRRiderDataclass:
     rider._raw = '{"some": "data"}'
     d = rider.to_dict()
     assert '_raw' not in d
-    assert '_rider' not in d
+    assert '_fetched' not in d
     assert '_verbose' not in d
 
   def test_zrrider_json_output(self):
@@ -97,10 +97,9 @@ class TestZRRiderFetch:
     """Test that fetch raises ConfigError without authorization."""
     rider = ZRRider(zwift_id=123)
 
-    with patch.object(Config, 'load'):
-      with patch.object(Config, 'authorization', ''):
-        with pytest.raises(ConfigError):
-          rider.fetch()
+    with patch.object(Config, 'load'), patch.object(Config, 'authorization', ''):
+      with pytest.raises(ConfigError):
+        rider.fetch()
 
   def test_fetch_with_valid_zwift_id_no_auth(self):
     """Test fetch fails gracefully without authorization configured."""

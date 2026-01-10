@@ -52,6 +52,11 @@ def create_base_parser(
     action='store_true',
     help='print raw result data as received from the server',
   )
+  parser.add_argument(
+    '--v1fetch',
+    action='store_true',
+    help='output fetched data in v1.8 format (for backward compatibility)',
+  )
 
   # Dry-run argument
   parser.add_argument(

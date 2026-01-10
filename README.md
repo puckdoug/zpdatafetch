@@ -98,7 +98,7 @@ cyclist rankings, race results, and event signups.
 ### Command-line example
 
 ```sh
-usage: zpdata [-h] [-v] [-vv] [--log-file PATH] [-r] [--noaction] [--sync]
+usage: zpdata [-h] [-v] [-vv] [--log-file PATH] [-r] [--v1fetch] [--noaction] [--sync]
               [{config,cyclist,primes,result,signup,sprints,team}] [id ...]
 
 Module for fetching zwiftpower data using the Zwifpower API
@@ -113,7 +113,8 @@ options:
   -v, --verbose         enable INFO level logging to console
   -vv, --debug          enable DEBUG level logging to console
   --log-file PATH       path to log file (enables file logging)
-  -r, --raw             print the raw results returned to screen
+  -r, --raw             print the raw response text from the server
+  --v1fetch             output fetched data in v1.8 format (backward compatibility)
   --noaction            show what would be done without actually fetching data
   --sync                use synchronous (non-parallel) requests for debugging
 ```
@@ -143,6 +144,38 @@ zpdata --sync cyclist 1234567
 zpdata -vv --sync cyclist 1234567
 ```
 
+### CLI Output Formats
+
+The `zpdata` command supports multiple output formats:
+
+**Default output** - Clean, parsed JSON data:
+
+```sh
+zpdata cyclist 123456
+# Output: {"123456": {"name": "John Doe", "zwid": 123456, ...}}
+```
+
+**--raw flag** - True raw response text from the server:
+
+```sh
+# Single ID: outputs just the raw string
+zpdata --raw cyclist 123456
+# Output: {"name": "John Doe", "zwid": 123456, ...}
+
+# Multiple IDs: outputs key: value format (one per line)
+zpdata --raw cyclist 123456 789012
+# Output:
+# 123456: {"name": "John Doe", "zwid": 123456, ...}
+# 789012: {"name": "Jane Smith", "zwid": 789012, ...}
+```
+
+**--v1fetch flag** - Parsed/fetched data (backward compatibility with v1.8):
+
+```sh
+zpdata --v1fetch cyclist 123456
+# Output: {"123456": {"name": "John Doe", "zwid": 123456, ...}}
+```
+
 ### Library example (Synchronous API)
 
 ```python
@@ -151,6 +184,50 @@ from zpdatafetch import Cyclist
 c = Cyclist()
 c.fetch(1234567) # fetch data for cyclist with zwift id 1234567
 print(c.json())
+```
+
+**Library Data Access Methods:**
+
+Each data class provides multiple ways to access the fetched data:
+
+```python
+from zpdatafetch import Cyclist
+
+c = Cyclist()
+c.fetch(123456, 789012)  # Fetch multiple cyclists
+
+# Default: Get parsed/fetched data as JSON string
+json_str = c.json()
+# Returns: '{"123456": {"name": "John", ...}, "789012": {"name": "Jane", ...}}'
+
+# Get fetched data as dictionary
+data_dict = c.fetched()  # or c.asdict()
+# Returns: {123456: {"name": "John", ...}, 789012: {"name": "Jane", ...}}
+
+# Get raw response text from server (as received)
+raw_dict = c.raw()
+# Returns: {123456: '{"name": "John", ...}', 789012: '{"name": "Jane", ...}'}
+```
+
+**Single vs Multiple Object Results:**
+
+The data structure differs depending on whether you fetch one or multiple objects:
+
+```python
+from zpdatafetch import Cyclist
+
+# Single object
+c = Cyclist()
+c.fetch(123456)
+
+c.fetched()  # Returns: {123456: {"name": "John", ...}}
+c.raw()      # Returns: {123456: '{"name": "John", ...}'}
+
+# Multiple objects
+c.fetch(123456, 789012)
+
+c.fetched()  # Returns: {123456: {...}, 789012: {...}}
+c.raw()      # Returns: {123456: '...', 789012: '...'}
 ```
 
 **Synchronous mode (library usage):**
@@ -191,7 +268,7 @@ including rider ratings, race results, and team rosters.
 ### Command-line usage
 
 ```sh
-usage: zrdata [-h] [-v] [-vv] [--log-file PATH] [-r] [--noaction] [--sync]
+usage: zrdata [-h] [-v] [-vv] [--log-file PATH] [-r] [--v1fetch] [--noaction] [--sync]
               [--batch] [--batch-file FILE] [--premium]
               [{config,rider,result,team}] [id ...]
 
@@ -207,7 +284,8 @@ options:
   -v, --verbose         enable INFO level logging to console
   -vv, --debug          enable DEBUG level logging to console
   --log-file PATH       path to log file (enables file logging)
-  -r, --raw             print the raw results returned to screen
+  -r, --raw             print the raw response text from the server
+  --v1fetch             output fetched data in v1.8 format (backward compatibility)
   --noaction            report what would be done without actually fetching data
   --sync                use synchronous (non-parallel) requests for debugging
   --batch               use batch POST endpoint for multiple IDs (rider command only)
@@ -270,6 +348,38 @@ zrdata --log-file zrdata.log rider 12345
 zrdata -v --batch -r rider 12345 67890 11111
 ```
 
+### CLI Output Formats
+
+The `zrdata` command supports multiple output formats:
+
+**Default output** - Clean JSON with rider attributes:
+
+```sh
+zrdata rider 12345
+# Output: {"zwift_id": 12345, "name": "John Doe", "current_rating": 650, ...}
+```
+
+**--raw flag** - True raw response text from the server:
+
+```sh
+# Single ID: outputs just the raw string
+zrdata --raw rider 12345
+# Output: {"id": 12345, "name": "John Doe", "rating": 650, ...}
+
+# Multiple IDs: outputs key: value format (one per line)
+zrdata --raw rider 12345 67890
+# Output:
+# 12345: {"id": 12345, "name": "John Doe", "rating": 650, ...}
+# 67890: {"id": 67890, "name": "Jane Smith", "rating": 720, ...}
+```
+
+**--v1fetch flag** - Parsed/fetched data as JSON dict:
+
+```sh
+zrdata --v1fetch rider 12345
+# Output: {"id": 12345, "name": "John Doe", "rating": 650, ...}
+```
+
 ### Batch Processing
 
 `zrdata` supports batch operations that use the Zwiftracing API's POST endpoints:
@@ -326,6 +436,54 @@ team.fetch()
 print(f"Team: {team.team_name}")
 for rider in team.riders:
     print(f"  {rider.name}: {rider.current_rating}")
+```
+
+**Library Data Access Methods (ZRRider, ZRResult, ZRTeam):**
+
+Each data class provides multiple ways to access the fetched data:
+
+```python
+from zrdatafetch import ZRRider
+
+rider = ZRRider(zwift_id=12345)
+rider.fetch()
+
+# Default: Get rider data as JSON with public attributes
+json_str = rider.json()
+# Returns: '{"zwift_id": 12345, "name": "John", "current_rating": 650, ...}'
+
+# Get fetched/parsed data as dictionary (internal format from API)
+fetched_dict = rider.fetched()
+# Returns: {"id": 12345, "name": "John", "rating": 650, ...}
+
+# Get raw response text from server (as received)
+raw_str = rider.raw()
+# Returns: '{"id": 12345, "name": "John", "rating": 650, ...}'
+```
+
+**Single vs Multiple Object Results:**
+
+For `ZRRider`, `ZRResult`, and `ZRTeam`, each instance represents a single object:
+
+```python
+from zrdatafetch import ZRRider
+
+# Single rider instance
+rider = ZRRider(zwift_id=12345)
+rider.fetch()
+
+rider.json()      # Returns: '{"zwift_id": 12345, ...}'
+rider.fetched()   # Returns: {"id": 12345, ...}  (dict)
+rider.raw()       # Returns: '{"id": 12345, ...}' (string)
+
+# Multiple riders via batch
+riders = ZRRider.fetch_batch(12345, 67890)
+# Returns: {12345: ZRRider(...), 67890: ZRRider(...)}
+
+for zwift_id, rider in riders.items():
+    print(rider.raw())      # Each rider's raw string
+    print(rider.fetched())  # Each rider's fetched dict
+    print(rider.json())     # Each rider's JSON representation
 ```
 
 **Synchronous mode (library usage):**

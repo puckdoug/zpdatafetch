@@ -23,15 +23,15 @@ def test_live_sprints_fetch_single_id(valid_event_id):
   # Validate raw attribute contains string data
   assert isinstance(sprints.raw, dict)
   assert valid_event_id in sprints.raw
-  assert isinstance(sprints.raw[valid_event_id], str)
+  assert isinstance(sprints_raw[valid_event_id], str)
 
   # Validate processed attribute
   assert isinstance(sprints.processed, dict)
   assert valid_event_id in sprints.processed
-  assert isinstance(sprints.processed[valid_event_id], dict)
+  assert isinstance(sprints_fetched[valid_event_id], dict)
 
   # Validate data is non-empty
-  assert len(sprints.raw[valid_event_id]) > 0
+  assert len(sprints_raw[valid_event_id]) > 0
 
 
 @pytest.mark.live
@@ -51,12 +51,12 @@ def test_live_sprints_fetch_multiple_ids(valid_event_ids):
 
     # Validate raw data
     assert event_id in sprints.raw
-    assert isinstance(sprints.raw[event_id], str)
-    assert len(sprints.raw[event_id]) > 0
+    assert isinstance(sprints_raw[event_id], str)
+    assert len(sprints_raw[event_id]) > 0
 
     # Validate processed data
     assert event_id in sprints.processed
-    assert isinstance(sprints.processed[event_id], dict)
+    assert isinstance(sprints_fetched[event_id], dict)
 
 
 @pytest.mark.live
@@ -74,15 +74,15 @@ async def test_live_sprints_afetch_single_id(valid_event_id):
   # Validate raw attribute contains string data
   assert isinstance(sprints.raw, dict)
   assert valid_event_id in sprints.raw
-  assert isinstance(sprints.raw[valid_event_id], str)
+  assert isinstance(sprints_raw[valid_event_id], str)
 
   # Validate processed attribute
   assert isinstance(sprints.processed, dict)
   assert valid_event_id in sprints.processed
-  assert isinstance(sprints.processed[valid_event_id], dict)
+  assert isinstance(sprints_fetched[valid_event_id], dict)
 
   # Validate data is non-empty
-  assert len(sprints.raw[valid_event_id]) > 0
+  assert len(sprints_raw[valid_event_id]) > 0
 
 
 @pytest.mark.live
@@ -103,9 +103,9 @@ async def test_live_sprints_afetch_multiple_ids(valid_event_ids):
 
     # Validate raw data
     assert event_id in sprints.raw
-    assert isinstance(sprints.raw[event_id], str)
-    assert len(sprints.raw[event_id]) > 0
+    assert isinstance(sprints_raw[event_id], str)
+    assert len(sprints_raw[event_id]) > 0
 
     # Validate processed data
     assert event_id in sprints.processed
-    assert isinstance(sprints.processed[event_id], dict)
+    assert isinstance(sprints_fetched[event_id], dict)

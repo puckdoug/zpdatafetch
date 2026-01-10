@@ -9,6 +9,7 @@ The CLI matches the zpdata interface:
   zrdata team <id>         Fetch team roster
 """
 
+import json
 import sys
 
 from shared.cli import (
@@ -116,10 +117,21 @@ Module for fetching Zwiftracing data using the Zwiftracing API
           # Convert IDs to integers for batch fetch
           rider_ids = [int(rid) for rid in args.id]
           riders = ZRRider.fetch_batch(*rider_ids)
-          for zwift_id, rider in riders.items():
-            if args.raw:
-              print(rider.to_dict())
+
+          if args.raw:
+            # For batch: output as key: value pairs
+            if len(riders) == 1:
+              # Single rider: just the raw string
+              print(list(riders.values())[0]._raw)
             else:
+              # Multiple riders: key: value format
+              for zwift_id, rider in riders.items():
+                print(f'{zwift_id}: {rider._raw}')
+          elif args.v1fetch:
+            for rider in riders.values():
+              print(json.dumps(rider._fetched, indent=2))
+          else:
+            for rider in riders.values():
               print(rider.json())
         except ValueError as e:
           print(f'Error: Invalid Zwift ID in batch: {e}')
@@ -127,14 +139,30 @@ Module for fetching Zwiftracing data using the Zwiftracing API
         except Exception as e:
           print(f'Error fetching batch: {e}')
           return 1
+      # Fetch and display rider data individually
+      elif args.raw and len(args.id) > 1:
+        # Multiple individual fetches with --raw: output as key: value
+        for zwift_id in args.id:
+          try:
+            rider = ZRRider(zwift_id=int(zwift_id))
+            rider.fetch()
+            print(f'{zwift_id}: {rider._raw}')
+          except ValueError:
+            print(f'Error: Invalid Zwift ID: {zwift_id}')
+            return 1
+          except Exception as e:
+            print(f'Error fetching rider {zwift_id}: {e}')
+            return 1
       else:
-        # Fetch and display rider data individually
+        # Single fetch or non-raw output
         for zwift_id in args.id:
           try:
             rider = ZRRider(zwift_id=int(zwift_id))
             rider.fetch()
             if args.raw:
-              print(rider.to_dict())
+              print(rider._raw)
+            elif args.v1fetch:
+              print(json.dumps(rider._fetched, indent=2))
             else:
               print(rider.json())
           except ValueError:
@@ -152,20 +180,37 @@ Module for fetching Zwiftracing data using the Zwiftracing API
         return None
 
       # Fetch and display result data
-      for race_id in args.id:
-        try:
-          result = ZRResult(race_id=int(race_id))
-          result.fetch()
-          if args.raw:
-            print(result._raw)
-          else:
-            print(result.json())
-        except ValueError:
-          print(f'Error: Invalid race ID: {race_id}')
-          return 1
-        except Exception as e:
-          print(f'Error fetching result {race_id}: {e}')
-          return 1
+      if args.raw and len(args.id) > 1:
+        # Multiple results with --raw: output as key: value
+        for race_id in args.id:
+          try:
+            result = ZRResult(race_id=int(race_id))
+            result.fetch()
+            print(f'{race_id}: {result._raw}')
+          except ValueError:
+            print(f'Error: Invalid race ID: {race_id}')
+            return 1
+          except Exception as e:
+            print(f'Error fetching result {race_id}: {e}')
+            return 1
+      else:
+        # Single result or non-raw output
+        for race_id in args.id:
+          try:
+            result = ZRResult(race_id=int(race_id))
+            result.fetch()
+            if args.raw:
+              print(result._raw)
+            elif args.v1fetch:
+              print(json.dumps(result._fetched, indent=2))
+            else:
+              print(result.json())
+          except ValueError:
+            print(f'Error: Invalid race ID: {race_id}')
+            return 1
+          except Exception as e:
+            print(f'Error fetching result {race_id}: {e}')
+            return 1
     case 'team':
       if not validate_ids_provided(args.id, 'team'):
         return 1
@@ -175,20 +220,37 @@ Module for fetching Zwiftracing data using the Zwiftracing API
         return None
 
       # Fetch and display team data
-      for team_id in args.id:
-        try:
-          team = ZRTeam(team_id=int(team_id))
-          team.fetch()
-          if args.raw:
-            print(team.to_dict())
-          else:
-            print(team.json())
-        except ValueError:
-          print(f'Error: Invalid team ID: {team_id}')
-          return 1
-        except Exception as e:
-          print(f'Error fetching team {team_id}: {e}')
-          return 1
+      if args.raw and len(args.id) > 1:
+        # Multiple teams with --raw: output as key: value
+        for team_id in args.id:
+          try:
+            team = ZRTeam(team_id=int(team_id))
+            team.fetch()
+            print(f'{team_id}: {team._raw}')
+          except ValueError:
+            print(f'Error: Invalid team ID: {team_id}')
+            return 1
+          except Exception as e:
+            print(f'Error fetching team {team_id}: {e}')
+            return 1
+      else:
+        # Single team or non-raw output
+        for team_id in args.id:
+          try:
+            team = ZRTeam(team_id=int(team_id))
+            team.fetch()
+            if args.raw:
+              print(team._raw)
+            elif args.v1fetch:
+              print(json.dumps(team._fetched, indent=2))
+            else:
+              print(team.json())
+          except ValueError:
+            print(f'Error: Invalid team ID: {team_id}')
+            return 1
+          except Exception as e:
+            print(f'Error fetching team {team_id}: {e}')
+            return 1
     case _:
       # Invalid command
       if not validate_command_name(args.cmd, ('rider', 'result', 'team')):

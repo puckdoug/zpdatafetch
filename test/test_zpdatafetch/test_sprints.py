@@ -8,7 +8,7 @@ def test_sprints(sprints):
 
 
 def test_sprints_initialization(sprints):
-  assert sprints.raw == {}
+  assert sprints._raw == {}
 
 
 def test_sprints_fetch_race_sprints(

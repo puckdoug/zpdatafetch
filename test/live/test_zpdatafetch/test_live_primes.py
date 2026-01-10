@@ -23,21 +23,21 @@ def test_live_primes_fetch_single_id(valid_event_id):
   # Validate raw attribute has nested structure: {race_id: {cat: {type: str}}}
   assert isinstance(primes.raw, dict)
   assert valid_event_id in primes.raw
-  assert isinstance(primes.raw[valid_event_id], dict)
+  assert isinstance(primes_raw[valid_event_id], dict)
 
   # Check at least one category exists
-  assert len(primes.raw[valid_event_id]) > 0
+  assert len(primes_raw[valid_event_id]) > 0
 
   # Validate one category/type has string data
-  first_cat = list(primes.raw[valid_event_id].keys())[0]
-  assert isinstance(primes.raw[valid_event_id][first_cat], dict)
-  first_type = list(primes.raw[valid_event_id][first_cat].keys())[0]
-  assert isinstance(primes.raw[valid_event_id][first_cat][first_type], str)
+  first_cat = list(primes_raw[valid_event_id].keys())[0]
+  assert isinstance(primes_raw[valid_event_id][first_cat], dict)
+  first_type = list(primes_raw[valid_event_id][first_cat].keys())[0]
+  assert isinstance(primes_raw[valid_event_id][first_cat][first_type], str)
 
   # Validate processed attribute
   assert isinstance(primes.processed, dict)
   assert valid_event_id in primes.processed
-  assert isinstance(primes.processed[valid_event_id], dict)
+  assert isinstance(primes_fetched[valid_event_id], dict)
 
 
 @pytest.mark.live
@@ -57,12 +57,12 @@ def test_live_primes_fetch_multiple_ids(valid_event_ids):
 
     # Validate raw data has nested structure
     assert event_id in primes.raw
-    assert isinstance(primes.raw[event_id], dict)
-    assert len(primes.raw[event_id]) > 0
+    assert isinstance(primes_raw[event_id], dict)
+    assert len(primes_raw[event_id]) > 0
 
     # Validate processed data
     assert event_id in primes.processed
-    assert isinstance(primes.processed[event_id], dict)
+    assert isinstance(primes_fetched[event_id], dict)
 
 
 @pytest.mark.live
@@ -80,21 +80,21 @@ async def test_live_primes_afetch_single_id(valid_event_id):
   # Validate raw attribute has nested structure: {race_id: {cat: {type: str}}}
   assert isinstance(primes.raw, dict)
   assert valid_event_id in primes.raw
-  assert isinstance(primes.raw[valid_event_id], dict)
+  assert isinstance(primes_raw[valid_event_id], dict)
 
   # Check at least one category exists
-  assert len(primes.raw[valid_event_id]) > 0
+  assert len(primes_raw[valid_event_id]) > 0
 
   # Validate one category/type has string data
-  first_cat = list(primes.raw[valid_event_id].keys())[0]
-  assert isinstance(primes.raw[valid_event_id][first_cat], dict)
-  first_type = list(primes.raw[valid_event_id][first_cat].keys())[0]
-  assert isinstance(primes.raw[valid_event_id][first_cat][first_type], str)
+  first_cat = list(primes_raw[valid_event_id].keys())[0]
+  assert isinstance(primes_raw[valid_event_id][first_cat], dict)
+  first_type = list(primes_raw[valid_event_id][first_cat].keys())[0]
+  assert isinstance(primes_raw[valid_event_id][first_cat][first_type], str)
 
   # Validate processed attribute
   assert isinstance(primes.processed, dict)
   assert valid_event_id in primes.processed
-  assert isinstance(primes.processed[valid_event_id], dict)
+  assert isinstance(primes_fetched[valid_event_id], dict)
 
 
 @pytest.mark.live
@@ -115,9 +115,9 @@ async def test_live_primes_afetch_multiple_ids(valid_event_ids):
 
     # Validate raw data has nested structure
     assert event_id in primes.raw
-    assert isinstance(primes.raw[event_id], dict)
-    assert len(primes.raw[event_id]) > 0
+    assert isinstance(primes_raw[event_id], dict)
+    assert len(primes_raw[event_id]) > 0
 
     # Validate processed data
     assert event_id in primes.processed
-    assert isinstance(primes.processed[event_id], dict)
+    assert isinstance(primes_fetched[event_id], dict)

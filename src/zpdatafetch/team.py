@@ -42,11 +42,11 @@ class Team(ZP_obj):
   """
 
   # Sync version
-  _url: str = 'https://zwiftpower.com/cache3/teams/'
-  _url_end: str = '_riders.json'
+  _url: str = "https://zwiftpower.com/cache3/teams/"
+  _url_end: str = "_riders.json"
 
   # Async version uses different URL ending
-  _url_end_async: str = '.json'
+  _url_end_async: str = ".json"
   _sync_mode: bool = False  # Class-level sync mode flag
 
   def __init__(self) -> None:
@@ -54,7 +54,6 @@ class Team(ZP_obj):
     super().__init__()
     self._zp: AsyncZP | None = None  # Async session
     self._zp_sync: ZP | None = None  # Sync session (for reference only)
-    self.processed: dict[Any, Any] = {}
 
   # -------------------------------------------------------------------------------
   def set_session(self, zp: AsyncZP) -> None:
@@ -113,26 +112,26 @@ class Team(ZP_obj):
     session, owns_session = await self._get_or_create_session()
 
     try:
-      logger.info(f'Fetching team data for {len(team_id)} ID(s)')
+      logger.info(f"Fetching team data for {len(team_id)} ID(s)")
 
       # SECURITY: Validate all team IDs before processing
       try:
-        validated_ids = validate_id_list(list(team_id), id_type='team')
+        validated_ids = validate_id_list(list(team_id), id_type="team")
       except ValidationError as e:
-        logger.error(f'ID validation failed: {e}')
+        logger.error(f"ID validation failed: {e}")
         raise
 
       # Build list of fetch tasks using correct URL ending
       fetch_tasks = []
       for tid in validated_ids:
-        url = f'{self._url}{tid}{self._url_end}'
+        url = f"{self._url}{tid}{self._url_end}"
         fetch_tasks.append(session.fetch_json(url))
 
       # Execute all fetches in parallel
 
       results_raw: dict[int, str] = {}
 
-      results_processed: dict[int, dict[str, Any]] = {}
+      results_fetched: dict[int, dict[str, Any]] = {}
 
       async def fetch_and_store(
         idx: int,
@@ -144,24 +143,25 @@ class Team(ZP_obj):
           team_id = validated_ids[idx]
           results_raw[team_id] = raw_json
 
-          # Parse for processed dict
-          parsed = parse_json_safe(raw_json, context=f'team {team_id}')
-          results_processed[team_id] = parsed if isinstance(parsed, dict) else {}
+          # Parse for fetched dict
+          parsed = parse_json_safe(raw_json, context=f"team {team_id}")
+          results_fetched[team_id] = parsed if isinstance(parsed, dict) else {}
 
-          logger.debug(f'Successfully fetched team ID: {team_id}')
+          logger.debug(f"Successfully fetched team ID: {team_id}")
         except Exception as e:
-          logger.error(f'Failed to fetch team ID {validated_ids[idx]}: {e}')
+          logger.error(f"Failed to fetch team ID {validated_ids[idx]}: {e}")
           raise
 
       async with anyio.create_task_group() as tg:
         for idx, task in enumerate(fetch_tasks):
           tg.start_soon(fetch_and_store, idx, task)
 
-      self.raw = results_raw
-      logger.info(f'Successfully fetched {len(validated_ids)} team roster(s)')
+      self._raw = results_raw
+      self._fetched = results_fetched
+      self.processed = {}  # Reserved for future use
+      logger.info(f"Successfully fetched {len(validated_ids)} team roster(s)")
 
-      self.processed = results_processed
-      return self.processed
+      return self._fetched
 
     finally:
       if owns_session:
@@ -187,41 +187,44 @@ class Team(ZP_obj):
       NetworkError: If network requests fail
       AuthenticationError: If authentication fails
     """
-    logger.info(f'Fetching team data in synchronous mode for {len(team_id)} ID(s)')
+    logger.info(f"Fetching team data in synchronous mode for {len(team_id)} ID(s)")
 
     # SECURITY: Validate all IDs before processing
     try:
-      validated_ids = validate_id_list(list(team_id), id_type='team')
+      validated_ids = validate_id_list(list(team_id), id_type="team")
     except ValidationError as e:
-      logger.error(f'ID validation failed: {e}')
+      logger.error(f"ID validation failed: {e}")
       raise
 
     # Create synchronous ZP session
     zp = ZP()
 
     results_raw: dict[int, str] = {}
-    results_processed: dict[int, dict[str, Any]] = {}
+    results_fetched: dict[int, dict[str, Any]] = {}
 
     # Fetch each ID sequentially
     for id_val in validated_ids:
-      logger.debug(f'Fetching team data for team ID: {id_val}')
-      url = f'{self._url}{id_val}{self._url_end}'
+      logger.debug(f"Fetching team data for team ID: {id_val}")
+      url = f"{self._url}{id_val}{self._url_end}"
 
       # Synchronous blocking call
       raw_json = zp.fetch_json(url)
       results_raw[id_val] = raw_json
 
-      # Process immediately (no parallel parsing)
-      parsed = parse_json_safe(raw_json, context=f'team {id_val}')
-      results_processed[id_val] = parsed if isinstance(parsed, dict) else {}
+      # Parse immediately (no parallel parsing)
+      parsed = parse_json_safe(raw_json, context=f"team {id_val}")
+      results_fetched[id_val] = parsed if isinstance(parsed, dict) else {}
 
-      logger.debug(f'Successfully fetched team data for team ID: {id_val}')
+      logger.debug(f"Successfully fetched team data for team ID: {id_val}")
 
-    self.raw = results_raw
-    self.processed = results_processed
+    self._raw = results_raw
 
-    logger.info(f'Successfully fetched {len(validated_ids)} team(s) in sync mode')
-    return self.processed
+    self._fetched = results_fetched
+
+    self.processed = {}  # Reserved for future use
+
+    logger.info(f"Successfully fetched {len(validated_ids)} team(s) in sync mode")
+    return self._fetched
 
   @classmethod
   def set_sync_mode(cls, enabled: bool) -> None:
@@ -231,8 +234,8 @@ class Team(ZP_obj):
       enabled: True to enable sync mode, False for async (default)
     """
     cls._sync_mode = enabled
-    mode = 'synchronous' if enabled else 'asynchronous (parallel)'
-    logger.info(f'Team fetch mode set to: {mode}')
+    mode = "synchronous" if enabled else "asynchronous (parallel)"
+    logger.info(f"Team fetch mode set to: {mode}")
 
   def fetch(self, *team_id: int) -> dict[Any, Any]:
     """Fetch team roster data for one or more team IDs (synchronous).
@@ -259,11 +262,11 @@ class Team(ZP_obj):
     try:
       asyncio.get_running_loop()
       raise RuntimeError(
-        'fetch() called from async context. Use afetch() instead, or '
-        'call fetch() from synchronous code.',
+        "fetch() called from async context. Use afetch() instead, or "
+        "call fetch() from synchronous code.",
       )
     except RuntimeError as e:
-      if 'fetch() called from async context' in str(e):
+      if "fetch() called from async context" in str(e):
         raise
       # No running loop - safe to use asyncio.run()
       return asyncio.run(self._fetch_parallel(*team_id))
@@ -292,30 +295,30 @@ class Team(ZP_obj):
 # ===============================================================================
 def main() -> None:
   p = ArgumentParser(
-    description='Module for fetching cyclist data using the Zwiftpower API',
+    description="Module for fetching cyclist data using the Zwiftpower API",
   )
   p.add_argument(
-    '--verbose',
-    '-v',
-    action='count',
+    "--verbose",
+    "-v",
+    action="count",
     default=0,
-    help='increase output verbosity (-v for INFO, -vv for DEBUG)',
+    help="increase output verbosity (-v for INFO, -vv for DEBUG)",
   )
   p.add_argument(
-    '--raw',
-    '-r',
-    action='store_const',
+    "--raw",
+    "-r",
+    action="store_const",
     const=True,
-    help='print all returned data',
+    help="print all returned data",
   )
-  p.add_argument('team_id', type=int, nargs='+', help='a list of team_ids')
+  p.add_argument("team_id", type=int, nargs="+", help="a list of team_ids")
   args = p.parse_args()
 
   # Configure logging based on verbosity level (output to stderr)
   if args.verbose >= 2:
-    setup_logging(console_level='DEBUG', force_console=True)
+    setup_logging(console_level="DEBUG", force_console=True)
   elif args.verbose == 1:
-    setup_logging(console_level='INFO', force_console=True)
+    setup_logging(console_level="INFO", force_console=True)
 
   x = Team()
 
@@ -326,5 +329,5 @@ def main() -> None:
 
 
 # ===============================================================================
-if __name__ == '__main__':
+if __name__ == "__main__":
   main()

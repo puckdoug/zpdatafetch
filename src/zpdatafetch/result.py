@@ -52,7 +52,6 @@ class Result(ZP_obj):
     super().__init__()
     self._zp: AsyncZP | None = None  # Async session
     self._zp_sync: ZP | None = None  # Sync session (for reference only)
-    self.processed: dict[Any, Any] = {}
 
   # -------------------------------------------------------------------------------
   def set_session(self, zp: AsyncZP) -> None:
@@ -130,7 +129,7 @@ class Result(ZP_obj):
 
       results_raw: dict[int, str] = {}
 
-      results_processed: dict[int, dict[str, Any]] = {}
+      results_fetched: dict[int, dict[str, Any]] = {}
 
       async def fetch_and_store(
         idx: int,
@@ -142,9 +141,9 @@ class Result(ZP_obj):
           race_id = validated_ids[idx]
           results_raw[race_id] = raw_json
 
-          # Parse for processed dict
+          # Parse for fetched dict
           parsed = parse_json_safe(raw_json, context=f'race result {race_id}')
-          results_processed[race_id] = parsed if isinstance(parsed, dict) else {}
+          results_fetched[race_id] = parsed if isinstance(parsed, dict) else {}
 
           logger.debug(
             f'Successfully fetched results for race ID: {race_id}',
@@ -157,11 +156,12 @@ class Result(ZP_obj):
         for idx, task in enumerate(fetch_tasks):
           tg.start_soon(fetch_and_store, idx, task)
 
-      self.raw = results_raw
+      self._raw = results_raw
+      self._fetched = results_fetched
+      self.processed = {}  # Reserved for future use
       logger.info(f'Successfully fetched {len(validated_ids)} race result(s)')
 
-      self.processed = results_processed
-      return self.processed
+      return self._fetched
 
     finally:
       if owns_session:
@@ -200,7 +200,7 @@ class Result(ZP_obj):
     zp = ZP()
 
     results_raw: dict[int, str] = {}
-    results_processed: dict[int, dict[str, Any]] = {}
+    results_fetched: dict[int, dict[str, Any]] = {}
 
     # Fetch each ID sequentially
     for id_val in validated_ids:
@@ -211,17 +211,20 @@ class Result(ZP_obj):
       raw_json = zp.fetch_json(url)
       results_raw[id_val] = raw_json
 
-      # Process immediately (no parallel parsing)
+      # Parse immediately (no parallel parsing)
       parsed = parse_json_safe(raw_json, context=f'result {id_val}')
-      results_processed[id_val] = parsed if isinstance(parsed, dict) else {}
+      results_fetched[id_val] = parsed if isinstance(parsed, dict) else {}
 
       logger.debug(f'Successfully fetched result data for race ID: {id_val}')
 
-    self.raw = results_raw
-    self.processed = results_processed
+    self._raw = results_raw
+
+    self._fetched = results_fetched
+
+    self.processed = {}  # Reserved for future use
 
     logger.info(f'Successfully fetched {len(validated_ids)} result(s) in sync mode')
-    return self.processed
+    return self._fetched
 
   @classmethod
   def set_sync_mode(cls, enabled: bool) -> None:

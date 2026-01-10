@@ -8,7 +8,7 @@ def test_team(team):
 
 
 def test_team_initialization(team):
-  assert team.raw == {}
+  assert team._raw == {}
 
 
 def test_team_fetch_single_id(team, login_page, logged_in_page):
@@ -51,7 +51,7 @@ def test_team_fetch_single_id(team, login_page, logged_in_page):
 
 
 def test_team_json_output(team):
-  team.raw = {999: {'data': [{'name': 'Team Rider'}]}}
+  team._fetched = {999: {'data': [{'name': 'Team Rider'}]}}
   json_str = team.json()
   assert '999' in json_str
   assert 'Team Rider' in json_str

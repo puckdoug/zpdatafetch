@@ -15,7 +15,7 @@ def test_league(league):
 
 
 def test_league_initialization(league):
-  assert league.raw == {}
+  assert league._raw == {}
 
 
 def test_league_init():
@@ -56,7 +56,7 @@ def test_league_fetch_single_id(league, league_ok, login_page, logged_in_page):
 
 
 def test_league_json_output(league, league_ok):
-  league.raw = {2780: league_ok}
+  league._fetched = {2780: league_ok}
   json_str = league.json()
   assert '2780' in json_str
   assert 'Rider One' in json_str
@@ -93,7 +93,7 @@ async def test_league_afetch(league_ok, login_page, logged_in_page):
 
     assert league_id in result
     assert result[league_id]['data'][0]['name'] == 'Rider One'
-    assert league.processed[league_id] == league_ok
+    assert league._fetched[league_id] == league_ok
 
 
 @pytest.mark.anyio

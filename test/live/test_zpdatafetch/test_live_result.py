@@ -23,15 +23,15 @@ def test_live_result_fetch_single_id(valid_event_id):
   # Validate raw attribute contains string data
   assert isinstance(result_obj.raw, dict)
   assert valid_event_id in result_obj.raw
-  assert isinstance(result_obj.raw[valid_event_id], str)
+  assert isinstance(result_obj_raw[valid_event_id], str)
 
   # Validate processed attribute
   assert isinstance(result_obj.processed, dict)
   assert valid_event_id in result_obj.processed
-  assert isinstance(result_obj.processed[valid_event_id], dict)
+  assert isinstance(result_obj_fetched[valid_event_id], dict)
 
   # Validate data is non-empty
-  assert len(result_obj.raw[valid_event_id]) > 0
+  assert len(result_obj_raw[valid_event_id]) > 0
 
 
 @pytest.mark.live
@@ -51,12 +51,12 @@ def test_live_result_fetch_multiple_ids(valid_event_ids):
 
     # Validate raw data
     assert event_id in result_obj.raw
-    assert isinstance(result_obj.raw[event_id], str)
-    assert len(result_obj.raw[event_id]) > 0
+    assert isinstance(result_obj_raw[event_id], str)
+    assert len(result_obj_raw[event_id]) > 0
 
     # Validate processed data
     assert event_id in result_obj.processed
-    assert isinstance(result_obj.processed[event_id], dict)
+    assert isinstance(result_obj_fetched[event_id], dict)
 
 
 @pytest.mark.live
@@ -74,15 +74,15 @@ async def test_live_result_afetch_single_id(valid_event_id):
   # Validate raw attribute contains string data
   assert isinstance(result_obj.raw, dict)
   assert valid_event_id in result_obj.raw
-  assert isinstance(result_obj.raw[valid_event_id], str)
+  assert isinstance(result_obj_raw[valid_event_id], str)
 
   # Validate processed attribute
   assert isinstance(result_obj.processed, dict)
   assert valid_event_id in result_obj.processed
-  assert isinstance(result_obj.processed[valid_event_id], dict)
+  assert isinstance(result_obj_fetched[valid_event_id], dict)
 
   # Validate data is non-empty
-  assert len(result_obj.raw[valid_event_id]) > 0
+  assert len(result_obj_raw[valid_event_id]) > 0
 
 
 @pytest.mark.live
@@ -103,9 +103,9 @@ async def test_live_result_afetch_multiple_ids(valid_event_ids):
 
     # Validate raw data
     assert event_id in result_obj.raw
-    assert isinstance(result_obj.raw[event_id], str)
-    assert len(result_obj.raw[event_id]) > 0
+    assert isinstance(result_obj_raw[event_id], str)
+    assert len(result_obj_raw[event_id]) > 0
 
     # Validate processed data
     assert event_id in result_obj.processed
-    assert isinstance(result_obj.processed[event_id], dict)
+    assert isinstance(result_obj_fetched[event_id], dict)

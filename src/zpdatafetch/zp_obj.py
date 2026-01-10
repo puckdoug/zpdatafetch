@@ -13,40 +13,59 @@ class ZP_obj:
   zpdatafetch.logging_config.setup_logging() for detailed output.
 
   Attributes:
-    raw: Dictionary mapping IDs to raw JSON strings from the API
-    processed: Dictionary mapping IDs to parsed data dictionaries
+    _raw: Dictionary mapping IDs to raw JSON strings from the API (response.text)
+    _fetched: Dictionary mapping IDs to parsed data dictionaries
+    processed: Dictionary reserved for future processing functionality
 
   Note:
-    The raw attribute stores the original JSON string responses from the
-    API before any parsing or validation. Each ID maps to its unprocessed
-    JSON string. This ensures we always have access to the exact data
-    received for debugging and logging purposes.
+    The _raw attribute stores the original JSON string responses from the
+    API (response.text) before any parsing or validation. Each ID maps to
+    its unprocessed JSON string. The _fetched attribute contains the parsed
+    Python dictionaries. The processed attribute is reserved for future use.
   """
 
   def __init__(self) -> None:
-    """Initialize a new ZP_obj instance with empty raw data."""
-    self.raw: dict[Any, Any] = {}
+    """Initialize a new ZP_obj instance with empty data structures."""
+    self._raw: dict[int, str] = {}  # True raw response.text strings
+    self._fetched: dict[int, dict] = {}  # Parsed Python dicts
+    self.processed: dict[int, dict] = {}  # Reserved for future processing
 
   def __str__(self) -> str:
-    """Return string representation of the raw data.
+    """Return string representation of the fetched data.
 
     Returns:
-      String representation of the raw dictionary
+      String representation of the fetched dictionary
     """
-    return str(self.raw)
+    return str(self._fetched)
 
   def json(self) -> str:
-    """Serialize the raw data to formatted JSON string.
+    """Serialize the fetched data to formatted JSON string.
 
     Returns:
-      JSON string with 2-space indentation
+      JSON string with 2-space indentation (clean, single-encoded)
     """
-    return json.JSONEncoder(indent=2).encode(self.raw)
+    return json.JSONEncoder(indent=2).encode(self._fetched)
 
   def asdict(self) -> dict[Any, Any]:
-    """Return the raw data as a dictionary.
+    """Return the fetched data as a dictionary.
 
     Returns:
-      Dictionary containing all raw data from the API
+      Dictionary containing all fetched/parsed data from the API
     """
-    return self.raw
+    return self._fetched
+
+  def raw(self) -> dict[int, str]:
+    """Return the true raw response strings.
+
+    Returns:
+      Dictionary mapping IDs to raw response.text strings
+    """
+    return self._raw
+
+  def fetched(self) -> dict[int, dict]:
+    """Return the parsed/fetched data.
+
+    Returns:
+      Dictionary mapping IDs to parsed data dictionaries
+    """
+    return self._fetched

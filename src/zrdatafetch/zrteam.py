@@ -61,19 +61,19 @@ class ZRTeamRider:
   """
 
   zwift_id: int = 0
-  name: str = ""
-  gender: str = "M"
+  name: str = ''
+  gender: str = 'M'
   height: float = 0.0
   weight: float = 0.0
   current_rating: float = 0.0
-  current_category_mixed: str = ""
-  current_category_womens: str = ""
+  current_category_mixed: str = ''
+  current_category_womens: str = ''
   max30_rating: float = 0.0
-  max30_category_mixed: str = ""
-  max30_category_womens: str = ""
+  max30_category_mixed: str = ''
+  max30_category_womens: str = ''
   max90_rating: float = 0.0
-  max90_category_mixed: str = ""
-  max90_category_womens: str = ""
+  max90_category_mixed: str = ''
+  max90_category_womens: str = ''
   power_awc: float = 0.0
   power_cp: float = 0.0
   power_cs: float = 0.0
@@ -127,7 +127,7 @@ class ZRTeam(ZR_obj):
     team_name: Name of the team/club
     riders: List of ZRTeamRider objects for team members
     _raw: Raw JSON response string from API (unprocessed, for debugging)
-    _team: Parsed team data dictionary (internal)
+    _fetched: Parsed team data dictionary (internal)
 
   Note:
     The _raw attribute stores the original JSON string response from the
@@ -137,12 +137,13 @@ class ZRTeam(ZR_obj):
 
   # Public attributes (in __init__)
   team_id: int = 0
-  team_name: str = ""
+  team_name: str = ''
   riders: list[ZRTeamRider] = field(default_factory=list)
 
   # Private attributes (not in __init__)
-  _raw: str = field(default="", init=False, repr=False)
-  _team: dict = field(default_factory=dict, init=False, repr=False)
+  _raw: str = field(default='', init=False, repr=False)
+  _fetched: dict = field(default_factory=dict, init=False, repr=False)
+  processed: dict = field(default_factory=dict, init=False, repr=False)
   _verbose: bool = field(default=False, init=False, repr=False)
   _zr: AsyncZR_obj | None = field(default=None, init=False, repr=False)
   _zr_sync: ZR_obj | None = field(default=None, init=False, repr=False)
@@ -376,7 +377,7 @@ class ZRTeam(ZR_obj):
     """Parse raw JSON string from _raw into structured team data.
 
     Converts the raw JSON string stored in self._raw into a Python dict
-    (self._team), then extracts team information and creates ZRTeamRider
+    (self._fetched), then extracts team information and creates ZRTeamRider
     objects for each team member. Handles malformed JSON and missing fields
     gracefully.
 
@@ -384,7 +385,7 @@ class ZRTeam(ZR_obj):
     the unprocessed response for debugging/logging purposes.
 
     Side effects:
-      - Sets self._team to parsed dict
+      - Sets self._fetched to parsed dict
       - Populates self.name, self.tag, and self.riders list
     """
     if not self._raw:
@@ -397,83 +398,102 @@ class ZRTeam(ZR_obj):
       logger.error(f'Expected dict for team data, got {type(parsed).__name__}')
       return
 
-    self._team = parsed
+    self._fetched = parsed
+    self.processed = {}  # Reserved for future use
 
     # Check for error in response
-    if 'message' in self._team:
-      logger.error(f'API error: {self._team["message"]}')
+    if 'message' in self._fetched:
+      logger.error(f'API error: {self._fetched["message"]}')
       return
 
     try:
       # Extract team name
-      self.team_name = self._team.get("name", "")
+      self.team_name = self._fetched.get('name', '')
 
       # Parse riders list
-      riders_list = self._team.get("riders", [])
+      riders_list = self._fetched.get('riders', [])
       if not isinstance(riders_list, list):
-        logger.warning("Expected riders to be a list")
+        logger.warning('Expected riders to be a list')
         return
 
       for rider_data in riders_list:
         try:
           # Extract nested structures safely
-          race = rider_data.get("race", {})
-          current = race.get("current", {})
-          max30 = race.get("max30", {})
-          max90 = race.get("max90", {})
-          power = rider_data.get("power", {})
+          race = rider_data.get('race', {})
+          current = race.get('current', {})
+          max30 = race.get('max30', {})
+          max90 = race.get('max90', {})
+          power = rider_data.get('power', {})
 
           # Extract categories
-          current_mixed = current.get("mixed", {})
-          current_womens = current.get("womens", {})
-          max30_mixed = max30.get("mixed", {})
-          max30_womens = max30.get("womens", {})
-          max90_mixed = max90.get("mixed", {})
-          max90_womens = max90.get("womens", {})
+          current_mixed = current.get('mixed', {})
+          current_womens = current.get('womens', {})
+          max30_mixed = max30.get('mixed', {})
+          max30_womens = max30.get('womens', {})
+          max90_mixed = max90.get('mixed', {})
+          max90_womens = max90.get('womens', {})
 
           rider = ZRTeamRider(
-            zwift_id=rider_data.get("riderId", 0),
-            name=rider_data.get("name", ""),
-            gender=rider_data.get("gender", "M"),
-            height=float(rider_data.get("height", 0.0)),
-            weight=float(rider_data.get("weight", 0.0)),
-            current_rating=float(current.get("rating", 0.0)),
-            current_category_mixed=current_mixed.get("category", ""),
-            current_category_womens=current_womens.get("category", ""),
-            max30_rating=float(max30.get("rating", 0.0)),
-            max30_category_mixed=max30_mixed.get("category", ""),
-            max30_category_womens=max30_womens.get("category", ""),
-            max90_rating=float(max90.get("rating", 0.0)),
-            max90_category_mixed=max90_mixed.get("category", ""),
-            max90_category_womens=max90_womens.get("category", ""),
-            power_awc=float(power.get("AWC", 0.0)),
-            power_cp=float(power.get("CP", 0.0)),
-            power_cs=float(power.get("compoundScore", 0.0)),
-            power_w5=float(power.get("w5", 0.0)),
-            power_w15=float(power.get("w15", 0.0)),
-            power_w30=float(power.get("w30", 0.0)),
-            power_w60=float(power.get("w60", 0.0)),
-            power_w120=float(power.get("w120", 0.0)),
-            power_w300=float(power.get("w300", 0.0)),
-            power_w1200=float(power.get("w1200", 0.0)),
-            power_wkg5=float(power.get("wkg5", 0.0)),
-            power_wkg15=float(power.get("wkg15", 0.0)),
-            power_wkg30=float(power.get("wkg30", 0.0)),
-            power_wkg60=float(power.get("wkg60", 0.0)),
-            power_wkg120=float(power.get("wkg120", 0.0)),
-            power_wkg300=float(power.get("wkg300", 0.0)),
-            power_wkg1200=float(power.get("wkg1200", 0.0)),
+            zwift_id=rider_data.get('riderId', 0),
+            name=rider_data.get('name', ''),
+            gender=rider_data.get('gender', 'M'),
+            height=float(rider_data.get('height', 0.0)),
+            weight=float(rider_data.get('weight', 0.0)),
+            current_rating=float(current.get('rating', 0.0)),
+            current_category_mixed=current_mixed.get('category', ''),
+            current_category_womens=current_womens.get('category', ''),
+            max30_rating=float(max30.get('rating', 0.0)),
+            max30_category_mixed=max30_mixed.get('category', ''),
+            max30_category_womens=max30_womens.get('category', ''),
+            max90_rating=float(max90.get('rating', 0.0)),
+            max90_category_mixed=max90_mixed.get('category', ''),
+            max90_category_womens=max90_womens.get('category', ''),
+            power_awc=float(power.get('AWC', 0.0)),
+            power_cp=float(power.get('CP', 0.0)),
+            power_cs=float(power.get('compoundScore', 0.0)),
+            power_w5=float(power.get('w5', 0.0)),
+            power_w15=float(power.get('w15', 0.0)),
+            power_w30=float(power.get('w30', 0.0)),
+            power_w60=float(power.get('w60', 0.0)),
+            power_w120=float(power.get('w120', 0.0)),
+            power_w300=float(power.get('w300', 0.0)),
+            power_w1200=float(power.get('w1200', 0.0)),
+            power_wkg5=float(power.get('wkg5', 0.0)),
+            power_wkg15=float(power.get('wkg15', 0.0)),
+            power_wkg30=float(power.get('wkg30', 0.0)),
+            power_wkg60=float(power.get('wkg60', 0.0)),
+            power_wkg120=float(power.get('wkg120', 0.0)),
+            power_wkg300=float(power.get('wkg300', 0.0)),
+            power_wkg1200=float(power.get('wkg1200', 0.0)),
           )
           self.riders.append(rider)
         except (KeyError, TypeError, ValueError) as e:
-          logger.warning(f"Skipping malformed rider in team: {e}")
+          logger.warning(f'Skipping malformed rider in team: {e}')
           continue
 
       logger.debug(
-        f"Successfully parsed {len(self.riders)} team members from team_id={self.team_id}",
+        f'Successfully parsed {len(self.riders)} team members from team_id={self.team_id}',
       )
     except Exception as e:
-      logger.error(f"Error parsing response: {e}")
+      logger.error(f'Error parsing response: {e}')
+
+  # -----------------------------------------------------------------------
+  def raw(self) -> str:
+    """Return the true raw response string.
+
+    Returns:
+      Raw JSON string from response.text
+    """
+    return self._raw
+
+  # -----------------------------------------------------------------------
+  def fetched(self) -> dict:
+    """Return the parsed/fetched data.
+
+    Returns:
+      Parsed dictionary from the raw JSON response
+    """
+    return self._fetched
 
   # -----------------------------------------------------------------------
   def to_dict(self) -> dict[str, Any]:
@@ -483,7 +503,7 @@ class ZRTeam(ZR_obj):
       Dictionary with all public attributes and riders as dicts
     """
     return {
-      "team_id": self.team_id,
-      "team_name": self.team_name,
-      "riders": [r.to_dict() for r in self.riders],
+      'team_id': self.team_id,
+      'team_name': self.team_name,
+      'riders': [r.to_dict() for r in self.riders],
     }

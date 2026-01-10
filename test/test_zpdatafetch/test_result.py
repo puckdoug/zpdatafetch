@@ -8,7 +8,7 @@ def test_result(result):
 
 
 def test_result_initialization(result):
-  assert result.raw == {}
+  assert result._raw == {}
 
 
 def test_result_fetch_race_results(result, login_page, logged_in_page):

@@ -413,6 +413,24 @@ class ZRResult(ZR_obj):
       logger.error(f'Error parsing response: {e}')
 
   # -----------------------------------------------------------------------
+  def raw(self) -> str:
+    """Return the true raw response string.
+
+    Returns:
+      Raw JSON string from response.text
+    """
+    return self._raw
+
+  # -----------------------------------------------------------------------
+  def fetched(self) -> dict:
+    """Return the parsed/fetched data.
+
+    Returns:
+      Parsed dictionary from the raw JSON response
+    """
+    return self._fetched
+
+  # -----------------------------------------------------------------------
   def to_dict(self) -> dict[str, Any]:
     """Return dictionary representation excluding private attributes.
 

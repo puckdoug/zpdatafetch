@@ -130,9 +130,18 @@ Module for fetching zwiftpower data using the Zwifpower API
   x.fetch(*args.id)
 
   if args.raw:
-    print(x.raw)
+    # Output raw response text
+    if len(x._raw) == 1:
+      # Single ID: print just the raw string
+      print(list(x._raw.values())[0])
+    else:
+      # Multiple IDs: print as key: value pairs (one per line)
+      for key, value in x._raw.items():
+        print(f'{key}: {value}')
+  elif args.v1fetch:
+    print(json.dumps(x._fetched, indent=2))
   else:
-    print(json.dumps(x.processed, indent=2))
+    print(json.dumps(x._fetched, indent=2))
 
   return None
 

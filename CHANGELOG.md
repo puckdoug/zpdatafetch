@@ -9,6 +9,24 @@
   - Provides clear, separate execution path
   - Library usage: `Cyclist.set_sync_mode(True)` to enable, `Cyclist.set_sync_mode(False)` to disable
   - CLI usage: `zpdata --sync cyclist 123456` or `zrdata --sync rider 123456`
+- **--v1fetch flag** - New CLI flag for outputting fetched data in v1.8 format for backward compatibility
+  - Returns parsed/fetched data as JSON
+  - Library usage: `.fetched()` method returns the same data
+  - CLI usage: `zpdata --v1fetch cyclist 123456` or `zrdata --v1fetch rider 123456`. This has been added temporarily to support migration but will be removed in a future release.
+
+### Changed
+
+- **POTENTIALLY BREAKING: --raw flag output format** - The `--raw` CLI flag now outputs true unadulterated raw response text from the server
+  - **Single ID queries**: Outputs just the raw JSON string (no ID wrapper)
+    - Example: `zpdata --raw cyclist 123456` → `{"name": "John", "id": 123456, ...}`
+  - **Multiple ID queries**: Outputs as `key: value` format (one per line) to maintain ID mapping
+    - Example: `zpdata --raw cyclist 123456 789012` →
+      ```
+      123456: {"name": "John", "id": 123456, ...}
+      789012: {"name": "Jane", "id": 789012, ...}
+      ```
+  - **Library API unchanged**: `.raw()` method still returns `dict[int, str]` mapping IDs to raw strings
+  - **Migration**: If you relied on the old `--raw` output format, use `--v1fetch` instead for backward compatibility
 
 ## [1.8.0]
 

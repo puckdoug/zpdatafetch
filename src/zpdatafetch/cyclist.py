@@ -52,7 +52,6 @@ class Cyclist(ZP_obj):
     super().__init__()
     self._zp: AsyncZP | None = None  # Async session
     self._zp_sync: ZP | None = None  # Sync session (for reference only)
-    self.processed: dict[Any, Any] = {}
 
   # -------------------------------------------------------------------------------
   def set_session(self, zp: AsyncZP) -> None:
@@ -130,7 +129,7 @@ class Cyclist(ZP_obj):
 
       # Execute all fetches in parallel
       results_raw: dict[int, str] = {}
-      results_processed: dict[int, dict[str, Any]] = {}
+      results_fetched: dict[int, dict[str, Any]] = {}
 
       async def fetch_and_store(
         idx: int,
@@ -142,9 +141,9 @@ class Cyclist(ZP_obj):
           zid = validated_ids[idx]
           results_raw[zid] = raw_json
 
-          # Parse for processed dict
+          # Parse for fetched dict
           parsed = parse_json_safe(raw_json, context=f'cyclist {zid}')
-          results_processed[zid] = parsed if isinstance(parsed, dict) else {}
+          results_fetched[zid] = parsed if isinstance(parsed, dict) else {}
 
           logger.debug(
             f'Successfully fetched profile for Zwift ID: {zid}',
@@ -157,11 +156,12 @@ class Cyclist(ZP_obj):
         for idx, task in enumerate(fetch_tasks):
           tg.start_soon(fetch_and_store, idx, task)
 
-      self.raw = results_raw
+      self._raw = results_raw
+      self._fetched = results_fetched
+      self.processed = {}  # Reserved for future use
       logger.info(f'Successfully fetched {len(validated_ids)} cyclist profile(s)')
 
-      self.processed = results_processed
-      return self.processed
+      return self._fetched
 
     finally:
       if owns_session:
@@ -210,7 +210,7 @@ class Cyclist(ZP_obj):
     zp = ZP()
 
     results_raw: dict[int, str] = {}
-    results_processed: dict[int, dict[str, Any]] = {}
+    results_fetched: dict[int, dict[str, Any]] = {}
 
     # Fetch each ID sequentially
     for zid in validated_ids:
@@ -221,19 +221,20 @@ class Cyclist(ZP_obj):
       raw_json = zp.fetch_json(url)
       results_raw[zid] = raw_json
 
-      # Process immediately (no parallel parsing)
+      # Parse immediately (no parallel parsing)
       parsed = parse_json_safe(raw_json, context=f'cyclist {zid}')
-      results_processed[zid] = parsed if isinstance(parsed, dict) else {}
+      results_fetched[zid] = parsed if isinstance(parsed, dict) else {}
 
       logger.debug(f'Successfully fetched profile for Zwift ID: {zid}')
 
-    self.raw = results_raw
-    self.processed = results_processed
+    self._raw = results_raw
+    self._fetched = results_fetched
+    self.processed = {}  # Reserved for future use
 
     logger.info(
       f'Successfully fetched {len(validated_ids)} cyclist profile(s) in sync mode',
     )
-    return self.processed
+    return self._fetched
 
   # -------------------------------------------------------------------------------
   def fetch(self, *zwift_id: int) -> dict[Any, Any]:

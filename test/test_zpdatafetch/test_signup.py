@@ -8,7 +8,7 @@ def test_signup(signup):
 
 
 def test_signup_initialization(signup):
-  assert signup.raw == {}
+  assert signup._raw == {}
 
 
 def test_signup_fetch_race_signups(signup, login_page, logged_in_page):

@@ -23,16 +23,16 @@ def test_live_league_fetch_single_id(valid_league_id, league_fixtures):
   # Validate raw attribute contains string data
   assert isinstance(league.raw, dict)
   assert valid_league_id in league.raw
-  assert isinstance(league.raw[valid_league_id], str)
+  assert isinstance(league_raw[valid_league_id], str)
 
   # Validate processed attribute
   assert isinstance(league.processed, dict)
   assert valid_league_id in league.processed
-  assert isinstance(league.processed[valid_league_id], dict)
+  assert isinstance(league_fetched[valid_league_id], dict)
 
   # Validate data is non-empty
-  assert len(league.raw[valid_league_id]) > 0
-  assert len(league.processed[valid_league_id]) > 0
+  assert len(league_raw[valid_league_id]) > 0
+  assert len(league_fetched[valid_league_id]) > 0
 
   # Compare against fixture
   assert result[valid_league_id] == league_fixtures[valid_league_id]
@@ -55,13 +55,13 @@ def test_live_league_fetch_multiple_ids(valid_league_ids, league_fixtures):
 
     # Validate raw data
     assert league_id in league.raw
-    assert isinstance(league.raw[league_id], str)
-    assert len(league.raw[league_id]) > 0
+    assert isinstance(league_raw[league_id], str)
+    assert len(league_raw[league_id]) > 0
 
     # Validate processed data
     assert league_id in league.processed
-    assert isinstance(league.processed[league_id], dict)
-    assert len(league.processed[league_id]) > 0
+    assert isinstance(league_fetched[league_id], dict)
+    assert len(league_fetched[league_id]) > 0
 
     # Compare against fixture
     assert result[league_id] == league_fixtures[league_id]
@@ -82,16 +82,16 @@ async def test_live_league_afetch_single_id(valid_league_id, league_fixtures):
   # Validate raw attribute contains string data
   assert isinstance(league.raw, dict)
   assert valid_league_id in league.raw
-  assert isinstance(league.raw[valid_league_id], str)
+  assert isinstance(league_raw[valid_league_id], str)
 
   # Validate processed attribute
   assert isinstance(league.processed, dict)
   assert valid_league_id in league.processed
-  assert isinstance(league.processed[valid_league_id], dict)
+  assert isinstance(league_fetched[valid_league_id], dict)
 
   # Validate data is non-empty
-  assert len(league.raw[valid_league_id]) > 0
-  assert len(league.processed[valid_league_id]) > 0
+  assert len(league_raw[valid_league_id]) > 0
+  assert len(league_fetched[valid_league_id]) > 0
 
   # Compare against fixture
   assert result[valid_league_id] == league_fixtures[valid_league_id]
@@ -115,13 +115,13 @@ async def test_live_league_afetch_multiple_ids(valid_league_ids, league_fixtures
 
     # Validate raw data
     assert league_id in league.raw
-    assert isinstance(league.raw[league_id], str)
-    assert len(league.raw[league_id]) > 0
+    assert isinstance(league_raw[league_id], str)
+    assert len(league_raw[league_id]) > 0
 
     # Validate processed data
     assert league_id in league.processed
-    assert isinstance(league.processed[league_id], dict)
-    assert len(league.processed[league_id]) > 0
+    assert isinstance(league_fetched[league_id], dict)
+    assert len(league_fetched[league_id]) > 0
 
     # Compare against fixture
     assert result[league_id] == league_fixtures[league_id]

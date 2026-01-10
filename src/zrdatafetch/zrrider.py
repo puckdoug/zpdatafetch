@@ -93,12 +93,12 @@ class ZRRider(ZR_obj):
 
   # Private attributes (not in __init__)
   _raw: str = field(default='', init=False, repr=False)
-  _rider: dict = field(default_factory=dict, init=False, repr=False)
+  _fetched: dict = field(default_factory=dict, init=False, repr=False)
+  processed: dict = field(default_factory=dict, init=False, repr=False)
   _verbose: bool = field(default=False, init=False, repr=False)
   _zr: AsyncZR_obj | None = field(default=None, init=False, repr=False)
   _zr_sync: ZR_obj | None = field(default=None, init=False, repr=False)
   _sync_mode: bool = field(default=False, init=False, repr=False)
-
 
   # -----------------------------------------------------------------------
   def set_session(self, zr: AsyncZR_obj) -> None:
@@ -348,14 +348,15 @@ class ZRRider(ZR_obj):
     """Parse raw JSON string from _raw into structured rider data.
 
     Converts the raw JSON string stored in self._raw into a Python dict
-    (self._rider), then extracts individual fields into typed attributes.
+    (self._fetched), then extracts individual fields into typed attributes.
     Handles malformed JSON and missing fields gracefully with sensible defaults.
 
     The parsing is separated from fetching to ensure _raw always contains
     the unprocessed response for debugging/logging purposes.
 
     Side effects:
-      - Sets self._rider to parsed dict
+      - Sets self._fetched to parsed dict
+      - Sets self.processed to empty dict (reserved for future use)
       - Populates all public attributes (name, gender, current_rating, etc.)
     """
     if not self._raw:
@@ -368,28 +369,29 @@ class ZRRider(ZR_obj):
       logger.error(f'Expected dict for rider data, got {type(parsed).__name__}')
       return
 
-    self._rider = parsed
+    self._fetched = parsed
+    self.processed = {}  # Reserved for future use
 
     # Check for error in response
-    if 'message' in self._rider:
-      logger.error(f"API error: {self._rider['message']}")
+    if 'message' in self._fetched:
+      logger.error(f'API error: {self._fetched["message"]}')
       return
 
     # Check for required fields
-    if 'name' not in self._rider or 'race' not in self._rider:
+    if 'name' not in self._fetched or 'race' not in self._fetched:
       logger.warning('Missing required fields (name or race) in response')
       return
 
     try:
-      self.name = self._rider.get('name', 'Nobody')
-      self.gender = self._rider.get('gender', 'M')
+      self.name = self._fetched.get('name', 'Nobody')
+      self.gender = self._fetched.get('gender', 'M')
 
       # ZRCS (compound score)
-      power = self._rider.get('power', {})
+      power = self._fetched.get('power', {})
       self.zrcs = power.get('compoundScore', 0.0)
 
       # Current rating
-      race = self._rider.get('race', {})
+      race = self._fetched.get('race', {})
       current = race.get('current', {})
       self.current_rating = current.get('rating', 0.0)
       current_mixed = current.get('mixed', {})
@@ -657,6 +659,24 @@ class ZRRider(ZR_obj):
       # Clean up temporary session if we created one
       if owns_session and zr:
         await zr.close()
+
+  # -----------------------------------------------------------------------
+  def raw(self) -> str:
+    """Return the true raw response string.
+
+    Returns:
+      Raw JSON string from response.text
+    """
+    return self._raw
+
+  # -----------------------------------------------------------------------
+  def fetched(self) -> dict:
+    """Return the parsed/fetched data.
+
+    Returns:
+      Parsed dictionary from the raw JSON response
+    """
+    return self._fetched
 
   # -----------------------------------------------------------------------
   def to_dict(self) -> dict[str, Any]:

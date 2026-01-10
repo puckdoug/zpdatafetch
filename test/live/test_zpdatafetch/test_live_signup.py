@@ -23,15 +23,15 @@ def test_live_signup_fetch_single_id(valid_event_id):
   # Validate raw attribute contains string data
   assert isinstance(signup.raw, dict)
   assert valid_event_id in signup.raw
-  assert isinstance(signup.raw[valid_event_id], str)
+  assert isinstance(signup_raw[valid_event_id], str)
 
   # Validate processed attribute
   assert isinstance(signup.processed, dict)
   assert valid_event_id in signup.processed
-  assert isinstance(signup.processed[valid_event_id], dict)
+  assert isinstance(signup_fetched[valid_event_id], dict)
 
   # Validate data is non-empty
-  assert len(signup.raw[valid_event_id]) > 0
+  assert len(signup_raw[valid_event_id]) > 0
 
 
 @pytest.mark.live
@@ -51,12 +51,12 @@ def test_live_signup_fetch_multiple_ids(valid_event_ids):
 
     # Validate raw data
     assert event_id in signup.raw
-    assert isinstance(signup.raw[event_id], str)
-    assert len(signup.raw[event_id]) > 0
+    assert isinstance(signup_raw[event_id], str)
+    assert len(signup_raw[event_id]) > 0
 
     # Validate processed data
     assert event_id in signup.processed
-    assert isinstance(signup.processed[event_id], dict)
+    assert isinstance(signup_fetched[event_id], dict)
 
 
 @pytest.mark.live
@@ -74,15 +74,15 @@ async def test_live_signup_afetch_single_id(valid_event_id):
   # Validate raw attribute contains string data
   assert isinstance(signup.raw, dict)
   assert valid_event_id in signup.raw
-  assert isinstance(signup.raw[valid_event_id], str)
+  assert isinstance(signup_raw[valid_event_id], str)
 
   # Validate processed attribute
   assert isinstance(signup.processed, dict)
   assert valid_event_id in signup.processed
-  assert isinstance(signup.processed[valid_event_id], dict)
+  assert isinstance(signup_fetched[valid_event_id], dict)
 
   # Validate data is non-empty
-  assert len(signup.raw[valid_event_id]) > 0
+  assert len(signup_raw[valid_event_id]) > 0
 
 
 @pytest.mark.live
@@ -103,9 +103,9 @@ async def test_live_signup_afetch_multiple_ids(valid_event_ids):
 
     # Validate raw data
     assert event_id in signup.raw
-    assert isinstance(signup.raw[event_id], str)
-    assert len(signup.raw[event_id]) > 0
+    assert isinstance(signup_raw[event_id], str)
+    assert len(signup_raw[event_id]) > 0
 
     # Validate processed data
     assert event_id in signup.processed
-    assert isinstance(signup.processed[event_id], dict)
+    assert isinstance(signup_fetched[event_id], dict)
