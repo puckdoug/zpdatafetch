@@ -5,6 +5,8 @@ from zpdatafetch.cyclist import Cyclist
 from zpdatafetch.league import League
 from zpdatafetch.logging_config import setup_logging
 from zpdatafetch.primes import Primes
+from zpdatafetch.race_finish import RaceFinish
+from zpdatafetch.racelog import Racelog
 from zpdatafetch.result import Result
 from zpdatafetch.signup import Signup
 from zpdatafetch.sprints import Sprints
@@ -32,6 +34,9 @@ __all__ = [
   'Team',
   'League',
   'setup_logging',
+  # Race data classes
+  'RaceFinish',
+  'Racelog',
   # Asynchronous API
   'AsyncZP',
   'AsyncCyclist',  # Alias for Cyclist (supports both sync and async)

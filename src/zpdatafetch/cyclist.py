@@ -11,6 +11,7 @@ from shared.json_helpers import parse_json_safe
 from shared.validation import ValidationError, validate_id_list
 from zpdatafetch.async_zp import AsyncZP
 from zpdatafetch.logging_config import get_logger, setup_logging
+from zpdatafetch.racelog import Racelog
 from zpdatafetch.zp import ZP
 from zpdatafetch.zp_obj import ZP_obj
 
@@ -292,6 +293,45 @@ class Cyclist(ZP_obj):
       AuthenticationError: If authentication fails
     """
     return await self._fetch_parallel(*zwift_id)
+
+  # -------------------------------------------------------------------------------
+  def racelog(self, zwift_id: int) -> Racelog:
+    """Extract race log from fetched cyclist data as a Racelog object.
+
+    Returns the complete race history for a cyclist wrapped in a Racelog
+    object that supports array-like operations. Must call fetch() or
+    afetch() before calling this method.
+
+    Args:
+      zwift_id: The Zwift ID to get racelog for
+
+    Returns:
+      Racelog object containing RaceFinish objects for each race
+
+    Raises:
+      ValueError: If no data exists for the given Zwift ID
+      KeyError: If the data structure doesn't contain 'data' key
+
+    Example:
+      cyclist = Cyclist()
+      cyclist.fetch(7574336)
+      racelog = cyclist.racelog(7574336)
+      print(f"Total races: {len(racelog)}")
+      for race in racelog:
+        print(f"{race.event_title}: Position {race.pos}")
+    """
+    if zwift_id not in self._fetched:
+      raise ValueError(
+        f'No data fetched for Zwift ID {zwift_id}. Call fetch() or afetch() first.',
+      )
+
+    data = self._fetched[zwift_id]
+    if 'data' not in data:
+      raise KeyError(
+        f"Invalid data structure for Zwift ID {zwift_id}: missing 'data' key",
+      )
+
+    return Racelog(data['data'])
 
 
 # ===============================================================================

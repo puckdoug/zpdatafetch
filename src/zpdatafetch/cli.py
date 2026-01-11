@@ -54,7 +54,7 @@ Module for fetching zwiftpower data using the Zwifpower API
   # Create parser with common arguments
   p = create_base_parser(
     description=desc,
-    command_metavar='{config,cyclist,league,primes,result,signup,sprints,team}',
+    command_metavar='{config,cyclist,league,primes,racelog,result,signup,sprints,team}',
   )
 
   # Use parse_intermixed_args to handle flags after positional arguments
@@ -78,6 +78,7 @@ Module for fetching zwiftpower data using the Zwifpower API
     'cyclist',
     'league',
     'primes',
+    'racelog',
     'result',
     'signup',
     'sprints',
@@ -115,6 +116,30 @@ Module for fetching zwiftpower data using the Zwifpower API
       x = League()
     case 'primes':
       x = Primes()
+    case 'racelog':
+      x = Cyclist()
+      x.fetch(*args.id)
+      # Extract racelog data and convert to serializable format
+      racelog_data = {}
+      for zwid_str in args.id:
+        zwid = int(zwid_str)  # Convert string to int for racelog() call
+        try:
+          racelog = x.racelog(zwid)
+          racelog_data[zwid] = racelog.aslist()
+        except (ValueError, KeyError) as e:
+          print(f'Error getting racelog for {zwid}: {e}', file=sys.stderr)
+          return 1
+
+      # Output racelog data
+      if args.raw:
+        if len(racelog_data) == 1:
+          print(json.dumps(list(racelog_data.values())[0], indent=2))
+        else:
+          for key, value in racelog_data.items():
+            print(f'{key}: {json.dumps(value, indent=2)}')
+      else:
+        print(json.dumps(racelog_data, indent=2))
+      return None
     case 'result':
       x = Result()
     case 'signup':
