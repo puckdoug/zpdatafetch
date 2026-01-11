@@ -1,6 +1,7 @@
 """Tests for Racelog class."""
 
 import json
+import time
 from pathlib import Path
 
 import pytest
@@ -64,7 +65,7 @@ class TestRacelogInitialization:
     """Test that race data is preserved correctly."""
     racelog = Racelog(sample_race_list)
     assert (
-      racelog._races[0].event_title == 'Stage 1: Fresh Outta 25: Prospect Park Loop'
+      racelog._races[0].event_title == "Stage 1: Fresh Outta 25: Prospect Park Loop"
     )
     assert racelog._races[1].pos == 29
 
@@ -252,6 +253,200 @@ class TestRacelogAslist:
     assert len(parsed) == 3
 
 
+class TestRacelogDaysLast:
+  """Test Racelog.days_last() filtering method."""
+
+  def test_days_last_returns_racelog(self):
+    """Test that days_last() returns a Racelog object."""
+    racelog = Racelog(
+      [
+        {"zid": "1", "event_date": int(time.time())},
+      ],
+    )
+    recent = racelog.days_last(30)
+    assert isinstance(recent, Racelog)
+
+  def test_days_last_includes_recent_races(self):
+    """Test that days_last(30) includes races from last 30 days."""
+    now = time.time()
+    ten_days_ago = now - (10 * 24 * 60 * 60)
+
+    racelog = Racelog(
+      [
+        {"zid": "1", "event_date": int(ten_days_ago), "pos": 1},
+        {"zid": "2", "event_date": int(now), "pos": 2},
+      ],
+    )
+
+    recent = racelog.days_last(30)
+    assert len(recent) == 2
+
+  def test_days_last_excludes_old_races(self):
+    """Test that days_last(30) excludes races older than 30 days."""
+    now = time.time()
+    forty_days_ago = now - (40 * 24 * 60 * 60)
+
+    racelog = Racelog(
+      [
+        {"zid": "1", "event_date": int(forty_days_ago), "pos": 1},
+      ],
+    )
+
+    recent = racelog.days_last(30)
+    assert len(recent) == 0
+
+  def test_days_last_mixed_old_and_recent(self):
+    """Test filtering with mix of old and recent races."""
+    now = time.time()
+    five_days_ago = now - (5 * 24 * 60 * 60)
+    twenty_days_ago = now - (20 * 24 * 60 * 60)
+    forty_days_ago = now - (40 * 24 * 60 * 60)
+    sixty_days_ago = now - (60 * 24 * 60 * 60)
+
+    racelog = Racelog(
+      [
+        {"zid": "1", "event_date": int(sixty_days_ago), "event_title": "Old 1"},
+        {"zid": "2", "event_date": int(twenty_days_ago), "event_title": "Recent 1"},
+        {"zid": "3", "event_date": int(forty_days_ago), "event_title": "Old 2"},
+        {"zid": "4", "event_date": int(five_days_ago), "event_title": "Recent 2"},
+        {"zid": "5", "event_date": int(now), "event_title": "Recent 3"},
+      ],
+    )
+
+    recent = racelog.days_last(30)
+    assert len(recent) == 3
+
+    # Verify correct races included
+    titles = [race.event_title for race in recent]
+    assert "Recent 1" in titles
+    assert "Recent 2" in titles
+    assert "Recent 3" in titles
+    assert "Old 1" not in titles
+    assert "Old 2" not in titles
+
+  def test_days_last_handles_missing_event_date(self):
+    """Test that races without event_date are excluded."""
+    now = time.time()
+
+    racelog = Racelog(
+      [
+        {"zid": "1", "event_date": int(now), "pos": 1},
+        {"zid": "2", "pos": 2},  # Missing event_date
+      ],
+    )
+
+    recent = racelog.days_last(30)
+    assert len(recent) == 1
+
+  def test_days_last_empty_racelog(self):
+    """Test days_last() with empty racelog."""
+    racelog = Racelog([])
+    recent = racelog.days_last(30)
+    assert len(recent) == 0
+    assert isinstance(recent, Racelog)
+
+  def test_days_last_preserves_race_data(self):
+    """Test that days_last() preserves all race data fields."""
+    now = time.time()
+
+    racelog = Racelog(
+      [
+        {
+          "zid": "123",
+          "event_date": int(now),
+          "event_title": "Test Race",
+          "pos": 42,
+          "avg_power": [200, 0],
+        },
+      ],
+    )
+
+    recent = racelog.days_last(30)
+    assert len(recent) == 1
+    race = recent[0]
+    assert race.zid == "123"
+    assert race.event_title == "Test Race"
+    assert race.pos == 42
+    assert race.avg_power == [200, 0]
+
+  def test_days_last_returns_new_racelog(self):
+    """Test that days_last() returns a new Racelog, not modifying original."""
+    now = time.time()
+
+    racelog = Racelog(
+      [
+        {"zid": "1", "event_date": int(now)},
+      ],
+    )
+
+    original_len = len(racelog)
+    recent = racelog.days_last(30)
+
+    # Original should be unchanged
+    assert len(racelog) == original_len
+    # New racelog should be separate object
+    assert recent is not racelog
+
+  def test_days_last_boundary_case(self):
+    """Test races near 30 day boundary."""
+    now = time.time()
+    # Use integer arithmetic to avoid precision issues
+    thirty_days_seconds = 30 * 24 * 60 * 60
+    cutoff = int(now - thirty_days_seconds)
+
+    # Just under 30 days (should be included)
+    just_recent = cutoff + 1
+    # Just over 30 days (should be excluded)
+    just_old = cutoff - 1
+
+    racelog = Racelog(
+      [
+        {"zid": "1", "event_date": just_recent, "event_title": "Recent"},
+        {"zid": "2", "event_date": just_old, "event_title": "Old"},
+      ],
+    )
+
+    recent = racelog.days_last(30)
+    # Should only include the recent race
+    assert len(recent) == 1
+    assert recent[0].event_title == "Recent"
+
+  def test_days_last_different_periods(self):
+    """Test days_last() with different time periods."""
+    now = time.time()
+    # Use values safely within boundaries (not at exact edges)
+    five_days_ago = now - (5 * 24 * 60 * 60)
+    forty_days_ago = now - (40 * 24 * 60 * 60)
+    eighty_days_ago = now - (80 * 24 * 60 * 60)
+
+    racelog = Racelog(
+      [
+        {'zid': '1', 'event_date': int(five_days_ago), 'event_title': 'Week'},
+        {'zid': '2', 'event_date': int(forty_days_ago), 'event_title': '45d'},
+        {'zid': '3', 'event_date': int(eighty_days_ago), 'event_title': '90d'},
+      ]
+    )
+
+    # Test 7 days - should get race from 5 days ago
+    last_7 = racelog.days_last(7)
+    assert len(last_7) == 1
+    assert last_7[0].event_title == 'Week'
+
+    # Test 30 days - should still get only the 5 day old race
+    last_30 = racelog.days_last(30)
+    assert len(last_30) == 1
+    assert last_30[0].event_title == 'Week'
+
+    # Test 60 days - should get both 5 and 40 day old races
+    last_60 = racelog.days_last(60)
+    assert len(last_60) == 2
+    titles = [race.event_title for race in last_60]
+    assert 'Week' in titles
+    assert '45d' in titles
+
+    # Test 100 days - should get all races
+    last_100 = racelog.days_last(100)
+    assert len(last_100) == 3
 class TestRacelogWithRealData:
   """Test Racelog with real fixture data."""
 

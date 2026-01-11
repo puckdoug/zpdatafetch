@@ -2,7 +2,6 @@
 
 import json
 from pathlib import Path
-from unittest.mock import Mock
 
 import httpx
 import pytest
@@ -37,7 +36,7 @@ def mock_cyclist_data():
 def mock_transport(mock_cyclist_data):
   """Create a mock transport for httpx."""
 
-  def handler(request):
+  def handler(request) -> httpx.Response:
     return httpx.Response(
       200,
       json=mock_cyclist_data,

@@ -1,5 +1,6 @@
 """Collection of race finishes for a cyclist."""
 
+import time
 from collections.abc import Iterator
 from typing import Any
 
@@ -66,3 +67,35 @@ class Racelog:
       List of dictionaries containing race data
     """
     return [race.asdict() for race in self._races]
+
+  def days_last(self, days: int) -> 'Racelog':
+    """Return a new Racelog containing only races from the last N days.
+
+    Filters races based on event_date field (Unix epoch timestamp).
+    Only includes races within the specified number of days from the current time.
+
+    Args:
+      days: Number of days to look back from current time
+
+    Returns:
+      New Racelog object containing only races from last N days
+
+    Example:
+      racelog = cyclist.racelog(7574336)
+      last_30 = racelog.days_last(30)
+      last_90 = racelog.days_last(90)
+      print(f"Races in last 30 days: {len(last_30)}")
+    """
+    # Calculate cutoff timestamp (N days ago)
+    days_in_seconds = days * 24 * 60 * 60
+    cutoff_timestamp = time.time() - days_in_seconds
+
+    # Filter races with event_date >= cutoff
+    recent_race_data = []
+    for race in self._races:
+      event_date = race._data.get('event_date', 0)
+      if event_date >= cutoff_timestamp:
+        recent_race_data.append(race._data)
+
+    # Return new Racelog with filtered data
+    return Racelog(recent_race_data)
