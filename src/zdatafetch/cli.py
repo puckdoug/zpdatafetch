@@ -4,7 +4,6 @@ This module provides a unified CLI for accessing Zwift's unofficial API
 functionality including rider profiles, followers, and RideOns.
 """
 
-import json
 import sys
 from argparse import ArgumentParser
 
@@ -16,7 +15,7 @@ from shared.cli import (
   validate_command_provided,
   validate_ids_provided,
 )
-from shared.exceptions import AuthenticationError, ConfigError, NetworkError
+from shared.exceptions import NetworkError
 from zdatafetch import Config, ZwiftAuth, ZwiftProfile
 from zdatafetch.followers import ZwiftFollowers
 from zdatafetch.logging_config import get_logger, setup_logging
@@ -136,61 +135,67 @@ Commands:
     format_noaction_output(args.cmd, args.id, args.raw)
     return None
 
-  # Load credentials
-  try:
-    config = Config()
-    config.load()
-    username = config.username
-    password = config.password
-
-    if not username or not password:
-      print(
-        'Error: Zwift credentials not found. Run "zdata config" to set up credentials.',
-        file=sys.stderr,
-      )
-      return 1
-
-  except ConfigError as e:
-    print(f"Error: {e}", file=sys.stderr)
-    return 1
-
-  # Authenticate
-  try:
-    logger.debug("Authenticating with Zwift API")
-    auth = ZwiftAuth(username, password)
-    auth.login()
-
-  except AuthenticationError as e:
-    print(f"Authentication error: {e}", file=sys.stderr)
-    return 1
-  except NetworkError as e:
-    print(f"Network error during authentication: {e}", file=sys.stderr)
-    return 1
-
   # Execute command
   try:
     match args.cmd:
       case "profile":
-        fetcher = ZwiftProfile(auth)
-        fetcher.fetch(*[int(id_str) for id_str in args.id])
+        # Convert IDs to integers
+        rider_ids = [int(id_str) for id_str in args.id]
 
-        # Output results
-        if args.raw:
-          raw_data = fetcher.raw()
-          if len(raw_data) == 1:
-            # Single ID - output just the JSON
-            print(list(raw_data.values())[0])
+        if len(rider_ids) == 1:
+          # Single profile
+          profile = ZwiftProfile()
+          profile.fetch(rider_ids[0])
+
+          if args.raw:
+            print(profile.raw())
           else:
-            # Multiple IDs - output as dict
-            print(json.dumps(raw_data, indent=2))
+            print(profile)
         else:
-          print(fetcher.json())
+          # Multiple profiles - return as dictionary
+          profiles = ZwiftProfile.fetch_multiple(*rider_ids)
+
+          if args.raw:
+            # Raw: print each ID and raw data
+            for rider_id, profile in profiles.items():
+              print(f"{rider_id}: {profile.raw()}")
+          else:
+            # Normal: print dictionary format
+            print("{")
+            for rider_id, profile in profiles.items():
+              # Indent the profile output
+              profile_str = str(profile)
+              indented = "\n".join(f"  {line}" for line in profile_str.split("\n"))
+              print(f"  {rider_id}: {indented.lstrip()},")
+            print("}")
 
       case "followers":
+        # Load credentials for followers (still uses old pattern)
+        config = Config()
+        config.load()
+        if not config.username or not config.password:
+          print(
+            'Error: Zwift credentials not found. Run "zdata config" to set up credentials.',
+            file=sys.stderr,
+          )
+          return 1
+        auth = ZwiftAuth(config.username, config.password)
+        auth.login()
         fetcher = ZwiftFollowers(auth)
         fetcher.fetch(*[int(id_str) for id_str in args.id])
 
       case "rideons":
+        # Load credentials for rideons (still uses old pattern)
+        config = Config()
+        config.load()
+        if not config.username or not config.password:
+          print(
+            'Error: Zwift credentials not found. Run "zdata config" to set up credentials.',
+            file=sys.stderr,
+          )
+          return 1
+        auth = ZwiftAuth(config.username, config.password)
+        auth.login()
         fetcher = ZwiftRideOns(auth)
         fetcher.fetch(*[int(id_str) for id_str in args.id])
 

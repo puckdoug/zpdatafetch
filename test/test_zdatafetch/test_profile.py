@@ -5,27 +5,25 @@ import json
 import httpx
 import pytest
 
-from shared.exceptions import NetworkError
+from shared.exceptions import ConfigError, NetworkError
 from zdatafetch.profile import ZwiftProfile
 
 
-def test_profile_initialization(mock_auth):
+def test_profile_initialization():
   """Test ZwiftProfile initialization."""
-  profile = ZwiftProfile(mock_auth)
+  profile = ZwiftProfile()
 
-  assert profile.auth == mock_auth
-  assert profile._raw == {}
+  assert profile._raw == ""
   assert profile._fetched == {}
+  assert profile.id == 0
+  assert profile.firstName == ""
+  assert profile.lastName == ""
 
 
-def test_fetch_single_profile(
-  mock_auth,
-  combined_handler,
-  mock_profile_data,
-  mock_token_response,
-):
+def test_fetch_single_profile(combined_handler, mock_profile_data, monkeypatch):
   """Test fetching a single rider profile."""
   import zdatafetch.auth
+  import zdatafetch.config
   import zdatafetch.profile
 
   original_client = httpx.Client
@@ -33,35 +31,43 @@ def test_fetch_single_profile(
   def mock_client(*args, **kwargs):
     return original_client(transport=httpx.MockTransport(combined_handler))
 
+  # Mock the config to return credentials
+  class MockConfig:
+    username = "test@example.com"
+    password = "testpassword"
+
+    def load(self):
+      pass
+
   zdatafetch.auth.httpx.Client = mock_client
   zdatafetch.profile.httpx.Client = mock_client
+  monkeypatch.setattr(zdatafetch.profile, "Config", MockConfig)
+
 
   try:
-    # Login first
-    mock_auth.login()
-
     # Fetch profile
-    profile = ZwiftProfile(mock_auth)
+    profile = ZwiftProfile()
     profile.fetch(550564)
 
-    # Verify data was fetched
-    assert 550564 in profile._fetched
-    assert profile._fetched[550564]['id'] == 550564
-    assert profile._fetched[550564]['firstName'] == 'Test'
-    assert profile._fetched[550564]['lastName'] == 'Rider'
+    # Verify data was fetched and parsed
+    assert profile.id == 550564
+    assert profile.firstName == "Test"
+    assert profile.lastName == "Rider"
+    assert profile.ftp == 278
 
-    # Verify raw data was stored
-    assert 550564 in profile._raw
-    assert isinstance(profile._raw[550564], str)
+    # Verify internal data structures
+    assert profile._fetched["id"] == 550564
+    assert isinstance(profile._raw, str)
 
   finally:
     zdatafetch.auth.httpx.Client = original_client
     zdatafetch.profile.httpx.Client = original_client
 
 
-def test_fetch_multiple_profiles(mock_auth, combined_handler):
+def test_fetch_multiple_profiles(combined_handler, monkeypatch):
   """Test fetching multiple rider profiles."""
   import zdatafetch.auth
+  import zdatafetch.config
   import zdatafetch.profile
 
   original_client = httpx.Client
@@ -69,29 +75,42 @@ def test_fetch_multiple_profiles(mock_auth, combined_handler):
   def mock_client(*args, **kwargs):
     return original_client(transport=httpx.MockTransport(combined_handler))
 
+  # Mock the config to return credentials
+  class MockConfig:
+    username = "test@example.com"
+    password = "testpassword"
+
+    def load(self):
+      pass
+
   zdatafetch.auth.httpx.Client = mock_client
   zdatafetch.profile.httpx.Client = mock_client
+  monkeypatch.setattr(zdatafetch.profile, "Config", MockConfig)
+
 
   try:
-    mock_auth.login()
-
-    profile = ZwiftProfile(mock_auth)
-    profile.fetch(550564, 123456, 789012)
+    # Fetch multiple profiles
+    profiles = ZwiftProfile.fetch_multiple(550564, 123456, 789012)
 
     # Verify all profiles were fetched
-    assert len(profile._fetched) == 3
-    assert 550564 in profile._fetched
-    assert 123456 in profile._fetched
-    assert 789012 in profile._fetched
+    assert len(profiles) == 3
+    assert 550564 in profiles
+    assert 123456 in profiles
+    assert 789012 in profiles
+
+    # Verify each profile is a ZwiftProfile instance
+    assert isinstance(profiles[550564], ZwiftProfile)
+    assert profiles[550564].id == 550564
 
   finally:
     zdatafetch.auth.httpx.Client = original_client
     zdatafetch.profile.httpx.Client = original_client
 
 
-def test_fetch_profile_not_found(mock_auth, combined_handler):
+def test_fetch_profile_not_found(combined_handler, monkeypatch):
   """Test fetching a non-existent profile."""
   import zdatafetch.auth
+  import zdatafetch.config
   import zdatafetch.profile
 
   original_client = httpx.Client
@@ -99,15 +118,23 @@ def test_fetch_profile_not_found(mock_auth, combined_handler):
   def mock_client(*args, **kwargs):
     return original_client(transport=httpx.MockTransport(combined_handler))
 
+  # Mock the config to return credentials
+  class MockConfig:
+    username = "test@example.com"
+    password = "testpassword"
+
+    def load(self):
+      pass
+
   zdatafetch.auth.httpx.Client = mock_client
   zdatafetch.profile.httpx.Client = mock_client
+  monkeypatch.setattr(zdatafetch.profile, "Config", MockConfig)
+
 
   try:
-    mock_auth.login()
+    profile = ZwiftProfile()
 
-    profile = ZwiftProfile(mock_auth)
-
-    with pytest.raises(NetworkError, match='Rider 999999 not found'):
+    with pytest.raises(NetworkError, match="Rider 999999 not found"):
       profile.fetch(999999)
 
   finally:
@@ -115,63 +142,61 @@ def test_fetch_profile_not_found(mock_auth, combined_handler):
     zdatafetch.profile.httpx.Client = original_client
 
 
-def test_fetch_without_authentication(mock_auth):
-  """Test fetching profile without authentication."""
-
-  def handler(request):
-    if '/api/profiles/' in str(request.url):
-      return httpx.Response(401, text='Unauthorized')
-    return httpx.Response(404)
-
+def test_fetch_without_credentials(monkeypatch):
+  """Test fetching profile without credentials configured."""
   import zdatafetch.profile
 
-  original_client = httpx.Client
+  # Mock the config to return empty credentials
+  class MockConfig:
+    username = ""
+    password = ""
 
-  def mock_client(*args, **kwargs):
-    return original_client(transport=httpx.MockTransport(handler))
+    def load(self):
+      pass
 
-  zdatafetch.profile.httpx.Client = mock_client
+  monkeypatch.setattr(zdatafetch.profile, "Config", MockConfig)
 
-  try:
-    # Don't login - should fail
-    mock_auth.access_token = None
+  profile = ZwiftProfile()
 
-    profile = ZwiftProfile(mock_auth)
-
-    with pytest.raises(RuntimeError, match='No valid token available'):
-      profile.fetch(550564)
-
-  finally:
-    zdatafetch.profile.httpx.Client = original_client
+  with pytest.raises(ConfigError, match="Zwift credentials not found"):
+    profile.fetch(550564)
 
 
-def test_fetch_network_error(mock_auth, auth_handler):
+def test_fetch_network_error(auth_handler, monkeypatch):
   """Test network error during profile fetch."""
+  import zdatafetch.auth
+  import zdatafetch.config
+  import zdatafetch.profile
 
   def handler(request):
-    if 'auth/realms/zwift' in str(request.url):
+    if "auth/realms/zwift" in str(request.url):
       return auth_handler(request)
-    if '/api/profiles/' in str(request.url):
-      raise httpx.ConnectError('Connection failed')
+    if "/api/profiles/" in str(request.url):
+      raise httpx.ConnectError("Connection failed")
     return httpx.Response(404)
-
-  import zdatafetch.auth
-  import zdatafetch.profile
 
   original_client = httpx.Client
 
   def mock_client(*args, **kwargs):
     return original_client(transport=httpx.MockTransport(handler))
 
+  # Mock the config to return credentials
+  class MockConfig:
+    username = "test@example.com"
+    password = "testpassword"
+
+    def load(self):
+      pass
+
   zdatafetch.auth.httpx.Client = mock_client
   zdatafetch.profile.httpx.Client = mock_client
+  monkeypatch.setattr(zdatafetch.profile, "Config", MockConfig)
+
 
   try:
-    mock_auth.login()
+    profile = ZwiftProfile()
 
-    profile = ZwiftProfile(mock_auth)
-
-    with pytest.raises(NetworkError, match='Network error fetching profile'):
+    with pytest.raises(NetworkError, match="Network error fetching profile"):
       profile.fetch(550564)
 
   finally:
@@ -179,33 +204,41 @@ def test_fetch_network_error(mock_auth, auth_handler):
     zdatafetch.profile.httpx.Client = original_client
 
 
-def test_fetch_timeout(mock_auth, auth_handler):
+def test_fetch_timeout(auth_handler, monkeypatch):
   """Test timeout during profile fetch."""
+  import zdatafetch.auth
+  import zdatafetch.config
+  import zdatafetch.profile
 
   def handler(request):
-    if 'auth/realms/zwift' in str(request.url):
+    if "auth/realms/zwift" in str(request.url):
       return auth_handler(request)
-    if '/api/profiles/' in str(request.url):
-      raise httpx.TimeoutException('Request timed out')
+    if "/api/profiles/" in str(request.url):
+      raise httpx.TimeoutException("Request timed out")
     return httpx.Response(404)
-
-  import zdatafetch.auth
-  import zdatafetch.profile
 
   original_client = httpx.Client
 
   def mock_client(*args, **kwargs):
     return original_client(transport=httpx.MockTransport(handler))
 
+  # Mock the config to return credentials
+  class MockConfig:
+    username = "test@example.com"
+    password = "testpassword"
+
+    def load(self):
+      pass
+
   zdatafetch.auth.httpx.Client = mock_client
   zdatafetch.profile.httpx.Client = mock_client
+  monkeypatch.setattr(zdatafetch.profile, "Config", MockConfig)
+
 
   try:
-    mock_auth.login()
+    profile = ZwiftProfile()
 
-    profile = ZwiftProfile(mock_auth)
-
-    with pytest.raises(NetworkError, match='Request timed out'):
+    with pytest.raises(NetworkError, match="Request timed out"):
       profile.fetch(550564)
 
   finally:
@@ -213,9 +246,10 @@ def test_fetch_timeout(mock_auth, auth_handler):
     zdatafetch.profile.httpx.Client = original_client
 
 
-def test_json_output(mock_auth, combined_handler):
-  """Test JSON serialization of profile data."""
+def test_attribute_access(combined_handler, monkeypatch):
+  """Test attribute access to profile data."""
   import zdatafetch.auth
+  import zdatafetch.config
   import zdatafetch.profile
 
   original_client = httpx.Client
@@ -223,13 +257,101 @@ def test_json_output(mock_auth, combined_handler):
   def mock_client(*args, **kwargs):
     return original_client(transport=httpx.MockTransport(combined_handler))
 
+  # Mock the config to return credentials
+  class MockConfig:
+    username = "test@example.com"
+    password = "testpassword"
+
+    def load(self):
+      pass
+
   zdatafetch.auth.httpx.Client = mock_client
   zdatafetch.profile.httpx.Client = mock_client
+  monkeypatch.setattr(zdatafetch.profile, "Config", MockConfig)
+
 
   try:
-    mock_auth.login()
+    profile = ZwiftProfile()
+    profile.fetch(550564)
 
-    profile = ZwiftProfile(mock_auth)
+    # Test explicit attributes
+    assert profile.id == 550564
+    assert profile.firstName == "Test"
+    assert profile.lastName == "Rider"
+
+    # Test fallback to _fetched for other fields
+    assert profile.male is True
+    assert profile.countryAlpha3 == "USA"
+
+  finally:
+    zdatafetch.auth.httpx.Client = original_client
+    zdatafetch.profile.httpx.Client = original_client
+
+
+def test_dictionary_access(combined_handler, monkeypatch):
+  """Test dictionary-style access to profile data."""
+  import zdatafetch.auth
+  import zdatafetch.config
+  import zdatafetch.profile
+
+  original_client = httpx.Client
+
+  def mock_client(*args, **kwargs):
+    return original_client(transport=httpx.MockTransport(combined_handler))
+
+  # Mock the config to return credentials
+  class MockConfig:
+    username = "test@example.com"
+    password = "testpassword"
+
+    def load(self):
+      pass
+
+  zdatafetch.auth.httpx.Client = mock_client
+  zdatafetch.profile.httpx.Client = mock_client
+  monkeypatch.setattr(zdatafetch.profile, "Config", MockConfig)
+
+
+  try:
+    profile = ZwiftProfile()
+    profile.fetch(550564)
+
+    # Test dictionary access
+    assert profile["id"] == 550564
+    assert profile["firstName"] == "Test"
+    assert profile["ftp"] == 278
+
+  finally:
+    zdatafetch.auth.httpx.Client = original_client
+    zdatafetch.profile.httpx.Client = original_client
+
+
+def test_json_output(combined_handler, monkeypatch):
+  """Test JSON serialization of profile data."""
+  import zdatafetch.auth
+  import zdatafetch.config
+  import zdatafetch.profile
+
+  original_client = httpx.Client
+
+  def mock_client(*args, **kwargs):
+    return original_client(transport=httpx.MockTransport(combined_handler))
+
+  # Mock the config to return credentials
+  class MockConfig:
+    username = "test@example.com"
+    password = "testpassword"
+
+    def load(self):
+      pass
+
+  zdatafetch.auth.httpx.Client = mock_client
+  zdatafetch.profile.httpx.Client = mock_client
+  monkeypatch.setattr(zdatafetch.profile, "Config", MockConfig)
+
+
+  try:
+    profile = ZwiftProfile()
     profile.fetch(550564)
 
     json_output = profile.json()
@@ -237,19 +359,17 @@ def test_json_output(mock_auth, combined_handler):
 
     # Verify it's valid JSON
     parsed = json.loads(json_output)
-    # JSON stores integer keys as strings
-    assert '550564' in parsed or 550564 in parsed
-    rider_data = parsed.get('550564') or parsed.get(550564)
-    assert rider_data['id'] == 550564
+    assert parsed["id"] == 550564
 
   finally:
     zdatafetch.auth.httpx.Client = original_client
     zdatafetch.profile.httpx.Client = original_client
 
 
-def test_raw_output(mock_auth, combined_handler):
+def test_raw_output(combined_handler, monkeypatch):
   """Test raw output access."""
   import zdatafetch.auth
+  import zdatafetch.config
   import zdatafetch.profile
 
   original_client = httpx.Client
@@ -257,32 +377,39 @@ def test_raw_output(mock_auth, combined_handler):
   def mock_client(*args, **kwargs):
     return original_client(transport=httpx.MockTransport(combined_handler))
 
+  # Mock the config to return credentials
+  class MockConfig:
+    username = "test@example.com"
+    password = "testpassword"
+
+    def load(self):
+      pass
+
   zdatafetch.auth.httpx.Client = mock_client
   zdatafetch.profile.httpx.Client = mock_client
+  monkeypatch.setattr(zdatafetch.profile, "Config", MockConfig)
+
 
   try:
-    mock_auth.login()
-
-    profile = ZwiftProfile(mock_auth)
+    profile = ZwiftProfile()
     profile.fetch(550564)
 
     raw_data = profile.raw()
-    assert isinstance(raw_data, dict)
-    assert 550564 in raw_data
-    assert isinstance(raw_data[550564], str)
+    assert isinstance(raw_data, str)
 
     # Verify it's valid JSON string
-    parsed = json.loads(raw_data[550564])
-    assert parsed['id'] == 550564
+    parsed = json.loads(raw_data)
+    assert parsed["id"] == 550564
 
   finally:
     zdatafetch.auth.httpx.Client = original_client
     zdatafetch.profile.httpx.Client = original_client
 
 
-def test_asdict_output(mock_auth, combined_handler):
+def test_asdict_output(combined_handler, monkeypatch):
   """Test dictionary output access."""
   import zdatafetch.auth
+  import zdatafetch.config
   import zdatafetch.profile
 
   original_client = httpx.Client
@@ -290,61 +417,36 @@ def test_asdict_output(mock_auth, combined_handler):
   def mock_client(*args, **kwargs):
     return original_client(transport=httpx.MockTransport(combined_handler))
 
+  # Mock the config to return credentials
+  class MockConfig:
+    username = "test@example.com"
+    password = "testpassword"
+
+    def load(self):
+      pass
+
   zdatafetch.auth.httpx.Client = mock_client
   zdatafetch.profile.httpx.Client = mock_client
+  monkeypatch.setattr(zdatafetch.profile, "Config", MockConfig)
+
 
   try:
-    mock_auth.login()
-
-    profile = ZwiftProfile(mock_auth)
+    profile = ZwiftProfile()
     profile.fetch(550564)
 
     dict_data = profile.asdict()
     assert isinstance(dict_data, dict)
-    assert 550564 in dict_data
-    assert dict_data[550564]['id'] == 550564
+    assert dict_data["id"] == 550564
 
   finally:
     zdatafetch.auth.httpx.Client = original_client
     zdatafetch.profile.httpx.Client = original_client
 
 
-def test_get_specific_rider(mock_auth, combined_handler):
-  """Test getting data for a specific rider."""
-  import zdatafetch.auth
-  import zdatafetch.profile
-
-  original_client = httpx.Client
-
-  def mock_client(*args, **kwargs):
-    return original_client(transport=httpx.MockTransport(combined_handler))
-
-  zdatafetch.auth.httpx.Client = mock_client
-  zdatafetch.profile.httpx.Client = mock_client
-
-  try:
-    mock_auth.login()
-
-    profile = ZwiftProfile(mock_auth)
-    profile.fetch(550564, 123456)
-
-    # Get specific rider
-    rider_data = profile.get(550564)
-    assert rider_data is not None
-    assert rider_data['id'] == 550564
-
-    # Get non-existent rider
-    missing_data = profile.get(999999)
-    assert missing_data is None
-
-  finally:
-    zdatafetch.auth.httpx.Client = original_client
-    zdatafetch.profile.httpx.Client = original_client
-
-
-def test_str_representation(mock_auth, combined_handler):
+def test_str_representation(combined_handler, monkeypatch):
   """Test string representation of profile data."""
   import zdatafetch.auth
+  import zdatafetch.config
   import zdatafetch.profile
 
   original_client = httpx.Client
@@ -352,18 +454,28 @@ def test_str_representation(mock_auth, combined_handler):
   def mock_client(*args, **kwargs):
     return original_client(transport=httpx.MockTransport(combined_handler))
 
+  # Mock the config to return credentials
+  class MockConfig:
+    username = "test@example.com"
+    password = "testpassword"
+
+    def load(self):
+      pass
+
   zdatafetch.auth.httpx.Client = mock_client
   zdatafetch.profile.httpx.Client = mock_client
+  monkeypatch.setattr(zdatafetch.profile, "Config", MockConfig)
+
 
   try:
-    mock_auth.login()
-
-    profile = ZwiftProfile(mock_auth)
+    profile = ZwiftProfile()
     profile.fetch(550564)
 
     str_output = str(profile)
     assert isinstance(str_output, str)
-    assert '550564' in str_output
+    assert "550564" in str_output
+    assert "Test" in str_output
+    assert "Rider" in str_output
 
   finally:
     zdatafetch.auth.httpx.Client = original_client
