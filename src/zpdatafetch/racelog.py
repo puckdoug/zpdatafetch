@@ -57,8 +57,28 @@ class Racelog:
     return iter(self._races)
 
   def __repr__(self) -> str:
-    """Return string representation."""
-    return f'Racelog({len(self._races)} races)'
+    """Return representation showing all races.
+
+    Returns:
+      String in format: Racelog([ RaceFinish(...), RaceFinish(...) ])
+    """
+    if len(self._races) == 0:
+      return 'Racelog([])'
+
+    race_reprs = [repr(race) for race in self._races]
+    return 'Racelog([\n  ' + ',\n  '.join(race_reprs) + '\n])'
+
+  def __str__(self) -> str:
+    """Return human-readable string showing all races.
+
+    Returns:
+      String in format: Racelog[ RaceFinish(...), RaceFinish(...) ]
+    """
+    if len(self._races) == 0:
+      return 'Racelog[]'
+
+    race_reprs = [repr(race) for race in self._races]
+    return 'Racelog[\n  ' + ',\n  '.join(race_reprs) + '\n]'
 
   def aslist(self) -> list[dict[str, Any]]:
     """Return list of race data dictionaries for JSON serialization.

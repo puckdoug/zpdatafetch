@@ -45,12 +45,49 @@ class TestRaceFinishInitialization:
   def test_init_stores_data(self, sample_race_data):
     """Test that initialization stores the race data."""
     race = RaceFinish(sample_race_data)
-    assert race._data == sample_race_data
+    # Data should be cleaned, not identical to input
+    assert race._data is not sample_race_data
+    # But should have the same keys
+    assert set(race._data.keys()) == set(sample_race_data.keys())
 
   def test_init_with_empty_dict(self):
     """Test initialization with empty dictionary."""
     race = RaceFinish({})
     assert race._data == {}
+
+  def test_init_cleans_array_fields(self):
+    """Test that array fields are cleaned to scalar values."""
+    data = {
+      "zid": "123",
+      "avg_power": [150, 0],
+      "avg_wkg": ["3.0", 1],
+      "weight": ["50.0", 1],
+      "time": [3600.5, 0],
+      "np": [160, 0],
+    }
+    race = RaceFinish(data)
+    # Array fields should be cleaned to first element
+    assert race.avg_power == 150
+    assert race.avg_wkg == "3.0"
+    assert race.weight == "50.0"
+    assert race.time == 3600.5
+    assert race.np == 160
+    # Non-array field should remain unchanged
+    assert race.zid == "123"
+
+  def test_init_handles_non_array_values(self):
+    """Test that non-array values in array fields are preserved."""
+    data = {
+      "avg_power": 150,  # Not an array
+      "weight": None,  # None value
+      "time": [],  # Empty array
+    }
+    race = RaceFinish(data)
+    # Non-array values should be preserved as-is
+    assert race.avg_power == 150
+    assert race.weight is None
+    # Empty arrays should be preserved
+    assert race.time == []
 
 
 class TestRaceFinishAttributeAccess:
@@ -62,10 +99,11 @@ class TestRaceFinishAttributeAccess:
     assert race_finish.pos == 112
     assert race_finish.zwid == 7574336
 
-  def test_getattr_returns_complex_values(self, race_finish):
-    """Test accessing fields with complex values (lists, etc)."""
-    assert race_finish.avg_power == [123, 0]
-    assert race_finish.avg_wkg == ["2.5", 0]
+  def test_getattr_returns_cleaned_values(self, race_finish):
+    """Test that array fields are cleaned to scalar values."""
+    # avg_power and avg_wkg should be cleaned from [value, flag] to just value
+    assert race_finish.avg_power == 123
+    assert race_finish.avg_wkg == "2.5"
 
   def test_getattr_missing_field_raises_attribute_error(self, race_finish):
     """Test accessing non-existent field raises AttributeError."""
@@ -103,34 +141,70 @@ class TestRaceFinishDictAccess:
 class TestRaceFinishRepr:
   """Test string representation."""
 
-  def test_repr_contains_event_and_position(self, race_finish):
-    """Test repr shows event title and position."""
+  def test_repr_contains_all_fields(self, race_finish):
+    """Test repr shows all race data fields."""
     repr_str = repr(race_finish)
     assert "RaceFinish" in repr_str
+    # Check that all fields from sample data are present
+    assert "zid='5230175'" in repr_str
+    assert "pos=112" in repr_str
+    assert "event_title=" in repr_str
     assert "Prospect Park Loop" in repr_str
-    assert "112" in repr_str
+    assert "avg_power=123" in repr_str
+    assert "zwid=7574336" in repr_str
 
-  def test_repr_handles_missing_fields(self):
-    """Test repr handles missing event_title or pos."""
-    race = RaceFinish({"zid": "123"})
-    repr_str = repr(race)
-    assert "RaceFinish" in repr_str
-    assert "Unknown" in repr_str
+  def test_repr_is_single_line(self, race_finish):
+    """Test repr returns a single line."""
+    repr_str = repr(race_finish)
+    # Should be one line (no newlines except possibly at end)
+    assert repr_str.count("\n") == 0
 
   def test_repr_handles_empty_data(self):
     """Test repr with completely empty data."""
     race = RaceFinish({})
     repr_str = repr(race)
-    assert "RaceFinish" in repr_str
+    assert repr_str == "RaceFinish()"
+
+  def test_str_contains_all_fields(self, race_finish):
+    """Test str shows all race data fields in multi-line format."""
+    str_repr = str(race_finish)
+    assert "RaceFinish(" in str_repr
+    # Check for multiple lines
+    assert "\n" in str_repr
+    # Check that fields are present
+    assert "zid='5230175'" in str_repr
+    assert "pos=112" in str_repr
+    assert "event_title=" in str_repr
+    assert "avg_power=123" in str_repr
+
+  def test_str_is_multiline(self, race_finish):
+    """Test str returns multiple lines."""
+    str_repr = str(race_finish)
+    lines = str_repr.split("\n")
+    # Should have opening line, multiple data lines, and closing line
+    assert len(lines) > 3
+    assert lines[0] == "RaceFinish("
+    assert lines[-1] == ")"
+
+  def test_str_handles_empty_data(self):
+    """Test str with completely empty data."""
+    race = RaceFinish({})
+    str_repr = str(race)
+    assert str_repr == "RaceFinish(\n)"
 
 
 class TestRaceFinishAsdict:
   """Test serialization back to dictionary."""
 
-  def test_asdict_returns_original_data(self, race_finish, sample_race_data):
-    """Test asdict returns the original dictionary."""
+  def test_asdict_returns_cleaned_data(self, race_finish):
+    """Test asdict returns the cleaned dictionary."""
     result = race_finish.asdict()
-    assert result == sample_race_data
+    # Should return cleaned data (array fields converted to scalars)
+    assert result["avg_power"] == 123
+    assert result["avg_wkg"] == "2.5"
+    # Other fields should be unchanged
+    assert result["zid"] == "5230175"
+    assert result["pos"] == 112
 
   def test_asdict_returns_copy_reference(self, race_finish):
     """Test that asdict returns reference to internal data."""

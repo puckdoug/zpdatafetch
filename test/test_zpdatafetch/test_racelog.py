@@ -15,28 +15,28 @@ def sample_race_list():
   """Sample list of race data."""
   return [
     {
-      "zid": "5230175",
-      "pos": 112,
-      "event_title": "Stage 1: Fresh Outta 25: Prospect Park Loop",
-      "event_date": 1764799800,
-      "avg_power": [123, 0],
-      "zwid": 7574336,
+      'zid': '5230175',
+      'pos': 112,
+      'event_title': 'Stage 1: Fresh Outta 25: Prospect Park Loop',
+      'event_date': 1764799800,
+      'avg_power': [123, 0],
+      'zwid': 7574336,
     },
     {
-      "zid": "5236642",
-      "pos": 29,
-      "event_title": "Zwift Epic Race - Snowman",
-      "event_date": 1765065600,
-      "avg_power": [107, 0],
-      "zwid": 7574336,
+      'zid': '5236642',
+      'pos': 29,
+      'event_title': 'Zwift Epic Race - Snowman',
+      'event_date': 1765065600,
+      'avg_power': [107, 0],
+      'zwid': 7574336,
     },
     {
-      "zid": "5254836",
-      "pos": 200,
-      "event_title": "Zwift Racing League: City Showdown",
-      "event_date": 1765306980,
-      "avg_power": [137, 1],
-      "zwid": 7574336,
+      'zid': '5254836',
+      'pos': 200,
+      'event_title': 'Zwift Racing League: City Showdown',
+      'event_date': 1765306980,
+      'avg_power': [137, 1],
+      'zwid': 7574336,
     },
   ]
 
@@ -65,7 +65,7 @@ class TestRacelogInitialization:
     """Test that race data is preserved correctly."""
     racelog = Racelog(sample_race_list)
     assert (
-      racelog._races[0].event_title == "Stage 1: Fresh Outta 25: Prospect Park Loop"
+      racelog._races[0].event_title == 'Stage 1: Fresh Outta 25: Prospect Park Loop'
     )
     assert racelog._races[1].pos == 29
 
@@ -84,7 +84,7 @@ class TestRacelogLen:
 
   def test_len_single_race(self):
     """Test len() with single race."""
-    racelog = Racelog([{"zid": "123", "pos": 1}])
+    racelog = Racelog([{'zid': '123', 'pos': 1}])
     assert len(racelog) == 1
 
 
@@ -193,24 +193,56 @@ class TestRacelogIteration:
 class TestRacelogRepr:
   """Test string representation."""
 
-  def test_repr_shows_race_count(self, racelog):
-    """Test repr shows number of races."""
+  def test_repr_shows_all_races(self, racelog):
+    """Test repr shows all races."""
     repr_str = repr(racelog)
-    assert "Racelog" in repr_str
-    assert "3 races" in repr_str
+    assert 'Racelog([' in repr_str
+    assert 'RaceFinish(' in repr_str
+    # Should have 3 RaceFinish entries
+    assert repr_str.count('RaceFinish(') == 3
+    # Should be multi-line
+    assert '\n' in repr_str
+    assert '])' in repr_str
 
   def test_repr_empty_racelog(self):
     """Test repr with empty racelog."""
     racelog = Racelog([])
     repr_str = repr(racelog)
-    assert "Racelog" in repr_str
-    assert "0 races" in repr_str
+    assert repr_str == 'Racelog([])'
 
   def test_repr_single_race(self):
     """Test repr with single race."""
-    racelog = Racelog([{"zid": "123", "pos": 1}])
+    racelog = Racelog([{'zid': '123', 'pos': 1}])
     repr_str = repr(racelog)
-    assert "1 races" in repr_str
+    assert 'Racelog([' in repr_str
+    assert 'RaceFinish(' in repr_str
+    assert "zid='123'" in repr_str
+    assert 'pos=1' in repr_str
+
+  def test_str_shows_all_races(self, racelog):
+    """Test str shows all races in requested format."""
+    str_repr = str(racelog)
+    assert 'Racelog[' in str_repr
+    assert 'RaceFinish(' in str_repr
+    # Should have 3 RaceFinish entries
+    assert str_repr.count('RaceFinish(') == 3
+    # Should be multi-line
+    assert '\n' in str_repr
+    assert ']' in str_repr
+
+  def test_str_empty_racelog(self):
+    """Test str with empty racelog."""
+    racelog = Racelog([])
+    str_repr = str(racelog)
+    assert str_repr == 'Racelog[]'
+
+  def test_str_single_race(self):
+    """Test str with single race."""
+    racelog = Racelog([{'zid': '123', 'pos': 1}])
+    str_repr = str(racelog)
+    assert 'Racelog[' in str_repr
+    assert 'RaceFinish(' in str_repr
+    assert "zid='123'" in str_repr
 
 
 class TestRacelogAslist:
@@ -224,11 +256,12 @@ class TestRacelogAslist:
     assert all(isinstance(item, dict) for item in result)
 
   def test_aslist_preserves_data(self, racelog, sample_race_list):
-    """Test that aslist preserves original data."""
+    """Test that aslist preserves cleaned data."""
     result = racelog.aslist()
-    assert result[0]["pos"] == 112
-    assert result[1]["event_title"] == "Zwift Epic Race - Snowman"
-    assert result[2]["avg_power"] == [137, 1]
+    assert result[0]['pos'] == 112
+    assert result[1]['event_title'] == 'Zwift Epic Race - Snowman'
+    # avg_power should be cleaned to scalar
+    assert result[2]['avg_power'] == 137
 
   def test_aslist_roundtrip(self, racelog):
     """Test that data can roundtrip through aslist."""
@@ -260,7 +293,7 @@ class TestRacelogDaysLast:
     """Test that days_last() returns a Racelog object."""
     racelog = Racelog(
       [
-        {"zid": "1", "event_date": int(time.time())},
+        {'zid': '1', 'event_date': int(time.time())},
       ],
     )
     recent = racelog.days_last(30)
@@ -273,8 +306,8 @@ class TestRacelogDaysLast:
 
     racelog = Racelog(
       [
-        {"zid": "1", "event_date": int(ten_days_ago), "pos": 1},
-        {"zid": "2", "event_date": int(now), "pos": 2},
+        {'zid': '1', 'event_date': int(ten_days_ago), 'pos': 1},
+        {'zid': '2', 'event_date': int(now), 'pos': 2},
       ],
     )
 
@@ -288,7 +321,7 @@ class TestRacelogDaysLast:
 
     racelog = Racelog(
       [
-        {"zid": "1", "event_date": int(forty_days_ago), "pos": 1},
+        {'zid': '1', 'event_date': int(forty_days_ago), 'pos': 1},
       ],
     )
 
@@ -305,11 +338,11 @@ class TestRacelogDaysLast:
 
     racelog = Racelog(
       [
-        {"zid": "1", "event_date": int(sixty_days_ago), "event_title": "Old 1"},
-        {"zid": "2", "event_date": int(twenty_days_ago), "event_title": "Recent 1"},
-        {"zid": "3", "event_date": int(forty_days_ago), "event_title": "Old 2"},
-        {"zid": "4", "event_date": int(five_days_ago), "event_title": "Recent 2"},
-        {"zid": "5", "event_date": int(now), "event_title": "Recent 3"},
+        {'zid': '1', 'event_date': int(sixty_days_ago), 'event_title': 'Old 1'},
+        {'zid': '2', 'event_date': int(twenty_days_ago), 'event_title': 'Recent 1'},
+        {'zid': '3', 'event_date': int(forty_days_ago), 'event_title': 'Old 2'},
+        {'zid': '4', 'event_date': int(five_days_ago), 'event_title': 'Recent 2'},
+        {'zid': '5', 'event_date': int(now), 'event_title': 'Recent 3'},
       ],
     )
 
@@ -318,11 +351,11 @@ class TestRacelogDaysLast:
 
     # Verify correct races included
     titles = [race.event_title for race in recent]
-    assert "Recent 1" in titles
-    assert "Recent 2" in titles
-    assert "Recent 3" in titles
-    assert "Old 1" not in titles
-    assert "Old 2" not in titles
+    assert 'Recent 1' in titles
+    assert 'Recent 2' in titles
+    assert 'Recent 3' in titles
+    assert 'Old 1' not in titles
+    assert 'Old 2' not in titles
 
   def test_days_last_handles_missing_event_date(self):
     """Test that races without event_date are excluded."""
@@ -330,8 +363,8 @@ class TestRacelogDaysLast:
 
     racelog = Racelog(
       [
-        {"zid": "1", "event_date": int(now), "pos": 1},
-        {"zid": "2", "pos": 2},  # Missing event_date
+        {'zid': '1', 'event_date': int(now), 'pos': 1},
+        {'zid': '2', 'pos': 2},  # Missing event_date
       ],
     )
 
@@ -352,11 +385,11 @@ class TestRacelogDaysLast:
     racelog = Racelog(
       [
         {
-          "zid": "123",
-          "event_date": int(now),
-          "event_title": "Test Race",
-          "pos": 42,
-          "avg_power": [200, 0],
+          'zid': '123',
+          'event_date': int(now),
+          'event_title': 'Test Race',
+          'pos': 42,
+          'avg_power': [200, 0],
         },
       ],
     )
@@ -364,10 +397,11 @@ class TestRacelogDaysLast:
     recent = racelog.days_last(30)
     assert len(recent) == 1
     race = recent[0]
-    assert race.zid == "123"
-    assert race.event_title == "Test Race"
+    assert race.zid == '123'
+    assert race.event_title == 'Test Race'
     assert race.pos == 42
-    assert race.avg_power == [200, 0]
+    # avg_power should be cleaned to scalar
+    assert race.avg_power == 200
 
   def test_days_last_returns_new_racelog(self):
     """Test that days_last() returns a new Racelog, not modifying original."""
@@ -375,7 +409,7 @@ class TestRacelogDaysLast:
 
     racelog = Racelog(
       [
-        {"zid": "1", "event_date": int(now)},
+        {'zid': '1', 'event_date': int(now)},
       ],
     )
 
@@ -401,15 +435,15 @@ class TestRacelogDaysLast:
 
     racelog = Racelog(
       [
-        {"zid": "1", "event_date": just_recent, "event_title": "Recent"},
-        {"zid": "2", "event_date": just_old, "event_title": "Old"},
+        {'zid': '1', 'event_date': just_recent, 'event_title': 'Recent'},
+        {'zid': '2', 'event_date': just_old, 'event_title': 'Old'},
       ],
     )
 
     recent = racelog.days_last(30)
     # Should only include the recent race
     assert len(recent) == 1
-    assert recent[0].event_title == "Recent"
+    assert recent[0].event_title == 'Recent'
 
   def test_days_last_different_periods(self):
     """Test days_last() with different time periods."""
@@ -424,7 +458,7 @@ class TestRacelogDaysLast:
         {'zid': '1', 'event_date': int(five_days_ago), 'event_title': 'Week'},
         {'zid': '2', 'event_date': int(forty_days_ago), 'event_title': '45d'},
         {'zid': '3', 'event_date': int(eighty_days_ago), 'event_title': '90d'},
-      ]
+      ],
     )
 
     # Test 7 days - should get race from 5 days ago
@@ -447,23 +481,25 @@ class TestRacelogDaysLast:
     # Test 100 days - should get all races
     last_100 = racelog.days_last(100)
     assert len(last_100) == 3
+
+
 class TestRacelogWithRealData:
   """Test Racelog with real fixture data."""
 
   @pytest.fixture
   def real_racelog(self):
     """Load real racelog from fixture file."""
-    fixture_path = Path(__file__).parent.parent.parent / "tmp" / "7574336_all.json"
+    fixture_path = Path(__file__).parent.parent.parent / 'tmp' / '7574336_all.json'
     if not fixture_path.exists():
-      pytest.skip("Fixture file not available")
+      pytest.skip('Fixture file not available')
 
     with open(fixture_path) as f:
       data = json.load(f)
 
-    if not data.get("data"):
-      pytest.skip("No race data in fixture")
+    if not data.get('data'):
+      pytest.skip('No race data in fixture')
 
-    return Racelog(data["data"])
+    return Racelog(data['data'])
 
   def test_real_data_len(self, real_racelog):
     """Test len() with real data."""
@@ -473,7 +509,7 @@ class TestRacelogWithRealData:
     """Test indexing with real data."""
     first_race = real_racelog[0]
     assert isinstance(first_race, RaceFinish)
-    assert hasattr(first_race, "event_title")
+    assert hasattr(first_race, 'event_title')
 
   def test_real_data_iteration(self, real_racelog):
     """Test iteration with real data."""
@@ -501,17 +537,17 @@ class TestRacelogWithRealData:
 
   def test_real_data_large_dataset(self):
     """Test with larger dataset (550564_all.json)."""
-    fixture_path = Path(__file__).parent.parent.parent / "tmp" / "550564_all.json"
+    fixture_path = Path(__file__).parent.parent.parent / 'tmp' / '550564_all.json'
     if not fixture_path.exists():
-      pytest.skip("Large fixture file not available")
+      pytest.skip('Large fixture file not available')
 
     with open(fixture_path) as f:
       data = json.load(f)
 
-    if not data.get("data"):
-      pytest.skip("No race data in large fixture")
+    if not data.get('data'):
+      pytest.skip('No race data in large fixture')
 
-    racelog = Racelog(data["data"])
+    racelog = Racelog(data['data'])
 
     # Should handle large dataset
     assert len(racelog) > 0
