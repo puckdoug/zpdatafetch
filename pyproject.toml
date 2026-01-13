@@ -36,6 +36,7 @@ Issues = "https://github.com/puckdoug/zpdatafetch/issues"
 Repository = "https://github.com/puckdoug/zpdatafetch"
 
 [project.scripts]
+zdata = "zdatafetch.cli:main"
 zpdata = "zpdatafetch.cli:main"
 zrdata = "zrdatafetch.cli:main"
 
@@ -47,6 +48,7 @@ trio = ["trio>=0.26.0"]
 
 [dependency-groups]
 dev = [
+  "bpython>=0.26",
   "build>=1.2.1",
   "ipdb>=0.13.13",
   "packaging>=24.1",
@@ -141,8 +143,10 @@ ignore = [
 "src/shared/validation.py" = ["E501"]
 # zpdatafetch files have decorative comment lines that exceed 80 chars
 "src/zpdatafetch/*.py" = ["E501"]
-# Test files don't need type annotations (fixtures don't have types)
-"test/**/*.py" = ["ANN001", "ANN201"]
+# zdatafetch files have decorative comment lines that exceed 80 chars
+"src/zdatafetch/*.py" = ["E501"]
+# Test files don't need type annotations (fixtures don't have types) and allow long lines
+"test/**/*.py" = ["ANN001", "ANN002", "ANN003", "ANN201", "ANN202", "E501"]
 
 [tool.ruff.format]
 quote-style = "single"
