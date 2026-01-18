@@ -7,6 +7,7 @@ import httpx
 import pytest
 
 from zpdatafetch.cyclist import Cyclist
+from zpdatafetch.zpcyclist import ZPCyclist
 from zpdatafetch.zpracefinish import ZPRaceFinish
 from zpdatafetch.zpracelog import ZPRacelog
 
@@ -51,7 +52,7 @@ class TestCyclistRacelogMethod:
   def test_racelog_returns_racelog_object(self, mock_cyclist_data):
     """Test that racelog() returns a Racelog object."""
     cyclist = Cyclist()
-    cyclist._fetched[7574336] = mock_cyclist_data
+    cyclist._fetched[7574336] = ZPCyclist(mock_cyclist_data)
 
     racelog = cyclist.racelog(7574336)
     assert isinstance(racelog, ZPRacelog)
@@ -59,7 +60,7 @@ class TestCyclistRacelogMethod:
   def test_racelog_contains_correct_number_of_races(self, mock_cyclist_data):
     """Test that racelog contains correct number of races."""
     cyclist = Cyclist()
-    cyclist._fetched[7574336] = mock_cyclist_data
+    cyclist._fetched[7574336] = ZPCyclist(mock_cyclist_data)
 
     racelog = cyclist.racelog(7574336)
     assert len(racelog) == 2
@@ -67,7 +68,7 @@ class TestCyclistRacelogMethod:
   def test_racelog_races_are_race_finish_objects(self, mock_cyclist_data):
     """Test that races in racelog are RaceFinish objects."""
     cyclist = Cyclist()
-    cyclist._fetched[7574336] = mock_cyclist_data
+    cyclist._fetched[7574336] = ZPCyclist(mock_cyclist_data)
 
     racelog = cyclist.racelog(7574336)
     for race in racelog:
@@ -76,7 +77,7 @@ class TestCyclistRacelogMethod:
   def test_racelog_preserves_race_data(self, mock_cyclist_data):
     """Test that racelog preserves race data correctly."""
     cyclist = Cyclist()
-    cyclist._fetched[7574336] = mock_cyclist_data
+    cyclist._fetched[7574336] = ZPCyclist(mock_cyclist_data)
 
     racelog = cyclist.racelog(7574336)
     assert racelog[0].event_title == "Race 1"
@@ -101,7 +102,7 @@ class TestCyclistRacelogErrors:
   def test_racelog_raises_key_error_if_missing_data_key(self):
     """Test that racelog() raises KeyError if 'data' key missing."""
     cyclist = Cyclist()
-    cyclist._fetched[999] = {}  # Missing 'data' key
+    cyclist._fetched[999] = ZPCyclist({})  # Missing 'data' key
 
     with pytest.raises(KeyError) as exc_info:
       cyclist.racelog(999)
@@ -125,7 +126,7 @@ class TestCyclistRacelogWithEmptyData:
   def test_racelog_with_empty_data_array(self):
     """Test racelog with empty data array."""
     cyclist = Cyclist()
-    cyclist._fetched[123] = {"data": []}
+    cyclist._fetched[123] = ZPCyclist({"data": []})
 
     racelog = cyclist.racelog(123)
     assert isinstance(racelog, ZPRacelog)
@@ -134,11 +135,13 @@ class TestCyclistRacelogWithEmptyData:
   def test_racelog_with_single_race(self):
     """Test racelog with single race."""
     cyclist = Cyclist()
-    cyclist._fetched[123] = {
-      "data": [
-        {"zid": "123", "pos": 1, "event_title": "Test Race"},
-      ],
-    }
+    cyclist._fetched[123] = ZPCyclist(
+      {
+        "data": [
+          {"zid": "123", "pos": 1, "event_title": "Test Race"},
+        ],
+      },
+    )
 
     racelog = cyclist.racelog(123)
     assert len(racelog) == 1
@@ -153,7 +156,7 @@ class TestCyclistRacelogIntegration:
     cyclist = Cyclist()
 
     # Simulate fetched data
-    cyclist._fetched[7574336] = mock_cyclist_data
+    cyclist._fetched[7574336] = ZPCyclist(mock_cyclist_data)
 
     # Verify data was fetched
     assert 7574336 in cyclist._fetched
@@ -170,17 +173,21 @@ class TestCyclistRacelogIntegration:
     cyclist = Cyclist()
 
     # Mock data for two different cyclists
-    cyclist._fetched[111] = {
-      "data": [
-        {"zid": "1", "pos": 1},
-        {"zid": "2", "pos": 2},
-      ],
-    }
-    cyclist._fetched[222] = {
-      "data": [
-        {"zid": "3", "pos": 3},
-      ],
-    }
+    cyclist._fetched[111] = ZPCyclist(
+      {
+        "data": [
+          {"zid": "1", "pos": 1},
+          {"zid": "2", "pos": 2},
+        ],
+      },
+    )
+    cyclist._fetched[222] = ZPCyclist(
+      {
+        "data": [
+          {"zid": "3", "pos": 3},
+        ],
+      },
+    )
 
     racelog1 = cyclist.racelog(111)
     racelog2 = cyclist.racelog(222)
@@ -205,7 +212,7 @@ class TestCyclistRacelogWithRealFixture:
   def test_racelog_with_real_data(self, real_cyclist_data):
     """Test racelog with real fixture data."""
     cyclist = Cyclist()
-    cyclist._fetched[7574336] = real_cyclist_data
+    cyclist._fetched[7574336] = ZPCyclist(real_cyclist_data)
 
     racelog = cyclist.racelog(7574336)
 
@@ -220,7 +227,7 @@ class TestCyclistRacelogWithRealFixture:
   def test_racelog_serialization_with_real_data(self, real_cyclist_data):
     """Test that racelog from real data can be serialized."""
     cyclist = Cyclist()
-    cyclist._fetched[7574336] = real_cyclist_data
+    cyclist._fetched[7574336] = ZPCyclist(real_cyclist_data)
 
     racelog = cyclist.racelog(7574336)
     result = racelog.aslist()
@@ -232,7 +239,7 @@ class TestCyclistRacelogWithRealFixture:
   def test_racelog_access_patterns_with_real_data(self, real_cyclist_data):
     """Test various access patterns with real data."""
     cyclist = Cyclist()
-    cyclist._fetched[7574336] = real_cyclist_data
+    cyclist._fetched[7574336] = ZPCyclist(real_cyclist_data)
 
     racelog = cyclist.racelog(7574336)
 
@@ -260,7 +267,7 @@ class TestCyclistRacelogWithRealFixture:
       data = json.load(f)
 
     cyclist = Cyclist()
-    cyclist._fetched[550564] = data
+    cyclist._fetched[550564] = ZPCyclist(data)
 
     racelog = cyclist.racelog(550564)
 

@@ -10,7 +10,9 @@ from zpdatafetch.signup import Signup
 from zpdatafetch.sprints import Sprints
 from zpdatafetch.team import Team
 from zpdatafetch.zp import ZP
+from zpdatafetch.zpcyclist import ZPCyclist
 from zpdatafetch.zpleague import ZPLeague
+from zpdatafetch.zpprime import ZPPrime, ZPPrimeSegment
 from zpdatafetch.zpracefinish import ZPRaceFinish
 from zpdatafetch.zpracelog import ZPRacelog
 from zpdatafetch.zpraceresult import ZPRaceResult, ZPRiderFinish
@@ -44,7 +46,10 @@ __all__ = [
   'League',
   'setup_logging',
   # Race data classes
+  'ZPCyclist',
   'ZPLeague',
+  'ZPPrime',
+  'ZPPrimeSegment',
   'ZPRaceFinish',
   'ZPRacelog',
   'ZPRaceResult',

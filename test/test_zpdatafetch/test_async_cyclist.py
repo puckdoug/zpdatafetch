@@ -8,6 +8,7 @@ import pytest
 
 from zpdatafetch.async_zp import AsyncZP
 from zpdatafetch.cyclist import Cyclist
+from zpdatafetch.zpcyclist import ZPCyclist
 
 
 @pytest.mark.anyio
@@ -39,7 +40,8 @@ async def test_async_cyclist_fetch(login_page, logged_in_page):
     result = await cyclist.afetch(123456)
 
     assert 123456 in result
-    assert result[123456] == test_data
+    assert isinstance(result[123456], ZPCyclist)
+    assert result[123456].asdict() == test_data
 
 
 @pytest.mark.anyio
@@ -91,6 +93,8 @@ async def test_async_multiple_fetches(login_page, logged_in_page):
     assert len(result) == 2
     assert 123456 in result
     assert 789012 in result
+    assert isinstance(result[123456], ZPCyclist)
+    assert isinstance(result[789012], ZPCyclist)
 
 
 @pytest.mark.anyio

@@ -1,6 +1,7 @@
 """Unified Cyclist class with both sync and async fetch capabilities."""
 
 import asyncio
+import json
 import sys
 from argparse import ArgumentParser
 from collections.abc import Coroutine
@@ -25,6 +26,7 @@ from zpdatafetch.async_zp import AsyncZP
 from zpdatafetch.logging_config import get_logger, setup_logging
 from zpdatafetch.zp import ZP
 from zpdatafetch.zp_obj import ZP_obj
+from zpdatafetch.zpcyclist import ZPCyclist
 from zpdatafetch.zpracelog import ZPRacelog
 
 logger = get_logger(__name__)
@@ -63,6 +65,7 @@ class Cyclist(ZP_obj):
   def __init__(self) -> None:
     """Initialize a new Cyclist instance."""
     super().__init__()
+    self._fetched: dict[int, ZPCyclist] = {}  # Override type
     self._zp: AsyncZP | None = None  # Async session
     self._zp_sync: ZP | None = None  # Sync session (for reference only)
 
@@ -111,7 +114,7 @@ class Cyclist(ZP_obj):
     return (temp_zp, True)
 
   # -------------------------------------------------------------------------------
-  async def _fetch_parallel(self, *zwift_id: int) -> dict[Any, Any]:
+  async def _fetch_parallel(self, *zwift_id: int) -> dict[int, ZPCyclist]:
     """Fetch cyclist data in parallel using async requests.
 
     Note: Only fetches JSON data, not profile pages.
@@ -120,7 +123,7 @@ class Cyclist(ZP_obj):
       *zwift_id: One or more Zwift ID integers to fetch
 
     Returns:
-      Dictionary mapping Zwift IDs to their profile data
+      Dictionary mapping Zwift IDs to ZPCyclist objects
     """
     # SECURITY: Validate all Zwift IDs before creating session
     # This avoids expensive login/session creation for invalid IDs
@@ -143,7 +146,7 @@ class Cyclist(ZP_obj):
 
       # Execute all fetches in parallel
       results_raw: dict[int, str] = {}
-      results_fetched: dict[int, dict[str, Any]] = {}
+      results_fetched_dict: dict[int, dict[str, Any]] = {}  # Temporary dict structure
 
       async def fetch_and_store(
         idx: int,
@@ -157,7 +160,7 @@ class Cyclist(ZP_obj):
 
           # Parse for fetched dict
           parsed = parse_json_safe(raw_json, context=f'cyclist {zid}')
-          results_fetched[zid] = parsed if isinstance(parsed, dict) else {}
+          results_fetched_dict[zid] = parsed if isinstance(parsed, dict) else {}
 
           logger.debug(
             f'Successfully fetched profile for Zwift ID: {zid}',
@@ -193,6 +196,12 @@ class Cyclist(ZP_obj):
         # If no NetworkError found, re-raise the exception group
         raise
 
+      # Wrap each cyclist's data in ZPCyclist object
+      results_fetched: dict[int, ZPCyclist] = {}
+      for zid in validated_ids:
+        if zid in results_fetched_dict:
+          results_fetched[zid] = ZPCyclist(results_fetched_dict[zid])
+
       self._raw = results_raw
       self._fetched = results_fetched
       self.processed = {}  # Reserved for future use
@@ -217,7 +226,7 @@ class Cyclist(ZP_obj):
     logger.info(f'Cyclist fetch mode set to: {mode}')
 
   # -------------------------------------------------------------------------------
-  def _fetch_sequential(self, *zwift_id: int) -> dict[Any, Any]:
+  def _fetch_sequential(self, *zwift_id: int) -> dict[int, ZPCyclist]:
     """Fetch cyclist data sequentially (synchronous mode).
 
     This method provides a clear, separate execution path for debugging.
@@ -227,7 +236,7 @@ class Cyclist(ZP_obj):
       *zwift_id: One or more Zwift ID integers to fetch
 
     Returns:
-      Dictionary mapping Zwift IDs to their profile data
+      Dictionary mapping Zwift IDs to ZPCyclist objects
 
     Raises:
       ValueError: If any ID is invalid (non-positive or too large)
@@ -247,7 +256,7 @@ class Cyclist(ZP_obj):
     zp = ZP()
 
     results_raw: dict[int, str] = {}
-    results_fetched: dict[int, dict[str, Any]] = {}
+    results_fetched_dict: dict[int, dict[str, Any]] = {}  # Temporary dict structure
 
     # Fetch each ID sequentially
     for zid in validated_ids:
@@ -260,9 +269,15 @@ class Cyclist(ZP_obj):
 
       # Parse immediately (no parallel parsing)
       parsed = parse_json_safe(raw_json, context=f'cyclist {zid}')
-      results_fetched[zid] = parsed if isinstance(parsed, dict) else {}
+      results_fetched_dict[zid] = parsed if isinstance(parsed, dict) else {}
 
       logger.debug(f'Successfully fetched profile for Zwift ID: {zid}')
+
+    # Wrap each cyclist's data in ZPCyclist object
+    results_fetched: dict[int, ZPCyclist] = {}
+    for zid in validated_ids:
+      if zid in results_fetched_dict:
+        results_fetched[zid] = ZPCyclist(results_fetched_dict[zid])
 
     self._raw = results_raw
     self._fetched = results_fetched
@@ -274,7 +289,7 @@ class Cyclist(ZP_obj):
     return self._fetched
 
   # -------------------------------------------------------------------------------
-  def fetch(self, *zwift_id: int) -> dict[Any, Any]:
+  def fetch(self, *zwift_id: int) -> dict[int, ZPCyclist]:
     """Fetch cyclist profile data for one or more Zwift IDs (synchronous).
 
     Retrieves comprehensive profile data from Zwiftpower cache and profile
@@ -284,7 +299,7 @@ class Cyclist(ZP_obj):
       *zwift_id: One or more Zwift ID integers to fetch
 
     Returns:
-      Dictionary mapping Zwift IDs to their profile data
+      Dictionary mapping Zwift IDs to ZPCyclist objects
 
     Raises:
       ValueError: If any ID is invalid (non-positive or too large)
@@ -309,7 +324,7 @@ class Cyclist(ZP_obj):
       return asyncio.run(self._fetch_parallel(*zwift_id))
 
   # -------------------------------------------------------------------------------
-  async def afetch(self, *zwift_id: int) -> dict[Any, Any]:
+  async def afetch(self, *zwift_id: int) -> dict[int, ZPCyclist]:
     """Fetch cyclist profile data for one or more Zwift IDs (asynchronous interface).
 
     Uses parallel async requests internally. Supports session sharing
@@ -321,7 +336,7 @@ class Cyclist(ZP_obj):
       *zwift_id: One or more Zwift ID integers to fetch
 
     Returns:
-      Dictionary mapping Zwift IDs to their profile data
+      Dictionary mapping Zwift IDs to ZPCyclist objects
 
     Raises:
       ValueError: If any ID is invalid (non-positive or too large)
@@ -329,6 +344,21 @@ class Cyclist(ZP_obj):
       AuthenticationError: If authentication fails
     """
     return await self._fetch_parallel(*zwift_id)
+
+  # -------------------------------------------------------------------------------
+  def json(self) -> str:
+    """Return JSON string representation of fetched data.
+
+    Converts ZPCyclist objects to dicts before serialization.
+
+    Returns:
+      JSON-formatted string of all fetched cyclist data
+    """
+    serializable = {
+      key: value.asdict() if isinstance(value, ZPCyclist) else value
+      for key, value in self._fetched.items()
+    }
+    return json.JSONEncoder(indent=2).encode(serializable)
 
   # -------------------------------------------------------------------------------
   def racelog(self, zwift_id: int) -> ZPRacelog:
@@ -361,13 +391,9 @@ class Cyclist(ZP_obj):
         f'No data fetched for Zwift ID {zwift_id}. Call fetch() or afetch() first.',
       )
 
-    data = self._fetched[zwift_id]
-    if 'data' not in data:
-      raise KeyError(
-        f"Invalid data structure for Zwift ID {zwift_id}: missing 'data' key",
-      )
-
-    return ZPRacelog(data['data'])
+    cyclist_obj = self._fetched[zwift_id]
+    # ZPCyclist has a racelog property that returns ZPRacelog
+    return cyclist_obj.racelog
 
 
 # ===============================================================================
