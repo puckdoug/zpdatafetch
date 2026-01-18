@@ -106,17 +106,18 @@ class League(ZP_obj):
     Returns:
       Dictionary mapping league IDs to their data
     """
+    # SECURITY: Validate all league IDs before creating session
+    # This avoids expensive login/session creation for invalid IDs
+    try:
+      validated_ids = validate_id_list(list(league_id), id_type='league')
+    except ValidationError as e:
+      logger.error(f'ID validation failed: {e}')
+      raise
+
     session, owns_session = await self._get_or_create_session()
 
     try:
       logger.info(f'Fetching league data for {len(league_id)} ID(s)')
-
-      # SECURITY: Validate all league IDs before processing
-      try:
-        validated_ids = validate_id_list(list(league_id), id_type='league')
-      except ValidationError as e:
-        logger.error(f'ID validation failed: {e}')
-        raise
 
       # Build list of fetch tasks
       fetch_tasks = []

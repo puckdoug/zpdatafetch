@@ -37,7 +37,7 @@ def format_network_error(
     Formatted error message with multi-line context
   """
   lines = []
-  lines.append(f'Failed to {operation}: {str(error)}')
+  lines.append(f'Failed to {operation}: {error!s}')
   lines.append(f'Endpoint: {endpoint}')
 
   if status_code is not None:
@@ -47,7 +47,7 @@ def format_network_error(
     lines.append(f'Attempt: {attempt}/{max_attempts}')
 
   # Add recovery suggestion based on error type
-  suggestion = _get_recovery_suggestion(error, status_code)
+  suggestion = _get_recovery_suggestion(error, status_code, endpoint)
   if suggestion:
     lines.append(f'Suggestion: {suggestion}')
 
@@ -72,14 +72,14 @@ def format_auth_error(
     Formatted error message
   """
   lines = []
-  lines.append(f'Failed to {operation}: {str(error)}')
+  lines.append(f'Failed to {operation}: {error!s}')
   lines.append(f'Endpoint: {endpoint}')
 
   if suggestion:
     lines.append(f'Suggestion: {suggestion}')
   else:
     lines.append(
-      'Suggestion: Verify your credentials are correct and account is active.'
+      'Suggestion: Verify your credentials are correct and account is active.',
     )
 
   return '\n'.join(lines)
@@ -104,18 +104,23 @@ def format_json_error(
     return None
 
   lines = []
-  lines.append(f'Failed to parse response JSON from {endpoint}: {str(error)}')
+  lines.append(f'Failed to parse response JSON from {endpoint}: {error!s}')
   lines.append('Suggestion: The API response may be invalid or the format has changed.')
 
   return '\n'.join(lines)
 
 
-def _get_recovery_suggestion(error: Exception, status_code: int | None = None) -> str:
+def _get_recovery_suggestion(
+  error: Exception,
+  status_code: int | None = None,
+  endpoint: str | None = None,
+) -> str:
   """Generate a recovery suggestion based on error type and HTTP status.
 
   Args:
     error: The exception
     status_code: HTTP status code if available
+    endpoint: The endpoint URL being accessed (optional)
 
   Returns:
     Recovery suggestion message
@@ -123,11 +128,16 @@ def _get_recovery_suggestion(error: Exception, status_code: int | None = None) -
   if status_code:
     if status_code == 429:
       return 'Rate limit exceeded. Wait before retrying the request.'
-    elif status_code == 401 or status_code == 403:
+    if status_code == 403:
+      # Special case for cyclist profile 403 errors
+      if endpoint and 'zwiftpower.com/cache3/profile/' in endpoint:
+        return 'Check that this is a valid rider Zwift ID.'
       return 'Authentication failed. Verify your credentials and API access.'
-    elif status_code == 404:
+    if status_code == 401:
+      return 'Authentication failed. Verify your credentials and API access.'
+    if status_code == 404:
       return 'Resource not found. Verify the endpoint URL is correct.'
-    elif 500 <= status_code < 600:
+    if 500 <= status_code < 600:
       return (
         'Server error. The API may be temporarily unavailable. Retry after a moment.'
       )
@@ -135,9 +145,9 @@ def _get_recovery_suggestion(error: Exception, status_code: int | None = None) -
   error_str = str(error).lower()
   if 'connection' in error_str or 'refused' in error_str:
     return 'Check your network connection and verify the API is accessible.'
-  elif 'timeout' in error_str:
+  if 'timeout' in error_str:
     return 'The request timed out. Check your network connection or try again.'
-  elif 'ssl' in error_str or 'certificate' in error_str:
+  if 'ssl' in error_str or 'certificate' in error_str:
     return 'SSL certificate verification failed. Check your system certificates.'
 
   return 'Verify your network connection and try again.'

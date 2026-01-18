@@ -1,11 +1,23 @@
 """Unified Cyclist class with both sync and async fetch capabilities."""
 
 import asyncio
+import sys
 from argparse import ArgumentParser
 from collections.abc import Coroutine
 from typing import Any
 
 import anyio
+
+# Python 3.10 compatibility
+if sys.version_info >= (3, 11):
+  from builtins import BaseExceptionGroup  # type: ignore[attr-defined]
+else:
+  # For Python 3.10, anyio provides ExceptionGroup
+  try:
+    from exceptiongroup import BaseExceptionGroup  # type: ignore[import-not-found]
+  except ImportError:
+    # Fallback - catch the anyio exception type
+    BaseExceptionGroup = Exception  # type: ignore[misc,assignment]
 
 from shared.json_helpers import parse_json_safe
 from shared.validation import ValidationError, validate_id_list
@@ -110,17 +122,18 @@ class Cyclist(ZP_obj):
     Returns:
       Dictionary mapping Zwift IDs to their profile data
     """
+    # SECURITY: Validate all Zwift IDs before creating session
+    # This avoids expensive login/session creation for invalid IDs
+    try:
+      validated_ids = validate_id_list(list(zwift_id), id_type='zwift')
+    except ValidationError as e:
+      logger.error(f'ID validation failed: {e}')
+      raise
+
     session, owns_session = await self._get_or_create_session()
 
     try:
       logger.info(f'Fetching cyclist data for {len(zwift_id)} ID(s)')
-
-      # SECURITY: Validate all Zwift IDs before processing
-      try:
-        validated_ids = validate_id_list(list(zwift_id), id_type='zwift')
-      except ValidationError as e:
-        logger.error(f'ID validation failed: {e}')
-        raise
 
       # Build list of fetch tasks (JSON only, not profile pages)
       fetch_tasks = []
@@ -137,9 +150,9 @@ class Cyclist(ZP_obj):
         task: Coroutine[Any, Any, str],
       ) -> None:
         """Helper to fetch and store result."""
+        zid = validated_ids[idx]
         try:
           raw_json = await task
-          zid = validated_ids[idx]
           results_raw[zid] = raw_json
 
           # Parse for fetched dict
@@ -150,12 +163,35 @@ class Cyclist(ZP_obj):
             f'Successfully fetched profile for Zwift ID: {zid}',
           )
         except Exception as e:
-          logger.error(f'Failed to fetch Zwift ID {validated_ids[idx]}: {e}')
+          logger.debug(f'Failed to fetch Zwift ID {zid}: {e}')
+          # Re-raise with Zwift ID in message for better error context
+          from shared.exceptions import NetworkError
+
+          if isinstance(e, NetworkError):
+            # Extract the original error message and add Zwift ID context
+            error_msg = str(e)
+            if 'Failed to fetch Zwift profile' in error_msg:
+              # Replace generic message with ID-specific one
+              error_msg = error_msg.replace(
+                'Failed to fetch Zwift profile',
+                f'Failed to fetch Zwift ID {zid}',
+              )
+              raise NetworkError(error_msg) from e
           raise
 
-      async with anyio.create_task_group() as tg:
-        for idx, task in enumerate(fetch_tasks):
-          tg.start_soon(fetch_and_store, idx, task)
+      try:
+        async with anyio.create_task_group() as tg:
+          for idx, task in enumerate(fetch_tasks):
+            tg.start_soon(fetch_and_store, idx, task)
+      except BaseExceptionGroup as eg:
+        # Extract the first NetworkError from the exception group
+        from shared.exceptions import NetworkError
+
+        for exc in eg.exceptions:
+          if isinstance(exc, NetworkError):
+            raise exc
+        # If no NetworkError found, re-raise the exception group
+        raise
 
       self._raw = results_raw
       self._fetched = results_fetched

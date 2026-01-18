@@ -161,11 +161,14 @@ def test_cyclist_str(cyclist):
 
 def test_cyclist_raw_attribute_stores_strings(cyclist):
   """Test that raw attribute stores JSON strings, not dicts."""
-  from unittest.mock import patch
+  from unittest.mock import AsyncMock, patch
 
   from zpdatafetch.async_zp import AsyncZP
 
-  with patch.object(AsyncZP, 'fetch_json') as mock_fetch:
+  with (
+    patch.object(AsyncZP, 'login', new_callable=AsyncMock),
+    patch.object(AsyncZP, 'fetch_json', new_callable=AsyncMock) as mock_fetch,
+  ):
     test_json = '{"id": 123, "name": "Test Cyclist"}'
     mock_fetch.return_value = test_json
 
@@ -180,11 +183,14 @@ def test_cyclist_raw_attribute_stores_strings(cyclist):
 
 def test_cyclist_processed_attribute_stores_dicts(cyclist):
   """Test that processed attribute stores parsed dicts."""
-  from unittest.mock import patch
+  from unittest.mock import AsyncMock, patch
 
   from zpdatafetch.async_zp import AsyncZP
 
-  with patch.object(AsyncZP, 'fetch_json') as mock_fetch:
+  with (
+    patch.object(AsyncZP, 'login', new_callable=AsyncMock),
+    patch.object(AsyncZP, 'fetch_json', new_callable=AsyncMock) as mock_fetch,
+  ):
     test_json = '{"id": 123, "name": "Test Cyclist"}'
     mock_fetch.return_value = test_json
 
@@ -200,11 +206,14 @@ def test_cyclist_processed_attribute_stores_dicts(cyclist):
 
 def test_cyclist_raw_preserved_with_malformed_json(cyclist):
   """Test that raw preserves malformed JSON strings."""
-  from unittest.mock import patch
+  from unittest.mock import AsyncMock, patch
 
   from zpdatafetch.async_zp import AsyncZP
 
-  with patch.object(AsyncZP, 'fetch_json') as mock_fetch:
+  with (
+    patch.object(AsyncZP, 'login', new_callable=AsyncMock),
+    patch.object(AsyncZP, 'fetch_json', new_callable=AsyncMock) as mock_fetch,
+  ):
     malformed_json = '{invalid json}'
     mock_fetch.return_value = malformed_json
 
@@ -220,11 +229,14 @@ def test_cyclist_raw_preserved_with_malformed_json(cyclist):
 
 def test_cyclist_raw_handles_empty_response(cyclist):
   """Test that raw handles empty response strings."""
-  from unittest.mock import patch
+  from unittest.mock import AsyncMock, patch
 
   from zpdatafetch.async_zp import AsyncZP
 
-  with patch.object(AsyncZP, 'fetch_json') as mock_fetch:
+  with (
+    patch.object(AsyncZP, 'login', new_callable=AsyncMock),
+    patch.object(AsyncZP, 'fetch_json', new_callable=AsyncMock) as mock_fetch,
+  ):
     mock_fetch.return_value = ''
 
     cyclist.fetch(123)

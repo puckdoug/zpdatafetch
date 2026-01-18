@@ -25,7 +25,7 @@ from shared.exceptions import NetworkError
 def fetch_with_retry_sync(
   client: httpx.Client,
   url: str,
-  method: str = "GET",
+  method: str = 'GET',
   max_retries: int = 3,
   backoff_factor: float = 1.0,
   logger: logging.Logger | None = None,
@@ -58,7 +58,7 @@ def fetch_with_retry_sync(
 
   for attempt in range(max_retries):
     try:
-      logger.debug(f"Attempt {attempt + 1}/{max_retries}: {method} {url}")
+      logger.debug(f'Attempt {attempt + 1}/{max_retries}: {method} {url}')
       response = client.request(method, url, **kwargs)
       response.raise_for_status()
       return response
@@ -68,8 +68,8 @@ def fetch_with_retry_sync(
         break
       wait_time = backoff_factor * (2**attempt)
       logger.warning(
-        f"Transient network error on attempt {attempt + 1}: {e}. "
-        f"Retrying in {wait_time:.1f}s...",
+        f'Transient network error on attempt {attempt + 1}: {e}. '
+        f'Retrying in {wait_time:.1f}s...',
       )
       time.sleep(wait_time)
     except httpx.HTTPStatusError as e:
@@ -79,36 +79,36 @@ def fetch_with_retry_sync(
           break
         wait_time = backoff_factor * (2**attempt)
         logger.warning(
-          f"Server error ({e.response.status_code}) on attempt "
-          f"{attempt + 1}: {e}. Retrying in {wait_time:.1f}s...",
+          f'Server error ({e.response.status_code}) on attempt '
+          f'{attempt + 1}: {e}. Retrying in {wait_time:.1f}s...',
         )
         time.sleep(wait_time)
       else:
-        raise NetworkError(f"HTTP error: {e}") from e
+        # Client errors (4xx) - don't retry, re-raise for caller to handle
+        raise
     except httpx.RequestError as e:
       last_exception = e
       if attempt == max_retries - 1:
         break
       wait_time = backoff_factor * (2**attempt)
       logger.warning(
-        f"Request error on attempt {attempt + 1}: {e}. "
-        f"Retrying in {wait_time:.1f}s...",
+        f'Request error on attempt {attempt + 1}: {e}. Retrying in {wait_time:.1f}s...',
       )
       time.sleep(wait_time)
 
   if last_exception:
-    logger.error(f"Max retries ({max_retries}) exhausted: {last_exception}")
+    logger.error(f'Max retries ({max_retries}) exhausted: {last_exception}')
     raise NetworkError(
-      f"Failed after {max_retries} attempts: {last_exception}",
+      f'Failed after {max_retries} attempts: {last_exception}',
     ) from last_exception
 
-  raise NetworkError(f"Unexpected error fetching {url}")
+  raise NetworkError(f'Unexpected error fetching {url}')
 
 
 async def fetch_with_retry_async(
   client: httpx.AsyncClient,
   url: str,
-  method: str = "GET",
+  method: str = 'GET',
   max_retries: int = 3,
   backoff_factor: float = 1.0,
   logger: logging.Logger | None = None,
@@ -140,7 +140,7 @@ async def fetch_with_retry_async(
 
   for attempt in range(max_retries):
     try:
-      logger.debug(f"Attempt {attempt + 1}/{max_retries}: {method} {url}")
+      logger.debug(f'Attempt {attempt + 1}/{max_retries}: {method} {url}')
       response = await client.request(method, url, **kwargs)
       response.raise_for_status()
       return response
@@ -150,8 +150,8 @@ async def fetch_with_retry_async(
         break
       wait_time = backoff_factor * (2**attempt)
       logger.warning(
-        f"Transient network error on attempt {attempt + 1}: {e}. "
-        f"Retrying in {wait_time:.1f}s...",
+        f'Transient network error on attempt {attempt + 1}: {e}. '
+        f'Retrying in {wait_time:.1f}s...',
       )
       await anyio.sleep(wait_time)
     except httpx.HTTPStatusError as e:
@@ -161,27 +161,27 @@ async def fetch_with_retry_async(
           break
         wait_time = backoff_factor * (2**attempt)
         logger.warning(
-          f"Server error ({e.response.status_code}) on attempt "
-          f"{attempt + 1}: {e}. Retrying in {wait_time:.1f}s...",
+          f'Server error ({e.response.status_code}) on attempt '
+          f'{attempt + 1}: {e}. Retrying in {wait_time:.1f}s...',
         )
         await anyio.sleep(wait_time)
       else:
-        raise NetworkError(f"HTTP error: {e}") from e
+        # Client errors (4xx) - don't retry, re-raise for caller to handle
+        raise
     except httpx.RequestError as e:
       last_exception = e
       if attempt == max_retries - 1:
         break
       wait_time = backoff_factor * (2**attempt)
       logger.warning(
-        f"Request error on attempt {attempt + 1}: {e}. "
-        f"Retrying in {wait_time:.1f}s...",
+        f'Request error on attempt {attempt + 1}: {e}. Retrying in {wait_time:.1f}s...',
       )
       await anyio.sleep(wait_time)
 
   if last_exception:
-    logger.error(f"Max retries ({max_retries}) exhausted: {last_exception}")
+    logger.error(f'Max retries ({max_retries}) exhausted: {last_exception}')
     raise NetworkError(
-      f"Failed after {max_retries} attempts: {last_exception}",
+      f'Failed after {max_retries} attempts: {last_exception}',
     ) from last_exception
 
   raise NetworkError(f'Unexpected error fetching {url}')

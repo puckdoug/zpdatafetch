@@ -123,7 +123,67 @@ Module for fetching zwiftpower data using the Zwifpower API
       x = Primes()
     case 'racelog':
       x = Cyclist()
-      x.fetch(*args.id)
+      try:
+        x.fetch(*args.id)
+      except Exception as e:
+        # Import here to avoid circular dependency
+        from shared.exceptions import NetworkError
+
+        # Handle network errors with appropriate verbosity
+        if isinstance(e, NetworkError):
+          error_msg = str(e)
+          # Extract Zwift ID from error message if present
+          zwid = None
+          if 'Failed to fetch Zwift ID' in error_msg:
+            # Extract ID from message like "Failed to fetch Zwift ID 5348735"
+            import re
+
+            match = re.search(r'Zwift ID (\d+)', error_msg)
+            if match:
+              zwid = match.group(1)
+
+          # Format output based on verbosity
+          if args.debug:
+            # Debug mode: re-raise to show full traceback
+            raise
+          if args.verbose:
+            # Verbose mode: show HTTP status and URL
+            lines = error_msg.split('\n')
+            # Extract key parts
+            first_line = lines[0] if lines else str(e)
+            endpoint = next((line for line in lines if 'Endpoint:' in line), None)
+            status = next((line for line in lines if 'HTTP Status:' in line), None)
+
+            if zwid and endpoint:
+              url = endpoint.split(': ', 1)[1] if ': ' in endpoint else 'unknown'
+              # Extract status code and construct error message
+              status_code = (
+                status.split(': ')[1] if status and ': ' in status else '403'
+              )
+              print(
+                f"Failed to fetch Zwift ID {zwid}: Client error '{status_code} Forbidden' for url '{url}'",
+                file=sys.stderr,
+              )
+            else:
+              print(first_line, file=sys.stderr)
+              if endpoint:
+                print(endpoint, file=sys.stderr)
+          else:
+            # Normal mode: simplified message with suggestion and profile link
+            lines = error_msg.split('\n')
+            suggestion = next((line for line in lines if 'Suggestion:' in line), None)
+            if zwid and suggestion:
+              print(
+                f'Failed to fetch Zwift ID {zwid}: {suggestion.split(": ", 1)[1]} - https://zwiftpower.com/profile.php?z={zwid}',
+                file=sys.stderr,
+              )
+            else:
+              print(lines[0] if lines else str(e), file=sys.stderr)
+          return 1
+        # Non-network errors
+        print(f'Error fetching data: {e}', file=sys.stderr)
+        return 1
+
       # Extract racelog data and convert to serializable format
       racelog_data = {}
       for zwid_str in args.id:

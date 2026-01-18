@@ -123,7 +123,7 @@ def test_fetch_json_network_error(zp):
   )
 
   with pytest.raises(NetworkError, match='Failed after'):
-    zp.fetch_json('https://zwiftpower.com/api/test')
+    zp.fetch_json('https://zwiftpower.com/api/test', max_retries=1)
 
 
 def test_fetch_page_success(zp):
@@ -152,7 +152,7 @@ def test_fetch_page_http_error(zp):
     httpx.Client(follow_redirects=True, transport=httpx.MockTransport(handler)),
   )
 
-  with pytest.raises(NetworkError, match='HTTP error'):
+  with pytest.raises(NetworkError, match='Failed to fetch page'):
     zp.fetch_page('https://zwiftpower.com/profile.php?z=999')
 
 

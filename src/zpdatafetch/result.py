@@ -43,8 +43,8 @@ class Result(ZP_obj):
   """
 
   # race = "https://zwiftpower.com/cache3/results/3590800_view.json"
-  _url: str = 'https://zwiftpower.com/cache3/results/'
-  _url_end: str = '_view.json'
+  _url: str = "https://zwiftpower.com/cache3/results/"
+  _url_end: str = "_view.json"
   _sync_mode: bool = False  # Class-level sync mode flag
 
   def __init__(self) -> None:
@@ -107,22 +107,23 @@ class Result(ZP_obj):
     Returns:
       Dictionary mapping race IDs to their result data
     """
+    # SECURITY: Validate all race IDs before creating session
+    # This avoids expensive login/session creation for invalid IDs
+    try:
+      validated_ids = validate_id_list(list(race_id), id_type="race")
+    except ValidationError as e:
+      logger.error(f"ID validation failed: {e}")
+      raise
+
     session, owns_session = await self._get_or_create_session()
 
     try:
-      logger.info(f'Fetching race results for {len(race_id)} race(s)')
-
-      # SECURITY: Validate all race IDs before processing
-      try:
-        validated_ids = validate_id_list(list(race_id), id_type='race')
-      except ValidationError as e:
-        logger.error(f'ID validation failed: {e}')
-        raise
+      logger.info(f"Fetching race results for {len(race_id)} race(s)")
 
       # Build list of fetch tasks
       fetch_tasks = []
       for rid in validated_ids:
-        url = f'{self._url}{rid}{self._url_end}'
+        url = f"{self._url}{rid}{self._url_end}"
         fetch_tasks.append(session.fetch_json(url))
 
       # Execute all fetches in parallel
@@ -142,14 +143,14 @@ class Result(ZP_obj):
           results_raw[race_id] = raw_json
 
           # Parse for fetched dict
-          parsed = parse_json_safe(raw_json, context=f'race result {race_id}')
+          parsed = parse_json_safe(raw_json, context=f"race result {race_id}")
           results_fetched[race_id] = parsed if isinstance(parsed, dict) else {}
 
           logger.debug(
-            f'Successfully fetched results for race ID: {race_id}',
+            f"Successfully fetched results for race ID: {race_id}",
           )
         except Exception as e:
-          logger.error(f'Failed to fetch race ID {validated_ids[idx]}: {e}')
+          logger.error(f"Failed to fetch race ID {validated_ids[idx]}: {e}")
           raise
 
       async with anyio.create_task_group() as tg:
@@ -159,7 +160,7 @@ class Result(ZP_obj):
       self._raw = results_raw
       self._fetched = results_fetched
       self.processed = {}  # Reserved for future use
-      logger.info(f'Successfully fetched {len(validated_ids)} race result(s)')
+      logger.info(f"Successfully fetched {len(validated_ids)} race result(s)")
 
       return self._fetched
 
@@ -187,13 +188,13 @@ class Result(ZP_obj):
       NetworkError: If network requests fail
       AuthenticationError: If authentication fails
     """
-    logger.info(f'Fetching result data in synchronous mode for {len(race_id)} ID(s)')
+    logger.info(f"Fetching result data in synchronous mode for {len(race_id)} ID(s)")
 
     # SECURITY: Validate all IDs before processing
     try:
-      validated_ids = validate_id_list(list(race_id), id_type='race')
+      validated_ids = validate_id_list(list(race_id), id_type="race")
     except ValidationError as e:
-      logger.error(f'ID validation failed: {e}')
+      logger.error(f"ID validation failed: {e}")
       raise
 
     # Create synchronous ZP session
@@ -204,18 +205,18 @@ class Result(ZP_obj):
 
     # Fetch each ID sequentially
     for id_val in validated_ids:
-      logger.debug(f'Fetching result data for race ID: {id_val}')
-      url = f'{self._url}{id_val}{self._url_end}'
+      logger.debug(f"Fetching result data for race ID: {id_val}")
+      url = f"{self._url}{id_val}{self._url_end}"
 
       # Synchronous blocking call
       raw_json = zp.fetch_json(url)
       results_raw[id_val] = raw_json
 
       # Parse immediately (no parallel parsing)
-      parsed = parse_json_safe(raw_json, context=f'result {id_val}')
+      parsed = parse_json_safe(raw_json, context=f"result {id_val}")
       results_fetched[id_val] = parsed if isinstance(parsed, dict) else {}
 
-      logger.debug(f'Successfully fetched result data for race ID: {id_val}')
+      logger.debug(f"Successfully fetched result data for race ID: {id_val}")
 
     self._raw = results_raw
 
@@ -223,7 +224,7 @@ class Result(ZP_obj):
 
     self.processed = {}  # Reserved for future use
 
-    logger.info(f'Successfully fetched {len(validated_ids)} result(s) in sync mode')
+    logger.info(f"Successfully fetched {len(validated_ids)} result(s) in sync mode")
     return self._fetched
 
   @classmethod
@@ -234,8 +235,8 @@ class Result(ZP_obj):
       enabled: True to enable sync mode, False for async (default)
     """
     cls._sync_mode = enabled
-    mode = 'synchronous' if enabled else 'asynchronous (parallel)'
-    logger.info(f'Result fetch mode set to: {mode}')
+    mode = "synchronous" if enabled else "asynchronous (parallel)"
+    logger.info(f"Result fetch mode set to: {mode}")
 
   def fetch(self, *race_id: int) -> dict[Any, Any]:
     """Fetch race results for one or more race IDs (synchronous).
@@ -262,11 +263,11 @@ class Result(ZP_obj):
     try:
       asyncio.get_running_loop()
       raise RuntimeError(
-        'fetch() called from async context. Use afetch() instead, or '
-        'call fetch() from synchronous code.',
+        "fetch() called from async context. Use afetch() instead, or "
+        "call fetch() from synchronous code.",
       )
     except RuntimeError as e:
-      if 'fetch() called from async context' in str(e):
+      if "fetch() called from async context" in str(e):
         raise
       # No running loop - safe to use asyncio.run()
       return asyncio.run(self._fetch_parallel(*race_id))
@@ -299,27 +300,27 @@ Module for fetching race data using the Zwiftpower API
   """
   p = ArgumentParser(description=desc)
   p.add_argument(
-    '--verbose',
-    '-v',
-    action='count',
+    "--verbose",
+    "-v",
+    action="count",
     default=0,
-    help='increase output verbosity (-v for INFO, -vv for DEBUG)',
+    help="increase output verbosity (-v for INFO, -vv for DEBUG)",
   )
   p.add_argument(
-    '--raw',
-    '-r',
-    action='store_const',
+    "--raw",
+    "-r",
+    action="store_const",
     const=True,
-    help='print all returned data',
+    help="print all returned data",
   )
-  p.add_argument('race_id', type=int, nargs='+', help='one or more race_ids')
+  p.add_argument("race_id", type=int, nargs="+", help="one or more race_ids")
   args = p.parse_args()
 
   # Configure logging based on verbosity level (output to stderr)
   if args.verbose >= 2:
-    setup_logging(console_level='DEBUG', force_console=True)
+    setup_logging(console_level="DEBUG", force_console=True)
   elif args.verbose == 1:
-    setup_logging(console_level='INFO', force_console=True)
+    setup_logging(console_level="INFO", force_console=True)
 
   x = Result()
 
@@ -330,5 +331,5 @@ Module for fetching race data using the Zwiftpower API
 
 
 # ===============================================================================
-if __name__ == '__main__':
+if __name__ == "__main__":
   main()
