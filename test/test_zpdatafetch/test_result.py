@@ -2,6 +2,8 @@ import json
 
 import httpx
 
+from zpdatafetch.zpraceresult import ZPRaceResult
+
 
 def test_result(result):
   assert result is not None
@@ -13,18 +15,18 @@ def test_result_initialization(result):
 
 def test_result_fetch_race_results(result, login_page, logged_in_page):
   test_data = {
-    'data': [
-      {'position': 1, 'name': 'Winner', 'time': '01:23:45'},
-      {'position': 2, 'name': 'Second Place', 'time': '01:24:12'},
+    "data": [
+      {"position": 1, "name": "Winner", "time": "01:23:45"},
+      {"position": 2, "name": "Second Place", "time": "01:24:12"},
     ],
   }
 
   def handler(request):
-    if 'login' in str(request.url) and request.method == 'GET':
+    if "login" in str(request.url) and request.method == "GET":
       return httpx.Response(200, text=login_page)
-    if request.method == 'POST':
+    if request.method == "POST":
       return httpx.Response(200, text=logged_in_page)
-    if 'results' in str(request.url) and '_view.json' in str(request.url):
+    if "results" in str(request.url) and "_view.json" in str(request.url):
       return httpx.Response(200, text=json.dumps(test_data))
     return httpx.Response(404)
 
@@ -44,6 +46,9 @@ def test_result_fetch_race_results(result, login_page, logged_in_page):
   try:
     race_result = result.fetch(3590800)
     assert 3590800 in race_result
-    assert race_result[3590800] == test_data
+    assert isinstance(race_result[3590800], ZPRaceResult)
+    assert race_result[3590800].asdict() == test_data
+    assert len(race_result[3590800]) == 2
+    assert race_result[3590800][0]["name"] == "Winner"
   finally:
     AsyncZP.__init__ = original_init

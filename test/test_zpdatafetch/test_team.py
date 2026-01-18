@@ -12,6 +12,8 @@ def test_team_initialization(team):
 
 
 def test_team_fetch_single_id(team, login_page, logged_in_page):
+  from zpdatafetch.zpteam import ZPTeam
+
   test_data = {
     'data': [
       {'zwid': 123, 'name': 'Rider 1'},
@@ -44,14 +46,18 @@ def test_team_fetch_single_id(team, login_page, logged_in_page):
   try:
     result = team.fetch(999)
     assert 999 in result
-    assert result[999] == test_data
-    assert len(result[999]['data']) == 2
+    assert isinstance(result[999], ZPTeam)
+    assert result[999].asdict() == test_data
+    assert len(result[999]) == 2
   finally:
     AsyncZP.__init__ = original_init
 
 
 def test_team_json_output(team):
-  team._fetched = {999: {'data': [{'name': 'Team Rider'}]}}
+  from zpdatafetch.zpteam import ZPTeam
+
+  team._fetched = {999: ZPTeam({'data': [{'name': 'Team Rider'}]})}
   json_str = team.json()
   assert '999' in json_str
+  assert 'Team Rider' in json_str
   assert 'Team Rider' in json_str

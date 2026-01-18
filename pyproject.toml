@@ -140,6 +140,8 @@ ignore = [
 "src/zrdatafetch/zr.py" = ["ANN401"]
 # Abstract methods with flexible kwargs - documented in docstrings
 "src/shared/config.py" = ["ANN401"]
+# ZP data object classes use Any in __getattr__/__getitem__ for dynamic field access
+"src/zpdatafetch/zp*.py" = ["ANN401", "ANN204"]
 # Validation error messages with sys.maxsize are naturally long
 "src/shared/validation.py" = ["E501"]
 # zpdatafetch files have decorative comment lines that exceed 80 chars

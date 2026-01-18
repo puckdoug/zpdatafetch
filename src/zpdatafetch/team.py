@@ -1,6 +1,7 @@
 """Unified Team class with both sync and async fetch capabilities."""
 
 import asyncio
+import json
 from argparse import ArgumentParser
 from collections.abc import Coroutine
 from typing import Any
@@ -13,6 +14,7 @@ from zpdatafetch.async_zp import AsyncZP
 from zpdatafetch.logging_config import get_logger, setup_logging
 from zpdatafetch.zp import ZP
 from zpdatafetch.zp_obj import ZP_obj
+from zpdatafetch.zpteam import ZPTeam
 
 logger = get_logger(__name__)
 
@@ -52,6 +54,7 @@ class Team(ZP_obj):
   def __init__(self) -> None:
     """Initialize a new Team instance."""
     super().__init__()
+    self._fetched: dict[int, ZPTeam] = {}  # Override type
     self._zp: AsyncZP | None = None  # Async session
     self._zp_sync: ZP | None = None  # Sync session (for reference only)
 
@@ -100,7 +103,7 @@ class Team(ZP_obj):
     return (temp_zp, True)
 
   # -------------------------------------------------------------------------------
-  async def _fetch_parallel(self, *team_id: int) -> dict[Any, Any]:
+  async def _fetch_parallel(self, *team_id: int) -> dict[int, ZPTeam]:
     """Fetch team data in parallel using async requests.
 
     Args:
@@ -132,7 +135,7 @@ class Team(ZP_obj):
 
       results_raw: dict[int, str] = {}
 
-      results_fetched: dict[int, dict[str, Any]] = {}
+      results_fetched: dict[int, ZPTeam] = {}
 
       async def fetch_and_store(
         idx: int,
@@ -146,7 +149,8 @@ class Team(ZP_obj):
 
           # Parse for fetched dict
           parsed = parse_json_safe(raw_json, context=f'team {team_id}')
-          results_fetched[team_id] = parsed if isinstance(parsed, dict) else {}
+          team_dict = parsed if isinstance(parsed, dict) else {}
+          results_fetched[team_id] = ZPTeam(team_dict)
 
           logger.debug(f'Successfully fetched team ID: {team_id}')
         except Exception as e:
@@ -171,7 +175,7 @@ class Team(ZP_obj):
   # -------------------------------------------------------------------------------
   # -------------------------------------------------------------------------------
   # -------------------------------------------------------------------------------
-  def _fetch_sequential(self, *team_id: int) -> dict[Any, Any]:
+  def _fetch_sequential(self, *team_id: int) -> dict[int, ZPTeam]:
     """Fetch team data sequentially (synchronous mode).
 
     This method provides a clear, separate execution path for debugging.
@@ -201,7 +205,7 @@ class Team(ZP_obj):
     zp = ZP()
 
     results_raw: dict[int, str] = {}
-    results_fetched: dict[int, dict[str, Any]] = {}
+    results_fetched: dict[int, ZPTeam] = {}
 
     # Fetch each ID sequentially
     for id_val in validated_ids:
@@ -214,7 +218,8 @@ class Team(ZP_obj):
 
       # Parse immediately (no parallel parsing)
       parsed = parse_json_safe(raw_json, context=f'team {id_val}')
-      results_fetched[id_val] = parsed if isinstance(parsed, dict) else {}
+      team_dict = parsed if isinstance(parsed, dict) else {}
+      results_fetched[id_val] = ZPTeam(team_dict)
 
       logger.debug(f'Successfully fetched team data for team ID: {id_val}')
 
@@ -238,7 +243,7 @@ class Team(ZP_obj):
     mode = 'synchronous' if enabled else 'asynchronous (parallel)'
     logger.info(f'Team fetch mode set to: {mode}')
 
-  def fetch(self, *team_id: int) -> dict[Any, Any]:
+  def fetch(self, *team_id: int) -> dict[int, ZPTeam]:
     """Fetch team roster data for one or more team IDs (synchronous).
 
     Retrieves the complete list of team members from Zwiftpower cache.
@@ -273,7 +278,7 @@ class Team(ZP_obj):
       return asyncio.run(self._fetch_parallel(*team_id))
 
   # -------------------------------------------------------------------------------
-  async def afetch(self, *team_id: int) -> dict[Any, Any]:
+  async def afetch(self, *team_id: int) -> dict[int, ZPTeam]:
     """Fetch team data for one or more team IDs (asynchronous interface).
 
     Uses parallel async requests internally. Supports session sharing
@@ -291,6 +296,21 @@ class Team(ZP_obj):
       AuthenticationError: If authentication fails
     """
     return await self._fetch_parallel(*team_id)
+
+  # -------------------------------------------------------------------------------
+  def json(self) -> str:
+    """Return JSON string representation of fetched data.
+
+    Converts ZPTeam objects to dicts before serialization.
+
+    Returns:
+      JSON-formatted string of all fetched team data
+    """
+    serializable = {
+      key: value.asdict() if isinstance(value, ZPTeam) else value
+      for key, value in self._fetched.items()
+    }
+    return json.JSONEncoder(indent=2).encode(serializable)
 
 
 # ===============================================================================

@@ -13,6 +13,10 @@ from zpdatafetch.zp import ZP
 from zpdatafetch.zpleague import ZPLeague
 from zpdatafetch.zpracefinish import ZPRaceFinish
 from zpdatafetch.zpracelog import ZPRacelog
+from zpdatafetch.zpraceresult import ZPRaceResult, ZPRiderFinish
+from zpdatafetch.zpracesignup import ZPRaceSignup, ZPRiderSignup
+from zpdatafetch.zpracesprint import ZPRaceSprint, ZPRiderSprint
+from zpdatafetch.zpteam import ZPTeam, ZPTeamMember
 
 # Backwards compatibility aliases
 RaceFinish = ZPRaceFinish
@@ -43,6 +47,14 @@ __all__ = [
   'ZPLeague',
   'ZPRaceFinish',
   'ZPRacelog',
+  'ZPRaceResult',
+  'ZPRaceSignup',
+  'ZPRaceSprint',
+  'ZPRiderFinish',
+  'ZPRiderSignup',
+  'ZPRiderSprint',
+  'ZPTeam',
+  'ZPTeamMember',
   'RaceFinish',  # Backwards compatibility alias
   'Racelog',  # Backwards compatibility alias
   # Asynchronous API

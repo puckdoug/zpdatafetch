@@ -1,6 +1,7 @@
 """Unified Sprints class with both sync and async fetch capabilities."""
 
 import asyncio
+import json
 from argparse import ArgumentParser
 from collections.abc import Coroutine
 from typing import Any
@@ -14,6 +15,7 @@ from zpdatafetch.logging_config import get_logger, setup_logging
 from zpdatafetch.primes import Primes
 from zpdatafetch.zp import ZP
 from zpdatafetch.zp_obj import ZP_obj
+from zpdatafetch.zpracesprint import ZPRaceSprint
 
 logger = get_logger(__name__)
 
@@ -49,6 +51,7 @@ class Sprints(ZP_obj):
   def __init__(self) -> None:
     """Initialize a new Sprints instance."""
     super().__init__()
+    self._fetched: dict[int, ZPRaceSprint] = {}  # Override type
     self._zp: AsyncZP | None = None  # Async session
     self._zp_sync: ZP | None = None  # Sync session (for reference only)
     self.primes: Primes = Primes()
@@ -102,7 +105,7 @@ class Sprints(ZP_obj):
     return (temp_zp, True)
 
   # -------------------------------------------------------------------------------
-  async def _fetch_parallel(self, *race_id: int) -> dict[Any, Any]:
+  async def _fetch_parallel(self, *race_id: int) -> dict[int, ZPRaceSprint]:
     """Fetch sprint data in parallel using async requests.
 
     Args:
@@ -145,7 +148,7 @@ class Sprints(ZP_obj):
 
       results_raw: dict[int, str] = {}
 
-      results_fetched: dict[int, dict[str, Any]] = {}
+      results_fetched: dict[int, ZPRaceSprint] = {}
 
       async def fetch_and_store(
         idx: int,
@@ -159,7 +162,8 @@ class Sprints(ZP_obj):
 
           # Parse for fetched dict
           parsed = parse_json_safe(raw_json, context=f'sprint {race_id}')
-          results_fetched[race_id] = parsed if isinstance(parsed, dict) else {}
+          sprint_dict = parsed if isinstance(parsed, dict) else {}
+          results_fetched[race_id] = ZPRaceSprint(sprint_dict)
 
           logger.debug(
             f'Successfully fetched sprint ID: {race_id}',
@@ -293,7 +297,7 @@ class Sprints(ZP_obj):
   # -------------------------------------------------------------------------------
   # -------------------------------------------------------------------------------
   # -------------------------------------------------------------------------------
-  def _fetch_sequential(self, *race_id: int) -> dict[Any, Any]:
+  def _fetch_sequential(self, *race_id: int) -> dict[int, ZPRaceSprint]:
     """Fetch sprints data sequentially (synchronous mode).
 
     This method provides a clear, separate execution path for debugging.
@@ -323,7 +327,7 @@ class Sprints(ZP_obj):
     zp = ZP()
 
     results_raw: dict[int, str] = {}
-    results_fetched: dict[int, dict[str, Any]] = {}
+    results_fetched: dict[int, ZPRaceSprint] = {}
 
     # Fetch each ID sequentially
     for id_val in validated_ids:
@@ -336,7 +340,8 @@ class Sprints(ZP_obj):
 
       # Parse immediately (no parallel parsing)
       parsed = parse_json_safe(raw_json, context=f'sprints {id_val}')
-      results_fetched[id_val] = parsed if isinstance(parsed, dict) else {}
+      sprint_dict = parsed if isinstance(parsed, dict) else {}
+      results_fetched[id_val] = ZPRaceSprint(sprint_dict)
 
       logger.debug(f'Successfully fetched sprints data for race ID: {id_val}')
 
@@ -360,7 +365,7 @@ class Sprints(ZP_obj):
     mode = 'synchronous' if enabled else 'asynchronous (parallel)'
     logger.info(f'Sprints fetch mode set to: {mode}')
 
-  def fetch(self, *race_id: int) -> dict[Any, Any]:
+  def fetch(self, *race_id: int) -> dict[int, ZPRaceSprint]:
     """Fetch sprint data for one or more race IDs (synchronous).
 
     Retrieves sprint segment results for each race ID.
@@ -395,7 +400,7 @@ class Sprints(ZP_obj):
       return asyncio.run(self._fetch_parallel(*race_id))
 
   # -------------------------------------------------------------------------------
-  async def afetch(self, *race_id: int) -> dict[Any, Any]:
+  async def afetch(self, *race_id: int) -> dict[int, ZPRaceSprint]:
     """Fetch sprint data for one or more race IDs (asynchronous interface).
 
     Uses parallel async requests internally. Supports session sharing
@@ -413,6 +418,21 @@ class Sprints(ZP_obj):
       AuthenticationError: If authentication fails
     """
     return await self._fetch_parallel(*race_id)
+
+  # -------------------------------------------------------------------------------
+  def json(self) -> str:
+    """Return JSON string representation of fetched data.
+
+    Converts ZPRaceSprint objects to dicts before serialization.
+
+    Returns:
+      JSON-formatted string of all fetched sprint data
+    """
+    serializable = {
+      key: value.asdict() if isinstance(value, ZPRaceSprint) else value
+      for key, value in self._fetched.items()
+    }
+    return json.JSONEncoder(indent=2).encode(serializable)
 
 
 # ===============================================================================

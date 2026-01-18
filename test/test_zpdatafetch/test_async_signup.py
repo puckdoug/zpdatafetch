@@ -7,6 +7,7 @@ import pytest
 
 from zpdatafetch.async_zp import AsyncZP
 from zpdatafetch.signup import Signup
+from zpdatafetch.zpracesignup import ZPRaceSignup
 
 
 @pytest.mark.anyio
@@ -38,4 +39,5 @@ async def test_async_signup_fetch(login_page, logged_in_page):
     data = await signup.afetch(3590800)
 
     assert 3590800 in data
-    assert data[3590800] == test_data
+    assert isinstance(data[3590800], ZPRaceSignup)
+    assert data[3590800].asdict() == test_data
