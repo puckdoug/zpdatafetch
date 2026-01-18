@@ -14,19 +14,27 @@ class TestAsyncZRObjInitialization:
   def test_init_default(self):
     """Test default initialization."""
     zr = AsyncZR_obj()
-    assert zr._client is None
-    assert zr._owns_client is True
+    try:
+      assert zr._client is None
+      assert zr._owns_client is True
+    finally:
+      # Prevent cleanup warning by marking as not owning client
+      zr._owns_client = False
 
   def test_init_shared_client_false(self):
     """Test initialization with shared_client=False."""
     zr = AsyncZR_obj(shared_client=False)
-    assert zr._owns_client is True
+    try:
+      assert zr._owns_client is True
+    finally:
+      # Prevent cleanup warning by marking as not owning client
+      zr._owns_client = False
 
   @pytest.mark.anyio
   async def test_init_shared_client_true(self):
     """Test initialization with shared_client=True."""
     # Mock AsyncClient to prevent real connections
-    with patch('httpx.AsyncClient') as mock_client_class:
+    with patch("httpx.AsyncClient") as mock_client_class:
       mock_client = AsyncMock()
       mock_client_class.return_value = mock_client
 
@@ -49,7 +57,7 @@ class TestAsyncZRObjContextManager:
   @pytest.mark.anyio
   async def test_context_manager_aexit(self):
     """Test __aexit__ properly cleans up."""
-    with patch('httpx.AsyncClient') as mock_client_class:
+    with patch("httpx.AsyncClient") as mock_client_class:
       mock_client = AsyncMock()
       mock_client_class.return_value = mock_client
 
@@ -62,7 +70,7 @@ class TestAsyncZRObjContextManager:
   @pytest.mark.anyio
   async def test_context_manager_cleanup(self):
     """Test context manager properly closes client."""
-    with patch('httpx.AsyncClient') as mock_client_class:
+    with patch("httpx.AsyncClient") as mock_client_class:
       mock_client = AsyncMock()
       mock_client_class.return_value = mock_client
 
@@ -80,7 +88,7 @@ class TestAsyncZRObjClientInitialization:
   @pytest.mark.anyio
   async def test_init_client_creates_new(self):
     """Test init_client creates a new client."""
-    with patch('httpx.AsyncClient') as mock_client_class:
+    with patch("httpx.AsyncClient") as mock_client_class:
       mock_client = AsyncMock()
       mock_client_class.return_value = mock_client
 
@@ -101,7 +109,7 @@ class TestAsyncZRObjClientInitialization:
   @pytest.mark.anyio
   async def test_init_client_uses_shared(self):
     """Test init_client uses shared client when available."""
-    with patch('httpx.AsyncClient') as mock_client_class:
+    with patch("httpx.AsyncClient") as mock_client_class:
       mock_client = AsyncMock()
       mock_client_class.return_value = mock_client
 
@@ -126,7 +134,7 @@ class TestAsyncZRObjFetchJson:
   @pytest.mark.anyio
   async def test_fetch_json_initializes_client(self):
     """Test fetch_json initializes client if needed."""
-    with patch('httpx.AsyncClient') as mock_client_class:
+    with patch("httpx.AsyncClient") as mock_client_class:
       mock_client = AsyncMock()
       mock_response = MagicMock()
       mock_response.text = '{"test": "data"}'
@@ -136,7 +144,7 @@ class TestAsyncZRObjFetchJson:
       zr = AsyncZR_obj()
       assert zr._client is None
 
-      result = await zr.fetch_json('/test')
+      result = await zr.fetch_json("/test")
 
       # Client should have been initialized
       assert zr._client is not None
@@ -145,7 +153,7 @@ class TestAsyncZRObjFetchJson:
   @pytest.mark.anyio
   async def test_fetch_json_returns_string(self):
     """Test fetch_json returns raw JSON string."""
-    with patch('httpx.AsyncClient') as mock_client_class:
+    with patch("httpx.AsyncClient") as mock_client_class:
       mock_client = AsyncMock()
       mock_response = MagicMock()
       mock_response.text = '{"id": 12345, "name": "Test Rider"}'
@@ -153,7 +161,7 @@ class TestAsyncZRObjFetchJson:
       mock_client_class.return_value = mock_client
 
       zr = AsyncZR_obj()
-      result = await zr.fetch_json('/public/riders/12345')
+      result = await zr.fetch_json("/public/riders/12345")
 
       assert result == '{"id": 12345, "name": "Test Rider"}'
       mock_client.request.assert_called_once()
@@ -161,7 +169,7 @@ class TestAsyncZRObjFetchJson:
   @pytest.mark.anyio
   async def test_fetch_json_with_method_post(self):
     """Test fetch_json supports POST method."""
-    with patch('httpx.AsyncClient') as mock_client_class:
+    with patch("httpx.AsyncClient") as mock_client_class:
       mock_client = AsyncMock()
       mock_response = MagicMock()
       mock_response.text = '[{"id": 12345}, {"id": 67890}]'
@@ -170,20 +178,20 @@ class TestAsyncZRObjFetchJson:
 
       zr = AsyncZR_obj()
       result = await zr.fetch_json(
-        '/public/riders',
-        method='POST',
+        "/public/riders",
+        method="POST",
         json=[12345, 67890],
       )
 
       assert result == '[{"id": 12345}, {"id": 67890}]'
       # Verify POST was used
       call_args = mock_client.request.call_args
-      assert call_args[0][0] == 'POST' or call_args.kwargs.get('method') == 'POST'
+      assert call_args[0][0] == "POST" or call_args.kwargs.get("method") == "POST"
 
   @pytest.mark.anyio
   async def test_fetch_json_with_headers(self):
     """Test fetch_json accepts headers."""
-    with patch('httpx.AsyncClient') as mock_client_class:
+    with patch("httpx.AsyncClient") as mock_client_class:
       mock_client = AsyncMock()
       mock_response = MagicMock()
       mock_response.text = '{"id": 12345}'
@@ -192,14 +200,14 @@ class TestAsyncZRObjFetchJson:
 
       zr = AsyncZR_obj()
       result = await zr.fetch_json(
-        '/public/riders/12345',
-        headers={'Authorization': 'token'},
+        "/public/riders/12345",
+        headers={"Authorization": "token"},
       )
 
       assert result == '{"id": 12345}'
       # Verify headers were passed
       call_args = mock_client.request.call_args
-      assert 'Authorization' in (call_args.kwargs.get('headers', {}) or {})
+      assert "Authorization" in (call_args.kwargs.get("headers", {}) or {})
 
 
 # ===============================================================================
@@ -209,7 +217,7 @@ class TestAsyncZRObjClose:
   @pytest.mark.anyio
   async def test_close_owned_client(self):
     """Test close properly closes owned client."""
-    with patch('httpx.AsyncClient') as mock_client_class:
+    with patch("httpx.AsyncClient") as mock_client_class:
       mock_client = AsyncMock()
       mock_client_class.return_value = mock_client
 
@@ -224,7 +232,7 @@ class TestAsyncZRObjClose:
   @pytest.mark.anyio
   async def test_close_shared_client(self):
     """Test close doesn't close shared client."""
-    with patch('httpx.AsyncClient') as mock_client_class:
+    with patch("httpx.AsyncClient") as mock_client_class:
       mock_client = AsyncMock()
       mock_client_class.return_value = mock_client
 
@@ -245,7 +253,7 @@ class TestAsyncZRObjClose:
   @pytest.mark.anyio
   async def test_close_idempotent(self):
     """Test close can be called multiple times safely."""
-    with patch('httpx.AsyncClient') as mock_client_class:
+    with patch("httpx.AsyncClient") as mock_client_class:
       mock_client = AsyncMock()
       mock_client_class.return_value = mock_client
 
@@ -266,7 +274,7 @@ class TestAsyncZRObjSharedSession:
   @pytest.mark.anyio
   async def test_close_shared_session_clears_reference(self):
     """Test close_shared_session clears the shared client."""
-    with patch('httpx.AsyncClient') as mock_client_class:
+    with patch("httpx.AsyncClient") as mock_client_class:
       mock_client = AsyncMock()
       mock_client_class.return_value = mock_client
 
@@ -287,7 +295,7 @@ class TestAsyncZRObjSharedSession:
   @pytest.mark.anyio
   async def test_multiple_instances_share_client(self):
     """Test multiple instances with shared_client=True share the same client."""
-    with patch('httpx.AsyncClient') as mock_client_class:
+    with patch("httpx.AsyncClient") as mock_client_class:
       mock_client = AsyncMock()
       mock_client_class.return_value = mock_client
 

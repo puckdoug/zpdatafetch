@@ -310,6 +310,8 @@ class AsyncZR_obj:
         logger.debug('Async HTTP client closed successfully')
       except Exception as e:
         logger.error(f'Could not close async client properly: {e}')
+      finally:
+        self._client = None  # Clear reference to prevent warning in __del__
 
   # -------------------------------------------------------------------------------
   async def __aenter__(self) -> 'AsyncZR_obj':
