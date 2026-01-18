@@ -31,14 +31,15 @@ class ZPCyclist:
       print(race.event_title)
   """
 
-  def __init__(self, cyclist_data: dict[str, Any]) -> None:
+  def __init__(self, cyclist_data: dict[str, Any] | None = None) -> None:
     """Initialize a cyclist profile.
 
     Args:
       cyclist_data: Dictionary containing cyclist profile data from API,
-                    including 'data' array with race history
+                    including 'data' array with race history. If None,
+                    creates an empty cyclist object.
     """
-    self._data = cyclist_data
+    self._data = cyclist_data if cyclist_data is not None else {}
 
     # Create lazy-loaded racelog from data array
     self._racelog: ZPRacelog | None = None
@@ -56,7 +57,7 @@ class ZPCyclist:
       AttributeError: If field doesn't exist
     """
     # Prevent infinite recursion for _data and other private attributes
-    if name.startswith('_'):
+    if name.startswith("_"):
       raise AttributeError(
         f"'{type(self).__name__}' object has no attribute '{name}'",
       )
@@ -109,11 +110,11 @@ class ZPCyclist:
         print(f"{race.event_title}: Position {race.pos}")
     """
     if self._racelog is None:
-      if 'data' not in self._data:
+      if "data" not in self._data:
         raise KeyError(
           "Cyclist profile missing 'data' field. Cannot create racelog.",
         )
-      self._racelog = ZPRacelog(self._data['data'])
+      self._racelog = ZPRacelog(self._data["data"])
     return self._racelog
 
   def asdict(self) -> dict[str, Any]:

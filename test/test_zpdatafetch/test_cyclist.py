@@ -2,6 +2,15 @@ import json
 
 import httpx
 
+from zpdatafetch.zpcyclist import ZPCyclist
+
+
+def test_zpcyclist_empty_instantiation():
+  """Test that ZPCyclist can be instantiated with no arguments."""
+  obj = ZPCyclist()
+  assert obj is not None
+  assert obj.asdict() == {}
+
 
 def test_cyclist_sync_mode():
   """Test that sync mode can be enabled and disabled."""

@@ -2,6 +2,23 @@ from unittest.mock import patch
 
 import httpx
 
+from zpdatafetch.zpracesprint import ZPRaceSprint, ZPRiderSprint
+
+
+def test_zpracesprint_empty_instantiation():
+  """Test that ZPRaceSprint can be instantiated with no arguments."""
+  obj = ZPRaceSprint()
+  assert obj is not None
+  assert len(obj) == 0
+  assert obj.aslist() == []
+
+
+def test_zpridersprint_empty_instantiation():
+  """Test that ZPRiderSprint can be instantiated with no arguments."""
+  obj = ZPRiderSprint()
+  assert obj is not None
+  assert obj.asdict() == {}
+
 
 def test_sprints(sprints):
   assert sprints is not None
@@ -33,7 +50,7 @@ def test_sprints_fetch_race_sprints(
 
   try:
     # Mock primes.afetch to avoid real API call
-    with patch.object(sprints.primes, "afetch") as mock_primes_afetch:
+    with patch.object(sprints.primes, 'afetch') as mock_primes_afetch:
       mock_primes_afetch.return_value = primes_test_data
       sprints.primes.raw = primes_test_data
 
@@ -58,11 +75,11 @@ def test_sprints_shares_zp_session_with_primes(
   from zpdatafetch.async_zp import AsyncZP
 
   original_init = AsyncZP.__init__
-  login_count = {"count": 0}
+  login_count = {'count': 0}
 
   def mock_init(self, skip_credential_check=False):
     original_init(self, skip_credential_check=True)
-    login_count["count"] += 1  # Track how many AsyncZP instances are created
+    login_count['count'] += 1  # Track how many AsyncZP instances are created
     self._client = httpx.AsyncClient(
       follow_redirects=True,
       transport=httpx.MockTransport(sprints_handler),
@@ -72,15 +89,15 @@ def test_sprints_shares_zp_session_with_primes(
 
   try:
     # Mock primes.afetch to avoid real API call but verify set_session is called
-    with patch.object(sprints.primes, "afetch") as mock_primes_afetch:
-      with patch.object(sprints.primes, "set_session") as mock_set_session:
+    with patch.object(sprints.primes, 'afetch') as mock_primes_afetch:
+      with patch.object(sprints.primes, 'set_session') as mock_set_session:
         mock_primes_afetch.return_value = primes_test_data
         sprints.primes.raw = primes_test_data
 
         sprints.fetch(3590800)
 
         # Verify only ONE AsyncZP instance was created (not two)
-        assert login_count["count"] == 1, "Should only create one AsyncZP session"
+        assert login_count['count'] == 1, 'Should only create one AsyncZP session'
 
         # Verify set_session was called to share the session
         assert mock_set_session.called, (

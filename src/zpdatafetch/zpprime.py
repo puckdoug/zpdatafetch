@@ -23,13 +23,14 @@ class ZPPrimeSegment:
     data = segment.asdict()  # Get original dict
   """
 
-  def __init__(self, segment_data: dict[str, Any]) -> None:
+  def __init__(self, segment_data: dict[str, Any] | None = None) -> None:
     """Initialize a prime segment.
 
     Args:
-      segment_data: Dictionary containing prime segment data from API
+      segment_data: Dictionary containing prime segment data from API.
+                    If None, creates an empty prime segment object.
     """
-    self._data = segment_data
+    self._data = segment_data if segment_data is not None else {}
 
   def __getattr__(self, name: str) -> Any:
     """Allow attribute access to prime segment fields.
@@ -121,19 +122,20 @@ class ZPPrime:
     segments = prime.get_segments('A', 'msec')  # Get ZPPrimeSegment objects
   """
 
-  def __init__(self, prime_data: dict[str, Any]) -> None:
+  def __init__(self, prime_data: dict[str, Any] | None = None) -> None:
     """Initialize a race prime collection.
 
     Args:
       prime_data: Dictionary containing nested prime data from API,
-                  structured as category -> prime_type -> data
+                  structured as category -> prime_type -> data.
+                  If None, creates an empty prime object.
     """
-    self._data = prime_data
+    self._data = prime_data if prime_data is not None else {}
 
     # Pre-parse all segments into objects for convenient access
     self._segments: dict[str, dict[str, list[ZPPrimeSegment]]] = {}
 
-    for category, cat_data in prime_data.items():
+    for category, cat_data in self._data.items():
       if not isinstance(cat_data, dict):
         continue
 

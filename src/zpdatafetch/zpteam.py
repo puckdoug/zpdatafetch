@@ -23,13 +23,14 @@ class ZPTeamMember:
     data = member.asdict()  # Get original dict
   """
 
-  def __init__(self, member_data: dict[str, Any]) -> None:
+  def __init__(self, member_data: dict[str, Any] | None = None) -> None:
     """Initialize a team member.
 
     Args:
-      member_data: Dictionary containing team member data from API
+      member_data: Dictionary containing team member data from API.
+                   If None, creates an empty team member object.
     """
-    self._data = member_data
+    self._data = member_data if member_data is not None else {}
 
   def __getattr__(self, name: str) -> Any:
     """Allow attribute access to team member fields.
@@ -117,17 +118,18 @@ class ZPTeam:
       print(member.name)
   """
 
-  def __init__(self, team_data: dict[str, Any]) -> None:
+  def __init__(self, team_data: dict[str, Any] | None = None) -> None:
     """Initialize a team roster collection.
 
     Args:
       team_data: Dictionary containing team data from API,
-                 including 'data' array of team members
+                 including 'data' array of team members.
+                 If None, creates an empty team object.
     """
-    self._data = team_data
+    self._data = team_data if team_data is not None else {}
 
     # Extract team member list
-    member_list = team_data.get('data', [])
+    member_list = self._data.get('data', [])
 
     # Create ZPTeamMember objects for each member
     self._members = [ZPTeamMember(member_data) for member_data in member_list]

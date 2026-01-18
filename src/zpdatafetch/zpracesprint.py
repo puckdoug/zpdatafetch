@@ -23,13 +23,14 @@ class ZPRiderSprint:
     data = rider.asdict()  # Get original dict
   """
 
-  def __init__(self, rider_data: dict[str, Any]) -> None:
+  def __init__(self, rider_data: dict[str, Any] | None = None) -> None:
     """Initialize a rider sprint result.
 
     Args:
-      rider_data: Dictionary containing rider sprint data from API
+      rider_data: Dictionary containing rider sprint data from API.
+                  If None, creates an empty rider sprint object.
     """
-    self._data = rider_data
+    self._data = rider_data if rider_data is not None else {}
 
   def __getattr__(self, name: str) -> Any:
     """Allow attribute access to rider sprint fields.
@@ -117,17 +118,18 @@ class ZPRaceSprint:
       print(rider.name)
   """
 
-  def __init__(self, sprint_data: dict[str, Any]) -> None:
+  def __init__(self, sprint_data: dict[str, Any] | None = None) -> None:
     """Initialize a race sprint collection.
 
     Args:
       sprint_data: Dictionary containing race sprint data from API,
-                   including 'data' array of rider sprint results
+                   including 'data' array of rider sprint results.
+                   If None, creates an empty race sprint object.
     """
-    self._data = sprint_data
+    self._data = sprint_data if sprint_data is not None else {}
 
     # Extract rider sprint list
-    rider_list = sprint_data.get('data', [])
+    rider_list = self._data.get('data', [])
 
     # Create ZPRiderSprint objects for each rider sprint
     self._riders = [ZPRiderSprint(rider_data) for rider_data in rider_list]

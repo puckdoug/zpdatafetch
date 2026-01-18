@@ -17,13 +17,18 @@ class ZPRiderFinish:
     - And all other fields from the rider result data
   """
 
-  def __init__(self, rider_data: dict[str, Any]) -> None:
-    """Initialize a ZPRiderFinish from rider result dictionary."""
-    self._data = rider_data
+  def __init__(self, rider_data: dict[str, Any] | None = None) -> None:
+    """Initialize a ZPRiderFinish from rider result dictionary.
+
+    Args:
+      rider_data: Dictionary containing rider result data.
+                  If None, creates an empty rider finish object.
+    """
+    self._data = rider_data if rider_data is not None else {}
 
   def __getattr__(self, name: str) -> Any:
     """Allow attribute access to rider result fields."""
-    if name.startswith("_"):
+    if name.startswith('_'):
       raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
     try:
       return self._data[name]
@@ -36,16 +41,16 @@ class ZPRiderFinish:
 
   def __repr__(self) -> str:
     """Return detailed representation showing all rider result data."""
-    items = ", ".join(f"{k}={v!r}" for k, v in self._data.items())
-    return f"ZPRiderFinish({items})"
+    items = ', '.join(f'{k}={v!r}' for k, v in self._data.items())
+    return f'ZPRiderFinish({items})'
 
   def __str__(self) -> str:
     """Return human-readable string with all rider result data."""
-    lines = ["ZPRiderFinish("]
+    lines = ['ZPRiderFinish(']
     for key, value in self._data.items():
-      lines.append(f"  {key}={value!r},")
-    lines.append(")")
-    return "\n".join(lines)
+      lines.append(f'  {key}={value!r},')
+    lines.append(')')
+    return '\n'.join(lines)
 
   def asdict(self) -> dict[str, Any]:
     """Return the underlying rider result data as a dictionary."""
@@ -67,12 +72,17 @@ class ZPRaceResult:
     Access individual rider results via indexing: result[0], result[1], etc.
   """
 
-  def __init__(self, result_data: dict[str, Any]) -> None:
-    """Initialize a ZPRaceResult from result data dictionary."""
-    self._data = result_data
+  def __init__(self, result_data: dict[str, Any] | None = None) -> None:
+    """Initialize a ZPRaceResult from result data dictionary.
+
+    Args:
+      result_data: Dictionary containing race result data.
+                   If None, creates an empty race result object.
+    """
+    self._data = result_data if result_data is not None else {}
 
     # Create list of rider finish objects from 'data' array
-    rider_list = result_data.get("data", [])
+    rider_list = self._data.get('data', [])
     self._riders = [ZPRiderFinish(rider_data) for rider_data in rider_list]
 
   def __len__(self) -> int:
@@ -89,7 +99,7 @@ class ZPRaceResult:
 
   def __getattr__(self, name: str) -> Any:
     """Allow attribute access to race-level result fields."""
-    if name.startswith("_"):
+    if name.startswith('_'):
       raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
     try:
       return self._data[name]
@@ -98,11 +108,11 @@ class ZPRaceResult:
 
   def __repr__(self) -> str:
     """Return detailed representation."""
-    return f"ZPRaceResult(riders={len(self._riders)})"
+    return f'ZPRaceResult(riders={len(self._riders)})'
 
   def __str__(self) -> str:
     """Return human-readable string."""
-    return f"ZPRaceResult with {len(self._riders)} riders"
+    return f'ZPRaceResult with {len(self._riders)} riders'
 
   def asdict(self) -> dict[str, Any]:
     """Return the underlying result data as a dictionary."""

@@ -15,15 +15,16 @@ class ZPLeague:
     - And all other fields from the league data
   """
 
-  def __init__(self, league_data: dict[str, Any]) -> None:
+  def __init__(self, league_data: dict[str, Any] | None = None) -> None:
     """Initialize a ZPLeague from league data dictionary.
 
     Args:
-      league_data: Dictionary containing league standings data
+      league_data: Dictionary containing league standings data.
+                   If None, creates an empty league object.
     """
-    self._data = league_data
+    self._data = league_data if league_data is not None else {}
 
-  def __getattr__(self, name: str) -> Any:  # noqa: ANN401
+  def __getattr__(self, name: str) -> Any:
     """Allow attribute access to league data fields.
 
     Args:
@@ -35,14 +36,14 @@ class ZPLeague:
     Raises:
       AttributeError: If field doesn't exist
     """
-    if name.startswith("_"):
+    if name.startswith('_'):
       raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
     try:
       return self._data[name]
     except KeyError:
       raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
 
-  def __getitem__(self, key: str) -> Any:  # noqa: ANN401
+  def __getitem__(self, key: str) -> Any:
     """Allow dictionary-style access to league data.
 
     Args:
@@ -59,8 +60,8 @@ class ZPLeague:
     Returns:
       String in format: ZPLeague(key=value, key=value, ...)
     """
-    items = ", ".join(f"{k}={v!r}" for k, v in self._data.items())
-    return f"ZPLeague({items})"
+    items = ', '.join(f'{k}={v!r}' for k, v in self._data.items())
+    return f'ZPLeague({items})'
 
   def __str__(self) -> str:
     """Return human-readable string with all league data.
@@ -68,11 +69,11 @@ class ZPLeague:
     Returns:
       Multi-line string showing all fields
     """
-    lines = ["ZPLeague("]
+    lines = ['ZPLeague(']
     for key, value in self._data.items():
-      lines.append(f"  {key}={value!r},")
-    lines.append(")")
-    return "\n".join(lines)
+      lines.append(f'  {key}={value!r},')
+    lines.append(')')
+    return '\n'.join(lines)
 
   def asdict(self) -> dict[str, Any]:
     """Return the underlying league data as a dictionary.

@@ -51,18 +51,20 @@ class ZPRaceFinish:
     'w5',
   }
 
-  def __init__(self, race_data: dict[str, Any]) -> None:
+  def __init__(self, race_data: dict[str, Any] | None = None) -> None:
     """Initialize a RaceFinish from race data dictionary.
 
     Cleans up array fields by extracting the first element from fields
     that are stored as [value, flag] pairs.
 
     Args:
-      race_data: Dictionary containing race result data
+      race_data: Dictionary containing race result data.
+                 If None, creates an empty race finish object.
     """
     # Clean up the data by extracting first element from array fields
+    data = race_data if race_data is not None else {}
     cleaned_data = {}
-    for key, value in race_data.items():
+    for key, value in data.items():
       if key in self._ARRAY_FIELDS and isinstance(value, list) and len(value) > 0:
         cleaned_data[key] = value[0]
       else:
@@ -70,7 +72,7 @@ class ZPRaceFinish:
 
     self._data = cleaned_data
 
-  def __getattr__(self, name: str) -> Any:  # noqa: ANN401
+  def __getattr__(self, name: str) -> Any:
     """Allow attribute access to race data fields.
 
     Args:
@@ -89,7 +91,7 @@ class ZPRaceFinish:
     except KeyError:
       raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
 
-  def __getitem__(self, key: str) -> Any:  # noqa: ANN401
+  def __getitem__(self, key: str) -> Any:
     """Allow dictionary-style access to race data.
 
     Args:

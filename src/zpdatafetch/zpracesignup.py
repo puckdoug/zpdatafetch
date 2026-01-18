@@ -17,9 +17,14 @@ class ZPRiderSignup:
     - And all other fields from the rider signup data
   """
 
-  def __init__(self, rider_data: dict[str, Any]) -> None:
-    """Initialize a ZPRiderSignup from rider signup dictionary."""
-    self._data = rider_data
+  def __init__(self, rider_data: dict[str, Any] | None = None) -> None:
+    """Initialize a ZPRiderSignup from rider signup dictionary.
+
+    Args:
+      rider_data: Dictionary containing rider signup data.
+                  If None, creates an empty rider signup object.
+    """
+    self._data = rider_data if rider_data is not None else {}
 
   def __getattr__(self, name: str) -> Any:
     """Allow attribute access to rider signup fields."""
@@ -67,12 +72,17 @@ class ZPRaceSignup:
     Access individual rider signups via indexing: signup[0], signup[1], etc.
   """
 
-  def __init__(self, signup_data: dict[str, Any]) -> None:
-    """Initialize a ZPRaceSignup from signup data dictionary."""
-    self._data = signup_data
+  def __init__(self, signup_data: dict[str, Any] | None = None) -> None:
+    """Initialize a ZPRaceSignup from signup data dictionary.
+
+    Args:
+      signup_data: Dictionary containing race signup data.
+                   If None, creates an empty race signup object.
+    """
+    self._data = signup_data if signup_data is not None else {}
 
     # Create list of rider signup objects from 'data' array
-    rider_list = signup_data.get("data", [])
+    rider_list = self._data.get("data", [])
     self._riders = [ZPRiderSignup(rider_data) for rider_data in rider_list]
 
   def __len__(self) -> int:

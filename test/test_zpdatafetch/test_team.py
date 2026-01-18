@@ -2,6 +2,23 @@ import json
 
 import httpx
 
+from zpdatafetch.zpteam import ZPTeam, ZPTeamMember
+
+
+def test_zpteam_empty_instantiation():
+  """Test that ZPTeam can be instantiated with no arguments."""
+  obj = ZPTeam()
+  assert obj is not None
+  assert len(obj) == 0
+  assert obj.aslist() == []
+
+
+def test_zpteammember_empty_instantiation():
+  """Test that ZPTeamMember can be instantiated with no arguments."""
+  obj = ZPTeamMember()
+  assert obj is not None
+  assert obj.asdict() == {}
+
 
 def test_team(team):
   assert team is not None

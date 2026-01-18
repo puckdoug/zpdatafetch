@@ -21,13 +21,15 @@ class ZPRacelog:
       print(race.event_title)
   """
 
-  def __init__(self, race_data_list: list[dict[str, Any]]) -> None:
+  def __init__(self, race_data_list: list[dict[str, Any]] | None = None) -> None:
     """Initialize ZPRacelog from list of race data dictionaries.
 
     Args:
-      race_data_list: List of race data dictionaries
+      race_data_list: List of race data dictionaries.
+                      If None, creates an empty racelog object.
     """
-    self._races = [ZPRaceFinish(race_data) for race_data in race_data_list]
+    data_list = race_data_list if race_data_list is not None else []
+    self._races = [ZPRaceFinish(race_data) for race_data in data_list]
 
   def __len__(self) -> int:
     """Return the number of races.
