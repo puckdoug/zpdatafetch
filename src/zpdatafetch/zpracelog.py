@@ -4,17 +4,17 @@ import time
 from collections.abc import Iterator
 from typing import Any
 
-from zpdatafetch.race_finish import RaceFinish
+from zpdatafetch.zpracefinish import ZPRaceFinish
 
 
-class Racelog:
+class ZPRacelog:
   """Collection of race finishes supporting array-like operations.
 
-  Wraps a list of RaceFinish objects and provides array-like access
+  Wraps a list of ZPRaceFinish objects and provides array-like access
   including indexing, iteration, and len().
 
   Example:
-    racelog = Racelog(race_data_list)
+    racelog = ZPRacelog(race_data_list)
     print(len(racelog))  # Number of races
     first_race = racelog[0]  # Get first race
     for race in racelog:  # Iterate over races
@@ -22,12 +22,12 @@ class Racelog:
   """
 
   def __init__(self, race_data_list: list[dict[str, Any]]) -> None:
-    """Initialize Racelog from list of race data dictionaries.
+    """Initialize ZPRacelog from list of race data dictionaries.
 
     Args:
       race_data_list: List of race data dictionaries
     """
-    self._races = [RaceFinish(race_data) for race_data in race_data_list]
+    self._races = [ZPRaceFinish(race_data) for race_data in race_data_list]
 
   def __len__(self) -> int:
     """Return the number of races.
@@ -37,22 +37,22 @@ class Racelog:
     """
     return len(self._races)
 
-  def __getitem__(self, index: int | slice) -> RaceFinish | list[RaceFinish]:
+  def __getitem__(self, index: int | slice) -> ZPRaceFinish | list[ZPRaceFinish]:
     """Support indexing and slicing.
 
     Args:
       index: Integer index or slice
 
     Returns:
-      Single RaceFinish or list of RaceFinish objects
+      Single ZPRaceFinish or list of ZPRaceFinish objects
     """
     return self._races[index]
 
-  def __iter__(self) -> Iterator[RaceFinish]:
+  def __iter__(self) -> Iterator[ZPRaceFinish]:
     """Support iteration over races.
 
     Returns:
-      Iterator over RaceFinish objects
+      Iterator over ZPRaceFinish objects
     """
     return iter(self._races)
 
@@ -60,25 +60,25 @@ class Racelog:
     """Return representation showing all races.
 
     Returns:
-      String in format: Racelog([ RaceFinish(...), RaceFinish(...) ])
+      String in format: ZPRacelog([ ZPRaceFinish(...), ZPRaceFinish(...) ])
     """
     if len(self._races) == 0:
-      return 'Racelog([])'
+      return 'ZPRacelog([])'
 
     race_reprs = [repr(race) for race in self._races]
-    return 'Racelog([\n  ' + ',\n  '.join(race_reprs) + '\n])'
+    return 'ZPRacelog([\n  ' + ',\n  '.join(race_reprs) + '\n])'
 
   def __str__(self) -> str:
     """Return human-readable string showing all races.
 
     Returns:
-      String in format: Racelog[ RaceFinish(...), RaceFinish(...) ]
+      String in format: ZPRacelog[ ZPRaceFinish(...), ZPRaceFinish(...) ]
     """
     if len(self._races) == 0:
-      return 'Racelog[]'
+      return 'ZPRacelog[]'
 
     race_reprs = [repr(race) for race in self._races]
-    return 'Racelog[\n  ' + ',\n  '.join(race_reprs) + '\n]'
+    return 'ZPRacelog[\n  ' + ',\n  '.join(race_reprs) + '\n]'
 
   def aslist(self) -> list[dict[str, Any]]:
     """Return list of race data dictionaries for JSON serialization.
@@ -88,8 +88,8 @@ class Racelog:
     """
     return [race.asdict() for race in self._races]
 
-  def days_last(self, days: int) -> 'Racelog':
-    """Return a new Racelog containing only races from the last N days.
+  def days_last(self, days: int) -> 'ZPRacelog':
+    """Return a new ZPRacelog containing only races from the last N days.
 
     Filters races based on event_date field (Unix epoch timestamp).
     Only includes races within the specified number of days from the current time.
@@ -98,7 +98,7 @@ class Racelog:
       days: Number of days to look back from current time
 
     Returns:
-      New Racelog object containing only races from last N days
+      New ZPRacelog object containing only races from last N days
 
     Example:
       racelog = cyclist.racelog(7574336)
@@ -117,5 +117,5 @@ class Racelog:
       if event_date >= cutoff_timestamp:
         recent_race_data.append(race._data)
 
-    # Return new Racelog with filtered data
-    return Racelog(recent_race_data)
+    # Return new ZPRacelog with filtered data
+    return ZPRacelog(recent_race_data)

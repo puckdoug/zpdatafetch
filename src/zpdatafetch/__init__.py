@@ -5,13 +5,17 @@ from zpdatafetch.cyclist import Cyclist
 from zpdatafetch.league import League
 from zpdatafetch.logging_config import setup_logging
 from zpdatafetch.primes import Primes
-from zpdatafetch.race_finish import RaceFinish
-from zpdatafetch.racelog import Racelog
 from zpdatafetch.result import Result
 from zpdatafetch.signup import Signup
 from zpdatafetch.sprints import Sprints
 from zpdatafetch.team import Team
 from zpdatafetch.zp import ZP
+from zpdatafetch.zpracefinish import ZPRaceFinish
+from zpdatafetch.zpracelog import ZPRacelog
+
+# Backwards compatibility aliases
+RaceFinish = ZPRaceFinish
+Racelog = ZPRacelog
 
 # Backwards compatibility aliases for async classes
 # Note: These classes now support both sync (fetch) and async (afetch) methods
@@ -35,8 +39,10 @@ __all__ = [
   'League',
   'setup_logging',
   # Race data classes
-  'RaceFinish',
-  'Racelog',
+  'ZPRaceFinish',
+  'ZPRacelog',
+  'RaceFinish',  # Backwards compatibility alias
+  'Racelog',  # Backwards compatibility alias
   # Asynchronous API
   'AsyncZP',
   'AsyncCyclist',  # Alias for Cyclist (supports both sync and async)

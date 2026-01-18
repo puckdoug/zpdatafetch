@@ -23,9 +23,9 @@ from shared.json_helpers import parse_json_safe
 from shared.validation import ValidationError, validate_id_list
 from zpdatafetch.async_zp import AsyncZP
 from zpdatafetch.logging_config import get_logger, setup_logging
-from zpdatafetch.racelog import Racelog
 from zpdatafetch.zp import ZP
 from zpdatafetch.zp_obj import ZP_obj
+from zpdatafetch.zpracelog import ZPRacelog
 
 logger = get_logger(__name__)
 
@@ -331,10 +331,10 @@ class Cyclist(ZP_obj):
     return await self._fetch_parallel(*zwift_id)
 
   # -------------------------------------------------------------------------------
-  def racelog(self, zwift_id: int) -> Racelog:
-    """Extract race log from fetched cyclist data as a Racelog object.
+  def racelog(self, zwift_id: int) -> ZPRacelog:
+    """Extract race log from fetched cyclist data as a ZPRacelog object.
 
-    Returns the complete race history for a cyclist wrapped in a Racelog
+    Returns the complete race history for a cyclist wrapped in a ZPRacelog
     object that supports array-like operations. Must call fetch() or
     afetch() before calling this method.
 
@@ -342,7 +342,7 @@ class Cyclist(ZP_obj):
       zwift_id: The Zwift ID to get racelog for
 
     Returns:
-      Racelog object containing RaceFinish objects for each race
+      ZPRacelog object containing ZPRaceFinish objects for each race
 
     Raises:
       ValueError: If no data exists for the given Zwift ID
@@ -367,7 +367,7 @@ class Cyclist(ZP_obj):
         f"Invalid data structure for Zwift ID {zwift_id}: missing 'data' key",
       )
 
-    return Racelog(data['data'])
+    return ZPRacelog(data['data'])
 
 
 # ===============================================================================

@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from zpdatafetch.race_finish import RaceFinish
-from zpdatafetch.racelog import Racelog
+from zpdatafetch.zpracefinish import ZPRaceFinish
+from zpdatafetch.zpracelog import ZPRacelog
 
 
 @pytest.fixture
@@ -44,7 +44,7 @@ def sample_race_list():
 @pytest.fixture
 def racelog(sample_race_list):
   """Create a Racelog instance."""
-  return Racelog(sample_race_list)
+  return ZPRacelog(sample_race_list)
 
 
 class TestRacelogInitialization:
@@ -52,18 +52,18 @@ class TestRacelogInitialization:
 
   def test_init_creates_race_finish_objects(self, sample_race_list):
     """Test that initialization creates RaceFinish objects."""
-    racelog = Racelog(sample_race_list)
+    racelog = ZPRacelog(sample_race_list)
     assert len(racelog._races) == 3
-    assert all(isinstance(race, RaceFinish) for race in racelog._races)
+    assert all(isinstance(race, ZPRaceFinish) for race in racelog._races)
 
   def test_init_with_empty_list(self):
     """Test initialization with empty list."""
-    racelog = Racelog([])
+    racelog = ZPRacelog([])
     assert len(racelog._races) == 0
 
   def test_init_preserves_race_data(self, sample_race_list):
     """Test that race data is preserved correctly."""
-    racelog = Racelog(sample_race_list)
+    racelog = ZPRacelog(sample_race_list)
     assert (
       racelog._races[0].event_title == 'Stage 1: Fresh Outta 25: Prospect Park Loop'
     )
@@ -79,12 +79,12 @@ class TestRacelogLen:
 
   def test_len_empty_racelog(self):
     """Test len() with empty racelog."""
-    racelog = Racelog([])
+    racelog = ZPRacelog([])
     assert len(racelog) == 0
 
   def test_len_single_race(self):
     """Test len() with single race."""
-    racelog = Racelog([{'zid': '123', 'pos': 1}])
+    racelog = ZPRacelog([{'zid': '123', 'pos': 1}])
     assert len(racelog) == 1
 
 
@@ -94,13 +94,13 @@ class TestRacelogIndexing:
   def test_getitem_positive_index(self, racelog):
     """Test accessing races by positive index."""
     first_race = racelog[0]
-    assert isinstance(first_race, RaceFinish)
+    assert isinstance(first_race, ZPRaceFinish)
     assert first_race.pos == 112
 
   def test_getitem_negative_index(self, racelog):
     """Test accessing races by negative index."""
     last_race = racelog[-1]
-    assert isinstance(last_race, RaceFinish)
+    assert isinstance(last_race, ZPRaceFinish)
     assert last_race.pos == 200
 
   def test_getitem_middle_index(self, racelog):
@@ -127,7 +127,7 @@ class TestRacelogSlicing:
     races = racelog[0:2]
     assert isinstance(races, list)
     assert len(races) == 2
-    assert all(isinstance(race, RaceFinish) for race in races)
+    assert all(isinstance(race, ZPRaceFinish) for race in races)
 
   def test_slice_first_two(self, racelog):
     """Test slicing first two races."""
@@ -167,7 +167,7 @@ class TestRacelogIteration:
     """Test that iteration yields RaceFinish objects."""
     races = list(racelog)
     assert len(races) == 3
-    assert all(isinstance(race, RaceFinish) for race in races)
+    assert all(isinstance(race, ZPRaceFinish) for race in races)
 
   def test_iter_in_for_loop(self, racelog):
     """Test iteration in for loop."""
@@ -178,14 +178,14 @@ class TestRacelogIteration:
 
   def test_iter_empty_racelog(self):
     """Test iteration over empty racelog."""
-    racelog = Racelog([])
+    racelog = ZPRacelog([])
     races = list(racelog)
     assert races == []
 
   def test_iter_with_enumerate(self, racelog):
     """Test iteration with enumerate."""
     for idx, race in enumerate(racelog):
-      assert isinstance(race, RaceFinish)
+      assert isinstance(race, ZPRaceFinish)
       if idx == 0:
         assert race.pos == 112
 
@@ -197,51 +197,51 @@ class TestRacelogRepr:
     """Test repr shows all races."""
     repr_str = repr(racelog)
     assert 'Racelog([' in repr_str
-    assert 'RaceFinish(' in repr_str
+    assert 'ZPRaceFinish(' in repr_str
     # Should have 3 RaceFinish entries
-    assert repr_str.count('RaceFinish(') == 3
+    assert repr_str.count('ZPRaceFinish(') == 3
     # Should be multi-line
     assert '\n' in repr_str
     assert '])' in repr_str
 
   def test_repr_empty_racelog(self):
     """Test repr with empty racelog."""
-    racelog = Racelog([])
+    racelog = ZPRacelog([])
     repr_str = repr(racelog)
-    assert repr_str == 'Racelog([])'
+    assert repr_str == 'ZPRacelog([])'
 
   def test_repr_single_race(self):
     """Test repr with single race."""
-    racelog = Racelog([{'zid': '123', 'pos': 1}])
+    racelog = ZPRacelog([{'zid': '123', 'pos': 1}])
     repr_str = repr(racelog)
     assert 'Racelog([' in repr_str
-    assert 'RaceFinish(' in repr_str
+    assert 'ZPRaceFinish(' in repr_str
     assert "zid='123'" in repr_str
     assert 'pos=1' in repr_str
 
   def test_str_shows_all_races(self, racelog):
     """Test str shows all races in requested format."""
     str_repr = str(racelog)
-    assert 'Racelog[' in str_repr
-    assert 'RaceFinish(' in str_repr
+    assert 'ZPRacelog[' in str_repr
+    assert 'ZPRaceFinish(' in str_repr
     # Should have 3 RaceFinish entries
-    assert str_repr.count('RaceFinish(') == 3
+    assert str_repr.count('ZPRaceFinish(') == 3
     # Should be multi-line
     assert '\n' in str_repr
     assert ']' in str_repr
 
   def test_str_empty_racelog(self):
     """Test str with empty racelog."""
-    racelog = Racelog([])
+    racelog = ZPRacelog([])
     str_repr = str(racelog)
-    assert str_repr == 'Racelog[]'
+    assert str_repr == 'ZPRacelog[]'
 
   def test_str_single_race(self):
     """Test str with single race."""
-    racelog = Racelog([{'zid': '123', 'pos': 1}])
+    racelog = ZPRacelog([{'zid': '123', 'pos': 1}])
     str_repr = str(racelog)
-    assert 'Racelog[' in str_repr
-    assert 'RaceFinish(' in str_repr
+    assert 'ZPRacelog[' in str_repr
+    assert 'ZPRaceFinish(' in str_repr
     assert "zid='123'" in str_repr
 
 
@@ -266,13 +266,13 @@ class TestRacelogAslist:
   def test_aslist_roundtrip(self, racelog):
     """Test that data can roundtrip through aslist."""
     original_list = racelog.aslist()
-    new_racelog = Racelog(original_list)
+    new_racelog = ZPRacelog(original_list)
     assert len(new_racelog) == len(racelog)
     assert new_racelog.aslist() == original_list
 
   def test_aslist_empty_racelog(self):
     """Test aslist with empty racelog."""
-    racelog = Racelog([])
+    racelog = ZPRacelog([])
     assert racelog.aslist() == []
 
   def test_aslist_serializable_to_json(self, racelog):
@@ -291,20 +291,20 @@ class TestRacelogDaysLast:
 
   def test_days_last_returns_racelog(self):
     """Test that days_last() returns a Racelog object."""
-    racelog = Racelog(
+    racelog = ZPRacelog(
       [
         {'zid': '1', 'event_date': int(time.time())},
       ],
     )
     recent = racelog.days_last(30)
-    assert isinstance(recent, Racelog)
+    assert isinstance(recent, ZPRacelog)
 
   def test_days_last_includes_recent_races(self):
     """Test that days_last(30) includes races from last 30 days."""
     now = time.time()
     ten_days_ago = now - (10 * 24 * 60 * 60)
 
-    racelog = Racelog(
+    racelog = ZPRacelog(
       [
         {'zid': '1', 'event_date': int(ten_days_ago), 'pos': 1},
         {'zid': '2', 'event_date': int(now), 'pos': 2},
@@ -319,7 +319,7 @@ class TestRacelogDaysLast:
     now = time.time()
     forty_days_ago = now - (40 * 24 * 60 * 60)
 
-    racelog = Racelog(
+    racelog = ZPRacelog(
       [
         {'zid': '1', 'event_date': int(forty_days_ago), 'pos': 1},
       ],
@@ -336,7 +336,7 @@ class TestRacelogDaysLast:
     forty_days_ago = now - (40 * 24 * 60 * 60)
     sixty_days_ago = now - (60 * 24 * 60 * 60)
 
-    racelog = Racelog(
+    racelog = ZPRacelog(
       [
         {'zid': '1', 'event_date': int(sixty_days_ago), 'event_title': 'Old 1'},
         {'zid': '2', 'event_date': int(twenty_days_ago), 'event_title': 'Recent 1'},
@@ -361,7 +361,7 @@ class TestRacelogDaysLast:
     """Test that races without event_date are excluded."""
     now = time.time()
 
-    racelog = Racelog(
+    racelog = ZPRacelog(
       [
         {'zid': '1', 'event_date': int(now), 'pos': 1},
         {'zid': '2', 'pos': 2},  # Missing event_date
@@ -373,16 +373,16 @@ class TestRacelogDaysLast:
 
   def test_days_last_empty_racelog(self):
     """Test days_last() with empty racelog."""
-    racelog = Racelog([])
+    racelog = ZPRacelog([])
     recent = racelog.days_last(30)
     assert len(recent) == 0
-    assert isinstance(recent, Racelog)
+    assert isinstance(recent, ZPRacelog)
 
   def test_days_last_preserves_race_data(self):
     """Test that days_last() preserves all race data fields."""
     now = time.time()
 
-    racelog = Racelog(
+    racelog = ZPRacelog(
       [
         {
           'zid': '123',
@@ -407,7 +407,7 @@ class TestRacelogDaysLast:
     """Test that days_last() returns a new Racelog, not modifying original."""
     now = time.time()
 
-    racelog = Racelog(
+    racelog = ZPRacelog(
       [
         {'zid': '1', 'event_date': int(now)},
       ],
@@ -433,7 +433,7 @@ class TestRacelogDaysLast:
     # Just over 30 days (should be excluded)
     just_old = cutoff - 1
 
-    racelog = Racelog(
+    racelog = ZPRacelog(
       [
         {'zid': '1', 'event_date': just_recent, 'event_title': 'Recent'},
         {'zid': '2', 'event_date': just_old, 'event_title': 'Old'},
@@ -453,7 +453,7 @@ class TestRacelogDaysLast:
     forty_days_ago = now - (40 * 24 * 60 * 60)
     eighty_days_ago = now - (80 * 24 * 60 * 60)
 
-    racelog = Racelog(
+    racelog = ZPRacelog(
       [
         {'zid': '1', 'event_date': int(five_days_ago), 'event_title': 'Week'},
         {'zid': '2', 'event_date': int(forty_days_ago), 'event_title': '45d'},
@@ -499,7 +499,7 @@ class TestRacelogWithRealData:
     if not data.get('data'):
       pytest.skip('No race data in fixture')
 
-    return Racelog(data['data'])
+    return ZPRacelog(data['data'])
 
   def test_real_data_len(self, real_racelog):
     """Test len() with real data."""
@@ -508,14 +508,14 @@ class TestRacelogWithRealData:
   def test_real_data_indexing(self, real_racelog):
     """Test indexing with real data."""
     first_race = real_racelog[0]
-    assert isinstance(first_race, RaceFinish)
+    assert isinstance(first_race, ZPRaceFinish)
     assert hasattr(first_race, 'event_title')
 
   def test_real_data_iteration(self, real_racelog):
     """Test iteration with real data."""
     count = 0
     for race in real_racelog:
-      assert isinstance(race, RaceFinish)
+      assert isinstance(race, ZPRaceFinish)
       count += 1
     assert count == len(real_racelog)
 
@@ -547,7 +547,7 @@ class TestRacelogWithRealData:
     if not data.get('data'):
       pytest.skip('No race data in large fixture')
 
-    racelog = Racelog(data['data'])
+    racelog = ZPRacelog(data['data'])
 
     # Should handle large dataset
     assert len(racelog) > 0

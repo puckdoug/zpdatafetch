@@ -3,7 +3,7 @@
 from typing import Any
 
 
-class RaceFinish:
+class ZPRaceFinish:
   """Represents a single race finish/result.
 
   Wraps a single race entry from the cyclist race log with convenient
@@ -107,7 +107,7 @@ class RaceFinish:
       String in format: RaceFinish(key=value, key=value, ...)
     """
     items = ', '.join(f'{k}={v!r}' for k, v in self._data.items())
-    return f'RaceFinish({items})'
+    return f'ZPRaceFinish({items})'
 
   def __str__(self) -> str:
     """Return human-readable string with all race data.
@@ -115,7 +115,7 @@ class RaceFinish:
     Returns:
       Multi-line string showing all fields
     """
-    lines = ['RaceFinish(']
+    lines = ['ZPRaceFinish(']
     for key, value in self._data.items():
       lines.append(f'  {key}={value!r},')
     lines.append(')')
