@@ -7,6 +7,7 @@ Run with: pytest --live
 import pytest
 
 from zpdatafetch.signup import Signup
+from zpdatafetch.zpracesignup import ZPRaceSignup
 
 
 @pytest.mark.live
@@ -18,20 +19,21 @@ def test_live_signup_fetch_single_id(valid_event_id):
   # Validate response structure
   assert isinstance(result, dict)
   assert valid_event_id in result
-  assert isinstance(result[valid_event_id], dict)
+  assert isinstance(result[valid_event_id], ZPRaceSignup)
 
   # Validate raw attribute contains string data
-  assert isinstance(signup.raw, dict)
-  assert valid_event_id in signup.raw
-  assert isinstance(signup_raw[valid_event_id], str)
+  assert isinstance(signup.raw(), dict)
+  assert valid_event_id in signup.raw()
+  assert isinstance(signup.raw()[valid_event_id], str)
 
   # Validate processed attribute
-  assert isinstance(signup.processed, dict)
-  assert valid_event_id in signup.processed
-  assert isinstance(signup_fetched[valid_event_id], dict)
+  assert isinstance(signup._fetched, dict)
+  assert valid_event_id in signup._fetched
+  assert isinstance(signup._fetched[valid_event_id], ZPRaceSignup)
 
   # Validate data is non-empty
-  assert len(signup_raw[valid_event_id]) > 0
+  assert len(signup.raw()[valid_event_id]) > 0
+  assert len(signup._fetched[valid_event_id]) > 0
 
 
 @pytest.mark.live
@@ -47,16 +49,17 @@ def test_live_signup_fetch_multiple_ids(valid_event_ids):
   # Validate all IDs are present
   for event_id in valid_event_ids:
     assert event_id in result
-    assert isinstance(result[event_id], dict)
+    assert isinstance(result[event_id], ZPRaceSignup)
 
     # Validate raw data
-    assert event_id in signup.raw
-    assert isinstance(signup_raw[event_id], str)
-    assert len(signup_raw[event_id]) > 0
+    assert event_id in signup.raw()
+    assert isinstance(signup.raw()[event_id], str)
+    assert len(signup.raw()[event_id]) > 0
 
     # Validate processed data
-    assert event_id in signup.processed
-    assert isinstance(signup_fetched[event_id], dict)
+    assert event_id in signup._fetched
+    assert isinstance(signup._fetched[event_id], ZPRaceSignup)
+    assert len(signup._fetched[event_id]) > 0
 
 
 @pytest.mark.live
@@ -69,20 +72,21 @@ async def test_live_signup_afetch_single_id(valid_event_id):
   # Validate response structure
   assert isinstance(result, dict)
   assert valid_event_id in result
-  assert isinstance(result[valid_event_id], dict)
+  assert isinstance(result[valid_event_id], ZPRaceSignup)
 
   # Validate raw attribute contains string data
-  assert isinstance(signup.raw, dict)
-  assert valid_event_id in signup.raw
-  assert isinstance(signup_raw[valid_event_id], str)
+  assert isinstance(signup.raw(), dict)
+  assert valid_event_id in signup.raw()
+  assert isinstance(signup.raw()[valid_event_id], str)
 
   # Validate processed attribute
-  assert isinstance(signup.processed, dict)
-  assert valid_event_id in signup.processed
-  assert isinstance(signup_fetched[valid_event_id], dict)
+  assert isinstance(signup._fetched, dict)
+  assert valid_event_id in signup._fetched
+  assert isinstance(signup._fetched[valid_event_id], ZPRaceSignup)
 
   # Validate data is non-empty
-  assert len(signup_raw[valid_event_id]) > 0
+  assert len(signup.raw()[valid_event_id]) > 0
+  assert len(signup._fetched[valid_event_id]) > 0
 
 
 @pytest.mark.live
@@ -99,13 +103,14 @@ async def test_live_signup_afetch_multiple_ids(valid_event_ids):
   # Validate all IDs are present
   for event_id in valid_event_ids:
     assert event_id in result
-    assert isinstance(result[event_id], dict)
+    assert isinstance(result[event_id], ZPRaceSignup)
 
     # Validate raw data
-    assert event_id in signup.raw
-    assert isinstance(signup_raw[event_id], str)
-    assert len(signup_raw[event_id]) > 0
+    assert event_id in signup.raw()
+    assert isinstance(signup.raw()[event_id], str)
+    assert len(signup.raw()[event_id]) > 0
 
     # Validate processed data
-    assert event_id in signup.processed
-    assert isinstance(signup_fetched[event_id], dict)
+    assert event_id in signup._fetched
+    assert isinstance(signup._fetched[event_id], ZPRaceSignup)
+    assert len(signup._fetched[event_id]) > 0

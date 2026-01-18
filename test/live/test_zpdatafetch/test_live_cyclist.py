@@ -7,6 +7,7 @@ Run with: pytest -m live
 import pytest
 
 from zpdatafetch.cyclist import Cyclist
+from zpdatafetch.zpcyclist import ZPCyclist
 
 
 @pytest.mark.live
@@ -18,21 +19,21 @@ def test_live_cyclist_fetch_single_id(valid_zwift_id):
   # Validate response structure
   assert isinstance(result, dict)
   assert valid_zwift_id in result
-  assert isinstance(result[valid_zwift_id], dict)
+  assert isinstance(result[valid_zwift_id], ZPCyclist)
 
   # Validate raw attribute contains string data
-  assert isinstance(cyclist.raw, dict)
-  assert valid_zwift_id in cyclist.raw
-  assert isinstance(cyclist_raw[valid_zwift_id], str)
+  assert isinstance(cyclist.raw(), dict)
+  assert valid_zwift_id in cyclist.raw()
+  assert isinstance(cyclist.raw()[valid_zwift_id], str)
 
   # Validate processed attribute
-  assert isinstance(cyclist.processed, dict)
-  assert valid_zwift_id in cyclist.processed
-  assert isinstance(cyclist_fetched[valid_zwift_id], dict)
+  assert isinstance(cyclist._fetched, dict)
+  assert valid_zwift_id in cyclist._fetched
+  assert isinstance(cyclist._fetched[valid_zwift_id], ZPCyclist)
 
   # Validate data is non-empty
-  assert len(cyclist_raw[valid_zwift_id]) > 0
-  assert len(cyclist_fetched[valid_zwift_id]) > 0
+  assert len(cyclist.raw()[valid_zwift_id]) > 0
+  assert len(cyclist._fetched[valid_zwift_id].asdict()) > 0
 
 
 @pytest.mark.live
@@ -48,17 +49,17 @@ def test_live_cyclist_fetch_multiple_ids(valid_zwift_ids):
   # Validate all IDs are present
   for zwift_id in valid_zwift_ids:
     assert zwift_id in result
-    assert isinstance(result[zwift_id], dict)
+    assert isinstance(result[zwift_id], ZPCyclist)
 
     # Validate raw data
-    assert zwift_id in cyclist.raw
-    assert isinstance(cyclist_raw[zwift_id], str)
-    assert len(cyclist_raw[zwift_id]) > 0
+    assert zwift_id in cyclist.raw()
+    assert isinstance(cyclist.raw()[zwift_id], str)
+    assert len(cyclist.raw()[zwift_id]) > 0
 
     # Validate processed data
-    assert zwift_id in cyclist.processed
-    assert isinstance(cyclist_fetched[zwift_id], dict)
-    assert len(cyclist_fetched[zwift_id]) > 0
+    assert zwift_id in cyclist._fetched
+    assert isinstance(cyclist._fetched[zwift_id], ZPCyclist)
+    assert len(cyclist._fetched[zwift_id].asdict()) > 0
 
 
 @pytest.mark.live
@@ -71,21 +72,21 @@ async def test_live_cyclist_afetch_single_id(valid_zwift_id):
   # Validate response structure
   assert isinstance(result, dict)
   assert valid_zwift_id in result
-  assert isinstance(result[valid_zwift_id], dict)
+  assert isinstance(result[valid_zwift_id], ZPCyclist)
 
   # Validate raw attribute contains string data
-  assert isinstance(cyclist.raw, dict)
-  assert valid_zwift_id in cyclist.raw
-  assert isinstance(cyclist_raw[valid_zwift_id], str)
+  assert isinstance(cyclist.raw(), dict)
+  assert valid_zwift_id in cyclist.raw()
+  assert isinstance(cyclist.raw()[valid_zwift_id], str)
 
   # Validate processed attribute
-  assert isinstance(cyclist.processed, dict)
-  assert valid_zwift_id in cyclist.processed
-  assert isinstance(cyclist_fetched[valid_zwift_id], dict)
+  assert isinstance(cyclist._fetched, dict)
+  assert valid_zwift_id in cyclist._fetched
+  assert isinstance(cyclist._fetched[valid_zwift_id], ZPCyclist)
 
   # Validate data is non-empty
-  assert len(cyclist_raw[valid_zwift_id]) > 0
-  assert len(cyclist_fetched[valid_zwift_id]) > 0
+  assert len(cyclist.raw()[valid_zwift_id]) > 0
+  assert len(cyclist._fetched[valid_zwift_id].asdict()) > 0
 
 
 @pytest.mark.live
@@ -102,14 +103,14 @@ async def test_live_cyclist_afetch_multiple_ids(valid_zwift_ids):
   # Validate all IDs are present
   for zwift_id in valid_zwift_ids:
     assert zwift_id in result
-    assert isinstance(result[zwift_id], dict)
+    assert isinstance(result[zwift_id], ZPCyclist)
 
     # Validate raw data
-    assert zwift_id in cyclist.raw
-    assert isinstance(cyclist_raw[zwift_id], str)
-    assert len(cyclist_raw[zwift_id]) > 0
+    assert zwift_id in cyclist.raw()
+    assert isinstance(cyclist.raw()[zwift_id], str)
+    assert len(cyclist.raw()[zwift_id]) > 0
 
     # Validate processed data
-    assert zwift_id in cyclist.processed
-    assert isinstance(cyclist_fetched[zwift_id], dict)
-    assert len(cyclist_fetched[zwift_id]) > 0
+    assert zwift_id in cyclist._fetched
+    assert isinstance(cyclist._fetched[zwift_id], ZPCyclist)
+    assert len(cyclist._fetched[zwift_id].asdict()) > 0

@@ -7,6 +7,7 @@ Run with: pytest --live
 import pytest
 
 from zpdatafetch.team import Team
+from zpdatafetch.zpteam import ZPTeam
 
 
 @pytest.mark.live
@@ -18,20 +19,21 @@ def test_live_team_fetch_single_id(valid_team_id):
   # Validate response structure
   assert isinstance(result, dict)
   assert valid_team_id in result
-  assert isinstance(result[valid_team_id], dict)
+  assert isinstance(result[valid_team_id], ZPTeam)
 
   # Validate raw attribute contains string data
-  assert isinstance(team.raw, dict)
-  assert valid_team_id in team.raw
-  assert isinstance(team_raw[valid_team_id], str)
+  assert isinstance(team.raw(), dict)
+  assert valid_team_id in team.raw()
+  assert isinstance(team.raw()[valid_team_id], str)
 
   # Validate processed attribute
-  assert isinstance(team.processed, dict)
-  assert valid_team_id in team.processed
-  assert isinstance(team_fetched[valid_team_id], dict)
+  assert isinstance(team._fetched, dict)
+  assert valid_team_id in team._fetched
+  assert isinstance(team._fetched[valid_team_id], ZPTeam)
 
   # Validate data is non-empty
-  assert len(team_raw[valid_team_id]) > 0
+  assert len(team.raw()[valid_team_id]) > 0
+  assert len(team._fetched[valid_team_id]) > 0
 
 
 @pytest.mark.live
@@ -47,16 +49,17 @@ def test_live_team_fetch_multiple_ids(valid_team_id):
 
   # Validate first team ID is present
   assert valid_team_id in result
-  assert isinstance(result[valid_team_id], dict)
+  assert isinstance(result[valid_team_id], ZPTeam)
 
   # Validate raw data
-  assert valid_team_id in team.raw
-  assert isinstance(team_raw[valid_team_id], str)
-  assert len(team_raw[valid_team_id]) > 0
+  assert valid_team_id in team.raw()
+  assert isinstance(team.raw()[valid_team_id], str)
+  assert len(team.raw()[valid_team_id]) > 0
 
   # Validate processed data
-  assert valid_team_id in team.processed
-  assert isinstance(team_fetched[valid_team_id], dict)
+  assert valid_team_id in team._fetched
+  assert isinstance(team._fetched[valid_team_id], ZPTeam)
+  assert len(team._fetched[valid_team_id]) > 0
 
 
 @pytest.mark.live
@@ -69,20 +72,21 @@ async def test_live_team_afetch_single_id(valid_team_id):
   # Validate response structure
   assert isinstance(result, dict)
   assert valid_team_id in result
-  assert isinstance(result[valid_team_id], dict)
+  assert isinstance(result[valid_team_id], ZPTeam)
 
   # Validate raw attribute contains string data
-  assert isinstance(team.raw, dict)
-  assert valid_team_id in team.raw
-  assert isinstance(team_raw[valid_team_id], str)
+  assert isinstance(team.raw(), dict)
+  assert valid_team_id in team.raw()
+  assert isinstance(team.raw()[valid_team_id], str)
 
   # Validate processed attribute
-  assert isinstance(team.processed, dict)
-  assert valid_team_id in team.processed
-  assert isinstance(team_fetched[valid_team_id], dict)
+  assert isinstance(team._fetched, dict)
+  assert valid_team_id in team._fetched
+  assert isinstance(team._fetched[valid_team_id], ZPTeam)
 
   # Validate data is non-empty
-  assert len(team_raw[valid_team_id]) > 0
+  assert len(team.raw()[valid_team_id]) > 0
+  assert len(team._fetched[valid_team_id]) > 0
 
 
 @pytest.mark.live
@@ -99,13 +103,14 @@ async def test_live_team_afetch_multiple_ids(valid_team_id):
 
   # Validate first team ID is present
   assert valid_team_id in result
-  assert isinstance(result[valid_team_id], dict)
+  assert isinstance(result[valid_team_id], ZPTeam)
 
   # Validate raw data
-  assert valid_team_id in team.raw
-  assert isinstance(team_raw[valid_team_id], str)
-  assert len(team_raw[valid_team_id]) > 0
+  assert valid_team_id in team.raw()
+  assert isinstance(team.raw()[valid_team_id], str)
+  assert len(team.raw()[valid_team_id]) > 0
 
   # Validate processed data
-  assert valid_team_id in team.processed
-  assert isinstance(team_fetched[valid_team_id], dict)
+  assert valid_team_id in team._fetched
+  assert isinstance(team._fetched[valid_team_id], ZPTeam)
+  assert len(team._fetched[valid_team_id]) > 0
