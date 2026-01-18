@@ -46,25 +46,25 @@ Module for fetching Zwiftracing data using the Zwiftracing API
   # Create parser with common arguments
   p = create_base_parser(
     description=desc,
-    command_metavar='{config,rider,result,team}',
+    command_metavar="{config,rider,result,team}",
   )
 
   # Add zrdatafetch-specific arguments
   p.add_argument(
-    '--batch',
-    action='store_true',
-    help='use batch POST endpoint for multiple IDs (rider command only)',
+    "--batch",
+    action="store_true",
+    help="use batch POST endpoint for multiple IDs (rider command only)",
   )
   p.add_argument(
-    '--batch-file',
+    "--batch-file",
     type=str,
-    metavar='FILE',
-    help='read IDs from file (one per line) for batch request (rider command only)',
+    metavar="FILE",
+    help="read IDs from file (one per line) for batch request (rider command only)",
   )
   p.add_argument(
-    '--premium',
-    action='store_true',
-    help='use premium tier rate limits (higher request quotas)',
+    "--premium",
+    action="store_true",
+    help="use premium tier rate limits (higher request quotas)",
   )
 
   # Use parse_intermixed_args to handle flags after positional arguments
@@ -88,12 +88,17 @@ Module for fetching Zwiftracing data using the Zwiftracing API
   if not validate_command_provided(args.cmd, p):
     return None
 
+  # Handle help command
+  if args.cmd == "help":
+    p.print_help()
+    return None
+
   # Route to appropriate command
   match args.cmd:
-    case 'config':
+    case "config":
       handle_config_command(Config, check_first=True)
       return None
-    case 'rider':
+    case "rider":
       # Handle batch file input
       if args.batch_file:
         ids = read_ids_from_file(args.batch_file)
@@ -101,14 +106,14 @@ Module for fetching Zwiftracing data using the Zwiftracing API
           return 1
         args.id = ids
 
-      if not validate_ids_provided(args.id, 'rider'):
+      if not validate_ids_provided(args.id, "rider"):
         return 1
 
       if args.noaction:
         if args.batch or args.batch_file:
-          print(f'Would fetch {len(args.id)} riders using batch POST')
+          print(f"Would fetch {len(args.id)} riders using batch POST")
         else:
-          format_noaction_output('rider', args.id, args.raw)
+          format_noaction_output("rider", args.id, args.raw)
         return None
 
       # Handle batch request
@@ -126,7 +131,7 @@ Module for fetching Zwiftracing data using the Zwiftracing API
             else:
               # Multiple riders: key: value format
               for zwift_id, rider in riders.items():
-                print(f'{zwift_id}: {rider._raw}')
+                print(f"{zwift_id}: {rider._raw}")
           elif args.v1fetch:
             for rider in riders.values():
               print(json.dumps(rider._fetched, indent=2))
@@ -134,10 +139,10 @@ Module for fetching Zwiftracing data using the Zwiftracing API
             for rider in riders.values():
               print(rider.json())
         except ValueError as e:
-          print(f'Error: Invalid Zwift ID in batch: {e}')
+          print(f"Error: Invalid Zwift ID in batch: {e}")
           return 1
         except Exception as e:
-          print(f'Error fetching batch: {e}')
+          print(f"Error fetching batch: {e}")
           return 1
       # Fetch and display rider data individually
       elif args.raw and len(args.id) > 1:
@@ -146,12 +151,12 @@ Module for fetching Zwiftracing data using the Zwiftracing API
           try:
             rider = ZRRider(zwift_id=int(zwift_id))
             rider.fetch()
-            print(f'{zwift_id}: {rider._raw}')
+            print(f"{zwift_id}: {rider._raw}")
           except ValueError:
-            print(f'Error: Invalid Zwift ID: {zwift_id}')
+            print(f"Error: Invalid Zwift ID: {zwift_id}")
             return 1
           except Exception as e:
-            print(f'Error fetching rider {zwift_id}: {e}')
+            print(f"Error fetching rider {zwift_id}: {e}")
             return 1
       else:
         # Single fetch or non-raw output
@@ -166,17 +171,17 @@ Module for fetching Zwiftracing data using the Zwiftracing API
             else:
               print(rider.json())
           except ValueError:
-            print(f'Error: Invalid Zwift ID: {zwift_id}')
+            print(f"Error: Invalid Zwift ID: {zwift_id}")
             return 1
           except Exception as e:
-            print(f'Error fetching rider {zwift_id}: {e}')
+            print(f"Error fetching rider {zwift_id}: {e}")
             return 1
-    case 'result':
-      if not validate_ids_provided(args.id, 'result'):
+    case "result":
+      if not validate_ids_provided(args.id, "result"):
         return 1
 
       if args.noaction:
-        format_noaction_output('result', args.id, args.raw)
+        format_noaction_output("result", args.id, args.raw)
         return None
 
       # Fetch and display result data
@@ -186,12 +191,12 @@ Module for fetching Zwiftracing data using the Zwiftracing API
           try:
             result = ZRResult(race_id=int(race_id))
             result.fetch()
-            print(f'{race_id}: {result._raw}')
+            print(f"{race_id}: {result._raw}")
           except ValueError:
-            print(f'Error: Invalid race ID: {race_id}')
+            print(f"Error: Invalid race ID: {race_id}")
             return 1
           except Exception as e:
-            print(f'Error fetching result {race_id}: {e}')
+            print(f"Error fetching result {race_id}: {e}")
             return 1
       else:
         # Single result or non-raw output
@@ -206,17 +211,17 @@ Module for fetching Zwiftracing data using the Zwiftracing API
             else:
               print(result.json())
           except ValueError:
-            print(f'Error: Invalid race ID: {race_id}')
+            print(f"Error: Invalid race ID: {race_id}")
             return 1
           except Exception as e:
-            print(f'Error fetching result {race_id}: {e}')
+            print(f"Error fetching result {race_id}: {e}")
             return 1
-    case 'team':
-      if not validate_ids_provided(args.id, 'team'):
+    case "team":
+      if not validate_ids_provided(args.id, "team"):
         return 1
 
       if args.noaction:
-        format_noaction_output('team', args.id, args.raw)
+        format_noaction_output("team", args.id, args.raw)
         return None
 
       # Fetch and display team data
@@ -226,12 +231,12 @@ Module for fetching Zwiftracing data using the Zwiftracing API
           try:
             team = ZRTeam(team_id=int(team_id))
             team.fetch()
-            print(f'{team_id}: {team._raw}')
+            print(f"{team_id}: {team._raw}")
           except ValueError:
-            print(f'Error: Invalid team ID: {team_id}')
+            print(f"Error: Invalid team ID: {team_id}")
             return 1
           except Exception as e:
-            print(f'Error fetching team {team_id}: {e}')
+            print(f"Error fetching team {team_id}: {e}")
             return 1
       else:
         # Single team or non-raw output
@@ -246,21 +251,21 @@ Module for fetching Zwiftracing data using the Zwiftracing API
             else:
               print(team.json())
           except ValueError:
-            print(f'Error: Invalid team ID: {team_id}')
+            print(f"Error: Invalid team ID: {team_id}")
             return 1
           except Exception as e:
-            print(f'Error fetching team {team_id}: {e}')
+            print(f"Error fetching team {team_id}: {e}")
             return 1
     case _:
       # Invalid command
-      if not validate_command_name(args.cmd, ('rider', 'result', 'team')):
+      if not validate_command_name(args.cmd, ("rider", "result", "team")):
         return 1
 
   return None
 
 
 # ===============================================================================
-if __name__ == '__main__':
+if __name__ == "__main__":
   exit_code = main()
   if exit_code is not None:
     sys.exit(exit_code)

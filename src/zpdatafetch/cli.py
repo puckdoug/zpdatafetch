@@ -68,6 +68,11 @@ Module for fetching zwiftpower data using the Zwifpower API
   if not validate_command_provided(args.cmd, p):
     return None
 
+  # Handle help command
+  if args.cmd == 'help':
+    p.print_help()
+    return None
+
   # Handle config command
   if args.cmd == 'config':
     handle_config_command(Config, check_first=False)

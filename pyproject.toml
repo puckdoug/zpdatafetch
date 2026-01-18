@@ -59,6 +59,7 @@ dev = [
   "tox>=4.31.0",
   # Async testing support - trio for testing both backends
   "trio>=0.26.0",
+  "ty>=0.0.12",
   "wheel>=0.44.0",
 ]
 
