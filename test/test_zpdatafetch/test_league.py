@@ -8,6 +8,7 @@ import pytest
 from shared.validation import ValidationError
 from zpdatafetch.async_zp import AsyncZP
 from zpdatafetch.league import League
+from zpdatafetch.zpleague import ZPLeague
 
 
 def test_league(league):
@@ -49,14 +50,15 @@ def test_league_fetch_single_id(league, league_ok, login_page, logged_in_page):
   try:
     result = league.fetch(2780)
     assert 2780 in result
-    assert result[2780] == league_ok
+    assert isinstance(result[2780], ZPLeague)
+    assert result[2780].asdict() == league_ok
     assert result[2780]['data'][0]['name'] == 'Rider One'
   finally:
     AsyncZP.__init__ = original_init
 
 
 def test_league_json_output(league, league_ok):
-  league._fetched = {2780: league_ok}
+  league._fetched = {2780: ZPLeague(league_ok)}
   json_str = league.json()
   assert '2780' in json_str
   assert 'Rider One' in json_str
@@ -92,8 +94,9 @@ async def test_league_afetch(league_ok, login_page, logged_in_page):
     result = await league.afetch(league_id)
 
     assert league_id in result
+    assert isinstance(result[league_id], ZPLeague)
     assert result[league_id]['data'][0]['name'] == 'Rider One'
-    assert league._fetched[league_id] == league_ok
+    assert league._fetched[league_id].asdict() == league_ok
 
 
 @pytest.mark.anyio

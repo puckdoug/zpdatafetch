@@ -7,6 +7,7 @@ import pytest
 
 from zpdatafetch.async_zp import AsyncZP
 from zpdatafetch.league import League
+from zpdatafetch.zpleague import ZPLeague
 
 
 @pytest.mark.anyio
@@ -37,4 +38,5 @@ async def test_async_league_fetch(league_ok, login_page, logged_in_page):
     data = await league.afetch(2780)
 
     assert 2780 in data
-    assert data[2780] == league_ok
+    assert isinstance(data[2780], ZPLeague)
+    assert data[2780].asdict() == league_ok

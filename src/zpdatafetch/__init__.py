@@ -10,6 +10,7 @@ from zpdatafetch.signup import Signup
 from zpdatafetch.sprints import Sprints
 from zpdatafetch.team import Team
 from zpdatafetch.zp import ZP
+from zpdatafetch.zpleague import ZPLeague
 from zpdatafetch.zpracefinish import ZPRaceFinish
 from zpdatafetch.zpracelog import ZPRacelog
 
@@ -39,6 +40,7 @@ __all__ = [
   'League',
   'setup_logging',
   # Race data classes
+  'ZPLeague',
   'ZPRaceFinish',
   'ZPRacelog',
   'RaceFinish',  # Backwards compatibility alias

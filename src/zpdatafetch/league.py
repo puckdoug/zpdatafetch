@@ -1,6 +1,7 @@
 """Unified League class with both sync and async fetch capabilities."""
 
 import asyncio
+import json
 from argparse import ArgumentParser
 from collections.abc import Coroutine
 from typing import Any
@@ -13,6 +14,7 @@ from zpdatafetch.async_zp import AsyncZP
 from zpdatafetch.logging_config import get_logger, setup_logging
 from zpdatafetch.zp import ZP
 from zpdatafetch.zp_obj import ZP_obj
+from zpdatafetch.zpleague import ZPLeague
 
 logger = get_logger(__name__)
 
@@ -49,6 +51,7 @@ class League(ZP_obj):
   def __init__(self) -> None:
     """Initialize a new League instance."""
     super().__init__()
+    self._fetched: dict[int, ZPLeague] = {}  # Override type to use ZPLeague
     self._zp: AsyncZP | None = None  # Async session
     self._zp_sync: ZP | None = None  # Sync session (for reference only)
 
@@ -71,6 +74,22 @@ class League(ZP_obj):
       zp: ZP instance to use for API requests
     """
     self._zp_sync = zp
+
+  # -------------------------------------------------------------------------------
+  def json(self) -> str:
+    """Serialize the fetched data to formatted JSON string.
+
+    Converts ZPLeague objects to dicts before serialization.
+
+    Returns:
+      JSON string with 2-space indentation
+    """
+    # Convert ZPLeague objects to dicts
+    serializable = {
+      key: value.asdict() if isinstance(value, ZPLeague) else value
+      for key, value in self._fetched.items()
+    }
+    return json.JSONEncoder(indent=2).encode(serializable)
 
   # -------------------------------------------------------------------------------
   async def _get_or_create_session(self) -> tuple[AsyncZP, bool]:
@@ -97,14 +116,14 @@ class League(ZP_obj):
     return (temp_zp, True)
 
   # -------------------------------------------------------------------------------
-  async def _fetch_parallel(self, *league_id: int) -> dict[Any, Any]:
+  async def _fetch_parallel(self, *league_id: int) -> dict[int, ZPLeague]:
     """Fetch league data in parallel using async requests.
 
     Args:
       *league_id: One or more league ID integers to fetch
 
     Returns:
-      Dictionary mapping league IDs to their data
+      Dictionary mapping league IDs to ZPLeague objects
     """
     # SECURITY: Validate all league IDs before creating session
     # This avoids expensive login/session creation for invalid IDs
@@ -127,7 +146,7 @@ class League(ZP_obj):
 
       # Execute all fetches in parallel
       results_raw: dict[int, str] = {}
-      results_fetched: dict[int, dict[str, Any]] = {}
+      results_fetched: dict[int, ZPLeague] = {}
 
       async def fetch_and_store(
         idx: int,
@@ -139,9 +158,10 @@ class League(ZP_obj):
           league_id = validated_ids[idx]
           results_raw[league_id] = raw_json
 
-          # Parse for fetched dict
+          # Parse for fetched dict and wrap in ZPLeague
           parsed = parse_json_safe(raw_json, context=f'league {league_id}')
-          results_fetched[league_id] = parsed if isinstance(parsed, dict) else {}
+          league_dict = parsed if isinstance(parsed, dict) else {}
+          results_fetched[league_id] = ZPLeague(league_dict)
 
           logger.debug(f'Successfully fetched league ID: {league_id}')
         except Exception as e:
@@ -166,7 +186,7 @@ class League(ZP_obj):
   # -------------------------------------------------------------------------------
   # -------------------------------------------------------------------------------
   # -------------------------------------------------------------------------------
-  def _fetch_sequential(self, *league_id: int) -> dict[Any, Any]:
+  def _fetch_sequential(self, *league_id: int) -> dict[int, ZPLeague]:
     """Fetch league data sequentially (synchronous mode).
 
     This method provides a clear, separate execution path for debugging.
@@ -176,7 +196,7 @@ class League(ZP_obj):
       *league_id: One or more league ID integers to fetch
 
     Returns:
-      Dictionary mapping league IDs to their data
+      Dictionary mapping league IDs to ZPLeague objects
 
     Raises:
       ValueError: If any ID is invalid
@@ -196,7 +216,7 @@ class League(ZP_obj):
     zp = ZP()
 
     results_raw: dict[int, str] = {}
-    results_fetched: dict[int, dict[str, Any]] = {}
+    results_fetched: dict[int, ZPLeague] = {}
 
     # Fetch each ID sequentially
     for id_val in validated_ids:
@@ -207,9 +227,10 @@ class League(ZP_obj):
       raw_json = zp.fetch_json(url)
       results_raw[id_val] = raw_json
 
-      # Parse immediately (no parallel parsing)
+      # Parse immediately (no parallel parsing) and wrap in ZPLeague
       parsed = parse_json_safe(raw_json, context=f'league {id_val}')
-      results_fetched[id_val] = parsed if isinstance(parsed, dict) else {}
+      league_dict = parsed if isinstance(parsed, dict) else {}
+      results_fetched[id_val] = ZPLeague(league_dict)
 
       logger.debug(f'Successfully fetched league data for league ID: {id_val}')
 
@@ -233,7 +254,7 @@ class League(ZP_obj):
     mode = 'synchronous' if enabled else 'asynchronous (parallel)'
     logger.info(f'League fetch mode set to: {mode}')
 
-  def fetch(self, *league_id: int) -> dict[Any, Any]:
+  def fetch(self, *league_id: int) -> dict[int, ZPLeague]:
     """Fetch league data for one or more league IDs (synchronous).
 
     Retrieves the league standings from Zwiftpower cache.
@@ -243,7 +264,7 @@ class League(ZP_obj):
       *league_id: One or more league ID integers to fetch
 
     Returns:
-      Dictionary mapping league IDs to their data
+      Dictionary mapping league IDs to ZPLeague objects
 
     Raises:
       ValueError: If any league ID is invalid
@@ -268,7 +289,7 @@ class League(ZP_obj):
       return asyncio.run(self._fetch_parallel(*league_id))
 
   # -------------------------------------------------------------------------------
-  async def afetch(self, *league_id: int) -> dict[Any, Any]:
+  async def afetch(self, *league_id: int) -> dict[int, ZPLeague]:
     """Fetch league data for one or more league IDs (asynchronous interface).
 
     Uses parallel async requests internally. Supports session sharing
@@ -278,7 +299,7 @@ class League(ZP_obj):
       *league_id: One or more league ID integers to fetch
 
     Returns:
-      Dictionary mapping league IDs to their data
+      Dictionary mapping league IDs to ZPLeague objects
 
     Raises:
       ValueError: If any league ID is invalid
