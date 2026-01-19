@@ -1,7 +1,9 @@
 import json
+from dataclasses import dataclass, field
 from typing import Any
 
 
+@dataclass(slots=True)
 class ZP_obj:
   """Base class for Zwiftpower data objects.
 
@@ -24,11 +26,10 @@ class ZP_obj:
     Python dictionaries. The processed attribute is reserved for future use.
   """
 
-  def __init__(self) -> None:
-    """Initialize a new ZP_obj instance with empty data structures."""
-    self._raw: dict[int, str] = {}  # True raw response.text strings
-    self._fetched: dict[int, dict] = {}  # Parsed Python dicts
-    self.processed: dict[int, dict] = {}  # Reserved for future processing
+  # Private attributes (not in __init__ by default, but included for dataclass)
+  _raw: dict[int, str] = field(default_factory=dict, repr=False)
+  _fetched: dict[int, Any] = field(default_factory=dict, repr=False)
+  processed: dict[int, Any] = field(default_factory=dict, repr=False)
 
   def __str__(self) -> str:
     """Return string representation of the fetched data.
@@ -62,7 +63,7 @@ class ZP_obj:
     """
     return self._raw
 
-  def fetched(self) -> dict[int, dict]:
+  def fetched(self) -> dict[int, Any]:
     """Return the parsed/fetched data.
 
     Returns:

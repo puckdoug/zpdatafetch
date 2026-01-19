@@ -148,7 +148,7 @@ class Result(ZP_obj):
           # Parse for fetched dict and wrap in ZPRaceResult
           parsed = parse_json_safe(raw_json, context=f'race result {race_id}')
           result_dict = parsed if isinstance(parsed, dict) else {}
-          results_fetched[race_id] = ZPRaceResult(result_dict)
+          results_fetched[race_id] = ZPRaceResult.from_dict(result_dict)
 
           logger.debug(
             f'Successfully fetched results for race ID: {race_id}',
@@ -219,7 +219,7 @@ class Result(ZP_obj):
       # Parse immediately (no parallel parsing) and wrap in ZPRaceResult
       parsed = parse_json_safe(raw_json, context=f'result {id_val}')
       result_dict = parsed if isinstance(parsed, dict) else {}
-      results_fetched[id_val] = ZPRaceResult(result_dict)
+      results_fetched[id_val] = ZPRaceResult.from_dict(result_dict)
 
       logger.debug(f'Successfully fetched result data for race ID: {id_val}')
 
