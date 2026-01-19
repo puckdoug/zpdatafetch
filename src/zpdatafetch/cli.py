@@ -228,10 +228,88 @@ Module for fetching zwiftpower data using the Zwifpower API
       # Multiple IDs: print as key: value pairs (one per line)
       for key, value in x._raw.items():
         print(f'{key}: {value}')
-  elif args.v1fetch:
-    print(json.dumps(x._fetched, indent=2))
+  elif args.json or args.v1fetch:
+    # Output as JSON (--json or legacy --v1fetch)
+    # Convert objects to dicts for JSON serialization
+    serializable = {
+      key: value.asdict() if hasattr(value, 'asdict') else value
+      for key, value in x._fetched.items()
+    }
+    print(json.dumps(serializable, indent=2))
+  elif args.extras or args.excluded:
+    # Output extras and/or excluded fields
+    for key, value in x._fetched.items():
+      print(f'{key}:')
+      has_excluded = False
+      has_extras = False
+
+      # Output excluded fields if requested
+      if args.excluded:
+        # Check for excluded at the collection level
+        if hasattr(value, 'excluded'):
+          value_excluded = value.excluded()  # type: ignore[call-non-callable]
+          if value_excluded:
+            print(f'  collection excluded: {value_excluded}')
+            has_excluded = True
+
+        # Check for excluded in each item if it's a collection
+        if hasattr(value, '__iter__') and not isinstance(value, str):
+          try:
+            for item in value:  # type: ignore[iteration-not-supported]
+              if hasattr(item, 'excluded'):
+                item_excluded = item.excluded()  # type: ignore[call-non-callable]
+                if item_excluded:
+                  print(f'  {item!r}')
+                  print(f'    excluded: {item_excluded}')
+                  has_excluded = True
+          except (TypeError, AttributeError):
+            pass
+
+      # Output extras fields if requested
+      if args.extras:
+        # Check for extras at the collection level
+        if hasattr(value, 'extras'):
+          value_extras = value.extras()  # type: ignore[call-non-callable]
+          if value_extras:
+            print(f'  collection extras: {value_extras}')
+            has_extras = True
+
+        # Check for extras in each item if it's a collection
+        if hasattr(value, '__iter__') and not isinstance(value, str):
+          try:
+            for item in value:  # type: ignore[iteration-not-supported]
+              if hasattr(item, 'extras'):
+                item_extras = item.extras()  # type: ignore[call-non-callable]
+                if item_extras:
+                  print(f'  {item!r}')
+                  print(f'    extras: {item_extras}')
+                  has_extras = True
+          except (TypeError, AttributeError):
+            pass
+
+      # Show appropriate "no data" messages for each requested flag
+      if args.excluded and not has_excluded:
+        print('  No excluded')
+      if args.extras and not has_extras:
+        print('  No extras')
   else:
-    print(json.dumps(x._fetched, indent=2))
+    # Default: output object repr, with special handling for collections
+    for key, value in x._fetched.items():
+      # If it's a sequence with riders (ZPRaceResult), show metadata and riders
+      if (
+        hasattr(value, '__len__')
+        and hasattr(value, '__iter__')
+        and not isinstance(value, str)
+      ):
+        print(f'{key}: {value!r}')
+        # Iterate through items and show each
+        try:
+          for item in value:  # type: ignore[iteration-not-supported]
+            print(f'  {item!r}')
+        except (TypeError, AttributeError):
+          pass
+      else:
+        print(f'{key}: {value!r}')
 
   return None
 

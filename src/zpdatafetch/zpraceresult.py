@@ -12,42 +12,87 @@ class ZPRiderFinish:
 
   Uses explicit typed fields for known API data with _extra dict
   to capture unexpected fields for forward compatibility.
-
-  Attributes:
-    position: Rider's finishing position
-    name: Rider's name
-    zwift_id: Rider's Zwift ID
-    team: Rider's team name
-    time_ms: Finish time in milliseconds
-    avg_power: Average power in watts
-    avg_wkg: Average power per kg
-    avg_hr: Average heart rate
-    weight_kg: Rider's weight in kg
-    category: Race category
-    points: Points awarded
-    speed: Average speed
-    _extra: Captures unknown fields from API for forward compatibility
   """
 
-  # Explicit typed fields for known API data
+  # Core race result fields
   position: int = 0
-  name: str = ""
   zwift_id: int = 0
+  name: str = ''
   team: str | None = None
-  time_ms: int = 0
-  avg_power: float = 0.0
-  avg_wkg: float = 0.0
-  avg_hr: int = 0
-  weight_kg: float = 0.0
-  category: str = ""
-  points: int = 0
-  speed: float = 0.0
+  team_id: str | None = None
+  gender: str = ''  # "male" or "female"
+
+  # Time and performance fields
+  time: float = 0.0  # Finish time in seconds
+  time_gun: float = 0.0  # Gun time in seconds
+  time_hms: str = ''  # Finish time formatted as hh:mm:ss.sss
+  time_gun_hms: str = ''  # Gun time formatted as hh:mm:ss.sss
+  gap: float = 0.0  # Time gap to winner
+  age: str = ''
+
+  # Power metrics
+  zftp: int = 0  # Zwift's internal FTP (not actual FTP)
+  avg_power: float = 0.0  # Average power in watts
+  avg_wkg: float = 0.0  # Average power per kg
+  avg_hr: int = 0  # Average heart rate
+  max_hr: int = 0  # Maximum heart rate
+  np: float = 0.0  # Normalized Power
+
+  # Wattage at different intervals
+  w5: int = 0
+  w15: int = 0
+  w30: int = 0
+  w60: int = 0
+  w120: int = 0
+  w300: int = 0
+  w1200: int = 0
+
+  # Wattage per kg at different intervals
+  wkg5: float = 0.0
+  wkg15: float = 0.0
+  wkg30: float = 0.0
+  wkg60: float = 0.0
+  wkg120: float = 0.0
+  wkg300: float = 0.0
+  wkg1200: float = 0.0
+  wkg_ftp: float = 0.0
+  wftp: int = 0
+
+  # Physical attributes
+  height: int = 0  # Height in cm
+  weight: float = 0.0  # Weight in kg
+
+  # Skill and position metrics
+  position_in_cat: int = 0  # Position in category
+  skill: float = 0.0  # Skill rating
+  skill_b: float = 0.0  # Secondary skill rating
+  skill_gain: float = 0.0  # Skill gain
+  zada: int = 0  # Zwift activity data
+  pts: int = 0  # Points awarded
+  pen: str = ''  # Category/Penalty
+
+  # Category and division
+  category: str = ''  # Men's category (A, B, C, D)
+  category_women: str = ''  # Women's category (A, B, C, D)
+  hrm: bool = False  # Has heart rate monitor
+
+  # Additional metrics
+  uid: str = ''  # User identifier
+  lag: float = 0.0  # Network lag
+  vtta: float = 0.0  # veteran time trial association? - adjustment by age
+  vttat: float = 0.0  # veteran time trial actual time? - pre-adjustment
+  flag: int = 0  # Flag/status
+  hrmax: int = 0  # Maximum heart rate
+  hreff: int = 0  # Effective heart rate
+
+  # Excluded fields - recognized but not explicitly handled (for potential future use)
+  _excluded: dict[str, Any] = field(default_factory=dict, repr=False)
 
   # Catch-all for unknown/new fields from API
   _extra: dict[str, Any] = field(default_factory=dict, repr=False)
 
   @classmethod
-  def from_dict(cls, data: dict[str, Any]) -> "ZPRiderFinish":
+  def from_dict(cls, data: dict[str, Any]) -> 'ZPRiderFinish':
     """Create instance from API response dict.
 
     Known fields are extracted with type coercion.
@@ -60,33 +105,219 @@ class ZPRiderFinish:
       ZPRiderFinish instance with parsed fields
     """
     known_fields = {
-      "position",
-      "name",
-      "zwift_id",
-      "team",
-      "time_ms",
-      "avg_power",
-      "avg_wkg",
-      "avg_hr",
-      "weight_kg",
-      "category",
-      "points",
-      "speed",
+      'position',
+      'zwift_id',
+      'name',
+      'team',
+      'team_id',
+      'gender',
+      'time',
+      'time_gun',
+      'time_hms',
+      'time_gun_hms',
+      'gap',
+      'age',
+      'zftp',
+      'avg_power',
+      'avg_wkg',
+      'avg_hr',
+      'max_hr',
+      'np',
+      'w5',
+      'w15',
+      'w30',
+      'w60',
+      'w120',
+      'w300',
+      'w1200',
+      'wkg5',
+      'wkg15',
+      'wkg30',
+      'wkg60',
+      'wkg120',
+      'wkg300',
+      'wkg1200',
+      'wkg_ftp',
+      'wftp',
+      'height',
+      'weight',
+      'position_in_cat',
+      'skill',
+      'skill_b',
+      'skill_gain',
+      'zada',
+      'pts',
+      'pen',
+      'category',
+      'category_women',
+      'hrm',
+      'uid',
+      'lag',
+      'vtta',
+      'vttat',
+      'flag',
+      'hrmax',
+      'hreff',
+      # Field aliases (alternative names for the same data)
+      'pos',
+      'zwid',
+      'tid',
+      'tname',
+      'div',
+      'divw',
+      'ftp',  # Alias for zftp
+      # Used for gender conversion
+      'male',
     }
+
+    def extract_value(value: Any, default: Any = None) -> Any:
+      """Extract value from [value, flag] format or return as-is."""
+      if isinstance(value, list) and len(value) > 0:
+        return value[0]
+      return value if value is not None else default
+
+    def extract_numeric(value: Any, type_func: type, default: Any) -> Any:
+      """Extract and convert numeric value, handling both formats."""
+      extracted = extract_value(value, default)
+      if extracted == default:
+        return default
+      try:
+        return type_func(extracted)
+      except (ValueError, TypeError):
+        return default
+
+    def format_time_hms(seconds: float) -> str:
+      """Format time in seconds to hh:mm:ss.sss format.
+
+      Args:
+        seconds: Time in seconds (can include fractional seconds)
+
+      Returns:
+        Formatted string in hh:mm:ss.sss format
+      """
+      if not seconds:
+        return ''
+      hours = int(seconds // 3600)
+      remaining = seconds % 3600
+      minutes = int(remaining // 60)
+      secs = remaining % 60
+      return f'{hours:02d}:{minutes:02d}:{secs:06.3f}'
+
+    def set_rider_category(div: int) -> str:
+      """Convert numeric division to rider category letter."""
+      match div:
+        case 0:
+          return ''
+        case 10:
+          return 'A'
+        case 20:
+          return 'B'
+        case 30:
+          return 'C'
+        case 40:
+          return 'D'
+        case _:
+          return str(div)
+
+    # Determine gender from 'male' field
+    male = data.get('male')
+    gender = ''
+    if male == 1:
+      gender = 'male'
+    elif male == 0:
+      gender = 'female'
+
+    # Determine category from 'div' field
+    div = extract_numeric(data.get('div'), int, 0)
+    category = set_rider_category(div)
+
+    # Determine women's category from 'divw' field
+    divw = extract_numeric(data.get('divw'), int, 0)
+    category_women = set_rider_category(divw)
+
+    # Determine if has heart rate monitor
+    hrm_value = data.get('hrm')
+    hrm = hrm_value == 1
+
+    # Extract uid, lag, vtta, vttat, flag
+    uid = str(data.get('uid', ''))
+    lag = float(extract_numeric(data.get('lag'), float, 0.0))
+    vtta = float(extract_numeric(data.get('vtta'), float, 0.0))
+    vttat = float(extract_numeric(data.get('vttat'), float, 0.0))
+    flag = int(extract_numeric(data.get('flag'), int, 0))
+
+    # Extract first element from hrmax and hreff arrays
+    hrmax_value = extract_value(data.get('hrmax'), 0)
+    hrmax = int(extract_numeric(hrmax_value, int, 0))
+    hreff_value = extract_value(data.get('hreff'), 0)
+    hreff = int(extract_numeric(hreff_value, int, 0))
+
+    # Extract and format time values
+    time_seconds = float(extract_numeric(extract_value(data.get('time')), float, 0.0))
+    time_gun_seconds = float(
+      extract_numeric(data.get('time_gun'), float, 0.0),
+    )
+    time_hms = format_time_hms(time_seconds)
+    time_gun_hms = format_time_hms(time_gun_seconds)
+
+    # Extract known fields from data and extras
     return cls(
-      position=int(data.get("position", 0)),
-      name=str(data.get("name", "")),
-      zwift_id=int(data.get("zwift_id", 0)),
-      team=data.get("team"),
-      time_ms=int(data.get("time_ms", 0)),
-      avg_power=float(data.get("avg_power", 0.0)),
-      avg_wkg=float(data.get("avg_wkg", 0.0)),
-      avg_hr=int(data.get("avg_hr", 0)),
-      weight_kg=float(data.get("weight_kg", 0.0)),
-      category=str(data.get("category", "")),
-      points=int(data.get("points", 0)),
-      speed=float(data.get("speed", 0.0)),
-      _extra={k: v for k, v in data.items() if k not in known_fields},
+      position=int(extract_value(data.get('position') or data.get('pos'), 0)),
+      zwift_id=int(extract_value(data.get('zwift_id') or data.get('zwid'), 0)),
+      name=str(data.get('name', '')),
+      team=data.get('team') or data.get('tname'),
+      team_id=str(extract_value(data.get('team_id') or data.get('tid'), '')),
+      gender=gender,
+      time=time_seconds,
+      time_gun=time_gun_seconds,
+      time_hms=time_hms,
+      time_gun_hms=time_gun_hms,
+      gap=float(extract_numeric(data.get('gap'), float, 0.0)),
+      age=str(data.get('age', '')),
+      zftp=int(extract_numeric(data.get('zftp') or data.get('ftp'), int, 0)),
+      avg_power=float(
+        extract_numeric(extract_value(data.get('avg_power')), float, 0.0),
+      ),
+      avg_wkg=float(extract_numeric(extract_value(data.get('avg_wkg')), float, 0.0)),
+      avg_hr=int(extract_numeric(extract_value(data.get('avg_hr')), int, 0)),
+      max_hr=int(extract_numeric(extract_value(data.get('max_hr')), int, 0)),
+      np=float(extract_numeric(extract_value(data.get('np')), float, 0.0)),
+      w5=int(extract_numeric(extract_value(data.get('w5')), int, 0)),
+      w15=int(extract_numeric(extract_value(data.get('w15')), int, 0)),
+      w30=int(extract_numeric(extract_value(data.get('w30')), int, 0)),
+      w60=int(extract_numeric(extract_value(data.get('w60')), int, 0)),
+      w120=int(extract_numeric(extract_value(data.get('w120')), int, 0)),
+      w300=int(extract_numeric(extract_value(data.get('w300')), int, 0)),
+      w1200=int(extract_numeric(extract_value(data.get('w1200')), int, 0)),
+      wkg5=float(extract_numeric(extract_value(data.get('wkg5')), float, 0.0)),
+      wkg15=float(extract_numeric(extract_value(data.get('wkg15')), float, 0.0)),
+      wkg30=float(extract_numeric(extract_value(data.get('wkg30')), float, 0.0)),
+      wkg60=float(extract_numeric(extract_value(data.get('wkg60')), float, 0.0)),
+      wkg120=float(extract_numeric(extract_value(data.get('wkg120')), float, 0.0)),
+      wkg300=float(extract_numeric(extract_value(data.get('wkg300')), float, 0.0)),
+      wkg1200=float(extract_numeric(extract_value(data.get('wkg1200')), float, 0.0)),
+      wkg_ftp=float(extract_numeric(extract_value(data.get('wkg_ftp')), float, 0.0)),
+      wftp=int(extract_numeric(extract_value(data.get('wftp')), int, 0)),
+      height=int(extract_numeric(extract_value(data.get('height')), int, 0)),
+      weight=float(extract_numeric(extract_value(data.get('weight')), float, 0.0)),
+      position_in_cat=int(extract_numeric(data.get('position_in_cat'), int, 0)),
+      skill=float(extract_numeric(data.get('skill'), float, 0.0)),
+      skill_b=float(extract_numeric(data.get('skill_b'), float, 0.0)),
+      skill_gain=float(extract_numeric(data.get('skill_gain'), float, 0.0)),
+      zada=int(extract_numeric(data.get('zada'), int, 0)),
+      pts=int(extract_numeric(data.get('pts'), int, 0)),
+      pen=str(data.get('category') or data.get('pen', '')),
+      category=category,
+      category_women=category_women,
+      hrm=hrm,
+      uid=uid,
+      lag=lag,
+      vtta=vtta,
+      vttat=vttat,
+      flag=flag,
+      hrmax=hrmax,
+      hreff=hreff,
+      _excluded={k: v for k, v in data.items() if k not in known_fields},
     )
 
   def get_extra(self, key: str, default: Any = None) -> Any:
@@ -110,6 +341,17 @@ class ZPRiderFinish:
       Dictionary of unknown fields
     """
     return dict(self._extra)
+
+  def excluded(self) -> dict[str, Any]:
+    """Return all excluded fields recognized but not explicitly handled.
+
+    These fields are identified as valid API fields but are not yet
+    mapped to explicit attributes. Useful for discovering fields to add.
+
+    Returns:
+      Dictionary of excluded fields
+    """
+    return dict(self._excluded)
 
   def __getitem__(self, key: str) -> Any:
     """Allow dictionary-style access for backwards compatibility.
@@ -135,7 +377,7 @@ class ZPRiderFinish:
       key: Field name to check
 
     Returns:
-      True if field exists
+      True if field exists in dataclass or _extra
     """
     return hasattr(self, key)
 
@@ -148,7 +390,7 @@ class ZPRiderFinish:
       Dictionary containing all rider data
     """
     result = asdict(self)
-    extras = result.pop("_extra", {})
+    extras = result.pop('_extra', {})
     result.update(extras)
     return result
 
@@ -179,12 +421,19 @@ class ZPRaceResult(Sequence):
 
   # Metadata fields
   race_id: int = 0
-  event_name: str = ""
-  event_date: str = ""
+  event_name: str = ''
+  event_date: str = ''
 
   # Collection of riders (not in __init__, set via from_dict)
   _riders: list[ZPRiderFinish] = field(
     default_factory=list,
+    repr=False,
+    init=False,
+  )
+
+  # Excluded fields - recognized but not explicitly handled
+  _excluded: dict[str, Any] = field(
+    default_factory=dict,
     repr=False,
     init=False,
   )
@@ -197,7 +446,7 @@ class ZPRaceResult(Sequence):
   )
 
   @classmethod
-  def from_dict(cls, data: dict[str, Any]) -> "ZPRaceResult":
+  def from_dict(cls, data: dict[str, Any]) -> 'ZPRaceResult':
     """Create instance from API response dict.
 
     Parses nested rider data and captures unknown fields.
@@ -208,21 +457,21 @@ class ZPRaceResult(Sequence):
     Returns:
       ZPRaceResult instance with parsed fields and riders
     """
-    known_fields = {"race_id", "event_name", "event_date", "data"}
+    known_fields = {'race_id', 'event_name', 'event_date', 'data', 'zid'}
 
     # Parse rider list from nested "data" key
-    riders = [ZPRiderFinish.from_dict(r) for r in data.get("data", [])]
+    riders = [ZPRiderFinish.from_dict(r) for r in data.get('data', [])]
 
     # Create instance with metadata
     instance = cls(
-      race_id=int(data.get("race_id", 0)),
-      event_name=str(data.get("event_name", "")),
-      event_date=str(data.get("event_date", "")),
+      race_id=int(data.get('race_id') or data.get('zid', 0)),
+      event_name=str(data.get('event_name', '')),
+      event_date=str(data.get('event_date', '')),
     )
 
-    # Set riders and extras (not in __init__)
+    # Set riders and excluded fields (not in __init__)
     instance._riders = riders
-    instance._extra = {k: v for k, v in data.items() if k not in known_fields}
+    instance._excluded = {k: v for k, v in data.items() if k not in known_fields}
 
     return instance
 
@@ -264,8 +513,8 @@ class ZPRaceResult(Sequence):
       String representation showing metadata and rider count
     """
     return (
-      f"ZPRaceResult(race_id={self.race_id}, event_name={self.event_name!r}, "
-      f"event_date={self.event_date!r}, riders={len(self._riders)})"
+      f'ZPRaceResult(race_id={self.race_id}, event_name={self.event_name!r}, '
+      f'event_date={self.event_date!r}, riders={len(self._riders)})'
     )
 
   def __str__(self) -> str:
@@ -274,7 +523,7 @@ class ZPRaceResult(Sequence):
     Returns:
       String with race info and rider count
     """
-    return f"ZPRaceResult with {len(self._riders)} riders"
+    return f'ZPRaceResult with {len(self._riders)} riders'
 
   def __getattr__(self, name: str) -> Any:
     """Allow attribute access to race-level result fields (backwards compat).
@@ -290,7 +539,7 @@ class ZPRaceResult(Sequence):
     Raises:
       AttributeError: If field doesn't exist
     """
-    if name.startswith("_"):
+    if name.startswith('_'):
       raise AttributeError(
         f"'{type(self).__name__}' object has no attribute '{name}'",
       )
@@ -309,6 +558,14 @@ class ZPRaceResult(Sequence):
     """
     return dict(self._extra)
 
+  def excluded(self) -> dict[str, Any]:
+    """Return all excluded fields recognized but not explicitly handled.
+
+    Returns:
+      Dictionary of excluded fields
+    """
+    return dict(self._excluded)
+
   def asdict(self) -> dict[str, Any]:
     """Return the result data as a dictionary.
 
@@ -318,10 +575,11 @@ class ZPRaceResult(Sequence):
       Dictionary containing race metadata and riders
     """
     return {
-      "race_id": self.race_id,
-      "event_name": self.event_name,
-      "event_date": self.event_date,
-      "data": [rider.asdict() for rider in self._riders],
+      'race_id': self.race_id,
+      'event_name': self.event_name,
+      'event_date': self.event_date,
+      'data': [rider.asdict() for rider in self._riders],
+      **self._excluded,
       **self._extra,
     }
 

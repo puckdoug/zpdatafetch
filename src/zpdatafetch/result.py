@@ -148,6 +148,9 @@ class Result(ZP_obj):
           # Parse for fetched dict and wrap in ZPRaceResult
           parsed = parse_json_safe(raw_json, context=f'race result {race_id}')
           result_dict = parsed if isinstance(parsed, dict) else {}
+          # Ensure race_id is present in the dict (inject if missing)
+          if 'race_id' not in result_dict and 'zid' not in result_dict:
+            result_dict['race_id'] = race_id
           results_fetched[race_id] = ZPRaceResult.from_dict(result_dict)
 
           logger.debug(
@@ -219,6 +222,9 @@ class Result(ZP_obj):
       # Parse immediately (no parallel parsing) and wrap in ZPRaceResult
       parsed = parse_json_safe(raw_json, context=f'result {id_val}')
       result_dict = parsed if isinstance(parsed, dict) else {}
+      # Ensure race_id is present in the dict (inject if missing)
+      if 'race_id' not in result_dict and 'zid' not in result_dict:
+        result_dict['race_id'] = id_val
       results_fetched[id_val] = ZPRaceResult.from_dict(result_dict)
 
       logger.debug(f'Successfully fetched result data for race ID: {id_val}')
