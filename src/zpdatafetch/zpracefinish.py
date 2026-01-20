@@ -1,104 +1,13 @@
 """Represents a single race finish from a cyclist's race history."""
 
-from datetime import datetime
 from typing import Any
 
-
-def _set_rider_category(div: int) -> str:
-  """Convert numeric division to rider category letter.
-
-  Maps ZwiftPower numeric division codes to category letters:
-  - 0 → empty string (no division)
-  - 10 → A
-  - 20 → B
-  - 30 → C
-  - 40 → D
-  - Other values → string representation of the value
-
-  Args:
-    div: Numeric division code from API
-
-  Returns:
-    Category letter (A-D) or empty string for no division
-  """
-  match div:
-    case 0:
-      return ''
-    case 10:
-      return 'A'
-    case 20:
-      return 'B'
-    case 30:
-      return 'C'
-    case 40:
-      return 'D'
-    case _:
-      return str(div)
-
-
-def _convert_gender(male: int) -> str:
-  """Convert numeric gender code to readable gender string.
-
-  Maps ZwiftPower gender codes:
-  - 1 → 'male'
-  - 0 → 'female'
-  - Other values → empty string
-
-  Args:
-    male: Numeric gender code from API
-
-  Returns:
-    Gender string ('male', 'female', or empty)
-  """
-  match male:
-    case 1:
-      return 'male'
-    case 0:
-      return 'female'
-    case _:
-      return ''
-
-
-def _format_time_hms(seconds: float) -> str:
-  """Format time in seconds to hh:mm:ss.sss format.
-
-  Args:
-    seconds: Time in seconds (can include fractional seconds)
-
-  Returns:
-    Formatted string in hh:mm:ss.sss format, or empty string if no seconds
-  """
-  if not seconds:
-    return ''
-  seconds = float(seconds)
-  hours = int(seconds // 3600)
-  remaining = seconds % 3600
-  minutes = int(remaining // 60)
-  secs = remaining % 60
-  return f'{hours:02d}:{minutes:02d}:{secs:06.3f}'
-
-
-def _convert_timestamp_to_iso8601(timestamp: float) -> str:
-  """Convert Unix timestamp to ISO-8601 UTC format.
-
-  Args:
-    timestamp: Unix timestamp (seconds since epoch) or already-formatted ISO-8601 string
-
-  Returns:
-    ISO-8601 formatted string in UTC (e.g., '2025-12-03T22:10:00Z'), or empty string if no timestamp
-  """
-  if not timestamp:
-    return ''
-
-  # If already a string, assume it's already in ISO format
-  if isinstance(timestamp, str):
-    return timestamp
-
-  try:
-    dt = datetime.utcfromtimestamp(float(timestamp))
-    return dt.isoformat() + 'Z'
-  except (ValueError, OSError, TypeError):
-    return ''
+from zpdatafetch.zp_utils import (
+  convert_gender,
+  convert_timestamp_to_iso8601,
+  format_time_hms,
+  set_rider_category,
+)
 
 
 class ZPRaceFinish:
@@ -290,23 +199,23 @@ class ZPRaceFinish:
         cleaned_data[target_key] = cleaned_value
 
     # Add converted category fields
-    cleaned_data['category'] = _set_rider_category(div_value)
-    cleaned_data['category_women'] = _set_rider_category(divw_value)
+    cleaned_data['category'] = set_rider_category(div_value)
+    cleaned_data['category_women'] = set_rider_category(divw_value)
 
     # Add gender field from male conversion
     if male_value is not None:
-      cleaned_data['gender'] = _convert_gender(male_value)
+      cleaned_data['gender'] = convert_gender(male_value)
 
     # Add time and time_hms fields (keep both original seconds and formatted)
     cleaned_data['time'] = time_value
-    cleaned_data['time_hms'] = _format_time_hms(time_value)
+    cleaned_data['time_hms'] = format_time_hms(time_value)
 
     # Add time_gun and time_gun_hms fields (keep both original seconds and formatted)
     cleaned_data['time_gun'] = time_gun_value
-    cleaned_data['time_gun_hms'] = _format_time_hms(time_gun_value)
+    cleaned_data['time_gun_hms'] = format_time_hms(time_gun_value)
 
     # Convert event_date to ISO-8601 format (replaces Unix timestamp)
-    cleaned_data['event_date'] = _convert_timestamp_to_iso8601(event_date_value)
+    cleaned_data['event_date'] = convert_timestamp_to_iso8601(event_date_value)
 
     self._data = cleaned_data
 

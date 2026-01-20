@@ -5,6 +5,14 @@ from collections.abc import Iterator, Sequence
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
+from zpdatafetch.zp_utils import (
+  convert_gender,
+  extract_numeric,
+  extract_value,
+  format_time_hms,
+  set_rider_category,
+)
+
 
 @dataclass(slots=True)
 class ZPRiderFinish:
@@ -170,62 +178,9 @@ class ZPRiderFinish:
       'male',
     }
 
-    def extract_value(value: Any, default: Any = None) -> Any:
-      """Extract value from [value, flag] format or return as-is."""
-      if isinstance(value, list) and len(value) > 0:
-        return value[0]
-      return value if value is not None else default
-
-    def extract_numeric(value: Any, type_func: type, default: Any) -> Any:
-      """Extract and convert numeric value, handling both formats."""
-      extracted = extract_value(value, default)
-      if extracted == default:
-        return default
-      try:
-        return type_func(extracted)
-      except (ValueError, TypeError):
-        return default
-
-    def format_time_hms(seconds: float) -> str:
-      """Format time in seconds to hh:mm:ss.sss format.
-
-      Args:
-        seconds: Time in seconds (can include fractional seconds)
-
-      Returns:
-        Formatted string in hh:mm:ss.sss format
-      """
-      if not seconds:
-        return ''
-      hours = int(seconds // 3600)
-      remaining = seconds % 3600
-      minutes = int(remaining // 60)
-      secs = remaining % 60
-      return f'{hours:02d}:{minutes:02d}:{secs:06.3f}'
-
-    def set_rider_category(div: int) -> str:
-      """Convert numeric division to rider category letter."""
-      match div:
-        case 0:
-          return ''
-        case 10:
-          return 'A'
-        case 20:
-          return 'B'
-        case 30:
-          return 'C'
-        case 40:
-          return 'D'
-        case _:
-          return str(div)
-
     # Determine gender from 'male' field
     male = data.get('male')
-    gender = ''
-    if male == 1:
-      gender = 'male'
-    elif male == 0:
-      gender = 'female'
+    gender = convert_gender(int(male)) if male is not None else ''
 
     # Determine category from 'div' field
     div = extract_numeric(data.get('div'), int, 0)
