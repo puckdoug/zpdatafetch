@@ -67,7 +67,26 @@ def league():
 @pytest.fixture
 def league_ok():
   """Test data for league endpoint."""
-  return {'data': [{'div': 1, 'name': 'Rider One', 'team_name': 'Test Team'}]}
+  return {
+    'teams': {
+      '1': {'tname': 'Test Team', 'tbc': 'ffffff', 'tbd': '000000', 'tc': 'ffffff'},
+    },
+    'data': [
+      {
+        'pos': 1,
+        'zwid': 123456,
+        'aid': 123456,
+        'name': 'Rider One',
+        'points': 100,
+        'events': 5,
+        'category': 'A',
+        'tid': 1,
+        'age': '30-39',
+        'flag': 'us',
+        'history': ['1', '2', '1', '1', '2'],
+      },
+    ],
+  }
 
 
 @pytest.fixture
