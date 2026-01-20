@@ -6,7 +6,7 @@ import httpx
 import pytest
 
 from zpdatafetch.async_zp import AsyncZP
-from zpdatafetch.signup import Signup
+from zpdatafetch.zpsignupfetch import ZPSignupFetch
 from zpdatafetch.zpracesignup import ZPRaceSignup
 
 
@@ -34,7 +34,7 @@ async def test_async_signup_fetch(login_page, logged_in_page):
       ),
     )
 
-    signup = Signup()
+    signup = ZPSignupFetch()
     signup.set_session(zp)
     data = await signup.afetch(3590800)
 

@@ -6,7 +6,7 @@ import httpx
 import pytest
 
 from zpdatafetch.async_zp import AsyncZP
-from zpdatafetch.team import Team
+from zpdatafetch.zpteamfetch import ZPTeamFetch
 from zpdatafetch.zpteam import ZPTeam
 
 
@@ -34,7 +34,7 @@ async def test_async_team_fetch(login_page, logged_in_page):
       ),
     )
 
-    team = Team()
+    team = ZPTeamFetch()
     team.set_session(zp)
     data = await team.afetch(123)
 

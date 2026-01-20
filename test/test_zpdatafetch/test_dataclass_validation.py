@@ -10,16 +10,16 @@ import sys
 
 import pytest
 
-from zpdatafetch import Cyclist, Result, Team
+from zpdatafetch import ZPCyclistFetch, ZPResultFetch, ZPTeamFetch
 
 
 class TestCyclistValidation:
-  """Test Cyclist validation - WILL PASS until Phase 2 complete (proving gap exists)."""
+  """Test ZPCyclistFetch validation - WILL PASS until Phase 2 complete (proving gap exists)."""
 
   def test_accepts_negative_id_currently(self):
-    """FAILING TEST: Cyclist currently accepts negative IDs."""
+    """FAILING TEST: ZPCyclistFetch currently accepts negative IDs."""
     # This should raise ValueError but doesn't currently
-    cyclist = Cyclist()
+    cyclist = ZPCyclistFetch()
     try:
       cyclist.fetch(-5)
       # If we get here, validation is missing (test passes, proving gap)
@@ -30,7 +30,7 @@ class TestCyclistValidation:
 
   def test_accepts_zero_id_currently(self):
     """FAILING TEST: Cyclist currently accepts zero ID."""
-    cyclist = Cyclist()
+    cyclist = ZPCyclistFetch()
     try:
       cyclist.fetch(0)
       pytest.skip('Validation not implemented yet - gap exists')
@@ -39,7 +39,7 @@ class TestCyclistValidation:
 
   def test_accepts_too_large_id_currently(self):
     """FAILING TEST: Cyclist currently accepts IDs > sys.maxsize."""
-    cyclist = Cyclist()
+    cyclist = ZPCyclistFetch()
     try:
       cyclist.fetch(sys.maxsize + 1)
       pytest.skip('Validation not implemented yet - gap exists')
@@ -48,7 +48,7 @@ class TestCyclistValidation:
 
   def test_accepts_non_integer_string_currently(self):
     """FAILING TEST: Cyclist currently processes invalid strings."""
-    cyclist = Cyclist()
+    cyclist = ZPCyclistFetch()
     try:
       cyclist.fetch('abc')
       pytest.skip('Validation not implemented yet - gap exists')
@@ -56,12 +56,12 @@ class TestCyclistValidation:
       pass
 
 
-class TestResultValidation:
-  """Test Result validation - WILL PASS until Phase 2 complete (proving gap exists)."""
+class TestZPResultFetchValidation:
+  """Test ZPResultFetch validation - WILL PASS until Phase 2 complete (proving gap exists)."""
 
   def test_accepts_negative_race_id_currently(self):
-    """FAILING TEST: Result currently accepts negative race IDs."""
-    result = Result()
+    """FAILING TEST: ZPResultFetch currently accepts negative race IDs."""
+    result = ZPResultFetch()
     try:
       result.fetch(-10)
       pytest.skip('Validation not implemented yet - gap exists')
@@ -69,8 +69,8 @@ class TestResultValidation:
       pass
 
   def test_accepts_zero_race_id_currently(self):
-    """FAILING TEST: Result currently accepts zero race ID."""
-    result = Result()
+    """FAILING TEST: ZPResultFetch currently accepts zero race ID."""
+    result = ZPResultFetch()
     try:
       result.fetch(0)
       pytest.skip('Validation not implemented yet - gap exists')
@@ -78,12 +78,12 @@ class TestResultValidation:
       pass
 
 
-class TestTeamValidation:
-  """Test Team validation - WILL PASS until Phase 2 complete (proving gap exists)."""
+class TestZPTeamFetchValidation:
+  """Test ZPTeamFetch validation - WILL PASS until Phase 2 complete (proving gap exists)."""
 
   def test_accepts_negative_team_id_currently(self):
-    """FAILING TEST: Team currently accepts negative team IDs."""
-    team = Team()
+    """FAILING TEST: ZPTeamFetch currently accepts negative team IDs."""
+    team = ZPTeamFetch()
     try:
       team.fetch(-20)
       pytest.skip('Validation not implemented yet - gap exists')

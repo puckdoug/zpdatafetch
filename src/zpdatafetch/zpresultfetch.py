@@ -1,4 +1,4 @@
-"""Unified Team class with both sync and async fetch capabilities."""
+"""Unified Result class with both sync and async fetch capabilities."""
 
 import asyncio
 import json
@@ -14,47 +14,45 @@ from zpdatafetch.async_zp import AsyncZP
 from zpdatafetch.logging_config import get_logger, setup_logging
 from zpdatafetch.zp import ZP
 from zpdatafetch.zp_obj import ZP_obj
-from zpdatafetch.zpteam import ZPTeam
+from zpdatafetch.zpraceresult import ZPRaceResult
 
 logger = get_logger(__name__)
 
 
 # ===============================================================================
-class Team(ZP_obj):
-  """Fetches and stores team roster data from Zwiftpower.
+class ZPResultFetch(ZP_obj):
+  """Fetches and stores race results from Zwiftpower.
 
-  Retrieves team member lists and associated rider information using
-  team IDs. Supports both synchronous and asynchronous operations.
+  Retrieves complete race result data including participant placements,
+  times, and performance metrics using race IDs. Supports both synchronous
+  and asynchronous operations.
 
   Synchronous usage:
-    team = Team()
-    team.fetch(123, 456)
-    print(team.json())
+    result = ZPResultFetch()
+    result.fetch(3590800, 3590801)
+    print(result.json())
 
   Asynchronous usage:
     async with AsyncZP() as zp:
-      team = Team()
-      team.set_session(zp)
-      await team.afetch(123, 456)
-      print(team.json())
+      result = ZPResultFetch()
+      result.set_session(zp)
+      await result.afetch(3590800, 3590801)
+      print(result.json())
 
   Attributes:
-    raw: Dictionary mapping team IDs to their roster data
+    raw: Dictionary mapping race IDs to their result data
     verbose: Enable verbose output for debugging
   """
 
-  # Sync version
-  _url: str = 'https://zwiftpower.com/cache3/teams/'
-  _url_end: str = '_riders.json'
-
-  # Async version uses different URL ending
-  _url_end_async: str = '.json'
+  # race = "https://zwiftpower.com/cache3/results/3590800_view.json"
+  _url: str = 'https://zwiftpower.com/cache3/results/'
+  _url_end: str = '_view.json'
   _sync_mode: bool = False  # Class-level sync mode flag
 
   def __init__(self) -> None:
-    """Initialize a new Team instance."""
+    """Initialize a new Result instance."""
     super().__init__()
-    self._fetched: dict[int, ZPTeam] = {}  # Override type
+    self._fetched: dict[int, ZPRaceResult] = {}  # Override type to use ZPRaceResult
     self._zp: AsyncZP | None = None  # Async session
     self._zp_sync: ZP | None = None  # Sync session (for reference only)
 
@@ -103,19 +101,19 @@ class Team(ZP_obj):
     return (temp_zp, True)
 
   # -------------------------------------------------------------------------------
-  async def _fetch_parallel(self, *team_id: int) -> dict[int, ZPTeam]:
-    """Fetch team data in parallel using async requests.
+  async def _fetch_parallel(self, *race_id: int) -> dict[int, ZPRaceResult]:
+    """Fetch race results in parallel using async requests.
 
     Args:
-      *team_id: One or more team ID integers to fetch
+      *race_id: One or more race ID integers to fetch
 
     Returns:
-      Dictionary mapping team IDs to their roster data
+      Dictionary mapping race IDs to ZPRaceResult objects
     """
-    # SECURITY: Validate all team IDs before creating session
+    # SECURITY: Validate all race IDs before creating session
     # This avoids expensive login/session creation for invalid IDs
     try:
-      validated_ids = validate_id_list(list(team_id), id_type='team')
+      validated_ids = validate_id_list(list(race_id), id_type='race')
     except ValidationError as e:
       logger.error(f'ID validation failed: {e}')
       raise
@@ -123,19 +121,19 @@ class Team(ZP_obj):
     session, owns_session = await self._get_or_create_session()
 
     try:
-      logger.info(f'Fetching team data for {len(team_id)} ID(s)')
+      logger.info(f'Fetching race results for {len(race_id)} race(s)')
 
-      # Build list of fetch tasks using correct URL ending
+      # Build list of fetch tasks
       fetch_tasks = []
-      for tid in validated_ids:
-        url = f'{self._url}{tid}{self._url_end}'
+      for rid in validated_ids:
+        url = f'{self._url}{rid}{self._url_end}'
         fetch_tasks.append(session.fetch_json(url))
 
       # Execute all fetches in parallel
 
       results_raw: dict[int, str] = {}
 
-      results_fetched: dict[int, ZPTeam] = {}
+      results_fetched: dict[int, ZPRaceResult] = {}
 
       async def fetch_and_store(
         idx: int,
@@ -144,17 +142,22 @@ class Team(ZP_obj):
         """Helper to fetch and store result."""
         try:
           raw_json = await task
-          team_id = validated_ids[idx]
-          results_raw[team_id] = raw_json
+          race_id = validated_ids[idx]
+          results_raw[race_id] = raw_json
 
-          # Parse for fetched dict
-          parsed = parse_json_safe(raw_json, context=f'team {team_id}')
-          team_dict = parsed if isinstance(parsed, dict) else {}
-          results_fetched[team_id] = ZPTeam(team_dict)
+          # Parse for fetched dict and wrap in ZPRaceResult
+          parsed = parse_json_safe(raw_json, context=f'race result {race_id}')
+          result_dict = parsed if isinstance(parsed, dict) else {}
+          # Ensure race_id is present in the dict (inject if missing)
+          if 'race_id' not in result_dict and 'zid' not in result_dict:
+            result_dict['race_id'] = race_id
+          results_fetched[race_id] = ZPRaceResult.from_dict(result_dict)
 
-          logger.debug(f'Successfully fetched team ID: {team_id}')
+          logger.debug(
+            f'Successfully fetched results for race ID: {race_id}',
+          )
         except Exception as e:
-          logger.error(f'Failed to fetch team ID {validated_ids[idx]}: {e}')
+          logger.error(f'Failed to fetch race ID {validated_ids[idx]}: {e}')
           raise
 
       async with anyio.create_task_group() as tg:
@@ -164,7 +167,7 @@ class Team(ZP_obj):
       self._raw = results_raw
       self._fetched = results_fetched
       self.processed = {}  # Reserved for future use
-      logger.info(f'Successfully fetched {len(validated_ids)} team roster(s)')
+      logger.info(f'Successfully fetched {len(validated_ids)} race result(s)')
 
       return self._fetched
 
@@ -175,28 +178,28 @@ class Team(ZP_obj):
   # -------------------------------------------------------------------------------
   # -------------------------------------------------------------------------------
   # -------------------------------------------------------------------------------
-  def _fetch_sequential(self, *team_id: int) -> dict[int, ZPTeam]:
-    """Fetch team data sequentially (synchronous mode).
+  def _fetch_sequential(self, *race_id: int) -> dict[int, ZPRaceResult]:
+    """Fetch result data sequentially (synchronous mode).
 
     This method provides a clear, separate execution path for debugging.
     All requests are made synchronously in sequence, with no parallelization.
 
     Args:
-      *team_id: One or more team ID integers to fetch
+      *race_id: One or more race ID integers to fetch
 
     Returns:
-      Dictionary mapping team IDs to their data
+      Dictionary mapping race IDs to ZPRaceResult objects
 
     Raises:
       ValueError: If any ID is invalid
       NetworkError: If network requests fail
       AuthenticationError: If authentication fails
     """
-    logger.info(f'Fetching team data in synchronous mode for {len(team_id)} ID(s)')
+    logger.info(f'Fetching result data in synchronous mode for {len(race_id)} ID(s)')
 
     # SECURITY: Validate all IDs before processing
     try:
-      validated_ids = validate_id_list(list(team_id), id_type='team')
+      validated_ids = validate_id_list(list(race_id), id_type='race')
     except ValidationError as e:
       logger.error(f'ID validation failed: {e}')
       raise
@@ -205,23 +208,26 @@ class Team(ZP_obj):
     zp = ZP()
 
     results_raw: dict[int, str] = {}
-    results_fetched: dict[int, ZPTeam] = {}
+    results_fetched: dict[int, ZPRaceResult] = {}
 
     # Fetch each ID sequentially
     for id_val in validated_ids:
-      logger.debug(f'Fetching team data for team ID: {id_val}')
+      logger.debug(f'Fetching result data for race ID: {id_val}')
       url = f'{self._url}{id_val}{self._url_end}'
 
       # Synchronous blocking call
       raw_json = zp.fetch_json(url)
       results_raw[id_val] = raw_json
 
-      # Parse immediately (no parallel parsing)
-      parsed = parse_json_safe(raw_json, context=f'team {id_val}')
-      team_dict = parsed if isinstance(parsed, dict) else {}
-      results_fetched[id_val] = ZPTeam(team_dict)
+      # Parse immediately (no parallel parsing) and wrap in ZPRaceResult
+      parsed = parse_json_safe(raw_json, context=f'result {id_val}')
+      result_dict = parsed if isinstance(parsed, dict) else {}
+      # Ensure race_id is present in the dict (inject if missing)
+      if 'race_id' not in result_dict and 'zid' not in result_dict:
+        result_dict['race_id'] = id_val
+      results_fetched[id_val] = ZPRaceResult.from_dict(result_dict)
 
-      logger.debug(f'Successfully fetched team data for team ID: {id_val}')
+      logger.debug(f'Successfully fetched result data for race ID: {id_val}')
 
     self._raw = results_raw
 
@@ -229,7 +235,7 @@ class Team(ZP_obj):
 
     self.processed = {}  # Reserved for future use
 
-    logger.info(f'Successfully fetched {len(validated_ids)} team(s) in sync mode')
+    logger.info(f'Successfully fetched {len(validated_ids)} result(s) in sync mode')
     return self._fetched
 
   @classmethod
@@ -241,28 +247,28 @@ class Team(ZP_obj):
     """
     cls._sync_mode = enabled
     mode = 'synchronous' if enabled else 'asynchronous (parallel)'
-    logger.info(f'Team fetch mode set to: {mode}')
+    logger.info(f'Result fetch mode set to: {mode}')
 
-  def fetch(self, *team_id: int) -> dict[int, ZPTeam]:
-    """Fetch team roster data for one or more team IDs (synchronous).
+  def fetch(self, *race_id: int) -> dict[int, ZPRaceResult]:
+    """Fetch race results for one or more race IDs (synchronous).
 
-    Retrieves the complete list of team members from Zwiftpower cache.
-    Stores results in the raw dictionary keyed by team ID.
+    Retrieves comprehensive race result data from Zwiftpower cache.
+    Stores results in the raw dictionary keyed by race ID.
 
     Args:
-      *team_id: One or more team ID integers to fetch
+      *race_id: One or more race ID integers to fetch
 
     Returns:
-      Dictionary mapping team IDs to their roster data
+      Dictionary mapping race IDs to ZPRaceResult objects
 
     Raises:
-      ValueError: If any team ID is invalid
+      ValueError: If any race ID is invalid
       NetworkError: If network requests fail
       AuthenticationError: If authentication fails
     """
     # Check if sync mode is enabled
     if self._sync_mode:
-      return self._fetch_sequential(*team_id)
+      return self._fetch_sequential(*race_id)
 
     # Default: use async parallel fetch
     try:
@@ -275,49 +281,51 @@ class Team(ZP_obj):
       if 'fetch() called from async context' in str(e):
         raise
       # No running loop - safe to use asyncio.run()
-      return asyncio.run(self._fetch_parallel(*team_id))
+      return asyncio.run(self._fetch_parallel(*race_id))
 
   # -------------------------------------------------------------------------------
-  async def afetch(self, *team_id: int) -> dict[int, ZPTeam]:
-    """Fetch team data for one or more team IDs (asynchronous interface).
+  def json(self) -> str:
+    """Serialize the fetched data to formatted JSON string.
+
+    Converts ZPRaceResult objects to dicts before serialization.
+
+    Returns:
+      JSON string with 2-space indentation
+    """
+    # Convert ZPRaceResult objects to dicts
+    serializable = {
+      key: value.asdict() if isinstance(value, ZPRaceResult) else value
+      for key, value in self._fetched.items()
+    }
+    return json.JSONEncoder(indent=2).encode(serializable)
+
+  # -------------------------------------------------------------------------------
+  async def afetch(self, *race_id: int) -> dict[int, ZPRaceResult]:
+    """Fetch race results for one or more race IDs (asynchronous interface).
 
     Uses parallel async requests internally. Supports session sharing
     via set_session() or set_zp_session().
 
     Args:
-      *team_id: One or more team ID integers to fetch
+      *race_id: One or more race ID integers to fetch
 
     Returns:
-      Dictionary mapping team IDs to their data
+      Dictionary mapping race IDs to ZPRaceResult objects
 
     Raises:
-      ValueError: If any team ID is invalid
+      ValueError: If any race ID is invalid
       NetworkError: If network requests fail
       AuthenticationError: If authentication fails
     """
-    return await self._fetch_parallel(*team_id)
-
-  # -------------------------------------------------------------------------------
-  def json(self) -> str:
-    """Return JSON string representation of fetched data.
-
-    Converts ZPTeam objects to dicts before serialization.
-
-    Returns:
-      JSON-formatted string of all fetched team data
-    """
-    serializable = {
-      key: value.asdict() if isinstance(value, ZPTeam) else value
-      for key, value in self._fetched.items()
-    }
-    return json.JSONEncoder(indent=2).encode(serializable)
+    return await self._fetch_parallel(*race_id)
 
 
 # ===============================================================================
 def main() -> None:
-  p = ArgumentParser(
-    description='Module for fetching cyclist data using the Zwiftpower API',
-  )
+  desc = """
+Module for fetching race data using the Zwiftpower API
+  """
+  p = ArgumentParser(description=desc)
   p.add_argument(
     '--verbose',
     '-v',
@@ -332,7 +340,7 @@ def main() -> None:
     const=True,
     help='print all returned data',
   )
-  p.add_argument('team_id', type=int, nargs='+', help='a list of team_ids')
+  p.add_argument('race_id', type=int, nargs='+', help='one or more race_ids')
   args = p.parse_args()
 
   # Configure logging based on verbosity level (output to stderr)
@@ -341,9 +349,9 @@ def main() -> None:
   elif args.verbose == 1:
     setup_logging(console_level='INFO', force_console=True)
 
-  x = Team()
+  x = ZPResultFetch()
 
-  x.fetch(*args.team_id)
+  x.fetch(*args.race_id)
 
   if args.raw:
     print(x.raw)

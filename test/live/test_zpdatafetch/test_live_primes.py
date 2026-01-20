@@ -6,14 +6,14 @@ Run with: pytest -m live
 
 import pytest
 
-from zpdatafetch.primes import Primes
+from zpdatafetch.zpprimesfetch import ZPPrimesFetch
 from zpdatafetch.zpprime import ZPPrime
 
 
 @pytest.mark.live
 def test_live_primes_fetch_single_id(valid_event_id):
   """Test fetching single event ID via sync interface."""
-  primes = Primes()
+  primes = ZPPrimesFetch()
   result = primes.fetch(valid_event_id)
 
   # Validate response structure - Primes returns ZPPrime objects
@@ -44,7 +44,7 @@ def test_live_primes_fetch_single_id(valid_event_id):
 @pytest.mark.live
 def test_live_primes_fetch_multiple_ids(valid_event_ids):
   """Test fetching multiple event IDs via sync interface."""
-  primes = Primes()
+  primes = ZPPrimesFetch()
   result = primes.fetch(*valid_event_ids)
 
   # Validate response structure
@@ -70,7 +70,7 @@ def test_live_primes_fetch_multiple_ids(valid_event_ids):
 @pytest.mark.anyio
 async def test_live_primes_afetch_single_id(valid_event_id):
   """Test fetching single event ID via async interface."""
-  primes = Primes()
+  primes = ZPPrimesFetch()
   result = await primes.afetch(valid_event_id)
 
   # Validate response structure - Primes returns ZPPrime objects
@@ -102,7 +102,7 @@ async def test_live_primes_afetch_single_id(valid_event_id):
 @pytest.mark.anyio
 async def test_live_primes_afetch_multiple_ids(valid_event_ids):
   """Test fetching multiple event IDs via async interface."""
-  primes = Primes()
+  primes = ZPPrimesFetch()
   result = await primes.afetch(*valid_event_ids)
 
   # Validate response structure

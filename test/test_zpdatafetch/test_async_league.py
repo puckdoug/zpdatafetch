@@ -6,7 +6,7 @@ import httpx
 import pytest
 
 from zpdatafetch.async_zp import AsyncZP
-from zpdatafetch.league import League
+from zpdatafetch.zpleaguefetch import ZPLeagueFetch
 from zpdatafetch.zpleague import ZPLeague
 
 
@@ -33,7 +33,7 @@ async def test_async_league_fetch(league_ok, login_page, logged_in_page):
       ),
     )
 
-    league = League()
+    league = ZPLeagueFetch()
     league.set_session(zp)
     data = await league.afetch(2780)
 

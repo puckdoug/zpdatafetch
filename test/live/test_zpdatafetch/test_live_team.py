@@ -6,14 +6,14 @@ Run with: pytest --live
 
 import pytest
 
-from zpdatafetch.team import Team
+from zpdatafetch.zpteamfetch import ZPTeamFetch
 from zpdatafetch.zpteam import ZPTeam
 
 
 @pytest.mark.live
 def test_live_team_fetch_single_id(valid_team_id):
   """Test fetching single team ID via sync interface."""
-  team = Team()
+  team = ZPTeamFetch()
   result = team.fetch(valid_team_id)
 
   # Validate response structure
@@ -39,7 +39,7 @@ def test_live_team_fetch_single_id(valid_team_id):
 @pytest.mark.live
 def test_live_team_fetch_multiple_ids(valid_team_id):
   """Test fetching multiple team IDs via sync interface."""
-  team = Team()
+  team = ZPTeamFetch()
   # Use same ID twice to test multiple ID handling
   result = team.fetch(valid_team_id, valid_team_id + 1)
 
@@ -66,7 +66,7 @@ def test_live_team_fetch_multiple_ids(valid_team_id):
 @pytest.mark.anyio
 async def test_live_team_afetch_single_id(valid_team_id):
   """Test fetching single team ID via async interface."""
-  team = Team()
+  team = ZPTeamFetch()
   result = await team.afetch(valid_team_id)
 
   # Validate response structure
@@ -93,7 +93,7 @@ async def test_live_team_afetch_single_id(valid_team_id):
 @pytest.mark.anyio
 async def test_live_team_afetch_multiple_ids(valid_team_id):
   """Test fetching multiple team IDs via async interface."""
-  team = Team()
+  team = ZPTeamFetch()
   # Use same ID twice to test multiple ID handling
   result = await team.afetch(valid_team_id, valid_team_id + 1)
 

@@ -20,7 +20,7 @@ logger = get_logger(__name__)
 
 
 # ===============================================================================
-class Signup(ZP_obj):
+class ZPSignupFetch(ZP_obj):
   """Fetches and stores race signup data from Zwiftpower.
 
   Retrieves lists of riders who have signed up for races, including
@@ -28,13 +28,13 @@ class Signup(ZP_obj):
   and asynchronous operations.
 
   Synchronous usage:
-    signup = Signup()
+    signup = ZPSignupFetch()
     signup.fetch(3590800, 3590801)
     print(signup.json())
 
   Asynchronous usage:
     async with AsyncZP() as zp:
-      signup = Signup()
+      signup = ZPSignupFetch()
       signup.set_session(zp)
       await signup.afetch(3590800, 3590801)
       print(signup.json())
@@ -342,7 +342,7 @@ def main() -> None:
   elif args.verbose == 1:
     setup_logging(console_level='INFO', force_console=True)
 
-  x = Signup()
+  x = ZPSignupFetch()
 
   x.fetch(*args.race_id)
 

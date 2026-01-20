@@ -6,14 +6,14 @@ Run with: pytest --live
 
 import pytest
 
-from zpdatafetch.league import League
+from zpdatafetch.zpleaguefetch import ZPLeagueFetch
 from zpdatafetch.zpleague import ZPLeague
 
 
 @pytest.mark.live
 def test_live_league_fetch_single_id(valid_league_id, league_fixtures):
   """Test fetching single league ID via sync interface."""
-  league = League()
+  league = ZPLeagueFetch()
   result = league.fetch(valid_league_id)
 
   # Validate response structure
@@ -42,7 +42,7 @@ def test_live_league_fetch_single_id(valid_league_id, league_fixtures):
 @pytest.mark.live
 def test_live_league_fetch_multiple_ids(valid_league_ids, league_fixtures):
   """Test fetching multiple league IDs via sync interface."""
-  league = League()
+  league = ZPLeagueFetch()
   result = league.fetch(*valid_league_ids)
 
   # Validate response structure
@@ -72,7 +72,7 @@ def test_live_league_fetch_multiple_ids(valid_league_ids, league_fixtures):
 @pytest.mark.anyio
 async def test_live_league_afetch_single_id(valid_league_id, league_fixtures):
   """Test fetching single league ID via async interface."""
-  league = League()
+  league = ZPLeagueFetch()
   result = await league.afetch(valid_league_id)
 
   # Validate response structure
@@ -102,7 +102,7 @@ async def test_live_league_afetch_single_id(valid_league_id, league_fixtures):
 @pytest.mark.anyio
 async def test_live_league_afetch_multiple_ids(valid_league_ids, league_fixtures):
   """Test fetching multiple league IDs via async interface."""
-  league = League()
+  league = ZPLeagueFetch()
   result = await league.afetch(*valid_league_ids)
 
   # Validate response structure

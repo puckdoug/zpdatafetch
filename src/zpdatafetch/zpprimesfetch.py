@@ -22,7 +22,7 @@ logger = get_logger(__name__)
 
 
 # ===============================================================================
-class Primes(ZP_obj):
+class ZPPrimesFetch(ZP_obj):
   """Fetches and stores race prime (sprint/KOM) data from Zwiftpower.
 
   Retrieves prime segment results for races, including both fastest
@@ -30,13 +30,13 @@ class Primes(ZP_obj):
   across all categories. Supports both synchronous and asynchronous operations.
 
   Synchronous usage:
-    primes = Primes()
+    primes = ZPPrimesFetch()
     primes.fetch(3590800, 3590801)
     print(primes.json())
 
   Asynchronous usage:
     async with AsyncZP() as zp:
-      primes = Primes()
+      primes = ZPPrimesFetch()
       primes.set_session(zp)
       await primes.afetch(3590800, 3590801)
       print(primes.json())
@@ -474,7 +474,7 @@ Module for fetching primes using the Zwiftpower API
   elif args.verbose == 1:
     setup_logging(console_level='INFO', force_console=True)
 
-  x = Primes()
+  x = ZPPrimesFetch()
 
   x.fetch(*args.race_id)
 

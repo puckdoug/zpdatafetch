@@ -6,14 +6,14 @@ Run with: pytest -m live
 
 import pytest
 
-from zpdatafetch.result import Result
+from zpdatafetch.zpresultfetch import ZPResultFetch
 from zpdatafetch.zpraceresult import ZPRaceResult
 
 
 @pytest.mark.live
 def test_live_result_fetch_single_id(valid_event_id):
   """Test fetching single event ID via sync interface."""
-  result_obj = Result()
+  result_obj = ZPResultFetch()
   result = result_obj.fetch(valid_event_id)
 
   # Validate response structure
@@ -39,7 +39,7 @@ def test_live_result_fetch_single_id(valid_event_id):
 @pytest.mark.live
 def test_live_result_fetch_multiple_ids(valid_event_ids):
   """Test fetching multiple event IDs via sync interface."""
-  result_obj = Result()
+  result_obj = ZPResultFetch()
   result = result_obj.fetch(*valid_event_ids)
 
   # Validate response structure
@@ -66,7 +66,7 @@ def test_live_result_fetch_multiple_ids(valid_event_ids):
 @pytest.mark.anyio
 async def test_live_result_afetch_single_id(valid_event_id):
   """Test fetching single event ID via async interface."""
-  result_obj = Result()
+  result_obj = ZPResultFetch()
   result = await result_obj.afetch(valid_event_id)
 
   # Validate response structure
@@ -93,7 +93,7 @@ async def test_live_result_afetch_single_id(valid_event_id):
 @pytest.mark.anyio
 async def test_live_result_afetch_multiple_ids(valid_event_ids):
   """Test fetching multiple event IDs via async interface."""
-  result_obj = Result()
+  result_obj = ZPResultFetch()
   result = await result_obj.afetch(*valid_event_ids)
 
   # Validate response structure

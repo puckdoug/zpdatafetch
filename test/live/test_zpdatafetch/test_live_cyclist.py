@@ -6,14 +6,14 @@ Run with: pytest -m live
 
 import pytest
 
-from zpdatafetch.cyclist import Cyclist
+from zpdatafetch.zpcyclistfetch import ZPCyclistFetch
 from zpdatafetch.zpcyclist import ZPCyclist
 
 
 @pytest.mark.live
 def test_live_cyclist_fetch_single_id(valid_zwift_id):
   """Test fetching single Zwift ID via sync interface."""
-  cyclist = Cyclist()
+  cyclist = ZPCyclistFetch()
   result = cyclist.fetch(valid_zwift_id)
 
   # Validate response structure
@@ -39,7 +39,7 @@ def test_live_cyclist_fetch_single_id(valid_zwift_id):
 @pytest.mark.live
 def test_live_cyclist_fetch_multiple_ids(valid_zwift_ids):
   """Test fetching multiple Zwift IDs via sync interface."""
-  cyclist = Cyclist()
+  cyclist = ZPCyclistFetch()
   result = cyclist.fetch(*valid_zwift_ids)
 
   # Validate response structure
@@ -66,7 +66,7 @@ def test_live_cyclist_fetch_multiple_ids(valid_zwift_ids):
 @pytest.mark.anyio
 async def test_live_cyclist_afetch_single_id(valid_zwift_id):
   """Test fetching single Zwift ID via async interface."""
-  cyclist = Cyclist()
+  cyclist = ZPCyclistFetch()
   result = await cyclist.afetch(valid_zwift_id)
 
   # Validate response structure
@@ -93,7 +93,7 @@ async def test_live_cyclist_afetch_single_id(valid_zwift_id):
 @pytest.mark.anyio
 async def test_live_cyclist_afetch_multiple_ids(valid_zwift_ids):
   """Test fetching multiple Zwift IDs via async interface."""
-  cyclist = Cyclist()
+  cyclist = ZPCyclistFetch()
   result = await cyclist.afetch(*valid_zwift_ids)
 
   # Validate response structure

@@ -12,29 +12,29 @@ from shared.json_helpers import parse_json_safe
 from shared.validation import ValidationError, validate_id_list
 from zpdatafetch.async_zp import AsyncZP
 from zpdatafetch.logging_config import get_logger, setup_logging
-from zpdatafetch.primes import Primes
 from zpdatafetch.zp import ZP
 from zpdatafetch.zp_obj import ZP_obj
+from zpdatafetch.zpprimesfetch import ZPPrimesFetch
 from zpdatafetch.zpracesprint import ZPRaceSprint
 
 logger = get_logger(__name__)
 
 
 # ===============================================================================
-class Sprints(ZP_obj):
+class ZPSprintsFetch(ZP_obj):
   """Fetches and stores race sprint data from Zwiftpower.
 
   Retrieves sprint segment results for races using the event_sprints API.
   Supports both synchronous and asynchronous operations.
 
   Synchronous usage:
-    sprints = Sprints()
+    sprints = ZPSprintsFetch()
     sprints.fetch(3590800, 3590801)
     print(sprints.json())
 
   Asynchronous usage:
     async with AsyncZP() as zp:
-      sprints = Sprints()
+      sprints = ZPSprintsFetch()
       sprints.set_session(zp)
       await sprints.afetch(3590800, 3590801)
       print(sprints.json())
@@ -54,7 +54,7 @@ class Sprints(ZP_obj):
     self._fetched: dict[int, ZPRaceSprint] = {}  # Override type
     self._zp: AsyncZP | None = None  # Async session
     self._zp_sync: ZP | None = None  # Sync session (for reference only)
-    self.primes: Primes = Primes()
+    self.primes: ZPPrimesFetch = ZPPrimesFetch()
     self.banners: list[dict[str, Any]] = []
     self.processed: dict[Any, Any] = {}
 
@@ -464,7 +464,7 @@ Module for fetching sprints using the Zwiftpower API
   elif args.verbose == 1:
     setup_logging(console_level='INFO', force_console=True)
 
-  x = Sprints()
+  x = ZPSprintsFetch()
 
   x.fetch(*args.race_id)
 

@@ -6,7 +6,7 @@ import httpx
 import pytest
 
 from zpdatafetch.async_zp import AsyncZP
-from zpdatafetch.sprints import Sprints
+from zpdatafetch.zpsprintsfetch import ZPSprintsFetch
 from zpdatafetch.zpracesprint import ZPRaceSprint
 
 
@@ -27,7 +27,7 @@ async def test_async_sprints_fetch(
       ),
     )
 
-    sprints = Sprints()
+    sprints = ZPSprintsFetch()
     sprints.set_session(zp)
 
     # Mock primes.afetch to avoid real API call

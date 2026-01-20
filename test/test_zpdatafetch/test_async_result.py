@@ -6,7 +6,7 @@ import httpx
 import pytest
 
 from zpdatafetch.async_zp import AsyncZP
-from zpdatafetch.result import Result
+from zpdatafetch.zpresultfetch import ZPResultFetch
 from zpdatafetch.zpraceresult import ZPRaceResult
 
 
@@ -34,7 +34,7 @@ async def test_async_result_fetch(login_page, logged_in_page):
       ),
     )
 
-    result = Result()
+    result = ZPResultFetch()
     result.set_session(zp)
     data = await result.afetch(3590800)
 

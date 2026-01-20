@@ -6,14 +6,14 @@ Run with: pytest --live
 
 import pytest
 
-from zpdatafetch.signup import Signup
+from zpdatafetch.zpsignupfetch import ZPSignupFetch
 from zpdatafetch.zpracesignup import ZPRaceSignup
 
 
 @pytest.mark.live
 def test_live_signup_fetch_single_id(valid_event_id):
   """Test fetching single event ID via sync interface."""
-  signup = Signup()
+  signup = ZPSignupFetch()
   result = signup.fetch(valid_event_id)
 
   # Validate response structure
@@ -39,7 +39,7 @@ def test_live_signup_fetch_single_id(valid_event_id):
 @pytest.mark.live
 def test_live_signup_fetch_multiple_ids(valid_event_ids):
   """Test fetching multiple event IDs via sync interface."""
-  signup = Signup()
+  signup = ZPSignupFetch()
   result = signup.fetch(*valid_event_ids)
 
   # Validate response structure
@@ -66,7 +66,7 @@ def test_live_signup_fetch_multiple_ids(valid_event_ids):
 @pytest.mark.anyio
 async def test_live_signup_afetch_single_id(valid_event_id):
   """Test fetching single event ID via async interface."""
-  signup = Signup()
+  signup = ZPSignupFetch()
   result = await signup.afetch(valid_event_id)
 
   # Validate response structure
@@ -93,7 +93,7 @@ async def test_live_signup_afetch_single_id(valid_event_id):
 @pytest.mark.anyio
 async def test_live_signup_afetch_multiple_ids(valid_event_ids):
   """Test fetching multiple event IDs via async interface."""
-  signup = Signup()
+  signup = ZPSignupFetch()
   result = await signup.afetch(*valid_event_ids)
 
   # Validate response structure

@@ -20,13 +20,13 @@ from shared.cli import (
 )
 from zpdatafetch import (
   Config,
-  Cyclist,
-  League,
-  Primes,
-  Result,
-  Signup,
-  Sprints,
-  Team,
+  ZPCyclistFetch,
+  ZPLeagueFetch,
+  ZPPrimesFetch,
+  ZPResultFetch,
+  ZPSignupFetch,
+  ZPSprintsFetch,
+  ZPTeamFetch,
 )
 from zpdatafetch.logging_config import setup_logging
 
@@ -117,13 +117,13 @@ Module for fetching zwiftpower data using the Zwifpower API
 
   match args.cmd:
     case 'cyclist':
-      x = Cyclist()
+      x = ZPCyclistFetch()
     case 'league':
-      x = League()
+      x = ZPLeagueFetch()
     case 'primes':
-      x = Primes()
+      x = ZPPrimesFetch()
     case 'racelog':
-      x = Cyclist()
+      x = ZPCyclistFetch()
       try:
         x.fetch(*args.id)
       except Exception as e:
@@ -242,13 +242,13 @@ Module for fetching zwiftpower data using the Zwifpower API
           print(f'{key}: {racelog!r}')
       return None
     case 'result':
-      x = Result()
+      x = ZPResultFetch()
     case 'signup':
-      x = Signup()
+      x = ZPSignupFetch()
     case 'sprints':
-      x = Sprints()
+      x = ZPSprintsFetch()
     case 'team':
-      x = Team()
+      x = ZPTeamFetch()
     case _:
       print(f'Unknown command: {args.cmd}')
       return 1

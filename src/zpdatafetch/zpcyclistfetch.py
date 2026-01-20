@@ -15,7 +15,9 @@ if sys.version_info >= (3, 11):
 else:
   # For Python 3.10, anyio provides ExceptionGroup
   try:
-    from exceptiongroup import BaseExceptionGroup  # type: ignore[import-not-found]
+    from exceptiongroup import (
+      BaseExceptionGroup,  # type: ignore[import-not-found]
+    )
   except ImportError:
     # Fallback - catch the anyio exception type
     BaseExceptionGroup = Exception  # type: ignore[misc,assignment]
@@ -33,7 +35,7 @@ logger = get_logger(__name__)
 
 
 # ===============================================================================
-class Cyclist(ZP_obj):
+class ZPCyclistFetch(ZP_obj):
   """Fetches and stores cyclist profile data from Zwiftpower.
 
   Retrieves cyclist information including performance metrics, race history,
@@ -41,13 +43,13 @@ class Cyclist(ZP_obj):
   asynchronous operations.
 
   Synchronous usage:
-    cyclist = Cyclist()
+    cyclist = ZPCyclistFetch()
     cyclist.fetch(123456, 789012)
     print(cyclist.json())
 
   Asynchronous usage:
     async with AsyncZP() as zp:
-      cyclist = Cyclist()
+      cyclist = ZPCyclistFetch()
       cyclist.set_session(zp)
       await cyclist.afetch(123456, 789012)
       print(cyclist.json())
@@ -425,7 +427,7 @@ Module for fetching cyclist data using the Zwiftpower API
   elif args.verbose == 1:
     setup_logging(console_level='INFO', force_console=True)
 
-  x = Cyclist()
+  x = ZPCyclistFetch()
 
   x.fetch(*args.zwift_id)
 

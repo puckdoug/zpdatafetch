@@ -4,7 +4,16 @@ import json
 
 import pytest
 
-from zpdatafetch import ZP, Cyclist, League, Primes, Result, Signup, Sprints, Team
+from zpdatafetch import (
+  ZP,
+  ZPCyclistFetch,
+  ZPLeagueFetch,
+  ZPPrimesFetch,
+  ZPResultFetch,
+  ZPSignupFetch,
+  ZPSprintsFetch,
+  ZPTeamFetch,
+)
 
 
 @pytest.fixture
@@ -15,44 +24,44 @@ def zp():
 
 @pytest.fixture
 def cyclist():
-  """Fixture for Cyclist instance."""
-  return Cyclist()
+  """Fixture for ZPCyclistFetch instance."""
+  return ZPCyclistFetch()
 
 
 @pytest.fixture
 def primes():
-  """Fixture for Primes instance."""
-  return Primes()
+  """Fixture for ZPPrimesFetch instance."""
+  return ZPPrimesFetch()
 
 
 @pytest.fixture
 def result():
-  """Fixture for Result instance."""
-  return Result()
+  """Fixture for ZPResultFetch instance."""
+  return ZPResultFetch()
 
 
 @pytest.fixture
 def signup():
-  """Fixture for Signup instance."""
-  return Signup()
+  """Fixture for ZPSignupFetch instance."""
+  return ZPSignupFetch()
 
 
 @pytest.fixture
 def sprints():
-  """Fixture for Sprints instance."""
-  return Sprints()
+  """Fixture for ZPSprintsFetch instance."""
+  return ZPSprintsFetch()
 
 
 @pytest.fixture
 def team():
-  """Fixture for Team instance."""
-  return Team()
+  """Fixture for ZPTeamFetch instance."""
+  return ZPTeamFetch()
 
 
 @pytest.fixture
 def league():
-  """Fixture for League instance."""
-  return League()
+  """Fixture for ZPLeagueFetch instance."""
+  return ZPLeagueFetch()
 
 
 @pytest.fixture

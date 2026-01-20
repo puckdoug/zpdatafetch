@@ -2,7 +2,7 @@ import json
 
 import httpx
 
-from zpdatafetch import Primes
+from zpdatafetch import ZPPrimesFetch
 from zpdatafetch.zpprime import ZPPrime, ZPPrimeSegment
 
 
@@ -30,9 +30,9 @@ def test_primes_initialization(primes):
 
 
 def test_primes_set_primetype():
-  assert Primes.set_primetype("msec") == "FAL"
-  assert Primes.set_primetype("elapsed") == "FTS"
-  assert Primes.set_primetype("invalid") == ""
+  assert ZPPrimesFetch.set_primetype("msec") == "FAL"
+  assert ZPPrimesFetch.set_primetype("elapsed") == "FTS"
+  assert ZPPrimesFetch.set_primetype("invalid") == ""
 
 
 def test_primes_fetch(primes, login_page, logged_in_page):

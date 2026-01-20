@@ -14,26 +14,26 @@ def test_zpcyclist_empty_instantiation():
 
 def test_cyclist_sync_mode():
   """Test that sync mode can be enabled and disabled."""
-  from zpdatafetch import Cyclist
+  from zpdatafetch import ZPCyclistFetch
 
   # Default should be False
-  assert Cyclist._sync_mode is False
+  assert ZPCyclistFetch._sync_mode is False
 
   # Enable sync mode
-  Cyclist.set_sync_mode(True)
-  assert Cyclist._sync_mode is True
+  ZPCyclistFetch.set_sync_mode(True)
+  assert ZPCyclistFetch._sync_mode is True
 
   # Disable sync mode
-  Cyclist.set_sync_mode(False)
-  assert Cyclist._sync_mode is False
+  ZPCyclistFetch.set_sync_mode(False)
+  assert ZPCyclistFetch._sync_mode is False
 
 
 def test_cyclist_sync_mode_fetch(cyclist, login_page, logged_in_page):
   """Test that sync mode uses synchronous fetch path."""
-  from zpdatafetch import Cyclist
+  from zpdatafetch import ZPCyclistFetch
   from zpdatafetch.zp import ZP
 
-  test_data = {"data": [{"zwid": 123456, "name": "Test Cyclist"}]}
+  test_data = {"data": [{"zwid": 123456, "name": "Test ZPCyclistFetch"}]}
 
   def handler(request):
     if "login" in str(request.url) and request.method == "GET":
@@ -45,7 +45,7 @@ def test_cyclist_sync_mode_fetch(cyclist, login_page, logged_in_page):
     return httpx.Response(404)
 
   # Enable sync mode
-  Cyclist.set_sync_mode(True)
+  ZPCyclistFetch.set_sync_mode(True)
 
   # Mock the ZP client (sync)
   original_init = ZP.__init__
@@ -68,7 +68,7 @@ def test_cyclist_sync_mode_fetch(cyclist, login_page, logged_in_page):
     assert result[123456].asdict() == test_data
   finally:
     ZP.__init__ = original_init
-    Cyclist.set_sync_mode(False)  # Reset for other tests
+    ZPCyclistFetch.set_sync_mode(False)  # Reset for other tests
 
 
 def test_cyclist(cyclist):
@@ -82,7 +82,7 @@ def test_cyclist_initialization(cyclist):
 def test_cyclist_fetch_single_id(cyclist, login_page, logged_in_page):
   test_data = {
     "data": [
-      {"zwid": 123456, "name": "Test Cyclist", "ftp": 250},
+      {"zwid": 123456, "name": "Test ZPCyclistFetch", "ftp": 250},
     ],
   }
 
@@ -184,7 +184,7 @@ def test_cyclist_raw_attribute_stores_strings(cyclist):
     patch.object(AsyncZP, "login", new_callable=AsyncMock),
     patch.object(AsyncZP, "fetch_json", new_callable=AsyncMock) as mock_fetch,
   ):
-    test_json = '{"id": 123, "name": "Test Cyclist"}'
+    test_json = '{"id": 123, "name": "Test ZPCyclistFetch"}'
     mock_fetch.return_value = test_json
 
     cyclist.fetch(123)
@@ -206,7 +206,7 @@ def test_cyclist_processed_attribute_stores_dicts(cyclist):
     patch.object(AsyncZP, "login", new_callable=AsyncMock),
     patch.object(AsyncZP, "fetch_json", new_callable=AsyncMock) as mock_fetch,
   ):
-    test_json = '{"id": 123, "name": "Test Cyclist"}'
+    test_json = '{"id": 123, "name": "Test ZPCyclistFetch"}'
     mock_fetch.return_value = test_json
 
     cyclist.fetch(123)
@@ -218,7 +218,7 @@ def test_cyclist_processed_attribute_stores_dicts(cyclist):
     assert 123 in cyclist._fetched
     assert isinstance(cyclist._fetched[123], ZPCyclist)
     assert cyclist._fetched[123]["id"] == 123
-    assert cyclist._fetched[123]["name"] == "Test Cyclist"
+    assert cyclist._fetched[123]["name"] == "Test ZPCyclistFetch"
 
 
 def test_cyclist_raw_preserved_with_malformed_json(cyclist):

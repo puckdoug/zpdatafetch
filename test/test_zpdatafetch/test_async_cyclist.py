@@ -7,7 +7,7 @@ import httpx
 import pytest
 
 from zpdatafetch.async_zp import AsyncZP
-from zpdatafetch.cyclist import Cyclist
+from zpdatafetch.zpcyclistfetch import ZPCyclistFetch
 from zpdatafetch.zpcyclist import ZPCyclist
 
 
@@ -35,7 +35,7 @@ async def test_async_cyclist_fetch(login_page, logged_in_page):
       ),
     )
 
-    cyclist = Cyclist()
+    cyclist = ZPCyclistFetch()
     cyclist.set_session(zp)
     result = await cyclist.afetch(123456)
 
@@ -48,7 +48,7 @@ async def test_async_cyclist_fetch(login_page, logged_in_page):
 async def test_async_cyclist_invalid_id():
   """Test AsyncCyclist rejects invalid IDs."""
   async with AsyncZP(skip_credential_check=True) as zp:
-    cyclist = Cyclist()
+    cyclist = ZPCyclistFetch()
     cyclist.set_session(zp)
 
     with pytest.raises(ValueError):
@@ -86,7 +86,7 @@ async def test_async_multiple_fetches(login_page, logged_in_page):
       ),
     )
 
-    cyclist = Cyclist()
+    cyclist = ZPCyclistFetch()
     cyclist.set_session(zp)
     result = await cyclist.afetch(123456, 789012)
 
@@ -121,7 +121,7 @@ async def test_async_data_class_json_output(login_page, logged_in_page):
       ),
     )
 
-    cyclist = Cyclist()
+    cyclist = ZPCyclistFetch()
     cyclist.set_session(zp)
     await cyclist.afetch(123456)
 

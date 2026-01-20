@@ -1,4 +1,4 @@
-"""Tests for League class."""
+"""Tests for ZPLeagueFetch class."""
 
 import json
 
@@ -7,7 +7,7 @@ import pytest
 
 from shared.validation import ValidationError
 from zpdatafetch.async_zp import AsyncZP
-from zpdatafetch.league import League
+from zpdatafetch.zpleaguefetch import ZPLeagueFetch
 from zpdatafetch.zpleague import ZPLeague
 
 
@@ -28,8 +28,8 @@ def test_league_initialization(league):
 
 def test_league_init():
   """Test initialization."""
-  league = League()
-  assert isinstance(league, League)
+  league = ZPLeagueFetch()
+  assert isinstance(league, ZPLeagueFetch)
   assert league._url_prefix == "league_standings_"
 
 
@@ -95,7 +95,7 @@ async def test_league_afetch(league_ok, login_page, logged_in_page):
       ),
     )
 
-    league = League()
+    league = ZPLeagueFetch()
     league.set_session(zp)
 
     result = await league.afetch(league_id)
@@ -109,7 +109,7 @@ async def test_league_afetch(league_ok, login_page, logged_in_page):
 @pytest.mark.anyio
 async def test_league_validation():
   """Test validation."""
-  league = League()
+  league = ZPLeagueFetch()
 
   with pytest.raises(ValidationError):
     await league.afetch("invalid")
