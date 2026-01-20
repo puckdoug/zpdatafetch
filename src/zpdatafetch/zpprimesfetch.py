@@ -261,7 +261,9 @@ class ZPPrimesFetch(ZP_obj):
       # Wrap each race's data in ZPPrime object
       p_fetched: dict[int, ZPPrime] = {}
       for race in validated_ids:
-        p_fetched[race] = ZPPrime(p_fetched_dict[race])
+        prime_obj = ZPPrime(p_fetched_dict[race])
+        prime_obj.race_id = race  # Inject race_id
+        p_fetched[race] = prime_obj
 
       self._raw = p_raw
       self._fetched = p_fetched
@@ -355,7 +357,9 @@ class ZPPrimesFetch(ZP_obj):
     # Wrap each race's data in ZPPrime object
     p_fetched: dict[int, ZPPrime] = {}
     for race in validated_ids:
-      p_fetched[race] = ZPPrime(p_fetched_dict[race])
+      prime_obj = ZPPrime(p_fetched_dict[race])
+      prime_obj.race_id = race  # Inject race_id
+      p_fetched[race] = prime_obj
 
     self._raw = p_raw
     self._fetched = p_fetched

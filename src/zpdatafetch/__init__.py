@@ -7,7 +7,7 @@ from zpdatafetch.zpcyclist import ZPCyclist
 from zpdatafetch.zpcyclistfetch import ZPCyclistFetch
 from zpdatafetch.zpleague import ZPLeague
 from zpdatafetch.zpleaguefetch import ZPLeagueFetch
-from zpdatafetch.zpprime import ZPPrime, ZPPrimeSegment
+from zpdatafetch.zpprime import ZPPrime, ZPPrimeResult, ZPPrimeSegment
 from zpdatafetch.zpprimesfetch import ZPPrimesFetch
 from zpdatafetch.zpracefinish import ZPRaceFinish
 from zpdatafetch.zpracelog import ZPRacelog
@@ -50,6 +50,7 @@ __all__ = [
   'ZPCyclist',
   'ZPLeague',
   'ZPPrime',
+  'ZPPrimeResult',
   'ZPPrimeSegment',
   'ZPRaceFinish',
   'ZPRacelog',

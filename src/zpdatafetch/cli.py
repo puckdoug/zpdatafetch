@@ -329,23 +329,48 @@ Module for fetching zwiftpower data using the Zwifpower API
       if args.extras and not has_extras:
         print('  No extras')
   else:
-    # Default: output object repr, with special handling for collections
+    # Default: output object repr, with special handling for nested collections
+    def print_collection(obj: Any, indent: int = 0) -> None:
+      """Recursively print collections with proper indentation.
+
+      Handles nested collections like ZPPrime -> ZPPrimeSegment -> ZPPrimeResult.
+      """
+      prefix = '  ' * indent
+
+      # Check if this is a collection (has __len__ and __iter__)
+      if (
+        hasattr(obj, '__len__')
+        and hasattr(obj, '__iter__')
+        and not isinstance(obj, str)
+      ):
+        print(f'{prefix}{obj!r}')
+        # Iterate through items and show each recursively
+        try:
+          for item in obj:  # type: ignore[iteration-not-supported]
+            print_collection(item, indent + 1)
+        except (TypeError, AttributeError):
+          pass
+      else:
+        # Not a collection, just print repr
+        print(f'{prefix}{obj!r}')
+
     for key, value in x._fetched.items():
-      # If it's a sequence with riders (ZPRaceResult), show metadata and riders
+      print(f'{key}:', end='')
+      # Check if the value itself is a collection that needs recursive expansion
       if (
         hasattr(value, '__len__')
         and hasattr(value, '__iter__')
         and not isinstance(value, str)
       ):
-        print(f'{key}: {value!r}')
-        # Iterate through items and show each
+        print()  # Newline after key for collections
         try:
           for item in value:  # type: ignore[iteration-not-supported]
-            print(f'  {item!r}')
+            print_collection(item, indent=1)
         except (TypeError, AttributeError):
           pass
       else:
-        print(f'{key}: {value!r}')
+        # Not a collection, print on same line
+        print(f' {value!r}')
 
   return None
 

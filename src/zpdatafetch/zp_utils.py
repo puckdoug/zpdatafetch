@@ -110,6 +110,54 @@ def convert_timestamp_to_iso8601(timestamp: float | str) -> str:
     return ''
 
 
+def convert_msec_to_iso8601(msec: int) -> str:
+  """Convert milliseconds since epoch to ISO-8601 format with milliseconds.
+
+  Args:
+      msec: Milliseconds since epoch (Unix timestamp in milliseconds)
+
+  Returns:
+      ISO-8601 formatted datetime string with milliseconds,
+      e.g., '2024-01-15T14:30:45.123Z', or empty string if no value
+  """
+  if not msec:
+    return ''
+  try:
+    # Convert milliseconds to seconds and microseconds
+    seconds = msec // 1000
+    microseconds = (msec % 1000) * 1000
+    # Create datetime from Unix timestamp
+    dt = datetime.fromtimestamp(seconds, tz=timezone.utc)
+    # Replace microseconds and format as ISO8601 with 'Z' suffix
+    dt = dt.replace(microsecond=microseconds)
+    return dt.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
+  except (ValueError, OSError, TypeError, OverflowError):
+    return ''
+
+
+def convert_iso8601_to_msec(iso_str: str) -> int:
+  """Convert ISO-8601 datetime string back to milliseconds since epoch.
+
+  Args:
+      iso_str: ISO-8601 formatted datetime string, e.g., '2024-01-15T14:30:45.123Z'
+
+  Returns:
+      Milliseconds since epoch (Unix timestamp in milliseconds),
+      or 0 if conversion fails
+  """
+  if not iso_str:
+    return 0
+  try:
+    # Remove 'Z' suffix if present and replace with timezone offset
+    if iso_str.endswith('Z'):
+      iso_str = iso_str[:-1] + '+00:00'
+    dt = datetime.fromisoformat(iso_str)
+    # Convert to milliseconds since epoch
+    return int(dt.timestamp() * 1000)
+  except (ValueError, OSError, TypeError):
+    return 0
+
+
 def extract_value(value: Any, default: Any = None) -> Any:
   """Extract value from [value, flag] format or return as-is.
 

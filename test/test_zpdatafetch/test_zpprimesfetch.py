@@ -3,7 +3,7 @@ import json
 import httpx
 
 from zpdatafetch import ZPPrimesFetch
-from zpdatafetch.zpprime import ZPPrime, ZPPrimeSegment
+from zpdatafetch.zpprime import ZPPrime, ZPPrimeResult, ZPPrimeSegment
 
 
 def test_zpprime_empty_instantiation():
@@ -17,6 +17,13 @@ def test_zpprime_empty_instantiation():
 def test_zpprimesegment_empty_instantiation():
   """Test that ZPPrimeSegment can be instantiated with no arguments."""
   obj = ZPPrimeSegment()
+  assert obj is not None
+  assert obj.asdict() == {}
+
+
+def test_zpprimeresult_empty_instantiation():
+  """Test that ZPPrimeResult can be instantiated with no arguments."""
+  obj = ZPPrimeResult()
   assert obj is not None
   assert obj.asdict() == {}
 
