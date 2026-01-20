@@ -7,6 +7,7 @@ team rosters, and prime data.
 
 import json
 import sys
+from typing import Any
 
 from shared.cli import (
   configure_logging_from_args,
@@ -184,26 +185,61 @@ Module for fetching zwiftpower data using the Zwifpower API
         print(f'Error fetching data: {e}', file=sys.stderr)
         return 1
 
-      # Extract racelog data and convert to serializable format
-      racelog_data = {}
+      # Extract racelog data
+      racelogs: dict[int, Any] = {}
       for zwid_str in args.id:
         zwid = int(zwid_str)  # Convert string to int for racelog() call
         try:
           racelog = x.racelog(zwid)
-          racelog_data[zwid] = racelog.aslist()
+          racelogs[zwid] = racelog
         except (ValueError, KeyError) as e:
           print(f'Error getting racelog for {zwid}: {e}', file=sys.stderr)
           return 1
 
-      # Output racelog data
+      # Output racelog data based on flags
       if args.raw:
-        if len(racelog_data) == 1:
-          print(json.dumps(list(racelog_data.values())[0], indent=2))
-        else:
-          for key, value in racelog_data.items():
-            print(f'{key}: {json.dumps(value, indent=2)}')
+        # Output raw JSON strings from the fetched cyclist data
+        for key, value in x._raw.items():
+          print(f'{key}: {value}')
+      elif args.json or args.v1fetch:
+        # Output as JSON
+        serializable = {
+          key: value.aslist() if hasattr(value, 'aslist') else value
+          for key, value in racelogs.items()
+        }
+        print(json.dumps(serializable, indent=2))
+      elif args.excluded or args.extras:
+        # Output excluded and/or extras fields from each race in racelogs
+        for zwid, racelog in racelogs.items():
+          print(f'{zwid}:')
+
+          # Iterate through each race and show excluded/extras for that race
+          for race in racelog:
+            has_excluded = False
+            has_extras = False
+
+            # Output excluded fields if requested
+            if args.excluded:
+              if hasattr(race, 'excluded'):
+                excluded_data = race.excluded()
+                if excluded_data:
+                  print(f'  {race!r}')
+                  print(f'    excluded: {excluded_data}')
+                  has_excluded = True
+
+            # Output extras fields if requested
+            if args.extras:
+              if hasattr(race, 'extras'):
+                extras_data = race.extras()
+                if extras_data:
+                  if not has_excluded:
+                    print(f'  {race!r}')
+                  print(f'    extras: {extras_data}')
+                  has_extras = True
       else:
-        print(json.dumps(racelog_data, indent=2))
+        # Default: output repr of each ZPRacelog
+        for key, racelog in racelogs.items():
+          print(f'{key}: {racelog!r}')
       return None
     case 'result':
       x = Result()
@@ -257,7 +293,7 @@ Module for fetching zwiftpower data using the Zwifpower API
           try:
             for item in value:  # type: ignore[iteration-not-supported]
               if hasattr(item, 'excluded'):
-                item_excluded = item.excluded()  # type: ignore[call-non-callable]
+                item_excluded = item.excluded()
                 if item_excluded:
                   print(f'  {item!r}')
                   print(f'    excluded: {item_excluded}')
@@ -279,7 +315,7 @@ Module for fetching zwiftpower data using the Zwifpower API
           try:
             for item in value:  # type: ignore[iteration-not-supported]
               if hasattr(item, 'extras'):
-                item_extras = item.extras()  # type: ignore[call-non-callable]
+                item_extras = item.extras()
                 if item_extras:
                   print(f'  {item!r}')
                   print(f'    extras: {item_extras}')

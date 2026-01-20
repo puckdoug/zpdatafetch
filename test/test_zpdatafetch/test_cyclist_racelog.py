@@ -81,9 +81,9 @@ class TestCyclistRacelogMethod:
 
     racelog = cyclist.racelog(7574336)
     assert racelog[0].event_title == "Race 1"
-    assert racelog[0].pos == 112
+    assert racelog[0].position == 112
     assert racelog[1].event_title == "Race 2"
-    assert racelog[1].pos == 29
+    assert racelog[1].position == 29
 
 
 class TestCyclistRacelogErrors:
@@ -255,7 +255,7 @@ class TestCyclistRacelogWithRealFixture:
 
       # Test attribute access
       _ = first_race.event_title
-      _ = first_race.pos
+      _ = first_race.position
 
   def test_large_racelog(self):
     """Test with large racelog (550564_all.json)."""

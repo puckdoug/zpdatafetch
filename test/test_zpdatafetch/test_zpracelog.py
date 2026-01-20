@@ -75,7 +75,7 @@ class TestRacelogInitialization:
     assert (
       racelog._races[0].event_title == "Stage 1: Fresh Outta 25: Prospect Park Loop"
     )
-    assert racelog._races[1].pos == 29
+    assert racelog._races[1].position == 29
 
 
 class TestRacelogLen:
@@ -103,18 +103,18 @@ class TestRacelogIndexing:
     """Test accessing races by positive index."""
     first_race = racelog[0]
     assert isinstance(first_race, ZPRaceFinish)
-    assert first_race.pos == 112
+    assert first_race.position == 112
 
   def test_getitem_negative_index(self, racelog):
     """Test accessing races by negative index."""
     last_race = racelog[-1]
     assert isinstance(last_race, ZPRaceFinish)
-    assert last_race.pos == 200
+    assert last_race.position == 200
 
   def test_getitem_middle_index(self, racelog):
     """Test accessing middle element."""
     second_race = racelog[1]
-    assert second_race.pos == 29
+    assert second_race.position == 29
 
   def test_getitem_out_of_range_raises_index_error(self, racelog):
     """Test that out of range index raises IndexError."""
@@ -140,22 +140,22 @@ class TestRacelogSlicing:
   def test_slice_first_two(self, racelog):
     """Test slicing first two races."""
     races = racelog[0:2]
-    assert races[0].pos == 112
-    assert races[1].pos == 29
+    assert races[0].position == 112
+    assert races[1].position == 29
 
   def test_slice_last_two(self, racelog):
     """Test slicing last two races."""
     races = racelog[-2:]
     assert len(races) == 2
-    assert races[0].pos == 29
-    assert races[1].pos == 200
+    assert races[0].position == 29
+    assert races[1].position == 200
 
   def test_slice_with_step(self, racelog):
     """Test slicing with step."""
     races = racelog[::2]  # Every other race
     assert len(races) == 2
-    assert races[0].pos == 112
-    assert races[1].pos == 200
+    assert races[0].position == 112
+    assert races[1].position == 200
 
   def test_slice_empty_result(self, racelog):
     """Test slicing that returns empty list."""
@@ -181,7 +181,7 @@ class TestRacelogIteration:
     """Test iteration in for loop."""
     positions = []
     for race in racelog:
-      positions.append(race.pos)
+      positions.append(race.position)
     assert positions == [112, 29, 200]
 
   def test_iter_empty_racelog(self):
@@ -195,7 +195,7 @@ class TestRacelogIteration:
     for idx, race in enumerate(racelog):
       assert isinstance(race, ZPRaceFinish)
       if idx == 0:
-        assert race.pos == 112
+        assert race.position == 112
 
 
 class TestRacelogRepr:
@@ -224,8 +224,8 @@ class TestRacelogRepr:
     repr_str = repr(racelog)
     assert "Racelog([" in repr_str
     assert "ZPRaceFinish(" in repr_str
-    assert "zid='123'" in repr_str
-    assert "pos=1" in repr_str
+    assert "zwift_id='123'" in repr_str
+    assert "position=1" in repr_str
 
   def test_str_shows_all_races(self, racelog):
     """Test str shows all races in requested format."""
@@ -250,7 +250,7 @@ class TestRacelogRepr:
     str_repr = str(racelog)
     assert "ZPRacelog[" in str_repr
     assert "ZPRaceFinish(" in str_repr
-    assert "zid='123'" in str_repr
+    assert "zwift_id='123'" in str_repr
 
 
 class TestRacelogAslist:
@@ -266,7 +266,7 @@ class TestRacelogAslist:
   def test_aslist_preserves_data(self, racelog, sample_race_list):
     """Test that aslist preserves cleaned data."""
     result = racelog.aslist()
-    assert result[0]["pos"] == 112
+    assert result[0]["position"] == 112
     assert result[1]["event_title"] == "Zwift Epic Race - Snowman"
     # avg_power should be cleaned to scalar
     assert result[2]["avg_power"] == 137
@@ -405,9 +405,9 @@ class TestRacelogDaysLast:
     recent = racelog.days_last(30)
     assert len(recent) == 1
     race = recent[0]
-    assert race.zid == "123"
+    assert race.zwift_id == "123"
     assert race.event_title == "Test Race"
-    assert race.pos == 42
+    assert race.position == 42
     # avg_power should be cleaned to scalar
     assert race.avg_power == 200
 

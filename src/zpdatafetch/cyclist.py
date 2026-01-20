@@ -200,7 +200,7 @@ class Cyclist(ZP_obj):
       results_fetched: dict[int, ZPCyclist] = {}
       for zid in validated_ids:
         if zid in results_fetched_dict:
-          results_fetched[zid] = ZPCyclist(results_fetched_dict[zid])
+          results_fetched[zid] = ZPCyclist.from_dict(results_fetched_dict[zid])
 
       self._raw = results_raw
       self._fetched = results_fetched
@@ -277,7 +277,7 @@ class Cyclist(ZP_obj):
     results_fetched: dict[int, ZPCyclist] = {}
     for zid in validated_ids:
       if zid in results_fetched_dict:
-        results_fetched[zid] = ZPCyclist(results_fetched_dict[zid])
+        results_fetched[zid] = ZPCyclist.from_dict(results_fetched_dict[zid])
 
     self._raw = results_raw
     self._fetched = results_fetched
