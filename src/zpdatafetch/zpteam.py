@@ -2,191 +2,399 @@
 
 This module defines typed Python objects for team roster data from ZwiftPower's
 team API endpoint. Provides both collection and individual team member classes
-with attribute access and backwards compatibility.
+with explicit typed fields and backwards compatibility.
 """
 
+import json
+from dataclasses import dataclass, field
 from typing import Any
 
+from zpdatafetch.zp_utils import format_time_hms
 
-# ===============================================================================
+
+@dataclass(slots=True)
 class ZPTeamMember:
   """Represents a single team member in a team roster.
 
-  Provides attribute-based access to team member fields from ZwiftPower's
-  team API. Supports both attribute access (obj.field) and dict-style
-  access (obj['field']) for backwards compatibility.
+  Stores team member data with explicit typed fields and captures
+  unknown fields for forward compatibility.
 
-  Example:
-    member = ZPTeamMember({'zwid': 123, 'name': 'John Doe'})
-    print(member.name)  # 'John Doe'
-    print(member['zwid'])  # 123
-    data = member.asdict()  # Get original dict
+  Attributes:
+    Rider identification:
+      zwift_id: Rider's Zwift ID
+      name: Rider's name
+      age: Age category
+      flag: Country flag code
+
+    Physical attributes:
+      weight: Weight in kg
+      height: Height in cm (stored as [value, flag] array)
+
+    Performance metrics:
+      ftp: Functional Threshold Power (stored as [value, flag] array)
+      zftp: FTP value extracted
+      rank: Overall ranking
+      skill: Skill rating
+      skill_race: Race skill rating
+      skill_seg: Segment skill rating
+      skill_power: Power skill rating
+
+    Activity stats:
+      distance: Total distance ridden (meters)
+      climbed: Total elevation climbed (meters)
+      energy: Total energy (kJ)
+      time: Total riding time (seconds)
+      time_hms: Total riding time formatted as hh:mm:ss.sss
+
+    Critical power:
+      h_15_watts: 15 second power
+      h_15_wkg: 15 second watts/kg
+      h_1200_watts: 20 minute power
+      h_1200_wkg: 20 minute watts/kg
+
+    Status:
+      div: Category (0/10/20/30/40)
+      divw: Women's category
+      status: Status flag
+      zada: Zwift academy flag
   """
 
-  def __init__(self, member_data: dict[str, Any] | None = None) -> None:
-    """Initialize a team member.
+  # Rider identification
+  zwift_id: int = 0
+  name: str = ''
+  age: str = ''
+  flag: str = ''
+
+  # Physical attributes
+  weight: float = 0.0
+
+  # Performance metrics
+  zftp: str = ''
+  rank: str = ''
+  skill: int = 0
+  skill_race: int = 0
+  skill_seg: int = 0
+  skill_power: int = 0
+
+  # Activity stats
+  distance: int = 0
+  climbed: int = 0
+  energy: int = 0
+  time: int = 0
+  time_hms: str = ''
+
+  # Critical power
+  h_15_watts: str = ''
+  h_15_wkg: str = ''
+  h_1200_watts: str = ''
+  h_1200_wkg: str = ''
+
+  # Status
+  div: int = 0
+  divw: int = 0
+  status: str = ''
+  zada: bool = False
+  reg: int = 0
+
+  # Field classification dicts
+  _excluded: dict[str, Any] = field(default_factory=dict, repr=False)
+  _extra: dict[str, Any] = field(default_factory=dict, repr=False)
+
+  @classmethod
+  def from_dict(cls, data: dict[str, Any]) -> 'ZPTeamMember':
+    """Create instance from API response dict.
+
+    Known fields are extracted with type coercion and transformations.
+    Unknown fields are captured in _extra for forward compatibility.
 
     Args:
-      member_data: Dictionary containing team member data from API.
-                   If None, creates an empty team member object.
-    """
-    self._data = member_data if member_data is not None else {}
-
-  def __getattr__(self, name: str) -> Any:
-    """Allow attribute access to team member fields.
-
-    Args:
-      name: Field name to access
+      data: Dictionary containing team member data from API response
 
     Returns:
-      Field value from member data
-
-    Raises:
-      AttributeError: If field doesn't exist
+      ZPTeamMember instance with parsed fields
     """
-    # Prevent infinite recursion for _data and other private attributes
-    if name.startswith('_'):
-      raise AttributeError(
-        f"'{type(self).__name__}' object has no attribute '{name}'",
-      )
+    known_fields = {
+      'zwid',
+      'name',
+      'age',
+      'flag',
+      'w',
+      'ftp',
+      'rank',
+      'skill',
+      'skill_race',
+      'skill_seg',
+      'skill_power',
+      'distance',
+      'climbed',
+      'energy',
+      'time',
+      'h_15_watts',
+      'h_15_wkg',
+      'h_1200_watts',
+      'h_1200_wkg',
+      'div',
+      'divw',
+      'status',
+      'zada',
+      'reg',
+      'aid',
+      'r',
+      'email',
+    }
 
-    try:
-      return self._data[name]
-    except KeyError as e:
-      raise AttributeError(
-        f"'{type(self).__name__}' object has no attribute '{name}'",
-      ) from e
+    # Fields to exclude (recognized from API but not explicitly handled)
+    recognized_but_excluded = {
+      'aid',
+      'r',
+      'email',
+    }
+
+    # Extract known fields with proper type conversions
+    zwift_id = int(data.get('zwid', 0))
+    name = str(data.get('name', ''))
+    age = str(data.get('age', ''))
+    flag = str(data.get('flag', ''))
+
+    # Weight from array format or direct value
+    weight_raw = data.get('w', 0)
+    if isinstance(weight_raw, (list, tuple)) and len(weight_raw) > 0:
+      weight = float(weight_raw[0]) if weight_raw[0] else 0.0
+    else:
+      weight = float(weight_raw) if weight_raw else 0.0
+
+    # FTP from array format or direct value
+    ftp_raw = data.get('ftp', '')
+    if isinstance(ftp_raw, (list, tuple)) and len(ftp_raw) > 0:
+      zftp = str(ftp_raw[0]) if ftp_raw[0] else ''
+    else:
+      zftp = str(ftp_raw) if ftp_raw else ''
+
+    # Performance metrics
+    rank = str(data.get('rank', ''))
+    skill = int(data.get('skill', 0))
+    skill_race = int(data.get('skill_race', 0))
+    skill_seg = int(data.get('skill_seg', 0))
+    skill_power = int(data.get('skill_power', 0))
+
+    # Activity stats
+    distance = int(data.get('distance', 0))
+    climbed = int(data.get('climbed', 0))
+    energy = int(data.get('energy', 0))
+    time = int(data.get('time', 0))
+    time_hms = format_time_hms(time)
+
+    # Critical power
+    h_15_watts = str(data.get('h_15_watts', ''))
+    h_15_wkg = str(data.get('h_15_wkg', ''))
+    h_1200_watts = str(data.get('h_1200_watts', ''))
+    h_1200_wkg = str(data.get('h_1200_wkg', ''))
+
+    # Status
+    div = int(data.get('div', 0))
+    divw = int(data.get('divw', 0))
+    status = str(data.get('status', ''))
+    zada = int(data.get('zada', 0)) == 1
+    reg = int(data.get('reg', 0))
+
+    # Classify remaining fields
+    excluded = {}
+    extra = {}
+    for key, value in data.items():
+      if key not in known_fields:
+        if key in recognized_but_excluded:
+          excluded[key] = value
+        else:
+          extra[key] = value
+
+    return cls(
+      zwift_id=zwift_id,
+      name=name,
+      age=age,
+      flag=flag,
+      weight=weight,
+      zftp=zftp,
+      rank=rank,
+      skill=skill,
+      skill_race=skill_race,
+      skill_seg=skill_seg,
+      skill_power=skill_power,
+      distance=distance,
+      climbed=climbed,
+      energy=energy,
+      time=time,
+      time_hms=time_hms,
+      h_15_watts=h_15_watts,
+      h_15_wkg=h_15_wkg,
+      h_1200_watts=h_1200_watts,
+      h_1200_wkg=h_1200_wkg,
+      div=div,
+      divw=divw,
+      status=status,
+      zada=zada,
+      reg=reg,
+      _excluded=excluded,
+      _extra=extra,
+    )
 
   def __getitem__(self, key: str) -> Any:
-    """Allow dict-style access for backwards compatibility.
-
-    Args:
-      key: Field name to access
-
-    Returns:
-      Field value from member data
-    """
-    return self._data[key]
+    """Allow dictionary-style access to team member data for backwards compatibility."""
+    if hasattr(self, key):
+      return getattr(self, key)
+    if key in self._excluded:
+      return self._excluded[key]
+    if key in self._extra:
+      return self._extra[key]
+    raise KeyError(key)
 
   def __contains__(self, key: str) -> bool:
-    """Check if field exists in member data.
+    """Check if a key exists in the team member data."""
+    return hasattr(self, key) or key in self._excluded or key in self._extra
 
-    Args:
-      key: Field name to check
+  def excluded(self) -> dict[str, Any]:
+    """Return recognized-but-not-explicit fields (candidates for future promotion)."""
+    return dict(self._excluded)
 
-    Returns:
-      True if field exists, False otherwise
-    """
-    return key in self._data
+  def extras(self) -> dict[str, Any]:
+    """Return truly unknown fields (likely from recent API changes)."""
+    return dict(self._extra)
 
   def asdict(self) -> dict[str, Any]:
-    """Return original dictionary representation.
+    """Return the team member data as a dictionary.
 
-    Provides backwards compatibility with code expecting raw dicts.
-
-    Returns:
-      Original member data dictionary
+    Reconstructs a dict with all known, excluded, and extra fields.
     """
-    return self._data
+    result = {
+      'zwid': self.zwift_id,
+      'name': self.name,
+      'age': self.age,
+      'flag': self.flag,
+      'w': [str(self.weight), 0] if self.weight else 0,
+      'ftp': [self.zftp, 0] if self.zftp else '',
+      'rank': self.rank,
+      'skill': self.skill,
+      'skill_race': self.skill_race,
+      'skill_seg': self.skill_seg,
+      'skill_power': self.skill_power,
+      'distance': self.distance,
+      'climbed': self.climbed,
+      'energy': self.energy,
+      'time': self.time,
+      'time_hms': self.time_hms,
+      'h_15_watts': self.h_15_watts,
+      'h_15_wkg': self.h_15_wkg,
+      'h_1200_watts': self.h_1200_watts,
+      'h_1200_wkg': self.h_1200_wkg,
+      'div': self.div,
+      'divw': self.divw,
+      'status': self.status,
+      'zada': 1 if self.zada else 0,
+      'reg': self.reg,
+    }
+    result.update(self._excluded)
+    result.update(self._extra)
+    return result
 
   def json(self) -> str:
-    """Return JSON string representation.
-
-    Returns:
-      JSON-formatted string of member data
-    """
-    import json
-
-    return json.dumps(self._data, indent=2)
+    """Return JSON representation of team member data."""
+    return json.dumps(self.asdict(), indent=2)
 
 
-# ===============================================================================
+@dataclass(slots=True)
 class ZPTeam:
   """Collection of team members for a team roster.
 
-  Provides array-like access to individual team members from ZwiftPower's
-  team API. Supports iteration, indexing, and slicing.
+  Stores team-level data and a list of individual team members.
+  Provides convenient iteration and indexing operations.
 
-  The team data includes team metadata and a list of team members.
-  Each member is wrapped in a ZPTeamMember object for typed access.
-
-  Example:
-    team = ZPTeam({'data': [{'name': 'John'}, {'name': 'Jane'}]})
-    print(len(team))  # 2
-    print(team[0].name)  # 'John'
-    for member in team:
-      print(member.name)
+  Attributes:
+    _members: List of ZPTeamMember objects
   """
 
-  def __init__(self, team_data: dict[str, Any] | None = None) -> None:
-    """Initialize a team roster collection.
+  # Collection of team members
+  _members: list[ZPTeamMember] = field(default_factory=list, repr=False)
+
+  # Field classification dicts
+  _excluded: dict[str, Any] = field(default_factory=dict, repr=False)
+  _extra: dict[str, Any] = field(default_factory=dict, repr=False)
+
+  # Original data dict for backwards compatibility
+  _data: dict[str, Any] = field(default_factory=dict, repr=False)
+
+  @classmethod
+  def from_dict(cls, data: dict[str, Any]) -> 'ZPTeam':
+    """Create instance from API response dict.
+
+    Parses team-level fields and creates ZPTeamMember objects
+    from the nested 'data' array.
 
     Args:
-      team_data: Dictionary containing team data from API,
-                 including 'data' array of team members.
-                 If None, creates an empty team object.
-    """
-    self._data = team_data if team_data is not None else {}
-
-    # Extract team member list
-    member_list = self._data.get('data', [])
-
-    # Create ZPTeamMember objects for each member
-    self._members = [ZPTeamMember(member_data) for member_data in member_list]
-
-  def __len__(self) -> int:
-    """Return number of team members.
+      data: Dictionary containing team data from API response
 
     Returns:
-      Count of team members
+      ZPTeam instance with parsed fields
     """
+    known_fields = {'data'}
+    recognized_but_excluded: set[str] = set()
+
+    # Parse member list from nested "data" key
+    members = []
+    for member_data in data.get('data', []):
+      members.append(ZPTeamMember.from_dict(member_data))
+
+    # Classify team-level fields
+    excluded = {}
+    extra = {}
+    for key, value in data.items():
+      if key not in known_fields:
+        if key in recognized_but_excluded:
+          excluded[key] = value
+        else:
+          extra[key] = value
+
+    return cls(
+      _members=members,
+      _excluded=excluded,
+      _extra=extra,
+      _data=data,  # Keep original for backwards compatibility
+    )
+
+  def __len__(self) -> int:
+    """Return the number of team members."""
     return len(self._members)
 
   def __getitem__(self, index: int | slice) -> 'ZPTeamMember | list[ZPTeamMember]':
-    """Access team members by index or slice.
-
-    Args:
-      index: Integer index or slice object
-
-    Returns:
-      Single ZPTeamMember or list of ZPTeamMember objects
-    """
+    """Access team members by index or slice."""
     return self._members[index]
 
   def __iter__(self):
-    """Iterate over team members.
-
-    Returns:
-      Iterator over ZPTeamMember objects
-    """
+    """Iterate over team members."""
     return iter(self._members)
 
+  def __repr__(self) -> str:
+    """Return detailed representation."""
+    return f'ZPTeam(members={len(self._members)})'
+
+  def __str__(self) -> str:
+    """Return human-readable string."""
+    return f'ZPTeam with {len(self._members)} members'
+
+  def excluded(self) -> dict[str, Any]:
+    """Return recognized-but-not-explicit fields at team level."""
+    return dict(self._excluded)
+
+  def extras(self) -> dict[str, Any]:
+    """Return truly unknown fields at team level."""
+    return dict(self._extra)
+
   def asdict(self) -> dict[str, Any]:
-    """Return original dictionary representation.
-
-    Provides backwards compatibility with code expecting raw dicts.
-
-    Returns:
-      Original team data dictionary
-    """
+    """Return the underlying team data as a dictionary."""
     return self._data
 
   def aslist(self) -> list[dict[str, Any]]:
-    """Return list of team member dictionaries.
-
-    Useful for serialization or backwards compatibility.
-
-    Returns:
-      List of team member dictionaries
-    """
+    """Return list of team members as dictionaries."""
     return [member.asdict() for member in self._members]
 
   def json(self) -> str:
-    """Return JSON string representation.
-
-    Returns:
-      JSON-formatted string of team data
-    """
-    import json
-
+    """Return JSON representation of team data."""
     return json.dumps(self._data, indent=2)

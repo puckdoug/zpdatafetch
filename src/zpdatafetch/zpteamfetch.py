@@ -150,7 +150,7 @@ class ZPTeamFetch(ZP_obj):
           # Parse for fetched dict
           parsed = parse_json_safe(raw_json, context=f'team {team_id}')
           team_dict = parsed if isinstance(parsed, dict) else {}
-          results_fetched[team_id] = ZPTeam(team_dict)
+          results_fetched[team_id] = ZPTeam.from_dict(team_dict)
 
           logger.debug(f'Successfully fetched team ID: {team_id}')
         except Exception as e:
@@ -219,7 +219,7 @@ class ZPTeamFetch(ZP_obj):
       # Parse immediately (no parallel parsing)
       parsed = parse_json_safe(raw_json, context=f'team {id_val}')
       team_dict = parsed if isinstance(parsed, dict) else {}
-      results_fetched[id_val] = ZPTeam(team_dict)
+      results_fetched[id_val] = ZPTeam.from_dict(team_dict)
 
       logger.debug(f'Successfully fetched team data for team ID: {id_val}')
 
