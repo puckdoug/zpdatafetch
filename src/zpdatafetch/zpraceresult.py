@@ -26,8 +26,8 @@ class ZPRiderFinish:
   position: int = 0
   zwift_id: int = 0
   name: str = ''
-  team: str | None = None
-  team_id: str | None = None
+  team_name: str | None = None
+  team_id: int | None = None
   gender: str = ''  # "male" or "female"
 
   # Time and performance fields
@@ -39,7 +39,7 @@ class ZPRiderFinish:
   age: str = ''
 
   # Power metrics
-  zftp: int = 0  # Zwift's internal FTP (not actual FTP)
+  zftp: int = 0  # Zwift FTP value
   avg_power: float = 0.0  # Average power in watts
   avg_wkg: float = 0.0  # Average power per kg
   avg_hr: int = 0  # Average heart rate
@@ -75,7 +75,8 @@ class ZPRiderFinish:
   skill: float = 0.0  # Skill rating
   skill_b: float = 0.0  # Secondary skill rating
   skill_gain: float = 0.0  # Skill gain
-  zada: int = 0  # Zwift activity data
+  zada: bool = False  # Zwift Academy status
+  upg: bool = False  # Upgrade flag
   pts: int = 0  # Points awarded
   pen: str = ''  # Category/Penalty
 
@@ -83,6 +84,8 @@ class ZPRiderFinish:
   category: str = ''  # Men's category (A, B, C, D)
   category_women: str = ''  # Women's category (A, B, C, D)
   hrm: bool = False  # Has heart rate monitor
+  sweep: bool = False  # Sweep penalty flag
+  lead: bool = False  # Lead penalty flag
 
   # Additional metrics
   uid: str = ''  # User identifier
@@ -116,7 +119,8 @@ class ZPRiderFinish:
       'position',
       'zwift_id',
       'name',
-      'team',
+      'team_name',
+      'team',  # Alias for team_name
       'team_id',
       'gender',
       'time',
@@ -154,8 +158,11 @@ class ZPRiderFinish:
       'skill_b',
       'skill_gain',
       'zada',
+      'upg',
       'pts',
       'pen',
+      'sweep',
+      'lead',
       'category',
       'category_women',
       'hrm',
@@ -216,12 +223,23 @@ class ZPRiderFinish:
     time_gun_hms = format_time_hms(time_gun_seconds)
 
     # Extract known fields from data and extras
+    # Extract team_id as int or None
+    team_id_raw = data.get('team_id') or data.get('tid')
+    team_id: int | None = None
+    if team_id_raw is not None:
+      try:
+        team_id = int(extract_value(team_id_raw, 0))
+        if team_id == 0:
+          team_id = None
+      except (ValueError, TypeError):
+        team_id = None
+
     return cls(
       position=int(extract_value(data.get('position') or data.get('pos'), 0)),
       zwift_id=int(extract_value(data.get('zwift_id') or data.get('zwid'), 0)),
       name=str(data.get('name', '')),
-      team=data.get('team') or data.get('tname'),
-      team_id=str(extract_value(data.get('team_id') or data.get('tid'), '')),
+      team_name=data.get('team_name') or data.get('team') or data.get('tname'),
+      team_id=team_id,
       gender=gender,
       time=time_seconds,
       time_gun=time_gun_seconds,
@@ -259,12 +277,15 @@ class ZPRiderFinish:
       skill=float(extract_numeric(data.get('skill'), float, 0.0)),
       skill_b=float(extract_numeric(data.get('skill_b'), float, 0.0)),
       skill_gain=float(extract_numeric(data.get('skill_gain'), float, 0.0)),
-      zada=int(extract_numeric(data.get('zada'), int, 0)),
+      zada=int(data.get('zada', 0)) == 1,
+      upg=int(data.get('upg', 0)) == 1,
       pts=int(extract_numeric(data.get('pts'), int, 0)),
       pen=str(data.get('category') or data.get('pen', '')),
       category=category,
       category_women=category_women,
       hrm=hrm,
+      sweep=int(data.get('sweep', 0)) == 1,
+      lead=int(data.get('lead', 0)) == 1,
       uid=uid,
       lag=lag,
       vtta=vtta,

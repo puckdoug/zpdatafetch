@@ -85,7 +85,7 @@ class ZPLeagueTeam:
 class ZPLeagueResult:
   """Represents a rider's result in league standings.
 
-  Contains rider position, points, penalty/category, and history.
+  Contains rider position, points, category, and history.
   """
 
   # Core identification
@@ -97,7 +97,7 @@ class ZPLeagueResult:
   # League metrics
   points: int = 0  # League points total
   events: int = 0  # Number of events participated
-  pen: str = ''  # Penalty/category (A, B, C, D)
+  category: str = ''  # Category (A, B, C, D)
 
   # Team and location
   team_id: int = 0  # Team ID (tid)
@@ -145,7 +145,6 @@ class ZPLeagueResult:
       'position',
       'zwift_id',
       'team_id',
-      'pen',
       'team_name',
     }
 
@@ -177,7 +176,7 @@ class ZPLeagueResult:
       name=str(data.get('name', '')),
       points=extract_numeric(data.get('points'), int, 0),
       events=extract_numeric(data.get('events'), int, 0),
-      pen=str(data.get('category', '')),
+      category=str(data.get('category', '')),
       team_id=team_id,
       team_name=team_name,
       age=str(data.get('age', '')),
@@ -214,7 +213,7 @@ class ZPLeagueResult:
       'name': 'name',
       'points': 'points',
       'events': 'events',
-      'category': 'pen',
+      'category': 'category',
       'tid': 'team_id',
       'age': 'age',
       'flag': 'flag',
@@ -223,7 +222,6 @@ class ZPLeagueResult:
       'position': 'position',
       'zwift_id': 'zwift_id',
       'team_id': 'team_id',
-      'pen': 'pen',
       'team_name': 'team_name',
     }
     if key in mapping:
@@ -240,7 +238,7 @@ class ZPLeagueResult:
       'name': self.name,
       'points': self.points,
       'events': self.events,
-      'category': self.pen,
+      'category': self.category,
       'tid': self.team_id,
       'age': self.age,
       'flag': self.flag,

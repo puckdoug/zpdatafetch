@@ -160,7 +160,7 @@ class ZPRiderSignup:
   age: str = ""
   gender: str = ""
   flag: str = ""
-  height: float = 0.0
+  height: int = 0
   weight: float = 0.0
 
   # Registration and status
@@ -172,11 +172,11 @@ class ZPRiderSignup:
   zada: bool = False
 
   # Team information
-  team_id: str = ""
-  team_name: str = ""
+  team_id: int | None = None
+  team_name: str | None = None
 
   # Power and performance data
-  zftp: str = ""
+  zftp: int = 0
   eff: str = ""
   skill: int = 0
   skill_power: int = 0
@@ -272,20 +272,15 @@ class ZPRiderSignup:
     name = str(data.get("name", ""))
     age = str(data.get("age", ""))
 
-    # Gender conversion (m/f/other)
+    # Gender conversion (handles both 'm'/'f' strings and 0/1 integers)
     gender_raw = data.get("gender", "")
-    if gender_raw == "m":
-      gender = "male"
-    elif gender_raw == "f":
-      gender = "female"
-    else:
-      gender = convert_gender(int(gender_raw)) if gender_raw else ""
+    gender = convert_gender(gender_raw) if gender_raw != "" else ""
 
     flag = str(data.get("flag", ""))
 
     # Height and weight from array format or direct value
     height_raw = data.get("height", 0)
-    height = float(extract_value(height_raw, 0))
+    height = int(extract_value(height_raw, 0)) if extract_value(height_raw, 0) else 0
 
     weight_raw = data.get("weight", 0)
     weight = float(extract_value(weight_raw, 0))
@@ -308,12 +303,25 @@ class ZPRiderSignup:
     rank = str(data.get("rank", ""))
     zada = convert_bool_field(data.get("zada", 0))
 
-    # Team information
-    team_id = str(data.get("tid", ""))
-    team_name = str(data.get("tname", ""))
+    # Team information - team_id as int or None
+    team_id_raw = data.get("tid")
+    team_id: int | None = None
+    if team_id_raw is not None and team_id_raw != "":
+      try:
+        team_id = int(team_id_raw)
+        if team_id == 0:
+          team_id = None
+      except (ValueError, TypeError):
+        team_id = None
+    team_name_raw = data.get("tname", "")
+    team_name: str | None = str(team_name_raw) if team_name_raw else None
 
     # Power and performance
-    zftp = str(data.get("ftp", ""))
+    zftp_raw = data.get("ftp", 0)
+    try:
+      zftp = int(zftp_raw) if zftp_raw else 0
+    except (ValueError, TypeError):
+      zftp = 0
     eff = str(data.get("eff", ""))
     skill = int(data.get("skill", 0))
     skill_power = int(data.get("skill_power", 0))
@@ -458,8 +466,8 @@ class ZPRiderSignup:
       else 0,
       "rank": self.rank,
       "zada": int(self.zada),
-      "tid": self.team_id,
-      "tname": self.team_name,
+      "tid": self.team_id if self.team_id is not None else "",
+      "tname": self.team_name if self.team_name is not None else "",
       "ftp": self.zftp,
       "eff": self.eff,
       "skill": self.skill,

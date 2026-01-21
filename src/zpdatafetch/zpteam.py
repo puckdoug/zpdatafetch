@@ -9,7 +9,11 @@ import json
 from dataclasses import dataclass, field
 from typing import Any
 
-from zpdatafetch.zp_utils import format_time_hms
+from zpdatafetch.zp_utils import (
+  convert_gender,
+  format_time_hms,
+  set_rider_category,
+)
 
 
 @dataclass(slots=True)
@@ -61,16 +65,17 @@ class ZPTeamMember:
 
   # Rider identification
   zwift_id: int = 0
-  name: str = ''
-  age: str = ''
-  flag: str = ''
+  name: str = ""
+  age: str = ""
+  gender: str = ""  # Gender (male/female)
+  flag: str = ""
 
   # Physical attributes
   weight: float = 0.0
 
   # Performance metrics
-  zftp: str = ''
-  rank: str = ''
+  zftp: int = 0
+  rank: str = ""
   skill: int = 0
   skill_race: int = 0
   skill_seg: int = 0
@@ -81,18 +86,18 @@ class ZPTeamMember:
   climbed: int = 0
   energy: int = 0
   time: int = 0
-  time_hms: str = ''
+  time_hms: str = ""
 
   # Critical power
-  h_15_watts: str = ''
-  h_15_wkg: str = ''
-  h_1200_watts: str = ''
-  h_1200_wkg: str = ''
+  h_15_watts: str = ""
+  h_15_wkg: str = ""
+  h_1200_watts: str = ""
+  h_1200_wkg: str = ""
 
-  # Status
-  div: int = 0
-  divw: int = 0
-  status: str = ''
+  # Status and category
+  category: str = ""  # Men's category (A/B/C/D) converted from div
+  category_women: str = ""  # Women's category (A/B/C/D) converted from divw
+  status: str = ""
   zada: bool = False
   reg: int = 0
 
@@ -101,7 +106,7 @@ class ZPTeamMember:
   _extra: dict[str, Any] = field(default_factory=dict, repr=False)
 
   @classmethod
-  def from_dict(cls, data: dict[str, Any]) -> 'ZPTeamMember':
+  def from_dict(cls, data: dict[str, Any]) -> "ZPTeamMember":
     """Create instance from API response dict.
 
     Known fields are extracted with type coercion and transformations.
@@ -114,88 +119,96 @@ class ZPTeamMember:
       ZPTeamMember instance with parsed fields
     """
     known_fields = {
-      'zwid',
-      'name',
-      'age',
-      'flag',
-      'w',
-      'ftp',
-      'rank',
-      'skill',
-      'skill_race',
-      'skill_seg',
-      'skill_power',
-      'distance',
-      'climbed',
-      'energy',
-      'time',
-      'h_15_watts',
-      'h_15_wkg',
-      'h_1200_watts',
-      'h_1200_wkg',
-      'div',
-      'divw',
-      'status',
-      'zada',
-      'reg',
-      'aid',
-      'r',
-      'email',
+      "zwid",
+      "name",
+      "age",
+      "gender",
+      "flag",
+      "w",
+      "ftp",
+      "rank",
+      "skill",
+      "skill_race",
+      "skill_seg",
+      "skill_power",
+      "distance",
+      "climbed",
+      "energy",
+      "time",
+      "h_15_watts",
+      "h_15_wkg",
+      "h_1200_watts",
+      "h_1200_wkg",
+      "div",
+      "divw",
+      "status",
+      "zada",
+      "reg",
+      "aid",
+      "r",
+      "email",
     }
 
     # Fields to exclude (recognized from API but not explicitly handled)
     recognized_but_excluded = {
-      'aid',
-      'r',
-      'email',
+      "aid",
+      "r",
+      "email",
     }
 
     # Extract known fields with proper type conversions
-    zwift_id = int(data.get('zwid', 0))
-    name = str(data.get('name', ''))
-    age = str(data.get('age', ''))
-    flag = str(data.get('flag', ''))
+    zwift_id = int(data.get("zwid", 0))
+    name = str(data.get("name", ""))
+    age = str(data.get("age", ""))
+    gender = convert_gender(data.get("gender", ""))
+    flag = str(data.get("flag", ""))
 
     # Weight from array format or direct value
-    weight_raw = data.get('w', 0)
+    weight_raw = data.get("w", 0)
     if isinstance(weight_raw, (list, tuple)) and len(weight_raw) > 0:
       weight = float(weight_raw[0]) if weight_raw[0] else 0.0
     else:
       weight = float(weight_raw) if weight_raw else 0.0
 
     # FTP from array format or direct value
-    ftp_raw = data.get('ftp', '')
+    ftp_raw = data.get("ftp", 0)
     if isinstance(ftp_raw, (list, tuple)) and len(ftp_raw) > 0:
-      zftp = str(ftp_raw[0]) if ftp_raw[0] else ''
+      ftp_val = ftp_raw[0]
     else:
-      zftp = str(ftp_raw) if ftp_raw else ''
+      ftp_val = ftp_raw
+    try:
+      zftp = int(ftp_val) if ftp_val else 0
+    except (ValueError, TypeError):
+      zftp = 0
 
     # Performance metrics
-    rank = str(data.get('rank', ''))
-    skill = int(data.get('skill', 0))
-    skill_race = int(data.get('skill_race', 0))
-    skill_seg = int(data.get('skill_seg', 0))
-    skill_power = int(data.get('skill_power', 0))
+    rank = str(data.get("rank", ""))
+    skill = int(data.get("skill", 0))
+    skill_race = int(data.get("skill_race", 0))
+    skill_seg = int(data.get("skill_seg", 0))
+    skill_power = int(data.get("skill_power", 0))
 
     # Activity stats
-    distance = int(data.get('distance', 0))
-    climbed = int(data.get('climbed', 0))
-    energy = int(data.get('energy', 0))
-    time = int(data.get('time', 0))
+    distance = int(data.get("distance", 0))
+    climbed = int(data.get("climbed", 0))
+    energy = int(data.get("energy", 0))
+    time = int(data.get("time", 0))
     time_hms = format_time_hms(time)
 
     # Critical power
-    h_15_watts = str(data.get('h_15_watts', ''))
-    h_15_wkg = str(data.get('h_15_wkg', ''))
-    h_1200_watts = str(data.get('h_1200_watts', ''))
-    h_1200_wkg = str(data.get('h_1200_wkg', ''))
+    h_15_watts = str(data.get("h_15_watts", ""))
+    h_15_wkg = str(data.get("h_15_wkg", ""))
+    h_1200_watts = str(data.get("h_1200_watts", ""))
+    h_1200_wkg = str(data.get("h_1200_wkg", ""))
 
-    # Status
-    div = int(data.get('div', 0))
-    divw = int(data.get('divw', 0))
-    status = str(data.get('status', ''))
-    zada = int(data.get('zada', 0)) == 1
-    reg = int(data.get('reg', 0))
+    # Status and category
+    div = int(data.get("div", 0))
+    divw = int(data.get("divw", 0))
+    category = set_rider_category(div)
+    category_women = set_rider_category(divw)
+    status = str(data.get("status", ""))
+    zada = int(data.get("zada", 0)) == 1
+    reg = int(data.get("reg", 0))
 
     # Classify remaining fields
     excluded = {}
@@ -211,6 +224,7 @@ class ZPTeamMember:
       zwift_id=zwift_id,
       name=name,
       age=age,
+      gender=gender,
       flag=flag,
       weight=weight,
       zftp=zftp,
@@ -228,8 +242,8 @@ class ZPTeamMember:
       h_15_wkg=h_15_wkg,
       h_1200_watts=h_1200_watts,
       h_1200_wkg=h_1200_wkg,
-      div=div,
-      divw=divw,
+      category=category,
+      category_women=category_women,
       status=status,
       zada=zada,
       reg=reg,
@@ -265,31 +279,56 @@ class ZPTeamMember:
     Reconstructs a dict with all known, excluded, and extra fields.
     """
     result = {
-      'zwid': self.zwift_id,
-      'name': self.name,
-      'age': self.age,
-      'flag': self.flag,
-      'w': [str(self.weight), 0] if self.weight else 0,
-      'ftp': [self.zftp, 0] if self.zftp else '',
-      'rank': self.rank,
-      'skill': self.skill,
-      'skill_race': self.skill_race,
-      'skill_seg': self.skill_seg,
-      'skill_power': self.skill_power,
-      'distance': self.distance,
-      'climbed': self.climbed,
-      'energy': self.energy,
-      'time': self.time,
-      'time_hms': self.time_hms,
-      'h_15_watts': self.h_15_watts,
-      'h_15_wkg': self.h_15_wkg,
-      'h_1200_watts': self.h_1200_watts,
-      'h_1200_wkg': self.h_1200_wkg,
-      'div': self.div,
-      'divw': self.divw,
-      'status': self.status,
-      'zada': 1 if self.zada else 0,
-      'reg': self.reg,
+      "zwid": self.zwift_id,
+      "name": self.name,
+      "age": self.age,
+      'gender': 'm'
+      if self.gender == 'male'
+      else 'f'
+      if self.gender == 'female'
+      else '',
+      "flag": self.flag,
+      "w": [str(self.weight), 0] if self.weight else 0,
+      "ftp": [self.zftp, 0] if self.zftp else 0,
+      "rank": self.rank,
+      "skill": self.skill,
+      "skill_race": self.skill_race,
+      "skill_seg": self.skill_seg,
+      "skill_power": self.skill_power,
+      "distance": self.distance,
+      "climbed": self.climbed,
+      "energy": self.energy,
+      "time": self.time,
+      "time_hms": self.time_hms,
+      "h_15_watts": self.h_15_watts,
+      "h_15_wkg": self.h_15_wkg,
+      "h_1200_watts": self.h_1200_watts,
+      "h_1200_wkg": self.h_1200_wkg,
+      "div": 5
+      if self.category == "A+"
+      else 10
+      if self.category == "A"
+      else 20
+      if self.category == "B"
+      else 30
+      if self.category == "C"
+      else 40
+      if self.category == "D"
+      else 0,
+      "divw": 5
+      if self.category_women == "A+"
+      else 10
+      if self.category_women == "A"
+      else 20
+      if self.category_women == "B"
+      else 30
+      if self.category_women == "C"
+      else 40
+      if self.category_women == "D"
+      else 0,
+      "status": self.status,
+      "zada": 1 if self.zada else 0,
+      "reg": self.reg,
     }
     result.update(self._excluded)
     result.update(self._extra)
@@ -322,7 +361,7 @@ class ZPTeam:
   _data: dict[str, Any] = field(default_factory=dict, repr=False)
 
   @classmethod
-  def from_dict(cls, data: dict[str, Any]) -> 'ZPTeam':
+  def from_dict(cls, data: dict[str, Any]) -> "ZPTeam":
     """Create instance from API response dict.
 
     Parses team-level fields and creates ZPTeamMember objects
@@ -334,12 +373,12 @@ class ZPTeam:
     Returns:
       ZPTeam instance with parsed fields
     """
-    known_fields = {'data'}
+    known_fields = {"data"}
     recognized_but_excluded: set[str] = set()
 
     # Parse member list from nested "data" key
     members = []
-    for member_data in data.get('data', []):
+    for member_data in data.get("data", []):
       members.append(ZPTeamMember.from_dict(member_data))
 
     # Classify team-level fields
@@ -363,7 +402,7 @@ class ZPTeam:
     """Return the number of team members."""
     return len(self._members)
 
-  def __getitem__(self, index: int | slice) -> 'ZPTeamMember | list[ZPTeamMember]':
+  def __getitem__(self, index: int | slice) -> "ZPTeamMember | list[ZPTeamMember]":
     """Access team members by index or slice."""
     return self._members[index]
 
@@ -373,11 +412,11 @@ class ZPTeam:
 
   def __repr__(self) -> str:
     """Return detailed representation."""
-    return f'ZPTeam(members={len(self._members)})'
+    return f"ZPTeam(members={len(self._members)})"
 
   def __str__(self) -> str:
     """Return human-readable string."""
-    return f'ZPTeam with {len(self._members)} members'
+    return f"ZPTeam with {len(self._members)} members"
 
   def excluded(self) -> dict[str, Any]:
     """Return recognized-but-not-explicit fields at team level."""

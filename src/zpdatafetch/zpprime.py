@@ -14,6 +14,7 @@ from dataclasses import dataclass, field
 from typing import Any, overload
 
 from zpdatafetch.zp_utils import (
+  convert_gender,
   convert_msec_to_iso8601,
   set_rider_category,
 )
@@ -40,10 +41,10 @@ class ZPPrimeResult:
   elapsed_diff: float = 0.0  # Elapsed time difference from 1st place
 
   # Rider attributes
-  zftp: str = ''  # Functional threshold power
-  weight: str = ''  # Weight in kg
+  zftp: int = 0  # Functional threshold power
+  weight: float = 0.0  # Weight in kg
   age: str = ''  # Age group
-  gender: str = ''  # Gender (m/f)
+  gender: str = ''  # Gender (male/female)
   flag: str = ''  # Country flag code
 
   # Rankings and skill
@@ -111,10 +112,10 @@ class ZPPrimeResult:
       msec_diff=float(data.get('msec_diff', 0.0)),
       elapsed=float(data.get('elapsed', 0.0)),
       elapsed_diff=float(data.get('elapsed_diff', 0.0)),
-      zftp=str(data.get('ftp', '')),
-      weight=str(data.get('w', '')),
+      zftp=int(data.get('ftp', 0)) if data.get('ftp') else 0,
+      weight=float(data.get('w', 0.0)) if data.get('w') else 0.0,
       age=str(data.get('age', '')),
-      gender=str(data.get('gender', '')),
+      gender=convert_gender(data.get('gender', '')),
       flag=str(data.get('flag', '')),
       rank=str(data.get('rank', '')),
       skill=int(data.get('skill', 0)),

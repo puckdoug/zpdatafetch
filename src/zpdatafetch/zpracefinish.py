@@ -52,7 +52,7 @@ class ZPRaceFinish:
   zwift_id: int = 0
   name: str = ''
   position: int = 0
-  team_id: str | None = None
+  team_id: int | None = None
   team_name: str | None = None
   gender: str = ''  # "male" or "female"
   category: str = ''  # Men's category (A-E)
@@ -299,12 +299,23 @@ class ZPRaceFinish:
       except (ValueError, TypeError):
         return default
 
+    # Extract team_id as int or None
+    team_id_raw = get_aliased_value('team_id')
+    team_id: int | None = None
+    if team_id_raw is not None and team_id_raw != '':
+      try:
+        team_id = int(team_id_raw)
+        if team_id == 0:
+          team_id = None
+      except (ValueError, TypeError):
+        team_id = None
+
     return cls(
       zwift_id=get_field_value('zwift_id', 0, int),
       name=str(get_aliased_value('name') or ''),
       position=get_field_value('position', 0, int),
-      team_id=str(get_aliased_value('team_id') or ''),
-      team_name=str(get_aliased_value('team_name') or ''),
+      team_id=team_id,
+      team_name=str(get_aliased_value('team_name') or '') or None,
       gender=gender,
       category=category,
       category_women=category_women,

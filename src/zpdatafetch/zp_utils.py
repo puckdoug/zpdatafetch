@@ -79,24 +79,24 @@ def convert_label_to_pen(label: int) -> str:
       return ''
 
 
-def convert_gender(male: int) -> str:
-  """Convert numeric gender code to readable gender string.
+def convert_gender(gender_value: int | str) -> str:
+  """Convert gender code to readable gender string.
 
-  Maps ZwiftPower gender codes:
-  - 1 → 'male'
-  - 0 → 'female'
+  Maps ZwiftPower gender codes from either numeric or string format:
+  - 1 or 'm' → 'male'
+  - 0 or 'f' → 'female'
   - Other values → empty string
 
   Args:
-      male: Numeric gender code from API
+      gender_value: Gender code from API (numeric 0/1 or string 'm'/'f')
 
   Returns:
       Gender string ('male', 'female', or empty)
   """
-  match male:
-    case 1:
+  match gender_value:
+    case 1 | 'm' | 'M':
       return 'male'
-    case 0:
+    case 0 | 'f' | 'F':
       return 'female'
     case _:
       return ''
