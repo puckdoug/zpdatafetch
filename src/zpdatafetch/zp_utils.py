@@ -17,6 +17,7 @@ def set_rider_category(div: int) -> str:
 
   Maps ZwiftPower numeric division codes to category letters:
   - 0 → empty string (no division)
+  - 5 → A+ (pro/elite)
   - 10 → A
   - 20 → B
   - 30 → C
@@ -27,11 +28,13 @@ def set_rider_category(div: int) -> str:
       div: Numeric division code from API
 
   Returns:
-      Category letter (A-D) or empty string for no division
+      Category letter (A+/A-D) or empty string for no division
   """
   match div:
     case 0:
       return ''
+    case 5:
+      return 'A+'
     case 10:
       return 'A'
     case 20:
@@ -42,6 +45,38 @@ def set_rider_category(div: int) -> str:
       return 'D'
     case _:
       return str(div)
+
+
+def convert_label_to_pen(label: int) -> str:
+  """Convert numeric label to race pen (category) letter.
+
+  Maps ZwiftPower race-specific pen/category labels to letters:
+  - 1 → A
+  - 2 → B
+  - 3 → C
+  - 4 → D
+  - 5 → E
+  - Other values → empty string
+
+  Args:
+      label: Numeric label code from API (race-specific category assignment)
+
+  Returns:
+      Pen letter (A-E) or empty string for no label
+  """
+  match label:
+    case 1:
+      return 'A'
+    case 2:
+      return 'B'
+    case 3:
+      return 'C'
+    case 4:
+      return 'D'
+    case 5:
+      return 'E'
+    case _:
+      return ''
 
 
 def convert_gender(male: int) -> str:

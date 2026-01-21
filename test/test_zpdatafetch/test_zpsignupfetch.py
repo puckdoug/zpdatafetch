@@ -17,7 +17,9 @@ def test_zpridersignup_empty_instantiation():
   """Test that ZPRiderSignup can be instantiated with no arguments."""
   obj = ZPRiderSignup()
   assert obj is not None
-  assert obj.asdict() == {}
+  assert obj.zwift_id == 0
+  assert obj.name == ''
+  assert obj.category == ''
 
 
 def test_signup(signup):
@@ -64,6 +66,9 @@ def test_signup_fetch_race_signups(signup, login_page, logged_in_page):
     assert isinstance(signup_result[3590800], ZPRaceSignup)
     assert signup_result[3590800].asdict() == test_data
     assert len(signup_result[3590800]) == 2
-    assert signup_result[3590800][0]['name'] == 'Rider A'
+    assert signup_result[3590800][0].name == 'Rider A'
+    assert signup_result[3590800][0].zwift_id == 123
+    assert signup_result[3590800][1].name == 'Rider B'
+    assert signup_result[3590800][1].zwift_id == 456
   finally:
     AsyncZP.__init__ = original_init

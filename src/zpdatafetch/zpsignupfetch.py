@@ -148,7 +148,7 @@ class ZPSignupFetch(ZP_obj):
           # Parse for fetched dict and wrap in ZPRaceSignup
           parsed = parse_json_safe(raw_json, context=f'signup {event_id}')
           signup_dict = parsed if isinstance(parsed, dict) else {}
-          results_fetched[event_id] = ZPRaceSignup(signup_dict)
+          results_fetched[event_id] = ZPRaceSignup.from_dict(signup_dict)
 
           logger.debug(
             f'Successfully fetched event ID: {event_id}',
@@ -219,7 +219,7 @@ class ZPSignupFetch(ZP_obj):
       # Parse immediately (no parallel parsing) and wrap in ZPRaceSignup
       parsed = parse_json_safe(raw_json, context=f'signup {id_val}')
       signup_dict = parsed if isinstance(parsed, dict) else {}
-      results_fetched[id_val] = ZPRaceSignup(signup_dict)
+      results_fetched[id_val] = ZPRaceSignup.from_dict(signup_dict)
 
       logger.debug(f'Successfully fetched signup data for race ID: {id_val}')
 
