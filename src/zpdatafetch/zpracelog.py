@@ -59,7 +59,7 @@ class ZPRacelog(Sequence):
       for race_item in self._races:
         if isinstance(race_item, dict):
           race_dict = cast('dict[str, Any]', race_item)
-          converted_races.append(ZPRaceFinish(race_dict))
+          converted_races.append(ZPRaceFinish.from_dict(race_dict))
         else:
           # race_item is already a ZPRaceFinish
           converted_races.append(race_item)
@@ -77,7 +77,7 @@ class ZPRacelog(Sequence):
       New ZPRacelog instance with races parsed into ZPRaceFinish objects
     """
     data_list = race_data_list if race_data_list is not None else []
-    races = [ZPRaceFinish(race_data) for race_data in data_list]
+    races = [ZPRaceFinish.from_dict(race_data) for race_data in data_list]
 
     return cls(
       _races=races,
