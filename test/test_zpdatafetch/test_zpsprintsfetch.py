@@ -17,7 +17,9 @@ def test_zpridersprint_empty_instantiation():
   """Test that ZPRiderSprint can be instantiated with no arguments."""
   obj = ZPRiderSprint()
   assert obj is not None
-  assert obj.asdict() == {}
+  assert obj.zwift_id == 0
+  assert obj.name == ''
+  assert obj.category == ''
 
 
 def test_sprints(sprints):
