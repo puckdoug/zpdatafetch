@@ -185,6 +185,25 @@ class ZPRiderFinish:
       'male',
     }
 
+    # Fields recognized from API but not explicitly handled as typed fields
+    recognized_but_excluded = {
+      'power_type',
+      'rank',
+      'reg',
+      'f',
+      'friend',
+      'late',
+      'note',
+      'penalty',
+      'process',
+      'set',
+      'src',
+      'type',
+      'dq',
+      'dnf',
+      'dns',
+    }
+
     # Determine gender from 'male' field
     male = data.get('male')
     gender = convert_gender(int(male)) if male is not None else ''
@@ -293,7 +312,16 @@ class ZPRiderFinish:
       flag=flag,
       hrmax=hrmax,
       hreff=hreff,
-      _excluded={k: v for k, v in data.items() if k not in known_fields},
+      _excluded={
+        k: v
+        for k, v in data.items()
+        if k not in known_fields and k in recognized_but_excluded
+      },
+      _extra={
+        k: v
+        for k, v in data.items()
+        if k not in known_fields and k not in recognized_but_excluded
+      },
     )
 
   def get_extra(self, key: str, default: Any = None) -> Any:
@@ -360,14 +388,15 @@ class ZPRiderFinish:
   def asdict(self) -> dict[str, Any]:
     """Return the rider result data as a dictionary.
 
-    Includes all explicit fields and unknown fields from _extra.
+    Returns typed field values directly, excluding internal fields
+    (_excluded and _extra).
 
     Returns:
-      Dictionary containing all rider data
+      Dictionary containing typed rider data fields
     """
     result = asdict(self)
-    extras = result.pop('_extra', {})
-    result.update(extras)
+    result.pop('_extra', None)
+    result.pop('_excluded', None)
     return result
 
   def json(self) -> str:
@@ -435,8 +464,29 @@ class ZPRaceResult(Sequence):
     """
     known_fields = {'race_id', 'event_name', 'event_date', 'data', 'zid'}
 
+    # Fields recognized from API but not explicitly handled as typed fields
+    recognized_but_excluded = {
+      'status',
+      'message',
+      'event_id',
+      'start_time',
+      'end_time',
+      'route',
+      'laps',
+    }
+
     # Parse rider list from nested "data" key
     riders = [ZPRiderFinish.from_dict(r) for r in data.get('data', [])]
+
+    # Classify remaining fields
+    excluded = {}
+    extra = {}
+    for key, value in data.items():
+      if key not in known_fields:
+        if key in recognized_but_excluded:
+          excluded[key] = value
+        else:
+          extra[key] = value
 
     # Create instance with metadata
     instance = cls(
@@ -445,9 +495,10 @@ class ZPRaceResult(Sequence):
       event_date=str(data.get('event_date', '')),
     )
 
-    # Set riders and excluded fields (not in __init__)
+    # Set riders and field classification dicts (not in __init__)
     instance._riders = riders
-    instance._excluded = {k: v for k, v in data.items() if k not in known_fields}
+    instance._excluded = excluded
+    instance._extra = extra
 
     return instance
 
@@ -545,7 +596,7 @@ class ZPRaceResult(Sequence):
   def asdict(self) -> dict[str, Any]:
     """Return the result data as a dictionary.
 
-    Reconstructs dict with all metadata fields and rider data array.
+    Returns typed field values directly, excluding internal fields.
 
     Returns:
       Dictionary containing race metadata and riders
@@ -555,8 +606,6 @@ class ZPRaceResult(Sequence):
       'event_name': self.event_name,
       'event_date': self.event_date,
       'data': [rider.asdict() for rider in self._riders],
-      **self._excluded,
-      **self._extra,
     }
 
   def aslist(self) -> list[dict[str, Any]]:

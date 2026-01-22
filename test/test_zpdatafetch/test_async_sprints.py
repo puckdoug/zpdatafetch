@@ -6,8 +6,8 @@ import httpx
 import pytest
 
 from zpdatafetch.async_zp import AsyncZP
-from zpdatafetch.zpsprintsfetch import ZPSprintsFetch
 from zpdatafetch.zpracesprint import ZPRaceSprint
+from zpdatafetch.zpsprintsfetch import ZPSprintsFetch
 
 
 @pytest.mark.anyio
@@ -43,5 +43,9 @@ async def test_async_sprints_fetch(
 
       assert 3590800 in data
       assert isinstance(data[3590800], ZPRaceSprint)
-      assert data[3590800].asdict() == sprints_test_data
+      # asdict() returns typed field names
+      result = data[3590800].asdict()
+      assert 'race_id' in result
+      assert 'data' in result
+      assert len(result['data']) == 2  # Two sprints
       mock_primes_afetch.assert_called_once_with(3590800)

@@ -59,7 +59,10 @@ def test_sprints_fetch_race_sprints(
       race_sprints = sprints.fetch(3590800)
       assert 3590800 in race_sprints
       assert isinstance(race_sprints[3590800], ZPRaceSprint)
-      assert race_sprints[3590800].asdict() == sprints_test_data
+      # Verify asdict() returns typed fields (not API format)
+      asdict_result = race_sprints[3590800].asdict()
+      assert 'race_id' in asdict_result
+      assert 'data' in asdict_result
       mock_primes_afetch.assert_called_once_with(3590800)
   finally:
     AsyncZP.__init__ = original_init

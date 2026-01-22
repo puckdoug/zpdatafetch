@@ -9,7 +9,11 @@ import json
 from dataclasses import dataclass, field
 from typing import Any
 
-from zpdatafetch.zp_utils import convert_gender, convert_label_to_pen
+from zpdatafetch.zp_utils import (
+  convert_gender,
+  convert_label_to_pen,
+  extract_value,
+)
 
 
 @dataclass(slots=True)
@@ -162,18 +166,12 @@ class ZPRiderSprint:
 
     flag = str(data.get('flag', ''))
 
-    # Height and weight from array format or direct value
-    height_raw = data.get('height', 0)
-    if isinstance(height_raw, (list, tuple)) and len(height_raw) > 0:
-      height = int(height_raw[0]) if height_raw[0] else 0
-    else:
-      height = int(height_raw) if height_raw else 0
+    # Height and weight from array format or direct value (using extract_value utility)
+    height_val = extract_value(data.get('height', 0), 0)
+    height = int(height_val) if height_val else 0
 
-    weight_raw = data.get('weight', 0)
-    if isinstance(weight_raw, (list, tuple)) and len(weight_raw) > 0:
-      weight = float(weight_raw[0])
-    else:
-      weight = float(weight_raw) if weight_raw else 0.0
+    weight_val = extract_value(data.get('weight', 0), 0)
+    weight = float(weight_val) if weight_val else 0.0
 
     # Category
     category = str(data.get('category', ''))
@@ -292,63 +290,33 @@ class ZPRiderSprint:
   def asdict(self) -> dict[str, Any]:
     """Return the sprint data as a dictionary.
 
-    Reconstructs a dict with all known, excluded, and extra fields.
-    Converts sprints list back to msec/watts/wkg dicts for API compatibility.
+    Returns typed field values directly, excluding internal fields.
     """
-    # Reconstruct msec, watts, wkg dicts from sprints list
-    msec_dict = {}
-    watts_dict = {}
-    wkg_dict = {}
-    for sprint in self.sprints:
-      sprint_id = sprint.get('name', '')
-      if sprint_id:
-        if sprint.get('msec') is not None:
-          msec_dict[sprint_id] = sprint['msec']
-        if sprint.get('watts') is not None:
-          watts_dict[sprint_id] = sprint['watts']
-        if sprint.get('wkg') is not None:
-          wkg_dict[sprint_id] = sprint['wkg']
-
-    result = {
-      'zwid': self.zwift_id,
+    return {
+      'zwift_id': self.zwift_id,
       'name': self.name,
       'age': self.age,
-      'male': 1 if self.gender == 'male' else 0 if self.gender == 'female' else 0,
+      'gender': self.gender,
       'flag': self.flag,
-      'height': [self.height, 0],
-      'weight': [str(self.weight), 1],
+      'height': self.height,
+      'weight': self.weight,
       'category': self.category,
-      'label': 1
-      if self.pen == 'A'
-      else 2
-      if self.pen == 'B'
-      else 3
-      if self.pen == 'C'
-      else 4
-      if self.pen == 'D'
-      else 5
-      if self.pen == 'E'
-      else 0,
+      'pen': self.pen,
       'reg': self.reg,
-      'hrm': 1 if self.hrm else 0,
+      'hrm': self.hrm,
       'power_type': self.power_type,
-      'pos': self.position,
+      'position': self.position,
       'position_in_cat': self.position_in_cat,
       'display_pos': self.display_pos,
       'res_id': self.res_id,
-      'ftp': self.zftp,
-      'zada': 1 if self.zada else 0,
-      'upg': 1 if self.upg else 0,
-      'is_guess': 1 if self.is_guess else 0,
-      'tid': self.team_id if self.team_id is not None else '',
-      'tname': self.team_name if self.team_name is not None else '',
-      'msec': msec_dict,
-      'watts': watts_dict,
-      'wkg': wkg_dict,
+      'zftp': self.zftp,
+      'zada': self.zada,
+      'upg': self.upg,
+      'is_guess': self.is_guess,
+      'team_id': self.team_id,
+      'team_name': self.team_name,
+      'sprints': self.sprints,
     }
-    result.update(self._excluded)
-    result.update(self._extra)
-    return result
 
   def json(self) -> str:
     """Return JSON representation of sprint data."""
@@ -448,8 +416,14 @@ class ZPRaceSprint:
     return dict(self._extra)
 
   def asdict(self) -> dict[str, Any]:
-    """Return the underlying sprint data as a dictionary."""
-    return self._data
+    """Return the sprint data as a dictionary.
+
+    Returns typed field values directly, excluding internal fields.
+    """
+    return {
+      'race_id': self.race_id,
+      'data': [rider.asdict() for rider in self._riders],
+    }
 
   def aslist(self) -> list[dict[str, Any]]:
     """Return list of rider sprints as dictionaries."""

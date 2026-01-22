@@ -181,38 +181,12 @@ class ZPPrimeResult:
     )
 
   def asdict(self) -> dict[str, Any]:
-    """Return result data as dictionary in API response format."""
-    result = {}
-    if self.zwift_id:
-      result['zwid'] = self.zwift_id
-    if self.name:
-      result['name'] = self.name
-    if self.msec:
-      result['msec'] = self.msec
-    if self.msec_diff:
-      result['msec_diff'] = self.msec_diff
-    if self.elapsed:
-      result['elapsed'] = self.elapsed
-    if self.elapsed_diff:
-      result['elapsed_diff'] = self.elapsed_diff
-    if self.zftp:
-      result['ftp'] = self.zftp
-    if self.weight:
-      result['w'] = self.weight
-    if self.age:
-      result['age'] = self.age
-    if self.gender:
-      result['gender'] = self.gender
-    if self.flag:
-      result['flag'] = self.flag
-    if self.rank:
-      result['rank'] = self.rank
-    if self.skill:
-      result['skill'] = self.skill
-    if self.category:
-      result['div'] = self.category
-    # Add excluded fields back to maintain round-trip integrity
-    result.update(self._excluded)
+    """Return result data as dictionary with typed field values."""
+    from dataclasses import asdict as dataclass_asdict
+
+    result = dataclass_asdict(self)
+    result.pop('_excluded', None)
+    result.pop('_extra', None)
     return result
 
   def json(self) -> str:
@@ -305,19 +279,14 @@ class ZPPrimeSegment:
     return key in {'lap', 'name', 'id', 'sprint_id'}
 
   def asdict(self) -> dict[str, Any]:
-    """Return segment data as dictionary in API response format."""
-    result = {}
-    if self.lap:
-      result['lap'] = self.lap
-    if self.name:
-      result['name'] = self.name
-    if self.id:
-      result['id'] = self.id
-    if self.sprint_id:
-      result['sprint_id'] = self.sprint_id
-    # Add rider results
-    for idx, rider_result in enumerate(self._results, 1):
-      result[f'rider_{idx}'] = rider_result.asdict()
+    """Return segment data as dictionary with typed field values."""
+    from dataclasses import asdict as dataclass_asdict
+
+    result = dataclass_asdict(self)
+    result.pop('_excluded', None)
+    result.pop('_extra', None)
+    # Convert _results to list of dicts for serialization
+    result['_results'] = [rider.asdict() for rider in self._results]
     return result
 
   def __repr__(self) -> str:
@@ -543,19 +512,22 @@ class ZPPrime(Sequence):
     return f'ZPPrime(race_id={self.race_id}, segments={segments_list!r})'
 
   def asdict(self) -> dict[str, Any]:
-    """Return prime data as dictionary in API response format.
+    """Return prime data as dictionary with typed field values.
 
     Returns:
-      Nested dict with structure: category -> prime_type -> data array
+      Dict with race_id and nested _categories structure
     """
-    result = {}
+    # Serialize nested structure manually since it contains custom objects
+    categories_dict = {}
     for category, cat_data in self._categories.items():
-      result[category] = {}
+      categories_dict[category] = {}
       for prime_type, segments in cat_data.items():
-        result[category][prime_type] = {
-          'data': [seg.asdict() for seg in segments],
-        }
-    return result
+        categories_dict[category][prime_type] = [seg.asdict() for seg in segments]
+
+    return {
+      'race_id': self.race_id,
+      '_categories': categories_dict,
+    }
 
   def json(self) -> str:
     """Return JSON string representation."""

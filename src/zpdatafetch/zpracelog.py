@@ -173,15 +173,13 @@ class ZPRacelog(Sequence):
     return [race.asdict() for race in self._races]
 
   def asdict(self) -> dict[str, Any]:
-    """Return dictionary representation for serialization.
+    """Return dictionary representation with typed field values.
 
     Returns:
-      Dictionary with _races as 'races' key and metadata
+      Dictionary with races list only
     """
     return {
       'races': self.aslist(),
-      '_excluded': self._excluded,
-      '_extra': self._extra,
     }
 
   def json(self) -> str:

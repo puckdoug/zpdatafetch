@@ -64,7 +64,12 @@ def test_signup_fetch_race_signups(signup, login_page, logged_in_page):
     signup_result = signup.fetch(3590800)
     assert 3590800 in signup_result
     assert isinstance(signup_result[3590800], ZPRaceSignup)
-    assert signup_result[3590800].asdict() == test_data
+    # Verify asdict() returns typed fields (not API format)
+    asdict_result = signup_result[3590800].asdict()
+    assert 'race_id' in asdict_result
+    assert 'data' in asdict_result
+    assert len(asdict_result['data']) == 2
+    # Verify data access through object interface
     assert len(signup_result[3590800]) == 2
     assert signup_result[3590800][0].name == 'Rider A'
     assert signup_result[3590800][0].zwift_id == 123

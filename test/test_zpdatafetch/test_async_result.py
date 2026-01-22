@@ -6,8 +6,8 @@ import httpx
 import pytest
 
 from zpdatafetch.async_zp import AsyncZP
-from zpdatafetch.zpresultfetch import ZPResultFetch
 from zpdatafetch.zpraceresult import ZPRaceResult
+from zpdatafetch.zpresultfetch import ZPResultFetch
 
 
 @pytest.mark.anyio
@@ -44,5 +44,5 @@ async def test_async_result_fetch(login_page, logged_in_page):
     result_dict = data[3590800].asdict()
     assert result_dict['race_id'] == 3590800
     assert 'data' in result_dict
-    # Verify extra fields are captured
-    assert 'results' in result_dict  # from _extra
+    # Verify extra fields are captured via extras() method (not in asdict)
+    assert 'results' in data[3590800].extras()

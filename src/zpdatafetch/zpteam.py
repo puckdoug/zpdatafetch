@@ -11,6 +11,7 @@ from typing import Any
 
 from zpdatafetch.zp_utils import (
   convert_gender,
+  extract_value,
   format_time_hms,
   set_rider_category,
 )
@@ -163,19 +164,12 @@ class ZPTeamMember:
     gender = convert_gender(data.get("gender", ""))
     flag = str(data.get("flag", ""))
 
-    # Weight from array format or direct value
-    weight_raw = data.get("w", 0)
-    if isinstance(weight_raw, (list, tuple)) and len(weight_raw) > 0:
-      weight = float(weight_raw[0]) if weight_raw[0] else 0.0
-    else:
-      weight = float(weight_raw) if weight_raw else 0.0
+    # Weight from array format or direct value (using extract_value utility)
+    weight_val = extract_value(data.get("w", 0), 0)
+    weight = float(weight_val) if weight_val else 0.0
 
-    # FTP from array format or direct value
-    ftp_raw = data.get("ftp", 0)
-    if isinstance(ftp_raw, (list, tuple)) and len(ftp_raw) > 0:
-      ftp_val = ftp_raw[0]
-    else:
-      ftp_val = ftp_raw
+    # FTP from array format or direct value (using extract_value utility)
+    ftp_val = extract_value(data.get("ftp", 0), 0)
     try:
       zftp = int(ftp_val) if ftp_val else 0
     except (ValueError, TypeError):
@@ -276,20 +270,16 @@ class ZPTeamMember:
   def asdict(self) -> dict[str, Any]:
     """Return the team member data as a dictionary.
 
-    Reconstructs a dict with all known, excluded, and extra fields.
+    Returns typed field values directly, excluding internal fields.
     """
-    result = {
-      "zwid": self.zwift_id,
+    return {
+      "zwift_id": self.zwift_id,
       "name": self.name,
       "age": self.age,
-      'gender': 'm'
-      if self.gender == 'male'
-      else 'f'
-      if self.gender == 'female'
-      else '',
+      "gender": self.gender,
       "flag": self.flag,
-      "w": [str(self.weight), 0] if self.weight else 0,
-      "ftp": [self.zftp, 0] if self.zftp else 0,
+      "weight": self.weight,
+      "zftp": self.zftp,
       "rank": self.rank,
       "skill": self.skill,
       "skill_race": self.skill_race,
@@ -304,35 +294,12 @@ class ZPTeamMember:
       "h_15_wkg": self.h_15_wkg,
       "h_1200_watts": self.h_1200_watts,
       "h_1200_wkg": self.h_1200_wkg,
-      "div": 5
-      if self.category == "A+"
-      else 10
-      if self.category == "A"
-      else 20
-      if self.category == "B"
-      else 30
-      if self.category == "C"
-      else 40
-      if self.category == "D"
-      else 0,
-      "divw": 5
-      if self.category_women == "A+"
-      else 10
-      if self.category_women == "A"
-      else 20
-      if self.category_women == "B"
-      else 30
-      if self.category_women == "C"
-      else 40
-      if self.category_women == "D"
-      else 0,
+      "category": self.category,
+      "category_women": self.category_women,
       "status": self.status,
-      "zada": 1 if self.zada else 0,
+      "zada": self.zada,
       "reg": self.reg,
     }
-    result.update(self._excluded)
-    result.update(self._extra)
-    return result
 
   def json(self) -> str:
     """Return JSON representation of team member data."""
@@ -427,8 +394,10 @@ class ZPTeam:
     return dict(self._extra)
 
   def asdict(self) -> dict[str, Any]:
-    """Return the underlying team data as a dictionary."""
-    return self._data
+    """Return team data as a dictionary with typed field values."""
+    return {
+      "data": [member.asdict() for member in self._members],
+    }
 
   def aslist(self) -> list[dict[str, Any]]:
     """Return list of team members as dictionaries."""

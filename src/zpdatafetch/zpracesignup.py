@@ -420,64 +420,34 @@ class ZPRiderSignup:
   def asdict(self) -> dict[str, Any]:
     """Return the signup data as a dictionary.
 
-    Reconstructs a dict with all known, excluded, and extra fields.
+    Returns typed field values directly, excluding internal fields.
     """
-    result = {
-      "zwid": self.zwift_id,
+    return {
+      "zwift_id": self.zwift_id,
       "name": self.name,
       "age": self.age,
       "gender": self.gender,
       "flag": self.flag,
       "height": self.height,
       "weight": self.weight,
-      "div": 5
-      if self.category == "A+"
-      else 10
-      if self.category == "A"
-      else 20
-      if self.category == "B"
-      else 30
-      if self.category == "C"
-      else 40
-      if self.category == "D"
-      else 0,
-      "divw": 5
-      if self.category_women == "A+"
-      else 10
-      if self.category_women == "A"
-      else 20
-      if self.category_women == "B"
-      else 30
-      if self.category_women == "C"
-      else 40
-      if self.category_women == "D"
-      else 0,
+      "category": self.category,
+      "category_women": self.category_women,
       "reg": self.reg,
-      "label": 1
-      if self.pen == "A"
-      else 2
-      if self.pen == "B"
-      else 3
-      if self.pen == "C"
-      else 4
-      if self.pen == "D"
-      else 5
-      if self.pen == "E"
-      else 0,
+      "pen": self.pen,
       "rank": self.rank,
-      "zada": int(self.zada),
-      "tid": self.team_id if self.team_id is not None else "",
-      "tname": self.team_name if self.team_name is not None else "",
-      "ftp": self.zftp,
+      "zada": self.zada,
+      "team_id": self.team_id,
+      "team_name": self.team_name,
+      "zftp": self.zftp,
       "eff": self.eff,
       "skill": self.skill,
       "skill_power": self.skill_power,
       "skill_seg": self.skill_seg,
       "skill_race": self.skill_race,
       "skill_pos": self.skill_pos,
-      "wrg_cat": int(self.wrg_cat),
-      "sweep": int(self.sweep),
-      "lead": int(self.lead),
+      "wrg_cat": self.wrg_cat,
+      "sweep": self.sweep,
+      "lead": self.lead,
       "cp_15_watts": self.cp_15_watts.as_list(),
       "cp_15_wkg": self.cp_15_wkg.as_list(),
       "cp_60_watts": self.cp_60_watts.as_list(),
@@ -487,9 +457,6 @@ class ZPRiderSignup:
       "cp_1200_watts": self.cp_1200_watts.as_list(),
       "cp_1200_wkg": self.cp_1200_wkg.as_list(),
     }
-    result.update(self._excluded)
-    result.update(self._extra)
-    return result
 
   def json(self) -> str:
     """Return JSON representation of signup data."""
@@ -600,8 +567,14 @@ class ZPRaceSignup:
     return dict(self._extra)
 
   def asdict(self) -> dict[str, Any]:
-    """Return the underlying signup data as a dictionary."""
-    return self._data
+    """Return the signup data as a dictionary.
+
+    Returns typed field values directly, excluding internal fields.
+    """
+    return {
+      'race_id': self.race_id,
+      'data': [rider.asdict() for rider in self._riders],
+    }
 
   def aslist(self) -> list[dict[str, Any]]:
     """Return list of rider signups as dictionaries."""

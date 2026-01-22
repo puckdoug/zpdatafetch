@@ -45,13 +45,20 @@ class ZPLeagueTeam:
       'tc',
     }
 
-    # Separate unknown fields
+    # Fields recognized from API but not explicitly handled as typed fields
+    # (Currently none known for teams - all fields are handled)
+    recognized_but_excluded: set[str] = set()
+
+    # Classify remaining fields
     excluded = {}
     extra = {}
 
     for key, value in data.items():
       if key not in known_fields:
-        extra[key] = value
+        if key in recognized_but_excluded:
+          excluded[key] = value
+        else:
+          extra[key] = value
 
     return cls(
       team_id=team_id,
@@ -72,12 +79,13 @@ class ZPLeagueTeam:
     return dict(self._extra)
 
   def asdict(self) -> dict[str, Any]:
-    """Return team data as dictionary in API response format."""
+    """Return team data as dictionary with typed field values."""
     return {
-      'tname': self.name,
-      'tbc': self.color_background,
-      'tbd': self.color_border,
-      'tc': self.color_text,
+      'team_id': self.team_id,
+      'name': self.name,
+      'color_background': self.color_background,
+      'color_border': self.color_border,
+      'color_text': self.color_text,
     }
 
 
@@ -148,6 +156,14 @@ class ZPLeagueResult:
       'team_name',
     }
 
+    # Fields recognized from API but not explicitly handled as typed fields
+    recognized_but_excluded = {
+      'rank',
+      'skill',
+      'div',
+      'divw',
+    }
+
     # Extract history
     history = data.get('history', [])
     if not isinstance(history, list):
@@ -161,13 +177,16 @@ class ZPLeagueResult:
       if team_id_str in teams:
         team_name = teams[team_id_str].name
 
-    # Separate unknown fields
+    # Classify remaining fields
     excluded = {}
     extra = {}
 
     for key, value in data.items():
       if key not in known_fields:
-        excluded[key] = value
+        if key in recognized_but_excluded:
+          excluded[key] = value
+        else:
+          extra[key] = value
 
     return cls(
       position=extract_numeric(data.get('pos'), int, 0),
@@ -230,16 +249,17 @@ class ZPLeagueResult:
     raise KeyError(key)
 
   def asdict(self) -> dict[str, Any]:
-    """Return rider data as dictionary in API response format."""
+    """Return rider data as dictionary with typed field values."""
     return {
-      'pos': self.position,
-      'zwid': self.zwift_id,
+      'position': self.position,
+      'zwift_id': self.zwift_id,
       'aid': self.aid,
       'name': self.name,
       'points': self.points,
       'events': self.events,
       'category': self.category,
-      'tid': self.team_id,
+      'team_id': self.team_id,
+      'team_name': self.team_name,
       'age': self.age,
       'flag': self.flag,
       'history': self.history,
@@ -336,6 +356,13 @@ class ZPLeague(Sequence):
       'league_id',
     }
 
+    # Fields recognized from API but not explicitly handled as typed fields
+    recognized_but_excluded = {
+      'status',
+      'message',
+      'league_name',
+    }
+
     # Parse teams dict into ZPLeagueTeam objects
     teams_data = data.get('teams', {})
     teams = {}
@@ -352,13 +379,16 @@ class ZPLeague(Sequence):
         if isinstance(result_info, dict):
           standings.append(ZPLeagueResult.from_dict(result_info, teams=teams))
 
-    # Separate unknown fields
+    # Classify remaining fields
     excluded = {}
     extra = {}
 
     for key, value in data.items():
       if key not in known_fields:
-        extra[key] = value
+        if key in recognized_but_excluded:
+          excluded[key] = value
+        else:
+          extra[key] = value
 
     return cls(
       league_id=league_id,
@@ -438,17 +468,17 @@ class ZPLeague(Sequence):
     return list(self._standings)
 
   def asdict(self) -> dict[str, Any]:
-    """Return the league data as a dictionary in API response format.
+    """Return the league data as a dictionary with typed field values.
 
     Returns:
-      Dictionary containing league standings data with nested teams and data arrays.
+      Dictionary containing league standings data with nested teams and standings.
       Empty if league has no teams or standings.
     """
-    result = {}
+    result: dict[str, Any] = {'league_id': self.league_id}
     if self._teams:
       result['teams'] = {tid: team.asdict() for tid, team in self._teams.items()}
     if self._standings:
-      result['data'] = [result_obj.asdict() for result_obj in self._standings]
+      result['standings'] = [result_obj.asdict() for result_obj in self._standings]
     return result
 
   def json(self) -> str:

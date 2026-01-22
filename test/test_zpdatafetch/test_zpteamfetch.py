@@ -18,7 +18,7 @@ def test_zpteammember_empty_instantiation():
   obj = ZPTeamMember()
   assert obj is not None
   assert obj.zwift_id == 0
-  assert obj.name == ""
+  assert obj.name == ''
 
 
 def test_team(team):
@@ -33,18 +33,18 @@ def test_team_fetch_single_id(team, login_page, logged_in_page):
   from zpdatafetch.zpteam import ZPTeam
 
   test_data = {
-    "data": [
-      {"zwid": 123, "name": "Rider 1"},
-      {"zwid": 456, "name": "Rider 2"},
+    'data': [
+      {'zwid': 123, 'name': 'Rider 1'},
+      {'zwid': 456, 'name': 'Rider 2'},
     ],
   }
 
   def handler(request):
-    if "login" in str(request.url) and request.method == "GET":
+    if 'login' in str(request.url) and request.method == 'GET':
       return httpx.Response(200, text=login_page)
-    if request.method == "POST":
+    if request.method == 'POST':
       return httpx.Response(200, text=logged_in_page)
-    if "teams" in str(request.url) and ".json" in str(request.url):
+    if 'teams' in str(request.url) and '.json' in str(request.url):
       return httpx.Response(200, text=json.dumps(test_data))
     return httpx.Response(404)
 
@@ -65,7 +65,11 @@ def test_team_fetch_single_id(team, login_page, logged_in_page):
     result = team.fetch(999)
     assert 999 in result
     assert isinstance(result[999], ZPTeam)
-    assert result[999].asdict() == test_data
+    # Verify asdict() returns typed fields (not API format)
+    asdict_result = result[999].asdict()
+    assert 'data' in asdict_result
+    assert len(asdict_result['data']) == 2
+    # Verify data access through object interface
     assert len(result[999]) == 2
   finally:
     AsyncZP.__init__ = original_init
@@ -74,8 +78,8 @@ def test_team_fetch_single_id(team, login_page, logged_in_page):
 def test_team_json_output(team):
   from zpdatafetch.zpteam import ZPTeam
 
-  team._fetched = {999: ZPTeam.from_dict({"data": [{"name": "ZPTeamFetch Rider"}]})}
+  team._fetched = {999: ZPTeam.from_dict({'data': [{'name': 'ZPTeamFetch Rider'}]})}
   json_str = team.json()
-  assert "999" in json_str
-  assert "ZPTeamFetch Rider" in json_str
-  assert "ZPTeamFetch Rider" in json_str
+  assert '999' in json_str
+  assert 'ZPTeamFetch Rider' in json_str
+  assert 'ZPTeamFetch Rider' in json_str
