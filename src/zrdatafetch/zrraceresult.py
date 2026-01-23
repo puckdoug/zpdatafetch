@@ -9,6 +9,7 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 
 from zrdatafetch.logging_config import get_logger
+from zrdatafetch.zr_utils import safe_float, safe_int, safe_str
 
 logger = get_logger(__name__)
 
@@ -82,15 +83,15 @@ class ZRRiderResult:
           extra[key] = value
 
     return cls(
-      zwift_id=data.get('riderId', 0),
-      position=data.get('position', 0),
-      position_in_category=data.get('positionInCategory', 0),
-      category=data.get('category', ''),
-      time=float(data.get('time', 0.0)),
-      gap=float(data.get('gap', 0.0)),
-      rating_before=float(data.get('ratingBefore', 0.0)),
-      rating=float(data.get('rating', 0.0)),
-      rating_delta=float(data.get('ratingDelta', 0.0)),
+      zwift_id=safe_int(data.get('riderId')),
+      position=safe_int(data.get('position')),
+      position_in_category=safe_int(data.get('positionInCategory')),
+      category=safe_str(data.get('category')),
+      time=safe_float(data.get('time')),
+      gap=safe_float(data.get('gap')),
+      rating_before=safe_float(data.get('ratingBefore')),
+      rating=safe_float(data.get('rating')),
+      rating_delta=safe_float(data.get('ratingDelta')),
       _excluded=excluded,
       _extra=extra,
     )
@@ -208,15 +209,15 @@ class ZRRaceResult(Sequence):
         else:
           extra[key] = value
 
-    # Create instance
+    # Create instance using safe utilities
     instance = cls(
-      race_id=int(data.get('eventId', 0)),
-      event_title=str(data.get('title', '')),
-      event_time=int(data.get('time', 0)),
-      route_id=str(data.get('routeId', '')),
-      distance=float(data.get('distance', 0.0)),
-      race_type=str(data.get('type', '')),
-      race_subtype=str(data.get('subType', '')),
+      race_id=safe_int(data.get('eventId')),
+      event_title=safe_str(data.get('title')),
+      event_time=safe_int(data.get('time')),
+      route_id=safe_str(data.get('routeId')),
+      distance=safe_float(data.get('distance')),
+      race_type=safe_str(data.get('type')),
+      race_subtype=safe_str(data.get('subType')),
     )
 
     # Set internal fields

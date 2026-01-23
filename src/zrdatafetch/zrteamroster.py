@@ -9,6 +9,7 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 
 from zrdatafetch.logging_config import get_logger
+from zrdatafetch.zr_utils import extract_nested_value, safe_float, safe_int, safe_str
 
 logger = get_logger(__name__)
 
@@ -114,20 +115,60 @@ class ZRTeamMember:
     recognized_but_excluded: set[str] = set()
 
     try:
-      # Extract nested structures safely
-      race = data.get('race', {})
-      current = race.get('current', {})
-      max30 = race.get('max30', {})
-      max90 = race.get('max90', {})
-      power = data.get('power', {})
+      # Extract using safe utilities
+      zwift_id = safe_int(data.get('riderId'))
+      name = safe_str(data.get('name'))
+      gender = safe_str(data.get('gender'), default='M')
+      height = safe_float(data.get('height'))
+      weight = safe_float(data.get('weight'))
 
-      # Extract categories
-      current_mixed = current.get('mixed', {})
-      current_womens = current.get('womens', {})
-      max30_mixed = max30.get('mixed', {})
-      max30_womens = max30.get('womens', {})
-      max90_mixed = max90.get('mixed', {})
-      max90_womens = max90.get('womens', {})
+      # Current ratings and categories
+      current_rating = safe_float(
+        extract_nested_value(data, 'race', 'current', 'rating'),
+      )
+      current_category_mixed = safe_str(
+        extract_nested_value(data, 'race', 'current', 'mixed', 'category'),
+      )
+      current_category_womens = safe_str(
+        extract_nested_value(data, 'race', 'current', 'womens', 'category'),
+      )
+
+      # Max30 ratings and categories
+      max30_rating = safe_float(extract_nested_value(data, 'race', 'max30', 'rating'))
+      max30_category_mixed = safe_str(
+        extract_nested_value(data, 'race', 'max30', 'mixed', 'category'),
+      )
+      max30_category_womens = safe_str(
+        extract_nested_value(data, 'race', 'max30', 'womens', 'category'),
+      )
+
+      # Max90 ratings and categories
+      max90_rating = safe_float(extract_nested_value(data, 'race', 'max90', 'rating'))
+      max90_category_mixed = safe_str(
+        extract_nested_value(data, 'race', 'max90', 'mixed', 'category'),
+      )
+      max90_category_womens = safe_str(
+        extract_nested_value(data, 'race', 'max90', 'womens', 'category'),
+      )
+
+      # Power metrics
+      power_awc = safe_float(extract_nested_value(data, 'power', 'AWC'))
+      power_cp = safe_float(extract_nested_value(data, 'power', 'CP'))
+      power_cs = safe_float(extract_nested_value(data, 'power', 'compoundScore'))
+      power_w5 = safe_float(extract_nested_value(data, 'power', 'w5'))
+      power_w15 = safe_float(extract_nested_value(data, 'power', 'w15'))
+      power_w30 = safe_float(extract_nested_value(data, 'power', 'w30'))
+      power_w60 = safe_float(extract_nested_value(data, 'power', 'w60'))
+      power_w120 = safe_float(extract_nested_value(data, 'power', 'w120'))
+      power_w300 = safe_float(extract_nested_value(data, 'power', 'w300'))
+      power_w1200 = safe_float(extract_nested_value(data, 'power', 'w1200'))
+      power_wkg5 = safe_float(extract_nested_value(data, 'power', 'wkg5'))
+      power_wkg15 = safe_float(extract_nested_value(data, 'power', 'wkg15'))
+      power_wkg30 = safe_float(extract_nested_value(data, 'power', 'wkg30'))
+      power_wkg60 = safe_float(extract_nested_value(data, 'power', 'wkg60'))
+      power_wkg120 = safe_float(extract_nested_value(data, 'power', 'wkg120'))
+      power_wkg300 = safe_float(extract_nested_value(data, 'power', 'wkg300'))
+      power_wkg1200 = safe_float(extract_nested_value(data, 'power', 'wkg1200'))
 
       # Classify remaining fields
       excluded = {}
@@ -140,37 +181,37 @@ class ZRTeamMember:
             extra[key] = value
 
       return cls(
-        zwift_id=data.get('riderId', 0),
-        name=data.get('name', ''),
-        gender=data.get('gender', 'M'),
-        height=float(data.get('height', 0.0)),
-        weight=float(data.get('weight', 0.0)),
-        current_rating=float(current.get('rating', 0.0)),
-        current_category_mixed=current_mixed.get('category', ''),
-        current_category_womens=current_womens.get('category', ''),
-        max30_rating=float(max30.get('rating', 0.0)),
-        max30_category_mixed=max30_mixed.get('category', ''),
-        max30_category_womens=max30_womens.get('category', ''),
-        max90_rating=float(max90.get('rating', 0.0)),
-        max90_category_mixed=max90_mixed.get('category', ''),
-        max90_category_womens=max90_womens.get('category', ''),
-        power_awc=float(power.get('AWC', 0.0)),
-        power_cp=float(power.get('CP', 0.0)),
-        power_cs=float(power.get('compoundScore', 0.0)),
-        power_w5=float(power.get('w5', 0.0)),
-        power_w15=float(power.get('w15', 0.0)),
-        power_w30=float(power.get('w30', 0.0)),
-        power_w60=float(power.get('w60', 0.0)),
-        power_w120=float(power.get('w120', 0.0)),
-        power_w300=float(power.get('w300', 0.0)),
-        power_w1200=float(power.get('w1200', 0.0)),
-        power_wkg5=float(power.get('wkg5', 0.0)),
-        power_wkg15=float(power.get('wkg15', 0.0)),
-        power_wkg30=float(power.get('wkg30', 0.0)),
-        power_wkg60=float(power.get('wkg60', 0.0)),
-        power_wkg120=float(power.get('wkg120', 0.0)),
-        power_wkg300=float(power.get('wkg300', 0.0)),
-        power_wkg1200=float(power.get('wkg1200', 0.0)),
+        zwift_id=zwift_id,
+        name=name,
+        gender=gender,
+        height=height,
+        weight=weight,
+        current_rating=current_rating,
+        current_category_mixed=current_category_mixed,
+        current_category_womens=current_category_womens,
+        max30_rating=max30_rating,
+        max30_category_mixed=max30_category_mixed,
+        max30_category_womens=max30_category_womens,
+        max90_rating=max90_rating,
+        max90_category_mixed=max90_category_mixed,
+        max90_category_womens=max90_category_womens,
+        power_awc=power_awc,
+        power_cp=power_cp,
+        power_cs=power_cs,
+        power_w5=power_w5,
+        power_w15=power_w15,
+        power_w30=power_w30,
+        power_w60=power_w60,
+        power_w120=power_w120,
+        power_w300=power_w300,
+        power_w1200=power_w1200,
+        power_wkg5=power_wkg5,
+        power_wkg15=power_wkg15,
+        power_wkg30=power_wkg30,
+        power_wkg60=power_wkg60,
+        power_wkg120=power_wkg120,
+        power_wkg300=power_wkg300,
+        power_wkg1200=power_wkg1200,
         _excluded=excluded,
         _extra=extra,
       )
@@ -284,10 +325,10 @@ class ZRTeamRoster(Sequence):
         else:
           extra[key] = value
 
-    # Create instance
+    # Create instance using safe utilities
     instance = cls(
-      team_id=data.get('teamId', data.get('clubId', team_id)),
-      team_name=str(data.get('name', '')),
+      team_id=safe_int(data.get('teamId', data.get('clubId', team_id))),
+      team_name=safe_str(data.get('name')),
     )
 
     # Set internal fields

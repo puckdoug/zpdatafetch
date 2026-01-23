@@ -8,6 +8,7 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 
 from zrdatafetch.logging_config import get_logger
+from zrdatafetch.zr_utils import extract_nested_value, safe_float, safe_int, safe_str
 
 logger = get_logger(__name__)
 
@@ -95,33 +96,35 @@ class ZRRiderRating:
       return cls()
 
     try:
-      name = data.get('name', 'Nobody')
-      gender = data.get('gender', 'M')
+      # Extract using safe utilities
+      name = safe_str(data.get('name'), default='Nobody')
+      gender = safe_str(data.get('gender'), default='M')
 
       # ZRCS (compound score)
-      power = data.get('power', {})
-      zrcs = power.get('compoundScore', 0.0)
+      zrcs = safe_float(extract_nested_value(data, 'power', 'compoundScore'))
 
       # Current rating
-      race = data.get('race', {})
-      current = race.get('current', {})
-      current_rating = current.get('rating', 0.0)
-      current_mixed = current.get('mixed', {})
-      current_rank = current_mixed.get('category', 'Unranked')
+      current_rating = safe_float(
+        extract_nested_value(data, 'race', 'current', 'rating')
+      )
+      current_rank = safe_str(
+        extract_nested_value(data, 'race', 'current', 'mixed', 'category'),
+        default='Unranked',
+      )
 
       # Max90 rating
-      max90 = race.get('max90', {})
-      max90_rating_val = max90.get('rating')
-      max90_rating = max90_rating_val if max90_rating_val is not None else 0.0
-      max90_mixed = max90.get('mixed', {})
-      max90_rank = max90_mixed.get('category', 'Unranked')
+      max90_rating = safe_float(extract_nested_value(data, 'race', 'max90', 'rating'))
+      max90_rank = safe_str(
+        extract_nested_value(data, 'race', 'max90', 'mixed', 'category'),
+        default='Unranked',
+      )
 
       # Max30 rating
-      max30 = race.get('max30', {})
-      max30_rating_val = max30.get('rating')
-      max30_rating = max30_rating_val if max30_rating_val is not None else 0.0
-      max30_mixed = max30.get('mixed', {})
-      max30_rank = max30_mixed.get('category', 'Unranked')
+      max30_rating = safe_float(extract_nested_value(data, 'race', 'max30', 'rating'))
+      max30_rank = safe_str(
+        extract_nested_value(data, 'race', 'max30', 'mixed', 'category'),
+        default='Unranked',
+      )
 
       # Determine DRS (derived rating score)
       drs_rating = 0.0
@@ -138,7 +141,7 @@ class ZRRiderRating:
         source = 'max90'
 
       # Extract zwift_id (try multiple possible field names)
-      zwift_id = data.get('riderId', data.get('zwiftId', 0))
+      zwift_id = safe_int(data.get('riderId', data.get('zwiftId')))
 
       # Classify remaining fields
       excluded = {}
@@ -151,19 +154,19 @@ class ZRRiderRating:
             extra[key] = value
 
       return cls(
-        zwift_id=int(zwift_id),
-        name=str(name),
-        gender=str(gender),
-        current_rating=float(current_rating),
-        current_rank=str(current_rank),
-        max30_rating=float(max30_rating),
-        max30_rank=str(max30_rank),
-        max90_rating=float(max90_rating),
-        max90_rank=str(max90_rank),
-        drs_rating=float(drs_rating),
-        drs_rank=str(drs_rank),
-        zrcs=float(zrcs),
-        source=str(source),
+        zwift_id=zwift_id,
+        name=name,
+        gender=gender,
+        current_rating=current_rating,
+        current_rank=current_rank,
+        max30_rating=max30_rating,
+        max30_rank=max30_rank,
+        max90_rating=max90_rating,
+        max90_rank=max90_rank,
+        drs_rating=drs_rating,
+        drs_rank=drs_rank,
+        zrcs=zrcs,
+        source=source,
         _excluded=excluded,
         _extra=extra,
       )
