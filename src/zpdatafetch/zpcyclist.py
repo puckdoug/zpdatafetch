@@ -23,7 +23,23 @@ class ZPCyclist:
   The race history is accessible via the `racelog` property, which returns a
   ZPRacelog object containing ZPRaceFinish objects for each race.
 
+  Key cyclist information is extracted from the most recent race entry in the
+  data array and exposed as direct attributes (team_id, team_name, gender,
+  category, category_women, zftp, height, weight, skill, age).
+
   Attributes:
+    zwift_id: Zwift ID from last race
+    name: Rider name from last race
+    team_id: Team ID from last race
+    team_name: Team name from last race
+    gender: Gender ("male" or "female")
+    category: Men's category (A+/A/B/C/D)
+    category_women: Women's category (A+/A/B/C/D)
+    zftp: FTP from last race
+    height: Height in cm
+    weight: Weight in kg
+    skill: Skill rating
+    age: Age
     _data: Original API response dictionary (for backwards compatibility)
     _excluded: Recognized but not yet explicit fields
     _extra: Truly unknown fields from API
@@ -31,12 +47,27 @@ class ZPCyclist:
 
   Example:
     cyclist = ZPCyclist.from_dict({'zwid': 123, 'name': 'John', 'data': [...]})
-    print(cyclist.zwift_id)  # 123
-    print(cyclist.name)  # 'John'
+    print(cyclist.team_name)  # 'Team XYZ'
+    print(cyclist.gender)  # 'male'
+    print(cyclist.category)  # 'B'
     racelog = cyclist.racelog  # Get ZPRacelog object
     for race in racelog:
       print(race.position)
   """
+
+  # Key cyclist information (extracted from last race entry)
+  zwift_id: int = 0  # Zwift ID
+  name: str = ''  # Rider name
+  team_id: int | None = None
+  team_name: str | None = None
+  gender: str = ''  # "male" or "female"
+  category: str = ''  # Men's category (A+/A/B/C/D)
+  category_women: str = ''  # Women's category (A+/A/B/C/D)
+  zftp: int = 0  # FTP
+  height: int = 0  # Height in cm
+  weight: float = 0.0  # Weight in kg
+  skill: float = 0.0  # Skill rating
+  age: str = ''  # Age
 
   # Original API data (for backwards compatibility and raw access)
   _data: dict[str, Any] = field(default_factory=dict, repr=False)
@@ -51,11 +82,12 @@ class ZPCyclist:
   _racelog: ZPRacelog | None = field(default=None, repr=False, init=False)
 
   @classmethod
-  def from_dict(cls, data: dict[str, Any]) -> "ZPCyclist":
+  def from_dict(cls, data: dict[str, Any]) -> 'ZPCyclist':
     """Create a ZPCyclist from API response dictionary.
 
     Separates known fields, recognized-but-unhandled fields, and truly unknown
-    fields for proper classification.
+    fields for proper classification. Extracts key cyclist information from the
+    most recent (last) race entry in the data array.
 
     Args:
       data: Dictionary containing cyclist profile data from API
@@ -63,12 +95,17 @@ class ZPCyclist:
     Returns:
       New ZPCyclist instance with properly classified fields
     """
+    from zpdatafetch.zp_utils import (
+      convert_gender,
+      set_rider_category,
+    )
+
     # Fields we plan to eventually promote to explicit typed attributes
     # These are documented in the API but not yet handled natively
     recognized_but_excluded = {
-      "zwid",  # Will become zwift_id
-      "name",  # Will become name field
-      "data",  # Will become race data
+      'zwid',  # Will become zwift_id
+      'name',  # Will become name field
+      'data',  # Will become race data
     }
 
     excluded = {}
@@ -79,7 +116,124 @@ class ZPCyclist:
         # For now, all other fields go to extra since cyclist is mostly a wrapper
         extra[key] = value
 
+    # Extract key information from the last race entry
+    zwift_id: int = 0
+    name: str = ''
+    team_id: int | None = None
+    team_name: str | None = None
+    gender: str = ''
+    category: str = ''
+    category_women: str = ''
+    zftp: int = 0
+    height: int = 0
+    weight: float = 0.0
+    skill: float = 0.0
+    age: str = ''
+
+    # Check if data array exists and has entries
+    if 'data' in data and isinstance(data['data'], list) and data['data']:
+      # Get the last (most recent) race entry
+      last_race = data['data'][-1]
+
+      # Extract zwift_id (could be 'zwid' or 'zid')
+      zwid_raw = last_race.get('zwid') or last_race.get('zid')
+      if zwid_raw is not None:
+        try:
+          zwift_id = int(zwid_raw)
+        except (ValueError, TypeError):
+          zwift_id = 0
+
+      # Extract name
+      name = str(last_race.get('name', ''))
+
+      # Helper to extract value from array if needed
+      def extract_value(value: Any) -> Any:
+        """Extract first element from array if applicable."""
+        if isinstance(value, list) and len(value) > 0:
+          return value[0]
+        return value
+
+      # Extract team_id
+      tid_raw = last_race.get('tid')
+      if tid_raw is not None and tid_raw != '':
+        try:
+          team_id = int(tid_raw)
+          if team_id == 0:
+            team_id = None
+        except (ValueError, TypeError):
+          team_id = None
+
+      # Extract team_name
+      tname = last_race.get('tname')
+      if tname:
+        team_name = str(tname)
+
+      # Extract and convert gender
+      male_value = extract_value(last_race.get('male'))
+      if male_value is not None:
+        try:
+          gender = convert_gender(int(male_value))
+        except (ValueError, TypeError):
+          gender = ''
+
+      # Extract and convert categories
+      div_value = extract_value(last_race.get('div', 0))
+      try:
+        category = set_rider_category(int(div_value) if div_value else 0)
+      except (ValueError, TypeError):
+        category = ''
+
+      divw_value = extract_value(last_race.get('divw', 0))
+      try:
+        category_women = set_rider_category(int(divw_value) if divw_value else 0)
+      except (ValueError, TypeError):
+        category_women = ''
+
+      # Extract FTP
+      ftp_value = extract_value(last_race.get('ftp', 0))
+      try:
+        zftp = int(ftp_value) if ftp_value else 0
+      except (ValueError, TypeError):
+        zftp = 0
+
+      # Extract height
+      height_value = extract_value(last_race.get('height', 0))
+      try:
+        height = int(height_value) if height_value else 0
+      except (ValueError, TypeError):
+        height = 0
+
+      # Extract weight
+      weight_value = extract_value(last_race.get('weight', 0.0))
+      try:
+        weight = float(weight_value) if weight_value else 0.0
+      except (ValueError, TypeError):
+        weight = 0.0
+
+      # Extract skill
+      skill_value = extract_value(last_race.get('skill', 0.0))
+      try:
+        skill = float(skill_value) if skill_value else 0.0
+      except (ValueError, TypeError):
+        skill = 0.0
+
+      # Extract age
+      age_value = last_race.get('age', '')
+      age = str(age_value) if age_value else ''
+
     return cls(
+      zwift_id=zwift_id,
+      name=name,
+      team_id=team_id,
+      team_name=team_name,
+      gender=gender,
+      category=category,
+      category_women=category_women,
+      zftp=zftp,
+      height=height,
+      weight=weight,
+      skill=skill,
+      age=age,
       _data=data,
       _excluded=excluded,
       _extra=extra,
@@ -108,31 +262,44 @@ class ZPCyclist:
     return key in self._data
 
   def __repr__(self) -> str:
-    """Return representation showing cyclist name and zwift_id if available.
+    """Return representation showing key cyclist information.
 
     Returns:
-      String representation like: ZPCyclist(name='John', zwift_id=123)
+      String representation showing all extracted fields
     """
-    # First check if data is in the response
-    if (
-      'data' in self._data
-      and isinstance(self._data['data'], list)
-      and self._data['data']
-    ):
-      # Profile data is in the first element of the data array
-      profile = self._data["data"][0]
-      name = profile.get("name", "")
-      zwid = profile.get("zwid", "")
-      if name or zwid:
-        return f"ZPCyclist(name={name!r}, zwift_id={zwid!r})"
+    parts = []
 
-    # Fallback: check if profile data is at top level
-    name = self._data.get("name", "")
-    zwid = self._data.get("zwid", "")
-    if name or zwid:
-      return f"ZPCyclist(name={name!r}, zwift_id={zwid!r})"
+    # Add all key fields if available
+    if self.zwift_id:
+      parts.append(f'zwift_id={self.zwift_id}')
+    if self.name:
+      parts.append(f'name={self.name!r}')
+    if self.team_id is not None:
+      parts.append(f'team_id={self.team_id}')
+    if self.team_name:
+      parts.append(f'team_name={self.team_name!r}')
+    if self.gender:
+      parts.append(f'gender={self.gender!r}')
+    if self.category:
+      parts.append(f'category={self.category!r}')
+    if self.category_women:
+      parts.append(f'category_women={self.category_women!r}')
+    if self.zftp:
+      parts.append(f'zftp={self.zftp}')
+    if self.height:
+      parts.append(f'height={self.height}')
+    if self.weight:
+      parts.append(f'weight={self.weight}')
+    if self.skill:
+      parts.append(f'skill={self.skill}')
+    if self.age:
+      parts.append(f'age={self.age!r}')
 
-    return "ZPCyclist()"
+    # If we have any parts, return formatted string
+    if parts:
+      return f'ZPCyclist({", ".join(parts)})'
+
+    return 'ZPCyclist()'
 
   @property
   def racelog(self) -> ZPRacelog:
@@ -153,11 +320,11 @@ class ZPCyclist:
         print(f"Position {race.position}")
     """
     if self._racelog is None:
-      if "data" not in self._data:
+      if 'data' not in self._data:
         raise KeyError(
           'Cyclist profile missing "data" field. Cannot create racelog.',
         )
-      self._racelog = ZPRacelog.from_dict(self._data["data"])
+      self._racelog = ZPRacelog.from_dict(self._data['data'])
     return self._racelog
 
   def excluded(self) -> dict[str, Any]:
