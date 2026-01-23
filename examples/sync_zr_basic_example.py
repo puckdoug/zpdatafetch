@@ -6,7 +6,7 @@ which is suitable for simple scripts and applications that don't need
 concurrent operations.
 """
 
-from zrdatafetch import ZRResult, ZRRider, ZRTeam
+from zrdatafetch import ZRResultFetch, ZRRiderFetch, ZRTeamFetch
 
 
 def main():
@@ -20,13 +20,13 @@ def main():
   print('\n1. Fetch a single rider')
   print('-' * 60)
 
-  rider = ZRRider(zwift_id=12345)
-  rider.fetch()
+  rider_fetcher = ZRRiderFetch()
+  riders = rider_fetcher.fetch(12345)
+  rider = riders[12345]
 
   print(f'Rider Name: {rider.name}')
   print(f'Current Rating: {rider.current_rating}')
-  print(f'Wins: {rider.wins}')
-  print(f'Podiums: {rider.podiums}')
+  print(f'Current Rank: {rider.current_rank}')
 
   # ============================================================================
   # Example 2: Fetch race results
@@ -34,18 +34,18 @@ def main():
   print('\n2. Fetch race results')
   print('-' * 60)
 
-  result = ZRResult(result_id=3590800)
-  result.fetch()
+  result_fetcher = ZRResultFetch()
+  results = result_fetcher.fetch(3590800)
+  result = results[3590800]
 
-  print(f'Race ID: {result.result_id}')
-  print(f'Category: {result.category}')
-  print(f'Number of Finishers: {len(result.riders)}')
+  print(f'Race ID: {result.race_id}')
+  print(f'Number of Finishers: {len(result)}')
 
-  if result.riders:
-    first_place = result.riders[0]
+  if len(result) > 0:
+    first_place = result[0]
     print(f'Winner: {first_place.name} (ID: {first_place.zwift_id})')
-    if len(result.riders) > 1:
-      second_place = result.riders[1]
+    if len(result) > 1:
+      second_place = result[1]
       print(f'2nd Place: {second_place.name}')
 
   # ============================================================================
@@ -54,27 +54,28 @@ def main():
   print('\n3. Fetch team/club information')
   print('-' * 60)
 
-  team = ZRTeam(team_id=456)
-  team.fetch()
+  team_fetcher = ZRTeamFetch()
+  teams = team_fetcher.fetch(456)
+  team = teams[456]
 
   print(f'Team Name: {team.name}')
   print(f'Team ID: {team.team_id}')
-  print(f'Number of Members: {len(team.riders)}')
+  print(f'Number of Members: {len(team)}')
 
-  if team.riders:
+  if len(team) > 0:
     print('Top Members:')
-    for i, member in enumerate(team.riders[:5], 1):
+    for i, member in enumerate(list(team)[:5], 1):
       print(f'  {i}. {member.name} - Rating: {member.current_rating}')
 
   # ============================================================================
-  # Example 4: Get full JSON representation
+  # Example 4: Get dictionary representation
   # ============================================================================
-  print('\n4. Full JSON representation of rider')
+  print('\n4. Dictionary representation of rider')
   print('-' * 60)
 
-  rider_json = rider.json()
-  print(f'Number of fields: {len(rider_json)}')
-  print(f'Keys: {list(rider_json.keys())[:5]}...')
+  rider_dict = rider.asdict()
+  print(f'Number of fields: {len(rider_dict)}')
+  print(f'Keys: {list(rider_dict.keys())[:5]}...')
 
   print('\n' + '=' * 60)
   print('Examples completed successfully!')

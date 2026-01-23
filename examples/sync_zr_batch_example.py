@@ -2,38 +2,42 @@
 """Example of batch fetching with the synchronous zrdatafetch API.
 
 This example demonstrates how to fetch data for multiple riders
-sequentially using the synchronous API.
+using both sequential and batch methods with the synchronous API.
 """
 
-from zrdatafetch import ZRRider
+from zrdatafetch import ZRRiderFetch
 
 
 def main():
-  """Fetch data for multiple riders sequentially."""
+  """Fetch data for multiple riders using batch method."""
   print('Batch Fetching Example (Synchronous)')
   print('=' * 60)
 
   # List of Zwift IDs to fetch
   zwift_ids = [12345, 67890, 13579, 24680, 35791]
 
+  # ============================================================================
+  # Method 1: Sequential fetching (slower)
+  # ============================================================================
+  print('\nMethod 1: Sequential Fetching')
+  print('-' * 60)
+  print(f'Fetching data for {len(zwift_ids)} riders one at a time...\n')
+
   riders_data = []
-
-  print(f'\nFetching data for {len(zwift_ids)} riders...\n')
-
   for i, zwift_id in enumerate(zwift_ids, 1):
     try:
       print(f'  [{i}/{len(zwift_ids)}] Fetching rider {zwift_id}...')
 
-      rider = ZRRider(zwift_id=zwift_id)
-      rider.fetch()
+      fetcher = ZRRiderFetch()
+      riders = fetcher.fetch(zwift_id)
+      rider = riders[zwift_id]
 
       riders_data.append(
         {
           'zwift_id': zwift_id,
           'name': rider.name,
           'rating': rider.current_rating,
-          'wins': rider.wins,
-        }
+        },
       )
 
       print(f'         ✓ {rider.name} (Rating: {rider.current_rating})')
@@ -44,8 +48,27 @@ def main():
         {
           'zwift_id': zwift_id,
           'error': str(e),
-        }
+        },
       )
+
+  # ============================================================================
+  # Method 2: Batch fetching (faster, single API call)
+  # ============================================================================
+  print('\nMethod 2: Batch Fetching (Single API Call)')
+  print('-' * 60)
+  print(f'Fetching all {len(zwift_ids)} riders in one batch request...\n')
+
+  try:
+    # Batch fetch returns dict[int, ZRRiderRating]
+    riders = ZRRiderFetch.fetch_batch(*zwift_ids)
+
+    print(f'✓ Successfully fetched {len(riders)} riders in one request\n')
+
+    for zwift_id, rider in riders.items():
+      print(f'  - {rider.name} (ID: {zwift_id}) Rating: {rider.current_rating}')
+
+  except Exception as e:
+    print(f'✗ Batch fetch failed: {e}')
 
   # Display summary
   print('\n' + '=' * 60)
@@ -55,21 +78,23 @@ def main():
   successful = [r for r in riders_data if 'name' in r]
   failed = [r for r in riders_data if 'error' in r]
 
-  print(f'\nSuccessful: {len(successful)} riders')
+  print('\nSequential fetch results:')
+  print(f'  Successful: {len(successful)} riders')
   if successful:
     for rider_info in successful:
       print(
-        f'  - {rider_info["name"]} (ID: {rider_info["zwift_id"]}) '
+        f'    - {rider_info["name"]} (ID: {rider_info["zwift_id"]}) '
         f'Rating: {rider_info["rating"]}',
       )
 
   if failed:
-    print(f'\nFailed: {len(failed)} riders')
+    print(f'\n  Failed: {len(failed)} riders')
     for rider_info in failed:
-      print(f'  - ID: {rider_info["zwift_id"]} - {rider_info["error"]}')
+      print(f'    - ID: {rider_info["zwift_id"]} - {rider_info["error"]}')
 
   print('\n' + '=' * 60)
   print('Batch fetch completed!')
+  print('Note: Batch fetching is faster as it uses a single API call')
 
 
 if __name__ == '__main__':

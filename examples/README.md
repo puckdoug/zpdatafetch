@@ -205,10 +205,11 @@ Rate-limited concurrent fetching.
 **Synchronous (simple scripts):**
 
 ```python
-from zrdatafetch import ZRRider
+from zrdatafetch import ZRRiderFetch
 
-rider = ZRRider(zwift_id=12345)
-rider.fetch()
+fetcher = ZRRiderFetch()
+riders = fetcher.fetch(12345)
+rider = riders[12345]
 print(f"Rider: {rider.name}, Rating: {rider.current_rating}")
 ```
 
@@ -216,12 +217,15 @@ print(f"Rider: {rider.name}, Rating: {rider.current_rating}")
 
 ```python
 import asyncio
-from zrdatafetch import AsyncZRRider
+from zrdatafetch import ZRRiderFetch, AsyncZR_obj
 
 async def main():
-    rider = AsyncZRRider(zwift_id=12345)
-    await rider.fetch()
-    print(f"Rider: {rider.name}, Rating: {rider.current_rating}")
+    async with AsyncZR_obj() as zr:
+        fetcher = ZRRiderFetch()
+        fetcher.set_session(zr)
+        riders = await fetcher.afetch(12345)
+        rider = riders[12345]
+        print(f"Rider: {rider.name}, Rating: {rider.current_rating}")
 
 asyncio.run(main())
 ```
@@ -291,14 +295,15 @@ result.set_session(zp)
 ### Rate Limiting (zrdatafetch)
 
 ```python
-from zrdatafetch import ZR_obj
+from zrdatafetch import ZR_obj, ZRRiderFetch
 
 # Enable premium tier
 ZR_obj.set_premium_mode(True)
 
 # Now all new instances use premium limits
-rider = ZRRider(zwift_id=12345)
-rider.fetch()
+fetcher = ZRRiderFetch()
+riders = fetcher.fetch(12345)
+rider = riders[12345]
 ```
 
 ## Configuration

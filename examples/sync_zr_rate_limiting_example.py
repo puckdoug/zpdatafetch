@@ -5,7 +5,7 @@ This example demonstrates how to use the synchronous API with rate limiting
 to respect API quotas. The API supports standard and premium rate limits.
 """
 
-from zrdatafetch import ZR_obj, ZRRider
+from zrdatafetch import ZR_obj, ZRRiderFetch
 
 
 def main():
@@ -24,9 +24,12 @@ def main():
   print('  - Clubs: 1 request per 60 minutes')
   print('  - Results: 1 request per minute')
 
-  rider = ZRRider(zwift_id=12345)
-  print(f'\nRate limiter tier: {rider.rate_limiter.tier}')
-  print(f'Rate limiter status: {rider.rate_limiter.get_status()}')
+  fetcher = ZRRiderFetch()
+  riders = fetcher.fetch(12345)
+  rider = riders[12345]
+
+  print(f'\nRate limiter tier: {fetcher.rate_limiter.tier}')
+  print(f'Rate limiter status: {fetcher.rate_limiter.get_status()}')
 
   # ============================================================================
   # Example 2: Premium tier rate limiting
@@ -39,12 +42,15 @@ def main():
   print('  - Clubs: 10 requests per 60 minutes')
   print('  - Results: 1 request per minute (same as standard)')
 
-  # Enable premium mode globally for all ZRRider instances
+  # Enable premium mode globally for all ZR instances
   ZR_obj.set_premium_mode(True)
 
-  premium_rider = ZRRider(zwift_id=67890)
-  print(f'\nRate limiter tier: {premium_rider.rate_limiter.tier}')
-  print(f'Rate limiter status: {premium_rider.rate_limiter.get_status()}')
+  premium_fetcher = ZRRiderFetch()
+  premium_riders = premium_fetcher.fetch(67890)
+  premium_rider = premium_riders[67890]
+
+  print(f'\nRate limiter tier: {premium_fetcher.rate_limiter.tier}')
+  print(f'Rate limiter status: {premium_fetcher.rate_limiter.get_status()}')
 
   # ============================================================================
   # Example 3: Batch fetching with rate limiting
@@ -61,10 +67,11 @@ def main():
 
   for i, zwift_id in enumerate(zwift_ids, 1):
     try:
-      rider = ZRRider(zwift_id=zwift_id)
-      rider.fetch()
+      fetcher = ZRRiderFetch()
+      riders = fetcher.fetch(zwift_id)
+      rider = riders[zwift_id]
 
-      status = rider.rate_limiter.get_status()
+      status = fetcher.rate_limiter.get_status()
       riders_get = status['endpoints']['riders_get']
 
       print(
@@ -81,8 +88,8 @@ def main():
   print('\n4. Checking Rate Limit Status')
   print('-' * 60)
 
-  rider = ZRRider(zwift_id=12345)
-  status = rider.rate_limiter.get_status()
+  fetcher = ZRRiderFetch()
+  status = fetcher.rate_limiter.get_status()
 
   print('\nCurrent rate limit status:')
   print(f'  Tier: {status["tier"]}')

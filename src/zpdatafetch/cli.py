@@ -99,13 +99,13 @@ Module for fetching zwiftpower data using the Zwifpower API
 
   # Handle --sync flag (enable synchronous mode)
   if args.sync:
-    Cyclist.set_sync_mode(True)
-    League.set_sync_mode(True)
-    Primes.set_sync_mode(True)
-    Result.set_sync_mode(True)
-    Signup.set_sync_mode(True)
-    Sprints.set_sync_mode(True)
-    Team.set_sync_mode(True)
+    ZPCyclistFetch.set_sync_mode(True)
+    ZPLeagueFetch.set_sync_mode(True)
+    ZPPrimesFetch.set_sync_mode(True)
+    ZPResultFetch.set_sync_mode(True)
+    ZPSignupFetch.set_sync_mode(True)
+    ZPSprintsFetch.set_sync_mode(True)
+    ZPTeamFetch.set_sync_mode(True)
 
   # Handle --noaction flag (report what would be done without fetching)
   if args.noaction:
@@ -113,7 +113,15 @@ Module for fetching zwiftpower data using the Zwifpower API
     return None
 
   # Map command to class and fetch
-  x: Cyclist | League | Primes | Result | Signup | Sprints | Team
+  x: (
+    ZPCyclistFetch
+    | ZPLeagueFetch
+    | ZPPrimesFetch
+    | ZPResultFetch
+    | ZPSignupFetch
+    | ZPSprintsFetch
+    | ZPTeamFetch
+  )
 
   match args.cmd:
     case 'cyclist':

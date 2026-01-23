@@ -3,7 +3,6 @@
 Provides fixtures for testing ZwiftRacing API responses.
 """
 
-import json
 from pathlib import Path
 
 import pytest
