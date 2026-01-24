@@ -18,7 +18,7 @@ class ZRRiderRating:
   """Rider rating data from Zwiftracing API.
 
   Represents a rider's current and historical ratings across multiple
-  timeframes (current, max30, max90) as well as derived rating score (DRS).
+  timeframes (current, max30, max90).
 
   This is a pure data container with no fetch logic.
 
@@ -32,35 +32,29 @@ class ZRRiderRating:
     max30_rank: Max30 category rank
     max90_rating: Maximum rating in last 90 days
     max90_rank: Max90 category rank
-    drs_rating: Derived rating score
-    drs_rank: DRS category rank
     zrcs: Zwiftracing compound score
-    source: Source of DRS (max30, max90, or none)
     _excluded: Recognized but not explicitly handled fields
     _extra: Unknown/new fields from API changes
   """
 
   # Public attributes
   zwift_id: int = 0
-  name: str = 'Nobody'
-  gender: str = 'M'
+  name: str = "Nobody"
+  gender: str = "M"
   current_rating: float = 0.0
-  current_rank: str = 'Unranked'
+  current_rank: str = "Unranked"
   max30_rating: float = 0.0
-  max30_rank: str = 'Unranked'
+  max30_rank: str = "Unranked"
   max90_rating: float = 0.0
-  max90_rank: str = 'Unranked'
-  drs_rating: float = 0.0
-  drs_rank: str = 'Unranked'
+  max90_rank: str = "Unranked"
   zrcs: float = 0.0
-  source: str = 'none'
 
   # Field classification
   _excluded: dict[str, Any] = field(default_factory=dict, repr=False)
   _extra: dict[str, Any] = field(default_factory=dict, repr=False)
 
   @classmethod
-  def from_dict(cls, data: dict[str, Any]) -> 'ZRRiderRating':
+  def from_dict(cls, data: dict[str, Any]) -> "ZRRiderRating":
     """Create instance from API response dict.
 
     Parses Zwiftracing API response and extracts rider rating fields.
@@ -74,74 +68,60 @@ class ZRRiderRating:
     """
     # Known fields that will be extracted
     known_fields = {
-      'name',
-      'gender',
-      'race',
-      'power',
-      'riderId',
-      'zwiftId',
+      "name",
+      "gender",
+      "race",
+      "power",
+      "riderId",
+      "zwiftId",
     }
 
     # Fields recognized from API but not explicitly handled as typed fields
     recognized_but_excluded: set[str] = set()
 
     # Check for error in response
-    if 'message' in data:
+    if "message" in data:
       logger.error(f'API error in rider data: {data["message"]}')
       return cls()
 
     # Check for required fields
-    if 'name' not in data or 'race' not in data:
-      logger.warning('Missing required fields (name or race) in response')
+    if "name" not in data or "race" not in data:
+      logger.warning("Missing required fields (name or race) in response")
       return cls()
 
     try:
       # Extract using safe utilities
-      name = safe_str(data.get('name'), default='Nobody')
-      gender = safe_str(data.get('gender'), default='M')
+      name = safe_str(data.get("name"), default="Nobody")
+      gender = safe_str(data.get("gender"), default="M")
 
       # ZRCS (compound score)
-      zrcs = safe_float(extract_nested_value(data, 'power', 'compoundScore'))
+      zrcs = safe_float(extract_nested_value(data, "power", "compoundScore"))
 
       # Current rating
       current_rating = safe_float(
-        extract_nested_value(data, 'race', 'current', 'rating')
+        extract_nested_value(data, "race", "current", "rating"),
       )
       current_rank = safe_str(
-        extract_nested_value(data, 'race', 'current', 'mixed', 'category'),
-        default='Unranked',
+        extract_nested_value(data, "race", "current", "mixed", "category"),
+        default="Unranked",
       )
 
       # Max90 rating
-      max90_rating = safe_float(extract_nested_value(data, 'race', 'max90', 'rating'))
+      max90_rating = safe_float(extract_nested_value(data, "race", "max90", "rating"))
       max90_rank = safe_str(
-        extract_nested_value(data, 'race', 'max90', 'mixed', 'category'),
-        default='Unranked',
+        extract_nested_value(data, "race", "max90", "mixed", "category"),
+        default="Unranked",
       )
 
       # Max30 rating
-      max30_rating = safe_float(extract_nested_value(data, 'race', 'max30', 'rating'))
+      max30_rating = safe_float(extract_nested_value(data, "race", "max30", "rating"))
       max30_rank = safe_str(
-        extract_nested_value(data, 'race', 'max30', 'mixed', 'category'),
-        default='Unranked',
+        extract_nested_value(data, "race", "max30", "mixed", "category"),
+        default="Unranked",
       )
 
-      # Determine DRS (derived rating score)
-      drs_rating = 0.0
-      drs_rank = 'Unranked'
-      source = 'none'
-
-      if max30_rank != 'Unranked':
-        drs_rating = max30_rating
-        drs_rank = max30_rank
-        source = 'max30'
-      elif max90_rank != 'Unranked':
-        drs_rating = max90_rating
-        drs_rank = max90_rank
-        source = 'max90'
-
       # Extract zwift_id (try multiple possible field names)
-      zwift_id = safe_int(data.get('riderId', data.get('zwiftId')))
+      zwift_id = safe_int(data.get("riderId", data.get("zwiftId")))
 
       # Classify remaining fields
       excluded = {}
@@ -163,16 +143,13 @@ class ZRRiderRating:
         max30_rank=max30_rank,
         max90_rating=max90_rating,
         max90_rank=max90_rank,
-        drs_rating=drs_rating,
-        drs_rank=drs_rank,
         zrcs=zrcs,
-        source=source,
         _excluded=excluded,
         _extra=extra,
       )
 
     except (KeyError, TypeError, ValueError) as e:
-      logger.error(f'Error parsing rider rating data: {e}')
+      logger.error(f"Error parsing rider rating data: {e}")
       return cls()
 
   def asdict(self) -> dict[str, Any]:
@@ -182,8 +159,8 @@ class ZRRiderRating:
       Dictionary with all public attributes
     """
     result = asdict(self)
-    result.pop('_extra', None)
-    result.pop('_excluded', None)
+    result.pop("_extra", None)
+    result.pop("_excluded", None)
     return result
 
   def excluded(self) -> dict[str, Any]:
