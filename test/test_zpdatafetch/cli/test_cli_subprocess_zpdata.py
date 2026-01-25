@@ -21,7 +21,9 @@ class TestZPDataCLIHelp:
       check=False,
     )
     assert result.returncode == 0
-    assert 'usage:' in result.stdout.lower() or 'usage:' in result.stderr.lower()
+    assert (
+      'usage:' in result.stdout.lower() or 'usage:' in result.stderr.lower()
+    )
 
   def test_zpdata_no_args(self):
     """Test zpdata with no arguments exits gracefully."""
@@ -77,7 +79,11 @@ class TestZPDataCyclistCommand:
     )
     assert result.returncode == 0
     # Should report what it would do
-    assert '123' in result.stdout or '456' in result.stdout or 'Would' in result.stdout
+    assert (
+      '123' in result.stdout
+      or '456' in result.stdout
+      or 'Would' in result.stdout
+    )
 
 
 # ===============================================================================
@@ -220,7 +226,9 @@ class TestZPDataLeagueCommand:
     assert result.returncode == 0
     # Should report what it would do
     assert (
-      '2780' in result.stdout or '2781' in result.stdout or 'Would' in result.stdout
+      '2780' in result.stdout
+      or '2781' in result.stdout
+      or 'Would' in result.stdout
     )
 
 

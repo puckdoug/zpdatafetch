@@ -12,7 +12,7 @@ from zpdatafetch.logging_config import get_logger
 logger = get_logger(__name__)
 
 
-# ===============================================================================
+# ==============================================================================
 class ZP(BaseHTTPClient):
   """Core class for interacting with the Zwiftpower API.
 
@@ -30,13 +30,11 @@ class ZP(BaseHTTPClient):
   """
 
   _client: httpx.Client | None = None
-  _login_url: str = (
-    'https://zwiftpower.com/ucp.php?mode=login&login=external&oauth_service=oauthzpsso'
-  )
+  _login_url: str = 'https://zwiftpower.com/ucp.php?mode=login&login=external&oauth_service=oauthzpsso'
   _shared_client: httpx.Client | None = None
   _owns_client: bool = False
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def __init__(
     self,
     skip_credential_check: bool = False,
@@ -68,7 +66,7 @@ class ZP(BaseHTTPClient):
       logger.debug('Creating shared HTTP client for connection pooling')
       ZP._shared_client = self._create_client()
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def clear_credentials(self) -> None:
     """Securely clear credentials from memory.
 
@@ -88,7 +86,7 @@ class ZP(BaseHTTPClient):
       self.password = ''
     logger.debug('Credentials cleared')
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def login(self) -> None:
     """Authenticate with Zwiftpower and establish a session.
 
@@ -198,7 +196,7 @@ class ZP(BaseHTTPClient):
         ),
       ) from e
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def _create_client(self) -> httpx.Client:
     """Create and configure an HTTP client.
 
@@ -208,17 +206,21 @@ class ZP(BaseHTTPClient):
     Returns:
       Configured httpx.Client instance
     """
-    logger.debug('Creating new httpx client with HTTPS certificate verification')
+    logger.debug(
+      'Creating new httpx client with HTTPS certificate verification'
+    )
     # SECURITY: Explicitly enable certificate verification for HTTPS connections
     return httpx.Client(follow_redirects=True, verify=True)
 
-  # -------------------------------------------------------------------------------
-  def _before_request(self, url: str, method: str = 'GET', **kwargs: Any) -> None:
+  # ----------------------------------------------------------------------------
+  def _before_request(
+    self, url: str, method: str = 'GET', **kwargs: Any
+  ) -> None:
     """Ensure logged in before making requests."""
     if not self._client:
       self.login()
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def login_url(self, url: str | None = None) -> str:
     """Get or set the login URL.
 
@@ -236,7 +238,7 @@ class ZP(BaseHTTPClient):
 
     return self._login_url
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def fetch_json(self, endpoint: str, max_retries: int = 3) -> str:
     """Fetch JSON data from a Zwiftpower endpoint and return as raw string.
 
@@ -286,7 +288,7 @@ class ZP(BaseHTTPClient):
         format_network_error('fetch JSON data', endpoint, e),
       ) from e
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def fetch_page(self, endpoint: str, max_retries: int = 3) -> str:
     """Fetch HTML page content from a Zwiftpower endpoint.
 
@@ -336,7 +338,7 @@ class ZP(BaseHTTPClient):
         format_network_error('fetch page', endpoint, e),
       ) from e
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   @classmethod
   def close_shared_session(cls) -> None:
     """Close the shared HTTP client used for connection pooling.
@@ -360,12 +362,12 @@ class ZP(BaseHTTPClient):
       except Exception as e:
         logger.error(f'Could not close shared client properly: {e}')
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def _on_close(self) -> None:
     """Hook called when closing - clear credentials."""
     self.clear_credentials()
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def _fetch_with_retry(
     self,
     url: str,
@@ -390,7 +392,7 @@ class ZP(BaseHTTPClient):
       logger=logger,
     )
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   @classmethod
   def set_pen(cls, label: int) -> str:
     """Convert numeric pen label to letter category.
@@ -417,7 +419,7 @@ class ZP(BaseHTTPClient):
       case _:
         return str(label)
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   @classmethod
   def set_rider_category(cls, div: int) -> str:
     """Convert numeric division to rider category letter.
@@ -442,7 +444,7 @@ class ZP(BaseHTTPClient):
       case _:
         return str(div)
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   @classmethod
   def set_category(cls, div: int) -> str:
     """Convert numeric division to category letter.
@@ -468,7 +470,7 @@ class ZP(BaseHTTPClient):
         return str(div)
 
 
-# ===============================================================================
+# ==============================================================================
 def main() -> None:
   """
   Core module for accessing Zwiftpower API endpoints
@@ -481,6 +483,6 @@ def main() -> None:
   zp.close()
 
 
-# ===============================================================================
+# ==============================================================================
 if __name__ == '__main__':
   main()

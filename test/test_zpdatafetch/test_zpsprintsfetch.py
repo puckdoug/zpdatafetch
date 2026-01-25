@@ -102,7 +102,9 @@ def test_sprints_shares_zp_session_with_primes(
         sprints.fetch(3590800)
 
         # Verify only ONE AsyncZP instance was created (not two)
-        assert login_count['count'] == 1, 'Should only create one AsyncZP session'
+        assert login_count['count'] == 1, (
+          'Should only create one AsyncZP session'
+        )
 
         # Verify set_session was called to share the session
         assert mock_set_session.called, (

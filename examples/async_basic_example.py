@@ -6,7 +6,7 @@ import asyncio
 from zpdatafetch import AsyncZP, Cyclist
 
 
-async def main():
+async def main() -> None:
   """Fetch cyclist data asynchronously."""
   # Use async context manager for automatic cleanup
   async with AsyncZP() as zp:

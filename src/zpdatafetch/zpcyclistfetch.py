@@ -34,7 +34,7 @@ from zpdatafetch.zpracelog import ZPRacelog
 logger = get_logger(__name__)
 
 
-# ===============================================================================
+# ==============================================================================
 class ZPCyclistFetch(ZP_obj):
   """Fetches and stores cyclist profile data from Zwiftpower.
 
@@ -71,7 +71,7 @@ class ZPCyclistFetch(ZP_obj):
     self._zp: AsyncZP | None = None  # Async session
     self._zp_sync: ZP | None = None  # Sync session (for reference only)
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def set_session(self, zp: AsyncZP) -> None:
     """Set the AsyncZP session to use for async fetching.
 
@@ -80,7 +80,7 @@ class ZPCyclistFetch(ZP_obj):
     """
     self._zp = zp
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def set_zp_session(self, zp: ZP) -> None:
     """Set the ZP session to use for fetching.
 
@@ -91,7 +91,7 @@ class ZPCyclistFetch(ZP_obj):
     """
     self._zp_sync = zp
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def _get_or_create_session(self) -> tuple[AsyncZP, bool]:
     """Get or create an async session for fetching.
 
@@ -115,7 +115,7 @@ class ZPCyclistFetch(ZP_obj):
     await temp_zp.login()
     return (temp_zp, True)
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def _fetch_parallel(self, *zwift_id: int) -> dict[int, ZPCyclist]:
     """Fetch cyclist data in parallel using async requests.
 
@@ -148,7 +148,9 @@ class ZPCyclistFetch(ZP_obj):
 
       # Execute all fetches in parallel
       results_raw: dict[int, str] = {}
-      results_fetched_dict: dict[int, dict[str, Any]] = {}  # Temporary dict structure
+      results_fetched_dict: dict[
+        int, dict[str, Any]
+      ] = {}  # Temporary dict structure
 
       async def fetch_and_store(
         idx: int,
@@ -207,7 +209,9 @@ class ZPCyclistFetch(ZP_obj):
       self._raw = results_raw
       self._fetched = results_fetched
       self.processed = {}  # Reserved for future use
-      logger.info(f'Successfully fetched {len(validated_ids)} cyclist profile(s)')
+      logger.info(
+        f'Successfully fetched {len(validated_ids)} cyclist profile(s)'
+      )
 
       return self._fetched
 
@@ -215,7 +219,7 @@ class ZPCyclistFetch(ZP_obj):
       if owns_session:
         await session.close()
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   @classmethod
   def set_sync_mode(cls, enabled: bool) -> None:
     """Enable or disable synchronous fetch mode.
@@ -227,7 +231,7 @@ class ZPCyclistFetch(ZP_obj):
     mode = 'synchronous' if enabled else 'asynchronous (parallel)'
     logger.info(f'Cyclist fetch mode set to: {mode}')
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def _fetch_sequential(self, *zwift_id: int) -> dict[int, ZPCyclist]:
     """Fetch cyclist data sequentially (synchronous mode).
 
@@ -245,7 +249,9 @@ class ZPCyclistFetch(ZP_obj):
       NetworkError: If network requests fail
       AuthenticationError: If authentication fails
     """
-    logger.info(f'Fetching cyclist data in synchronous mode for {len(zwift_id)} ID(s)')
+    logger.info(
+      f'Fetching cyclist data in synchronous mode for {len(zwift_id)} ID(s)'
+    )
 
     # SECURITY: Validate all Zwift IDs before processing
     try:
@@ -258,7 +264,9 @@ class ZPCyclistFetch(ZP_obj):
     zp = ZP()
 
     results_raw: dict[int, str] = {}
-    results_fetched_dict: dict[int, dict[str, Any]] = {}  # Temporary dict structure
+    results_fetched_dict: dict[
+      int, dict[str, Any]
+    ] = {}  # Temporary dict structure
 
     # Fetch each ID sequentially
     for zid in validated_ids:
@@ -290,7 +298,7 @@ class ZPCyclistFetch(ZP_obj):
     )
     return self._fetched
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def fetch(self, *zwift_id: int) -> dict[int, ZPCyclist]:
     """Fetch cyclist profile data for one or more Zwift IDs (synchronous).
 
@@ -325,7 +333,7 @@ class ZPCyclistFetch(ZP_obj):
       # No running loop - safe to use asyncio.run()
       return asyncio.run(self._fetch_parallel(*zwift_id))
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def afetch(self, *zwift_id: int) -> dict[int, ZPCyclist]:
     """Fetch cyclist profile data for one or more Zwift IDs (asynchronous interface).
 
@@ -347,7 +355,7 @@ class ZPCyclistFetch(ZP_obj):
     """
     return await self._fetch_parallel(*zwift_id)
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def json(self) -> str:
     """Return JSON string representation of fetched data.
 
@@ -362,7 +370,7 @@ class ZPCyclistFetch(ZP_obj):
     }
     return json.JSONEncoder(indent=2).encode(serializable)
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def racelog(self, zwift_id: int) -> ZPRacelog:
     """Extract race log from fetched cyclist data as a ZPRacelog object.
 
@@ -398,7 +406,7 @@ class ZPCyclistFetch(ZP_obj):
     return cyclist_obj.racelog
 
 
-# ===============================================================================
+# ==============================================================================
 def main() -> None:
   desc = """
 Module for fetching cyclist data using the Zwiftpower API
@@ -435,6 +443,6 @@ Module for fetching cyclist data using the Zwiftpower API
     print(x.raw)
 
 
-# ===============================================================================
+# ==============================================================================
 if __name__ == '__main__':
   main()

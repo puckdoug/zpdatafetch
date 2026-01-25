@@ -6,7 +6,6 @@ routing.
 
 from unittest.mock import patch
 
-
 from zrdatafetch.cli import main
 
 
@@ -173,7 +172,9 @@ class TestCLICommandRouting:
 
   def test_cli_accepts_short_options(self):
     """Test that CLI accepts short option flags."""
-    with patch('sys.argv', ['zrdata', '-v', '-r', 'rider', '--noaction', '123']):
+    with patch(
+      'sys.argv', ['zrdata', '-v', '-r', 'rider', '--noaction', '123']
+    ):
       result = main()
       assert result is None or result == 0
 

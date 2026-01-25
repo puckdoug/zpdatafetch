@@ -22,7 +22,7 @@ from zpdatafetch.logging_config import get_logger
 logger = get_logger(__name__)
 
 
-# ===============================================================================
+# ==============================================================================
 class AsyncZP(AsyncBaseHTTPClient):
   """Async version of the core ZP class for interacting with Zwiftpower API.
 
@@ -47,13 +47,11 @@ class AsyncZP(AsyncBaseHTTPClient):
   """
 
   _client: httpx.AsyncClient | None = None
-  _login_url: str = (
-    "https://zwiftpower.com/ucp.php?mode=login&login=external&oauth_service=oauthzpsso"
-  )
+  _login_url: str = 'https://zwiftpower.com/ucp.php?mode=login&login=external&oauth_service=oauthzpsso'
   _shared_client: httpx.AsyncClient | None = None
   _owns_client: bool = False
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def __init__(
     self,
     skip_credential_check: bool = False,
@@ -84,10 +82,12 @@ class AsyncZP(AsyncBaseHTTPClient):
     # Initialize shared client immediately (non-async)
     # This ensures _shared_client is available for tests
     if shared_client and AsyncZP._shared_client is None:
-      logger.debug("Creating shared async HTTP client for connection pooling")
-      AsyncZP._shared_client = httpx.AsyncClient(follow_redirects=True, verify=True)
+      logger.debug('Creating shared async HTTP client for connection pooling')
+      AsyncZP._shared_client = httpx.AsyncClient(
+        follow_redirects=True, verify=True
+      )
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def clear_credentials(self) -> None:
     """Securely clear credentials from memory.
 
@@ -97,17 +97,17 @@ class AsyncZP(AsyncBaseHTTPClient):
     SECURITY: This method helps prevent credentials from being exposed if the
     process is dumped or inspected while credentials are in memory.
     """
-    logger.debug("Clearing credentials from memory")
+    logger.debug('Clearing credentials from memory')
     # Overwrite credentials with dummy data before deletion
     if self.username:
-      self.username = "*" * len(self.username)
-      self.username = ""
+      self.username = '*' * len(self.username)
+      self.username = ''
     if self.password:
-      self.password = "*" * len(self.password)
-      self.password = ""
-    logger.debug("Credentials cleared")
+      self.password = '*' * len(self.password)
+      self.password = ''
+    logger.debug('Credentials cleared')
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def login(self) -> None:
     """Authenticate with Zwiftpower and establish an async session.
 
@@ -118,61 +118,61 @@ class AsyncZP(AsyncBaseHTTPClient):
       NetworkError: If network requests fail
       AuthenticationError: If login form cannot be parsed or auth fails
     """
-    logger.info("Logging in to Zwiftpower (async)")
+    logger.info('Logging in to Zwiftpower (async)')
 
     if not self._client:
       await self.init_client()
 
     try:
-      logger.debug(f"Fetching url: {self._login_url}")
+      logger.debug(f'Fetching url: {self._login_url}')
       page = await self._client.get(self._login_url)
       page.raise_for_status()
     except httpx.HTTPStatusError as e:
-      logger.error(f"Failed to fetch login page: {e}")
+      logger.error(f'Failed to fetch login page: {e}')
       raise NetworkError(
         format_network_error(
-          "fetch login page",
+          'fetch login page',
           self._login_url,
           e,
           status_code=e.response.status_code,
         ),
       ) from e
     except httpx.RequestError as e:
-      logger.error(f"Network error during login: {e}")
+      logger.error(f'Network error during login: {e}')
       raise NetworkError(
-        format_network_error("fetch login page", self._login_url, e),
+        format_network_error('fetch login page', self._login_url, e),
       ) from e
 
-    self._client.cookies.get("phpbb3_lswlk_sid")
+    self._client.cookies.get('phpbb3_lswlk_sid')
 
     try:
-      soup = BeautifulSoup(page.text, "lxml")
-      if not soup.form or "action" not in soup.form.attrs:
-        logger.error("Login form not found on page")
+      soup = BeautifulSoup(page.text, 'lxml')
+      if not soup.form or 'action' not in soup.form.attrs:
+        logger.error('Login form not found on page')
         raise AuthenticationError(
           format_auth_error(
-            "parse login form",
+            'parse login form',
             self._login_url,
-            Exception("Login form not found on page"),
-            suggestion="Zwiftpower may have changed their login flow. Contact support if this persists.",
+            Exception('Login form not found on page'),
+            suggestion='Zwiftpower may have changed their login flow. Contact support if this persists.',
           ),
         )
-      login_url_from_form = soup.form["action"][0:]
-      logger.debug(f"Extracted login form URL: {login_url_from_form}")
+      login_url_from_form = soup.form['action'][0:]
+      logger.debug(f'Extracted login form URL: {login_url_from_form}')
     except (AttributeError, KeyError) as e:
-      logger.error(f"Could not parse login form: {e}")
+      logger.error(f'Could not parse login form: {e}')
       raise AuthenticationError(
         format_auth_error(
-          "parse login form",
+          'parse login form',
           self._login_url,
           e,
-          suggestion="The login page structure may have changed. Check Zwiftpower is working normally.",
+          suggestion='The login page structure may have changed. Check Zwiftpower is working normally.',
         ),
       ) from e
 
-    data = {"username": self.username, "password": self.password}
+    data = {'username': self.username, 'password': self.password}
     # SECURITY: Do NOT log the data dict or login URL - it contains credentials
-    logger.debug("Submitting authentication credentials to login endpoint")
+    logger.debug('Submitting authentication credentials to login endpoint')
 
     try:
       self.login_response = await self._client.post(
@@ -183,40 +183,40 @@ class AsyncZP(AsyncBaseHTTPClient):
       self.login_response.raise_for_status()
 
       # Check if login was actually successful
-      if "ucp.php" in str(self.login_response.url) and "mode=login" in str(
+      if 'ucp.php' in str(self.login_response.url) and 'mode=login' in str(
         self.login_response.url,
       ):
-        logger.error("Authentication failed - redirected back to login page")
+        logger.error('Authentication failed - redirected back to login page')
         raise AuthenticationError(
           format_auth_error(
-            "authenticate with Zwiftpower",
+            'authenticate with Zwiftpower',
             login_url_from_form,
-            Exception("Authentication failed"),
-            suggestion="Your username or password is incorrect. Verify your credentials.",
+            Exception('Authentication failed'),
+            suggestion='Your username or password is incorrect. Verify your credentials.',
           ),
         )
-      logger.info("Successfully authenticated with Zwiftpower")
+      logger.info('Successfully authenticated with Zwiftpower')
     except httpx.HTTPStatusError as e:
-      logger.error(f"HTTP error during authentication: {e}")
+      logger.error(f'HTTP error during authentication: {e}')
       raise NetworkError(
         format_network_error(
-          "authenticate with Zwiftpower",
+          'authenticate with Zwiftpower',
           login_url_from_form,
           e,
           status_code=e.response.status_code,
         ),
       ) from e
     except httpx.RequestError as e:
-      logger.error(f"Network error during authentication: {e}")
+      logger.error(f'Network error during authentication: {e}')
       raise NetworkError(
         format_network_error(
-          "authenticate with Zwiftpower",
+          'authenticate with Zwiftpower',
           login_url_from_form,
           e,
         ),
       ) from e
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def _create_client(self) -> httpx.AsyncClient:
     """Create and configure an async HTTP client.
 
@@ -226,17 +226,21 @@ class AsyncZP(AsyncBaseHTTPClient):
     Returns:
       Configured httpx.AsyncClient instance
     """
-    logger.debug("Creating new httpx async client with HTTPS certificate verification")
+    logger.debug(
+      'Creating new httpx async client with HTTPS certificate verification'
+    )
     # SECURITY: Explicitly enable certificate verification for HTTPS
     return httpx.AsyncClient(follow_redirects=True, verify=True)
 
-  # -------------------------------------------------------------------------------
-  async def _before_request(self, url: str, method: str = "GET", **kwargs: Any) -> None:
+  # ----------------------------------------------------------------------------
+  async def _before_request(
+    self, url: str, method: str = 'GET', **kwargs: Any
+  ) -> None:
     """Ensure logged in before making requests."""
     if not self._client:
       await self.login()
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def login_url(self, url: str | None = None) -> str:
     """Get or set the login URL.
 
@@ -251,7 +255,7 @@ class AsyncZP(AsyncBaseHTTPClient):
 
     return self._login_url
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def fetch_json(
     self,
     endpoint: str,
@@ -275,30 +279,33 @@ class AsyncZP(AsyncBaseHTTPClient):
       NetworkError: If the HTTP request fails after retries
     """
     try:
-      logger.debug(f"Fetching JSON from: {endpoint}")
+      logger.debug(f'Fetching JSON from: {endpoint}')
       if not self._client:
         await self.init_client()
       pres = await fetch_with_retry_async(
         self._client,
         endpoint,
-        method="GET",
+        method='GET',
         max_retries=max_retries,
         backoff_factor=backoff_factor,
         logger=logger,
       )
 
       res = pres.text
-      logger.debug(f"Successfully fetched raw JSON from {endpoint}")
+      logger.debug(f'Successfully fetched raw JSON from {endpoint}')
       return res
     except NetworkError:
       raise
     except httpx.HTTPStatusError as e:
-      logger.debug(f"HTTP error fetching {endpoint}: {e}")
+      logger.debug(f'HTTP error fetching {endpoint}: {e}')
       # Special handling for 403 on cyclist profile URLs
-      if e.response.status_code == 403 and "zwiftpower.com/cache3/profile/" in endpoint:
+      if (
+        e.response.status_code == 403
+        and 'zwiftpower.com/cache3/profile/' in endpoint
+      ):
         raise NetworkError(
           format_network_error(
-            "fetch Zwift profile",
+            'fetch Zwift profile',
             endpoint,
             e,
             status_code=e.response.status_code,
@@ -306,19 +313,19 @@ class AsyncZP(AsyncBaseHTTPClient):
         ) from e
       raise NetworkError(
         format_network_error(
-          "fetch JSON data",
+          'fetch JSON data',
           endpoint,
           e,
           status_code=e.response.status_code,
         ),
       ) from e
     except httpx.RequestError as e:
-      logger.error(f"Network error fetching {endpoint}: {e}")
+      logger.error(f'Network error fetching {endpoint}: {e}')
       raise NetworkError(
-        format_network_error("fetch JSON data", endpoint, e),
+        format_network_error('fetch JSON data', endpoint, e),
       ) from e
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def fetch_page(
     self,
     endpoint: str,
@@ -340,51 +347,51 @@ class AsyncZP(AsyncBaseHTTPClient):
       NetworkError: If the HTTP request fails after retries
     """
     try:
-      logger.debug(f"Fetching HTML page from: {endpoint}")
+      logger.debug(f'Fetching HTML page from: {endpoint}')
       if not self._client:
         await self.init_client()
       pres = await fetch_with_retry_async(
         self._client,
         endpoint,
-        method="GET",
+        method='GET',
         max_retries=max_retries,
         logger=logger,
       )
-      logger.debug(f"Successfully fetched HTML from {endpoint}")
+      logger.debug(f'Successfully fetched HTML from {endpoint}')
       return pres.text
     except NetworkError:
       raise
     except httpx.HTTPStatusError as e:
-      logger.error(f"HTTP error fetching {endpoint}: {e}")
+      logger.error(f'HTTP error fetching {endpoint}: {e}')
       raise NetworkError(
         format_network_error(
-          "fetch page",
+          'fetch page',
           endpoint,
           e,
           status_code=e.response.status_code,
         ),
       ) from e
     except httpx.RequestError as e:
-      logger.error(f"Network error fetching {endpoint}: {e}")
+      logger.error(f'Network error fetching {endpoint}: {e}')
       raise NetworkError(
-        format_network_error("fetch page", endpoint, e),
+        format_network_error('fetch page', endpoint, e),
       ) from e
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def _on_close(self) -> None:
     """Hook called when closing - clear credentials."""
     self.clear_credentials()
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def close(self) -> None:
     """Compatibility wrapper for aclose() to match test expectations."""
     await self.aclose()
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def _fetch_with_retry(
     self,
     url: str,
-    method: str = "GET",
+    method: str = 'GET',
     max_retries: int = 3,
     backoff_factor: float = 1.0,
     **kwargs: Any,
@@ -405,7 +412,7 @@ class AsyncZP(AsyncBaseHTTPClient):
       logger=logger,
     )
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   @staticmethod
   def set_pen(label: int) -> str:
     """Convert penalty label to string representation.
@@ -417,15 +424,15 @@ class AsyncZP(AsyncBaseHTTPClient):
       String representation of the penalty
     """
     penalties = {
-      0: "none",
-      10: "time",
-      20: "upgrade",
-      30: "DSQ",
-      40: "DSQ",
+      0: 'none',
+      10: 'time',
+      20: 'upgrade',
+      30: 'DSQ',
+      40: 'DSQ',
     }
-    return penalties.get(label, "unknown")
+    return penalties.get(label, 'unknown')
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   @staticmethod
   def set_rider_category(div: int) -> str:
     """Convert division number to rider category.
@@ -437,15 +444,15 @@ class AsyncZP(AsyncBaseHTTPClient):
       Category letter (A, B, C, D, E)
     """
     categories = {
-      10: "A",
-      20: "B",
-      30: "C",
-      40: "D",
-      50: "E",
+      10: 'A',
+      20: 'B',
+      30: 'C',
+      40: 'D',
+      50: 'E',
     }
-    return categories.get(div, "unknown")
+    return categories.get(div, 'unknown')
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   @staticmethod
   def set_category(div: int) -> str:
     """Convert division number to category name.
@@ -457,10 +464,10 @@ class AsyncZP(AsyncBaseHTTPClient):
       Category name string
     """
     categories = {
-      10: "A",
-      20: "B",
-      30: "C",
-      40: "D",
-      50: "E",
+      10: 'A',
+      20: 'B',
+      30: 'C',
+      40: 'D',
+      50: 'E',
     }
-    return categories.get(div, "unknown")
+    return categories.get(div, 'unknown')

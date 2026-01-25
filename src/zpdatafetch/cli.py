@@ -31,7 +31,7 @@ from zpdatafetch import (
 from zpdatafetch.logging_config import setup_logging
 
 
-# ===============================================================================
+# ==============================================================================
 def main() -> int | None:
   """Main entry point for the zpdatafetch CLI.
 
@@ -160,11 +160,17 @@ Module for fetching zwiftpower data using the Zwifpower API
             lines = error_msg.split('\n')
             # Extract key parts
             first_line = lines[0] if lines else str(e)
-            endpoint = next((line for line in lines if 'Endpoint:' in line), None)
-            status = next((line for line in lines if 'HTTP Status:' in line), None)
+            endpoint = next(
+              (line for line in lines if 'Endpoint:' in line), None
+            )
+            status = next(
+              (line for line in lines if 'HTTP Status:' in line), None
+            )
 
             if zwid and endpoint:
-              url = endpoint.split(': ', 1)[1] if ': ' in endpoint else 'unknown'
+              url = (
+                endpoint.split(': ', 1)[1] if ': ' in endpoint else 'unknown'
+              )
               # Extract status code and construct error message
               status_code = (
                 status.split(': ')[1] if status and ': ' in status else '403'
@@ -180,7 +186,9 @@ Module for fetching zwiftpower data using the Zwifpower API
           else:
             # Normal mode: simplified message with suggestion and profile link
             lines = error_msg.split('\n')
-            suggestion = next((line for line in lines if 'Suggestion:' in line), None)
+            suggestion = next(
+              (line for line in lines if 'Suggestion:' in line), None
+            )
             if zwid and suggestion:
               print(
                 f'Failed to fetch Zwift ID {zwid}: {suggestion.split(": ", 1)[1]} - https://zwiftpower.com/profile.php?z={zwid}',
@@ -338,7 +346,7 @@ Module for fetching zwiftpower data using the Zwifpower API
         print('  No extras')
   else:
     # Default: output object repr, with special handling for nested collections
-    def print_collection(obj: Any, indent: int = 0) -> None:
+    def print_collection(obj: Any, indent: int = 0) -> None:  # noqa: ANN401
       """Recursively print collections with proper indentation.
 
       Handles nested collections like ZPPrime -> ZPPrimeSegment -> ZPPrimeResult.
@@ -383,6 +391,6 @@ Module for fetching zwiftpower data using the Zwifpower API
   return None
 
 
-# ===============================================================================
+# ==============================================================================
 if __name__ == '__main__':
   sys.exit(main())

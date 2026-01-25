@@ -165,15 +165,21 @@ class TestRateLimiterGetEndpointType:
   def test_get_endpoint_type_clubs(self):
     """Test endpoint type detection for clubs."""
     assert RateLimiter.get_endpoint_type('GET', '/public/clubs/123') == 'clubs'
-    assert RateLimiter.get_endpoint_type('GET', '/public/clubs/123/456') == 'clubs'
+    assert (
+      RateLimiter.get_endpoint_type('GET', '/public/clubs/123/456') == 'clubs'
+    )
 
   def test_get_endpoint_type_results(self):
     """Test endpoint type detection for results."""
-    assert RateLimiter.get_endpoint_type('GET', '/public/results/789') == 'results'
+    assert (
+      RateLimiter.get_endpoint_type('GET', '/public/results/789') == 'results'
+    )
 
   def test_get_endpoint_type_riders_get(self):
     """Test endpoint type detection for riders GET."""
-    assert RateLimiter.get_endpoint_type('GET', '/public/riders/123') == 'riders_get'
+    assert (
+      RateLimiter.get_endpoint_type('GET', '/public/riders/123') == 'riders_get'
+    )
     assert (
       RateLimiter.get_endpoint_type('GET', '/public/riders/123/1704067200')
       == 'riders_get'
@@ -181,7 +187,9 @@ class TestRateLimiterGetEndpointType:
 
   def test_get_endpoint_type_riders_post(self):
     """Test endpoint type detection for riders POST."""
-    assert RateLimiter.get_endpoint_type('POST', '/public/riders') == 'riders_post'
+    assert (
+      RateLimiter.get_endpoint_type('POST', '/public/riders') == 'riders_post'
+    )
     assert (
       RateLimiter.get_endpoint_type('POST', '/public/riders/1704067200')
       == 'riders_post'

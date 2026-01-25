@@ -21,19 +21,19 @@ logger = get_logger(__name__)
 # Note: Bologna (6) and Crit City (8) are event-only worlds and may not be
 # accessible through the standard relay API endpoints
 WORLD_IDS = {
-  "watopia": 1,
-  "richmond": 2,
-  "london": 3,
-  "newyork": 4,
-  "innsbruck": 5,
-  "bologna": 6,  # Event-only, may not be accessible via relay API
-  "yorkshire": 7,
-  "critcity": 8,  # Event-only, may not be accessible via relay API
-  "makuri": 9,
-  "makuriislands": 9,  # Alias
-  "france": 10,
-  "paris": 11,
-  "scotland": 13,
+  'watopia': 1,
+  'richmond': 2,
+  'london': 3,
+  'newyork': 4,
+  'innsbruck': 5,
+  'bologna': 6,  # Event-only, may not be accessible via relay API
+  'yorkshire': 7,
+  'critcity': 8,  # Event-only, may not be accessible via relay API
+  'makuri': 9,
+  'makuriislands': 9,  # Alias
+  'france': 10,
+  'paris': 11,
+  'scotland': 13,
 }
 
 
@@ -46,7 +46,7 @@ def get_world_id(world_name: str) -> int | None:
   Returns:
       World ID or None if not found
   """
-  return WORLD_IDS.get(world_name.lower().replace(" ", ""))
+  return WORLD_IDS.get(world_name.lower().replace(' ', ''))
 
 
 def get_world_name(world_id: int) -> str | None:
@@ -59,7 +59,7 @@ def get_world_name(world_id: int) -> str | None:
       World name or None if not found
   """
   for name, wid in WORLD_IDS.items():
-    if wid == world_id and not name.endswith("islands"):  # Skip aliases
+    if wid == world_id and not name.endswith('islands'):  # Skip aliases
       return name.capitalize()
   return None
 
@@ -83,14 +83,14 @@ class ZwiftWorlds:
       worlds: List of world objects
   """
 
-  BASE_URL = "https://us-or-rly101.zwift.com"
+  BASE_URL = 'https://us-or-rly101.zwift.com'
 
   def __init__(self) -> None:
     """Initialize empty worlds data (no auth parameter).
 
     Credentials are loaded from Config at fetch time.
     """
-    self._raw: str = ""  # Raw JSON response
+    self._raw: str = ''  # Raw JSON response
     self._fetched: dict[str, Any] = {}  # Parsed data
     self.processed: dict = {}  # Reserved for future use
 
@@ -117,16 +117,16 @@ class ZwiftWorlds:
         'Zwift credentials not found. Run "zdata config" to set up credentials.',
       )
 
-    logger.debug("Fetching active worlds")
+    logger.debug('Fetching active worlds')
 
     # Authenticate
     auth = ZwiftAuth(config.username, config.password)
     auth.login()
     token = auth.get_access_token()
-    headers = {"Authorization": f"Bearer {token}"}
+    headers = {'Authorization': f'Bearer {token}'}
 
     # Fetch data
-    url = f"{self.BASE_URL}/relay/worlds"
+    url = f'{self.BASE_URL}/relay/worlds'
 
     try:
       with httpx.Client() as client:
@@ -134,7 +134,7 @@ class ZwiftWorlds:
 
         if response.status_code != 200:
           raise NetworkError(
-            f"Failed to fetch worlds: HTTP {response.status_code} - {response.text}",
+            f'Failed to fetch worlds: HTTP {response.status_code} - {response.text}',
           )
 
         # Parse and populate attributes
@@ -142,12 +142,12 @@ class ZwiftWorlds:
 
         # Store raw response as formatted JSON from parsed data
         self._raw = json.dumps(self._fetched, indent=2)
-        logger.info(f"Successfully fetched {len(self.worlds)} active worlds")
+        logger.info(f'Successfully fetched {len(self.worlds)} active worlds')
 
     except httpx.TimeoutException as e:
-      raise NetworkError(f"Request timed out fetching worlds: {e}") from e
+      raise NetworkError(f'Request timed out fetching worlds: {e}') from e
     except httpx.HTTPError as e:
-      raise NetworkError(f"Network error fetching worlds: {e}") from e
+      raise NetworkError(f'Network error fetching worlds: {e}') from e
 
   def _parse_response(self, raw_json: str) -> None:
     """Parse raw JSON string into structured worlds data.
@@ -158,22 +158,24 @@ class ZwiftWorlds:
         raw_json: JSON string from API response
     """
     if not raw_json:
-      logger.warning("No data to parse")
+      logger.warning('No data to parse')
       return
 
-    parsed = parse_json_safe(raw_json, context="worlds")
+    parsed = parse_json_safe(raw_json, context='worlds')
 
     # Handle both list and dict responses
     if isinstance(parsed, list):
       # Direct list of worlds
-      self._fetched = {"worlds": parsed}
+      self._fetched = {'worlds': parsed}
       self.worlds = parsed
     elif isinstance(parsed, dict):
       # Dict response - could have 'worlds' key or be a single world object
-      if "worlds" in parsed:
+      if 'worlds' in parsed:
         # Response has a 'worlds' key
         self.worlds = (
-          parsed['worlds'] if isinstance(parsed['worlds'], list) else [parsed['worlds']]
+          parsed['worlds']
+          if isinstance(parsed['worlds'], list)
+          else [parsed['worlds']]
         )
         self._fetched = {'worlds': self.worlds}
       else:
@@ -184,11 +186,11 @@ class ZwiftWorlds:
       logger.error(
         f'Expected list or dict for worlds data, got {type(parsed).__name__}'
       )
-      self._fetched = {"worlds": []}
+      self._fetched = {'worlds': []}
       self.worlds = []
       return
 
-    logger.debug(f"Successfully parsed {len(self.worlds)} worlds")
+    logger.debug(f'Successfully parsed {len(self.worlds)} worlds')
 
   def world_count(self) -> int:
     """Return count of active worlds.
@@ -204,7 +206,7 @@ class ZwiftWorlds:
     Returns:
         List of world IDs
     """
-    return [w.get("worldId", 0) for w in self.worlds if "worldId" in w]
+    return [w.get('worldId', 0) for w in self.worlds if 'worldId' in w]
 
   def world_names(self) -> list[str]:
     """Return list of active world names.
@@ -218,7 +220,7 @@ class ZwiftWorlds:
       if name:
         names.append(name)
       else:
-        names.append(f"Unknown({world_id})")
+        names.append(f'Unknown({world_id})')
     return names
 
   def __getattr__(self, name: str) -> Any:  # noqa: ANN401
@@ -233,7 +235,7 @@ class ZwiftWorlds:
     Raises:
         AttributeError: If field doesn't exist
     """
-    if name.startswith("_"):
+    if name.startswith('_'):
       raise AttributeError(
         f"'{type(self).__name__}' object has no attribute '{name}'",
       )
@@ -262,14 +264,14 @@ class ZwiftWorlds:
         Formatted string showing worlds data
     """
     if not self._fetched:
-      return "ZwiftWorlds(no data)"
+      return 'ZwiftWorlds(no data)'
 
     # Format all fields for display like profile.py does
-    lines = ["ZwiftWorlds()"]
+    lines = ['ZwiftWorlds()']
     for key, value in self._fetched.items():
-      lines.append(f"  {key}: {value!r},")
-    lines.append(")")
-    return "\n".join(lines)
+      lines.append(f'  {key}: {value!r},')
+    lines.append(')')
+    return '\n'.join(lines)
 
   def __repr__(self) -> str:
     """Return detailed representation showing all fields.
@@ -278,8 +280,8 @@ class ZwiftWorlds:
         String representation with all data
     """
     if not self._fetched:
-      return "ZwiftWorlds()"
-    return f"ZwiftWorlds(worlds={len(self.worlds)})"
+      return 'ZwiftWorlds()'
+    return f'ZwiftWorlds(worlds={len(self.worlds)})'
 
   def asdict(self) -> dict[str, Any]:
     """Return underlying data as dictionary.

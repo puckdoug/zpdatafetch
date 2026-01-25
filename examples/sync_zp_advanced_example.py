@@ -11,7 +11,7 @@ This example demonstrates advanced features including:
 from zpdatafetch import ZP, Cyclist, Primes, Result, Signup, Team
 
 
-def fetch_race_with_details(race_id: int):
+def fetch_race_with_details(race_id: int) -> None:
   """Fetch race details including results and primes."""
   print(f'\nFetching race {race_id} with details...')
   print('-' * 60)
@@ -25,8 +25,10 @@ def fetch_race_with_details(race_id: int):
     result.fetch(race_id)
 
     print(f'Race: {result.name}')
-    print(f'Category: {result.category if hasattr(result, "category") else "N/A"}')
-    print(f'Type: {result.event_type if hasattr(result, "event_type") else "N/A"}')
+    category = result.category if hasattr(result, 'category') else 'N/A'
+    print(f'Category: {category}')
+    event_type = result.event_type if hasattr(result, 'event_type') else 'N/A'
+    print(f'Type: {event_type}')
 
     # Fetch primes for the race
     primes = Primes()
@@ -36,7 +38,8 @@ def fetch_race_with_details(race_id: int):
     if primes_data:
       print('\nPrimes available: Yes')
       print(
-        f'Number of primes: {len(primes_data) if isinstance(primes_data, list) else "Unknown"}'
+        f'Number of primes: '
+        f'{len(primes_data) if isinstance(primes_data, list) else "Unknown"}'
       )
     else:
       print('\nPrimes available: No')
@@ -48,7 +51,8 @@ def fetch_race_with_details(race_id: int):
 
     if signup_data:
       print(
-        f'Number of signups: {len(signup_data) if isinstance(signup_data, list) else "Unknown"}'
+        f'Number of signups: '
+        f'{len(signup_data) if isinstance(signup_data, list) else "Unknown"}'
       )
     else:
       print('Signup data: Not available')
@@ -67,7 +71,7 @@ def fetch_race_with_details(race_id: int):
     return None
 
 
-def fetch_team_with_cyclists(team_id: int):
+def fetch_team_with_cyclists(team_id: int) -> None:
   """Fetch team information and details about team members."""
   print(f'\nFetching team {team_id} with members...')
   print('-' * 60)
@@ -99,7 +103,7 @@ def fetch_team_with_cyclists(team_id: int):
     return None
 
 
-def fetch_cyclist_profile_details(athlete_id: int):
+def fetch_cyclist_profile_details(athlete_id: int) -> None:
   """Fetch comprehensive cyclist profile information."""
   print(f'\nFetching cyclist {athlete_id} profile...')
   print('-' * 60)
@@ -115,7 +119,9 @@ def fetch_cyclist_profile_details(athlete_id: int):
       'athlete_id': athlete_id,
       'name': cyclist.name,
       'team': cyclist.team if hasattr(cyclist, 'team') else 'Unknown',
-      'power_meter': cyclist.power_meter if hasattr(cyclist, 'power_meter') else False,
+      'power_meter': (
+        cyclist.power_meter if hasattr(cyclist, 'power_meter') else False
+      ),
       'fields': list(cyclist.json().keys()),
     }
 
@@ -131,7 +137,7 @@ def fetch_cyclist_profile_details(athlete_id: int):
     return None
 
 
-def aggregate_race_statistics(race_ids: list[int]):
+def aggregate_race_statistics(race_ids: list[int]) -> None:
   """Fetch multiple races and aggregate statistics."""
   print(f'\nAggregating statistics for {len(race_ids)} races...')
   print('-' * 60)
@@ -182,7 +188,7 @@ def aggregate_race_statistics(race_ids: list[int]):
   return races_with_details
 
 
-def main():
+def main() -> None:
   """Demonstrate advanced usage patterns."""
   print('Advanced Zwiftpower API Usage Examples')
   print('=' * 60)
@@ -191,26 +197,26 @@ def main():
   # Example 1: Fetch race with all related data
   # ============================================================================
   print('\n1. Fetch Race with All Related Data')
-  race_info = fetch_race_with_details(3590800)
+  fetch_race_with_details(3590800)
 
   # ============================================================================
   # Example 2: Fetch team with member information
   # ============================================================================
   print('\n2. Fetch Team with Member Information')
-  team_info = fetch_team_with_cyclists(456)
+  fetch_team_with_cyclists(456)
 
   # ============================================================================
   # Example 3: Comprehensive cyclist profile
   # ============================================================================
   print('\n3. Fetch Comprehensive Cyclist Profile')
-  cyclist_info = fetch_cyclist_profile_details(123456)
+  fetch_cyclist_profile_details(123456)
 
   # ============================================================================
   # Example 4: Aggregate statistics across multiple races
   # ============================================================================
   print('\n4. Aggregate Statistics Across Multiple Races')
   race_ids = [3590800, 3590801, 3590802]
-  race_stats = aggregate_race_statistics(race_ids)
+  aggregate_race_statistics(race_ids)
 
   # ============================================================================
   # Summary

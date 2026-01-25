@@ -8,7 +8,7 @@ Provides common data conversion functions used across ZR dataclasses:
 from typing import Any
 
 
-def safe_int(value: Any, default: int = 0) -> int:
+def safe_int(value: Any, default: int = 0) -> int:  # noqa: ANN401
   """Safely convert value to integer.
 
   Args:
@@ -26,7 +26,7 @@ def safe_int(value: Any, default: int = 0) -> int:
     return default
 
 
-def safe_float(value: Any, default: float = 0.0) -> float:
+def safe_float(value: Any, default: float = 0.0) -> float:  # noqa: ANN401
   """Safely convert value to float.
 
   Args:
@@ -44,7 +44,7 @@ def safe_float(value: Any, default: float = 0.0) -> float:
     return default
 
 
-def safe_str(value: Any, default: str = '') -> str:
+def safe_str(value: Any, default: str = '') -> str:  # noqa: ANN401
   """Safely convert value to string.
 
   Args:
@@ -59,7 +59,11 @@ def safe_str(value: Any, default: str = '') -> str:
   return str(value)
 
 
-def extract_nested_value(data: dict[str, Any], *keys: str, default: Any = None) -> Any:
+def extract_nested_value(
+  data: dict[str, Any],
+  *keys: str,
+  default: Any = None,  # noqa: ANN401
+) -> Any:  # noqa: ANN401
   """Extract value from nested dictionary using dot notation.
 
   Safely traverses nested dictionaries without raising KeyError.

@@ -23,7 +23,9 @@ class TestZRDataCLIHelp:
       check=False,
     )
     assert result.returncode == 0
-    assert 'usage:' in result.stdout.lower() or 'usage:' in result.stderr.lower()
+    assert (
+      'usage:' in result.stdout.lower() or 'usage:' in result.stderr.lower()
+    )
 
   def test_zrdata_no_args(self):
     """Test zrdata with no arguments exits gracefully."""

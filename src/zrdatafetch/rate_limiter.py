@@ -15,7 +15,7 @@ from zrdatafetch.logging_config import get_logger
 logger = get_logger(__name__)
 
 
-# ===============================================================================
+# ==============================================================================
 class RateLimiter:
   """Track and enforce ZwiftRanking API rate limits.
 
@@ -47,7 +47,7 @@ class RateLimiter:
     'riders_post': (10, 900),  # 10 requests per 15 minutes
   }
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def __init__(self, tier: Literal['standard', 'premium'] = 'standard') -> None:
     """Initialize rate limiter with specified tier.
 
@@ -55,13 +55,15 @@ class RateLimiter:
       tier: 'standard' (default) or 'premium' rate limits
     """
     self.tier = tier
-    self.limits = self.PREMIUM_LIMITS if tier == 'premium' else self.STANDARD_LIMITS
+    self.limits = (
+      self.PREMIUM_LIMITS if tier == 'premium' else self.STANDARD_LIMITS
+    )
     self.history: dict[str, deque] = {
       endpoint: deque() for endpoint in self.limits.keys()
     }
     logger.debug(f'Initialized RateLimiter with {tier} tier')
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def can_request(self, endpoint: str) -> bool:
     """Check if request is allowed within rate limit.
 
@@ -89,7 +91,7 @@ class RateLimiter:
     )
     return can_request
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def wait_time(self, endpoint: str) -> float:
     """Calculate seconds to wait before next request is allowed.
 
@@ -116,7 +118,7 @@ class RateLimiter:
     wait = window - (time.time() - oldest)
     return max(0.0, wait)
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def record_request(self, endpoint: str) -> None:
     """Record that a request was made to an endpoint.
 
@@ -127,7 +129,7 @@ class RateLimiter:
       self.history[endpoint].append(time.time())
       logger.debug(f'Recorded request for {endpoint}')
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def wait_if_needed(self, endpoint: str) -> None:
     """Wait if necessary to respect rate limit.
 
@@ -146,7 +148,7 @@ class RateLimiter:
       await anyio.sleep(wait)
       logger.debug(f'Resuming requests for {endpoint}')
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def get_status(self) -> dict:
     """Get current rate limit status for all endpoints.
 
@@ -178,7 +180,7 @@ class RateLimiter:
 
     return status
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def set_tier(self, tier: Literal['standard', 'premium']) -> None:
     """Change the tier level.
 
@@ -186,10 +188,12 @@ class RateLimiter:
       tier: 'standard' or 'premium'
     """
     self.tier = tier
-    self.limits = self.PREMIUM_LIMITS if tier == 'premium' else self.STANDARD_LIMITS
+    self.limits = (
+      self.PREMIUM_LIMITS if tier == 'premium' else self.STANDARD_LIMITS
+    )
     logger.info(f'Changed rate limit tier to: {tier}')
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   @staticmethod
   def get_endpoint_type(method: str, endpoint: str) -> str:
     """Determine the endpoint type for rate limiting purposes.

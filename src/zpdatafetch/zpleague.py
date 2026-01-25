@@ -114,7 +114,9 @@ class ZPLeagueResult:
   flag: str = ''  # Country flag code
 
   # Performance history
-  history: list[str] = field(default_factory=list, repr=False)  # List of past positions
+  history: list[str] = field(
+    default_factory=list, repr=False
+  )  # List of past positions
 
   # Excluded fields - recognized but not explicitly handled
   _excluded: dict[str, Any] = field(default_factory=dict, repr=False)
@@ -476,9 +478,13 @@ class ZPLeague(Sequence):
     """
     result: dict[str, Any] = {'league_id': self.league_id}
     if self._teams:
-      result['teams'] = {tid: team.asdict() for tid, team in self._teams.items()}
+      result['teams'] = {
+        tid: team.asdict() for tid, team in self._teams.items()
+      }
     if self._standings:
-      result['standings'] = [result_obj.asdict() for result_obj in self._standings]
+      result['standings'] = [
+        result_obj.asdict() for result_obj in self._standings
+      ]
     return result
 
   def json(self) -> str:

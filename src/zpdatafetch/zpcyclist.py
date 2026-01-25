@@ -12,7 +12,7 @@ from typing import Any
 from zpdatafetch.zpracelog import ZPRacelog
 
 
-# ===============================================================================
+# ==============================================================================
 @dataclass(slots=True)
 class ZPCyclist:
   """Represents a cyclist's profile and race history from ZwiftPower.
@@ -185,7 +185,9 @@ class ZPCyclist:
 
       divw_value = extract_value(last_race.get('divw', 0))
       try:
-        category_women = set_rider_category(int(divw_value) if divw_value else 0)
+        category_women = set_rider_category(
+          int(divw_value) if divw_value else 0
+        )
       except (ValueError, TypeError):
         category_women = ''
 

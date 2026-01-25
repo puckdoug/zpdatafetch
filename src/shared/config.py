@@ -16,7 +16,7 @@ from shared.logging import get_logger
 logger = get_logger(__name__)
 
 
-# ===============================================================================
+# ==============================================================================
 class BaseConfig(ABC):
   """Abstract base class for managing credentials using system keyring.
 
@@ -36,9 +36,10 @@ class BaseConfig(ABC):
     kr: Reference to the active keyring backend
   """
 
-  _test_domain_override: str | None = None  # Class variable for test domain override
+  # Class variable for test domain override
+  _test_domain_override: str | None = None
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def __init__(self) -> None:
     """Initialize Config and set up keyring access.
 
@@ -56,7 +57,7 @@ class BaseConfig(ABC):
       self.domain = self._get_domain()
       logger.debug(f'Using default domain: {self.domain}')
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   @abstractmethod
   def _get_domain(self) -> str:
     """Return the keyring domain name for this config type.
@@ -65,7 +66,7 @@ class BaseConfig(ABC):
       Domain name string (e.g., 'zpdatafetch', 'zrdatafetch')
     """
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   @abstractmethod
   def _prompt_for_credentials(self, **kwargs: Any) -> None:
     """Prompt user for credentials and set instance attributes.
@@ -75,10 +76,11 @@ class BaseConfig(ABC):
     authorization token, etc).
 
     Args:
-      **kwargs: Optional pre-provided credential values to use instead of prompting
+      **kwargs: Optional pre-provided credential values to use instead
+                of prompting
     """
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   @abstractmethod
   def _clear_credentials_impl(self) -> None:
     """Clear credential attributes from memory.
@@ -91,7 +93,7 @@ class BaseConfig(ABC):
     consider using separate processes with memory protection.
     """
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   @abstractmethod
   def _verify_exists_impl(self) -> bool:
     """Check if credentials are set and valid.
@@ -100,7 +102,7 @@ class BaseConfig(ABC):
       True if all required credentials are set, False otherwise
     """
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   @abstractmethod
   def save(self) -> None:
     """Save credentials to the system keyring.
@@ -109,7 +111,7 @@ class BaseConfig(ABC):
     using the configured domain.
     """
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   @abstractmethod
   def load(self) -> None:
     """Load credentials from the system keyring.
@@ -118,7 +120,7 @@ class BaseConfig(ABC):
     using the configured domain.
     """
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def set_keyring(self, kr: KeyringBackend) -> None:
     """Set a custom keyring backend.
 
@@ -128,7 +130,7 @@ class BaseConfig(ABC):
     logger.debug(f'Setting custom keyring backend: {type(kr).__name__}')
     keyring.set_keyring(kr)
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def replace_domain(self, domain: str) -> None:
     """Change the keyring service domain.
 
@@ -138,7 +140,7 @@ class BaseConfig(ABC):
     logger.debug(f'Changing domain from {self.domain} to {domain}')
     self.domain = domain
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def setup(self, **kwargs: Any) -> None:
     """Configure credentials interactively or programmatically.
 
@@ -153,7 +155,7 @@ class BaseConfig(ABC):
     self.save()
     logger.info('Credentials setup completed')
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def clear_credentials(self) -> None:
     """Securely clear credentials from memory.
 
@@ -169,7 +171,7 @@ class BaseConfig(ABC):
     self._clear_credentials_impl()
     logger.debug('Credentials cleared from memory')
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def verify_credentials_exist(self) -> bool:
     """Verify that credentials are configured.
 

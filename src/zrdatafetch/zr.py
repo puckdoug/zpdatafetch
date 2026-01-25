@@ -17,7 +17,7 @@ from zrdatafetch.rate_limiter import RateLimiter
 logger = get_logger(__name__)
 
 
-# ===============================================================================
+# ==============================================================================
 class ZR_obj:
   """Base class for all Zwiftracing data objects.
 
@@ -37,7 +37,7 @@ class ZR_obj:
   _base_url: ClassVar[str] = 'https://api.zwiftracing.app/api'
   _premium_mode: ClassVar[bool] = False  # Default to standard tier
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   @classmethod
   def get_client(cls) -> httpx.Client:
     """Get or create a shared HTTP client.
@@ -58,7 +58,7 @@ class ZR_obj:
       )
     return cls._client
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   @classmethod
   def close_client(cls) -> None:
     """Close the shared HTTP client.
@@ -71,7 +71,7 @@ class ZR_obj:
       cls._client.close()
       cls._client = None
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   @classmethod
   def set_premium_mode(cls, premium: bool) -> None:
     """Set the global premium tier rate limit mode.
@@ -83,7 +83,7 @@ class ZR_obj:
     tier = 'premium' if premium else 'standard'
     logger.info(f'Rate limit tier set to: {tier}')
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   @classmethod
   def get_premium_mode(cls) -> bool:
     """Get the current premium tier mode setting.
@@ -93,7 +93,7 @@ class ZR_obj:
     """
     return cls._premium_mode
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def fetch_json(
     self,
     endpoint: str,
@@ -186,7 +186,7 @@ class ZR_obj:
         format_network_error(f'{method.lower()} request', endpoint, e),
       ) from e
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def json(self) -> str:
     """Return JSON representation of this object.
 
@@ -201,7 +201,7 @@ class ZR_obj:
     """
     return json.dumps(self.to_dict(), indent=2)
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def to_dict(self) -> dict[str, Any]:
     """Return dictionary representation of this object.
 

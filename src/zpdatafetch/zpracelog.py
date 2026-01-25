@@ -66,7 +66,9 @@ class ZPRacelog(Sequence):
       self._races = converted_races
 
   @classmethod
-  def from_dict(cls, race_data_list: list[dict[str, Any]] | None) -> 'ZPRacelog':
+  def from_dict(
+    cls, race_data_list: list[dict[str, Any]] | None
+  ) -> 'ZPRacelog':
     """Create a ZPRacelog from list of race data dictionaries.
 
     Args:
@@ -99,7 +101,9 @@ class ZPRacelog(Sequence):
   @overload
   def __getitem__(self, index: slice) -> list[ZPRaceFinish]: ...
 
-  def __getitem__(self, index: int | slice) -> ZPRaceFinish | list[ZPRaceFinish]:
+  def __getitem__(
+    self, index: int | slice
+  ) -> ZPRaceFinish | list[ZPRaceFinish]:
     """Support indexing and slicing.
 
     Args:
@@ -217,7 +221,9 @@ class ZPRacelog(Sequence):
     for race in self._races:
       # Access numeric timestamp for comparison (use _event_date_timestamp which is stored as float)
       event_date_timestamp = (
-        race._event_date_timestamp if hasattr(race, '_event_date_timestamp') else 0
+        race._event_date_timestamp
+        if hasattr(race, '_event_date_timestamp')
+        else 0
       )
       if event_date_timestamp >= cutoff_timestamp:
         recent_races.append(race)

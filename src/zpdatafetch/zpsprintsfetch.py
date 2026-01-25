@@ -20,7 +20,7 @@ from zpdatafetch.zpracesprint import ZPRaceSprint, ZPRiderSprint
 logger = get_logger(__name__)
 
 
-# ===============================================================================
+# ==============================================================================
 class ZPSprintsFetch(ZP_obj):
   """Fetches and stores race sprint data from Zwiftpower.
 
@@ -45,7 +45,7 @@ class ZPSprintsFetch(ZP_obj):
   """
 
   # https://zwiftpower.com/api3.php?do=event_sprints&zid=<race_id>
-  _url: str = "https://zwiftpower.com/api3.php?do=event_sprints&zid="
+  _url: str = 'https://zwiftpower.com/api3.php?do=event_sprints&zid='
   _sync_mode: bool = False  # Class-level sync mode flag
 
   def __init__(self) -> None:
@@ -58,7 +58,7 @@ class ZPSprintsFetch(ZP_obj):
     self.banners: list[dict[str, Any]] = []
     self.processed: dict[Any, Any] = {}
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def set_session(self, zp: AsyncZP) -> None:
     """Set the AsyncZP session to use for async fetching.
 
@@ -68,7 +68,7 @@ class ZPSprintsFetch(ZP_obj):
     self._zp = zp
     self.primes.set_session(zp)
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def set_zp_session(self, zp: ZP) -> None:
     """Set the ZP session to use for fetching.
 
@@ -80,7 +80,7 @@ class ZPSprintsFetch(ZP_obj):
     self._zp_sync = zp
     self.primes.set_zp_session(zp)
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def _get_or_create_session(self) -> tuple[AsyncZP, bool]:
     """Get or create an async session for fetching.
 
@@ -104,7 +104,7 @@ class ZPSprintsFetch(ZP_obj):
     await temp_zp.login()
     return (temp_zp, True)
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def _fetch_parallel(self, *race_id: int) -> dict[int, ZPRaceSprint]:
     """Fetch sprint data in parallel using async requests.
 
@@ -123,25 +123,25 @@ class ZPSprintsFetch(ZP_obj):
         rid = int(r) if not isinstance(r, int) else r
         if rid <= 0 or rid > 999999999:
           raise ValueError(
-            f"Invalid race ID: {r}. Must be a positive integer.",
+            f'Invalid race ID: {r}. Must be a positive integer.',
           )
         validated_ids.append(rid)
       except (ValueError, TypeError) as e:
-        if isinstance(e, ValueError) and "Invalid race ID" in str(e):
+        if isinstance(e, ValueError) and 'Invalid race ID' in str(e):
           raise
         raise ValueError(
-          f"Invalid race ID: {r}. Must be a valid positive integer.",
+          f'Invalid race ID: {r}. Must be a valid positive integer.',
         ) from e
 
     session, owns_session = await self._get_or_create_session()
 
     try:
-      logger.info(f"Fetching sprint data for {len(race_id)} race(s)")
+      logger.info(f'Fetching sprint data for {len(race_id)} race(s)')
 
       # Build list of fetch tasks
       fetch_tasks = []
       for rid in validated_ids:
-        url = f"{self._url}{rid}"
+        url = f'{self._url}{rid}'
         fetch_tasks.append(session.fetch_json(url))
 
       # Execute all fetches in parallel
@@ -161,15 +161,15 @@ class ZPSprintsFetch(ZP_obj):
           results_raw[race_id] = raw_json
 
           # Parse for fetched dict
-          parsed = parse_json_safe(raw_json, context=f"sprint {race_id}")
+          parsed = parse_json_safe(raw_json, context=f'sprint {race_id}')
           sprint_dict = parsed if isinstance(parsed, dict) else {}
           results_fetched[race_id] = ZPRaceSprint.from_dict(sprint_dict)
 
           logger.debug(
-            f"Successfully fetched sprint ID: {race_id}",
+            f'Successfully fetched sprint ID: {race_id}',
           )
         except Exception as e:
-          logger.error(f"Failed to fetch race ID {validated_ids[idx]}: {e}")
+          logger.error(f'Failed to fetch race ID {validated_ids[idx]}: {e}')
           raise
 
       async with anyio.create_task_group() as tg:
@@ -181,7 +181,7 @@ class ZPSprintsFetch(ZP_obj):
       self._fetched = results_fetched
 
       self.processed = {}  # Reserved for future use
-      logger.info(f"Successfully fetched {len(validated_ids)} race sprint(s)")
+      logger.info(f'Successfully fetched {len(validated_ids)} race sprint(s)')
 
       # Share the session with primes to avoid second login
       self.primes.set_session(session)
@@ -195,7 +195,7 @@ class ZPSprintsFetch(ZP_obj):
       if owns_session:
         await session.close()
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def extract_banners(self) -> list[dict[str, Any]]:
     """Extract sprint_id and name from primes data to build banner list.
 
@@ -211,12 +211,12 @@ class ZPSprintsFetch(ZP_obj):
         {"sprint_id": 72, "name": "Sprint 2"}
       ]
     """
-    logger.debug("Extracting banners from primes data")
+    logger.debug('Extracting banners from primes data')
     banners: list[dict[str, Any]] = []
 
     # Loop through primes._fetched: race_id -> ZPPrime object
     for race_id, prime_obj in self.primes._fetched.items():
-      logger.debug(f"Processing race ID: {race_id}")
+      logger.debug(f'Processing race ID: {race_id}')
 
       # Iterate through the ZPPrime object (Sequence protocol)
       # This gives us all ZPPrimeSegment objects
@@ -224,20 +224,20 @@ class ZPSprintsFetch(ZP_obj):
         # Extract sprint_id and name from segment
         if segment.sprint_id and segment.name:
           banner = {
-            "sprint_id": str(segment.sprint_id),
-            "name": segment.name,
+            'sprint_id': str(segment.sprint_id),
+            'name': segment.name,
           }
           # Avoid duplicates
           if banner not in banners:
             banners.append(banner)
-            logger.debug(f"Added banner: {banner}")
+            logger.debug(f'Added banner: {banner}')
 
     self.banners = banners
-    logger.info(f"Extracted {len(banners)} unique banner(s)")
-    logger.debug(f"{banners}")
+    logger.info(f'Extracted {len(banners)} unique banner(s)')
+    logger.debug(f'{banners}')
     return self.banners
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def enrich_sprints(self) -> dict[Any, Any]:
     """Enrich sprint data by replacing sprint IDs with banner names in performance dicts.
 
@@ -248,19 +248,19 @@ class ZPSprintsFetch(ZP_obj):
     Returns:
       Dictionary with enriched sprint data (self._fetched, modified in place)
     """
-    logger.debug("Enriching sprint data with banner names")
+    logger.debug('Enriching sprint data with banner names')
 
     # Create sprint_id to name mapping for quick lookup
     id_to_name: dict[str, str] = {}
     for banner in self.banners:
-      sprint_id = str(banner["sprint_id"])
-      name = banner["name"]
+      sprint_id = str(banner['sprint_id'])
+      name = banner['name']
       id_to_name[sprint_id] = name
-      logger.debug(f"Mapping sprint_id {sprint_id} -> {name}")
+      logger.debug(f'Mapping sprint_id {sprint_id} -> {name}')
 
     # Process each race (modify self._fetched in place)
     for race_id, race_data in self._fetched.items():
-      logger.debug(f"Processing race ID: {race_id}")
+      logger.debug(f'Processing race ID: {race_id}')
 
       # race_data is a ZPRaceSprint object
       if isinstance(race_data, ZPRaceSprint):
@@ -269,23 +269,23 @@ class ZPSprintsFetch(ZP_obj):
           if isinstance(rider, ZPRiderSprint):
             # Update sprint names in the sprints list
             for sprint in rider.sprints:
-              sprint_id = sprint.get("name", "")
+              sprint_id = sprint.get('name', '')
               if sprint_id in id_to_name:
-                sprint["name"] = id_to_name[sprint_id]
+                sprint['name'] = id_to_name[sprint_id]
                 logger.debug(
                   f'Replaced sprint_id {sprint_id} with {sprint["name"]}',
                 )
 
-            logger.debug(f"Enriched rider {rider.zwift_id}")
+            logger.debug(f'Enriched rider {rider.zwift_id}')
 
     # Update processed with enriched data
     self.processed = self._fetched
-    logger.info(f"Enriched sprint data for {len(self._fetched)} race(s)")
+    logger.info(f'Enriched sprint data for {len(self._fetched)} race(s)')
     return self._fetched
 
-  # -------------------------------------------------------------------------------
-  # -------------------------------------------------------------------------------
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def _fetch_sequential(self, *race_id: int) -> dict[int, ZPRaceSprint]:
     """Fetch sprints data sequentially (synchronous mode).
 
@@ -303,13 +303,15 @@ class ZPSprintsFetch(ZP_obj):
       NetworkError: If network requests fail
       AuthenticationError: If authentication fails
     """
-    logger.info(f"Fetching sprints data in synchronous mode for {len(race_id)} ID(s)")
+    logger.info(
+      f'Fetching sprints data in synchronous mode for {len(race_id)} ID(s)'
+    )
 
     # SECURITY: Validate all IDs before processing
     try:
-      validated_ids = validate_id_list(list(race_id), id_type="race")
+      validated_ids = validate_id_list(list(race_id), id_type='race')
     except ValidationError as e:
-      logger.error(f"ID validation failed: {e}")
+      logger.error(f'ID validation failed: {e}')
       raise
 
     # Create synchronous ZP session
@@ -320,19 +322,19 @@ class ZPSprintsFetch(ZP_obj):
 
     # Fetch each ID sequentially
     for id_val in validated_ids:
-      logger.debug(f"Fetching sprints data for race ID: {id_val}")
-      url = f"{self._url}{id_val}"
+      logger.debug(f'Fetching sprints data for race ID: {id_val}')
+      url = f'{self._url}{id_val}'
 
       # Synchronous blocking call
       raw_json = zp.fetch_json(url)
       results_raw[id_val] = raw_json
 
       # Parse immediately (no parallel parsing)
-      parsed = parse_json_safe(raw_json, context=f"sprints {id_val}")
+      parsed = parse_json_safe(raw_json, context=f'sprints {id_val}')
       sprint_dict = parsed if isinstance(parsed, dict) else {}
       results_fetched[id_val] = ZPRaceSprint.from_dict(sprint_dict)
 
-      logger.debug(f"Successfully fetched sprints data for race ID: {id_val}")
+      logger.debug(f'Successfully fetched sprints data for race ID: {id_val}')
 
     self._raw = results_raw
 
@@ -340,7 +342,9 @@ class ZPSprintsFetch(ZP_obj):
 
     self.processed = {}  # Reserved for future use
 
-    logger.info(f"Successfully fetched {len(validated_ids)} sprints(s) in sync mode")
+    logger.info(
+      f'Successfully fetched {len(validated_ids)} sprints(s) in sync mode'
+    )
 
     # Fetch primes data and enrich sprints with banner names
     self.primes.set_zp_session(zp)
@@ -358,8 +362,8 @@ class ZPSprintsFetch(ZP_obj):
       enabled: True to enable sync mode, False for async (default)
     """
     cls._sync_mode = enabled
-    mode = "synchronous" if enabled else "asynchronous (parallel)"
-    logger.info(f"Sprints fetch mode set to: {mode}")
+    mode = 'synchronous' if enabled else 'asynchronous (parallel)'
+    logger.info(f'Sprints fetch mode set to: {mode}')
 
   def fetch(self, *race_id: int) -> dict[int, ZPRaceSprint]:
     """Fetch sprint data for one or more race IDs (synchronous).
@@ -386,16 +390,16 @@ class ZPSprintsFetch(ZP_obj):
     try:
       asyncio.get_running_loop()
       raise RuntimeError(
-        "fetch() called from async context. Use afetch() instead, or "
-        "call fetch() from synchronous code.",
+        'fetch() called from async context. Use afetch() instead, or '
+        'call fetch() from synchronous code.',
       )
     except RuntimeError as e:
-      if "fetch() called from async context" in str(e):
+      if 'fetch() called from async context' in str(e):
         raise
       # No running loop - safe to use asyncio.run()
       return asyncio.run(self._fetch_parallel(*race_id))
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def afetch(self, *race_id: int) -> dict[int, ZPRaceSprint]:
     """Fetch sprint data for one or more race IDs (asynchronous interface).
 
@@ -415,7 +419,7 @@ class ZPSprintsFetch(ZP_obj):
     """
     return await self._fetch_parallel(*race_id)
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def json(self) -> str:
     """Return JSON string representation of fetched data.
 
@@ -431,34 +435,34 @@ class ZPSprintsFetch(ZP_obj):
     return json.JSONEncoder(indent=2).encode(serializable)
 
 
-# ===============================================================================
+# ==============================================================================
 def main() -> None:
   desc = """
 Module for fetching sprints using the Zwiftpower API
   """
   p = ArgumentParser(description=desc)
   p.add_argument(
-    "--verbose",
-    "-v",
-    action="count",
+    '--verbose',
+    '-v',
+    action='count',
     default=0,
-    help="increase output verbosity (-v for INFO, -vv for DEBUG)",
+    help='increase output verbosity (-v for INFO, -vv for DEBUG)',
   )
   p.add_argument(
-    "--raw",
-    "-r",
-    action="store_const",
+    '--raw',
+    '-r',
+    action='store_const',
     const=True,
-    help="print all returned data",
+    help='print all returned data',
   )
-  p.add_argument("race_id", type=int, nargs="+", help="one or more race_ids")
+  p.add_argument('race_id', type=int, nargs='+', help='one or more race_ids')
   args = p.parse_args()
 
   # Configure logging based on verbosity level (output to stderr)
   if args.verbose >= 2:
-    setup_logging(console_level="DEBUG", force_console=True)
+    setup_logging(console_level='DEBUG', force_console=True)
   elif args.verbose == 1:
-    setup_logging(console_level="INFO", force_console=True)
+    setup_logging(console_level='INFO', force_console=True)
 
   x = ZPSprintsFetch()
 
@@ -468,6 +472,6 @@ Module for fetching sprints using the Zwiftpower API
     print(x.raw)
 
 
-# ===============================================================================
-if __name__ == "__main__":
+# ==============================================================================
+if __name__ == '__main__':
   main()

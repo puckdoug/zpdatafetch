@@ -19,7 +19,7 @@ from zpdatafetch.zpraceresult import ZPRaceResult
 logger = get_logger(__name__)
 
 
-# ===============================================================================
+# ==============================================================================
 class ZPResultFetch(ZP_obj):
   """Fetches and stores race results from Zwiftpower.
 
@@ -52,11 +52,13 @@ class ZPResultFetch(ZP_obj):
   def __init__(self) -> None:
     """Initialize a new Result instance."""
     super().__init__()
-    self._fetched: dict[int, ZPRaceResult] = {}  # Override type to use ZPRaceResult
+    self._fetched: dict[
+      int, ZPRaceResult
+    ] = {}  # Override type to use ZPRaceResult
     self._zp: AsyncZP | None = None  # Async session
     self._zp_sync: ZP | None = None  # Sync session (for reference only)
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def set_session(self, zp: AsyncZP) -> None:
     """Set the AsyncZP session to use for async fetching.
 
@@ -65,7 +67,7 @@ class ZPResultFetch(ZP_obj):
     """
     self._zp = zp
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def set_zp_session(self, zp: ZP) -> None:
     """Set the ZP session to use for fetching.
 
@@ -76,7 +78,7 @@ class ZPResultFetch(ZP_obj):
     """
     self._zp_sync = zp
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def _get_or_create_session(self) -> tuple[AsyncZP, bool]:
     """Get or create an async session for fetching.
 
@@ -100,7 +102,7 @@ class ZPResultFetch(ZP_obj):
     await temp_zp.login()
     return (temp_zp, True)
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def _fetch_parallel(self, *race_id: int) -> dict[int, ZPRaceResult]:
     """Fetch race results in parallel using async requests.
 
@@ -175,9 +177,9 @@ class ZPResultFetch(ZP_obj):
       if owns_session:
         await session.close()
 
-  # -------------------------------------------------------------------------------
-  # -------------------------------------------------------------------------------
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def _fetch_sequential(self, *race_id: int) -> dict[int, ZPRaceResult]:
     """Fetch result data sequentially (synchronous mode).
 
@@ -195,7 +197,9 @@ class ZPResultFetch(ZP_obj):
       NetworkError: If network requests fail
       AuthenticationError: If authentication fails
     """
-    logger.info(f'Fetching result data in synchronous mode for {len(race_id)} ID(s)')
+    logger.info(
+      f'Fetching result data in synchronous mode for {len(race_id)} ID(s)'
+    )
 
     # SECURITY: Validate all IDs before processing
     try:
@@ -235,7 +239,9 @@ class ZPResultFetch(ZP_obj):
 
     self.processed = {}  # Reserved for future use
 
-    logger.info(f'Successfully fetched {len(validated_ids)} result(s) in sync mode')
+    logger.info(
+      f'Successfully fetched {len(validated_ids)} result(s) in sync mode'
+    )
     return self._fetched
 
   @classmethod
@@ -283,7 +289,7 @@ class ZPResultFetch(ZP_obj):
       # No running loop - safe to use asyncio.run()
       return asyncio.run(self._fetch_parallel(*race_id))
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def json(self) -> str:
     """Serialize the fetched data to formatted JSON string.
 
@@ -299,7 +305,7 @@ class ZPResultFetch(ZP_obj):
     }
     return json.JSONEncoder(indent=2).encode(serializable)
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def afetch(self, *race_id: int) -> dict[int, ZPRaceResult]:
     """Fetch race results for one or more race IDs (asynchronous interface).
 
@@ -320,7 +326,7 @@ class ZPResultFetch(ZP_obj):
     return await self._fetch_parallel(*race_id)
 
 
-# ===============================================================================
+# ==============================================================================
 def main() -> None:
   desc = """
 Module for fetching race data using the Zwiftpower API
@@ -357,6 +363,6 @@ Module for fetching race data using the Zwiftpower API
     print(x.raw)
 
 
-# ===============================================================================
+# ==============================================================================
 if __name__ == '__main__':
   main()

@@ -44,14 +44,14 @@ class ZwiftActivity:
       activities: List of activity objects
   """
 
-  BASE_URL = "https://us-or-rly101.zwift.com"
+  BASE_URL = 'https://us-or-rly101.zwift.com'
 
   def __init__(self) -> None:
     """Initialize empty activity data (no auth parameter).
 
     Credentials are loaded from Config at fetch time.
     """
-    self._raw: str = ""  # Raw JSON response
+    self._raw: str = ''  # Raw JSON response
     self._fetched: dict[str, Any] = {}  # Parsed data
     self.processed: dict = {}  # Reserved for future use
 
@@ -193,7 +193,9 @@ class ZwiftActivity:
         try:
           url = f'{cls.BASE_URL}/api/profiles/{rider_id}/activities/'
           params = {'start': start, 'limit': limit}
-          response = client.get(url, headers=headers, params=params, timeout=30.0)
+          response = client.get(
+            url, headers=headers, params=params, timeout=30.0
+          )
 
           if response.status_code == 200:
             activity_obj = cls()
@@ -236,7 +238,9 @@ class ZwiftActivity:
 
     parsed = parse_json_safe(raw_json, context='activities')
     if not isinstance(parsed, list):
-      logger.error(f'Expected list for activities data, got {type(parsed).__name__}')
+      logger.error(
+        f'Expected list for activities data, got {type(parsed).__name__}'
+      )
       self._fetched = {'activities': []}
       self.activities = []
       return

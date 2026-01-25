@@ -6,8 +6,8 @@ Run with: pytest -m live
 
 import pytest
 
-from zpdatafetch.zpresultfetch import ZPResultFetch
 from zpdatafetch.zpraceresult import ZPRaceResult
+from zpdatafetch.zpresultfetch import ZPResultFetch
 
 
 @pytest.mark.live

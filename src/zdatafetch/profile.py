@@ -305,7 +305,9 @@ class ZwiftProfile:
 
     parsed = parse_json_safe(self._raw, context='profile')
     if not isinstance(parsed, dict):
-      logger.error(f'Expected dict for profile data, got {type(parsed).__name__}')
+      logger.error(
+        f'Expected dict for profile data, got {type(parsed).__name__}'
+      )
       return
 
     # Flatten nested dictionaries into the main _fetched dict
@@ -354,14 +356,18 @@ class ZwiftProfile:
 
     # Connected Services
     self.connectedToStrava = flattened.get('connectedToStrava', False)
-    self.connectedToTrainingPeaks = flattened.get('connectedToTrainingPeaks', False)
+    self.connectedToTrainingPeaks = flattened.get(
+      'connectedToTrainingPeaks', False
+    )
     self.connectedToTodaysPlan = flattened.get('connectedToTodaysPlan', False)
     self.connectedToUnderArmour = flattened.get('connectedToUnderArmour', False)
     self.connectedToWithings = flattened.get('connectedToWithings', False)
     self.connectedToFitbit = flattened.get('connectedToFitbit', False)
     self.connectedToGarmin = flattened.get('connectedToGarmin', False)
     self.connectedToRuntastic = flattened.get('connectedToRuntastic', False)
-    self.connectedToZwiftCompanion = flattened.get('connectedToZwiftCompanion', False)
+    self.connectedToZwiftCompanion = flattened.get(
+      'connectedToZwiftCompanion', False
+    )
     self.connectedToFacebookMessenger = flattened.get(
       'connectedToFacebookMessenger',
       False,
@@ -394,8 +400,12 @@ class ZwiftProfile:
     self.runTime1miInSeconds = flattened.get('runTime1miInSeconds')
     self.runTime5kmInSeconds = flattened.get('runTime5kmInSeconds')
     self.runTime10kmInSeconds = flattened.get('runTime10kmInSeconds')
-    self.runTimeHalfMarathonInSeconds = flattened.get('runTimeHalfMarathonInSeconds')
-    self.runTimeFullMarathonInSeconds = flattened.get('runTimeFullMarathonInSeconds')
+    self.runTimeHalfMarathonInSeconds = flattened.get(
+      'runTimeHalfMarathonInSeconds'
+    )
+    self.runTimeFullMarathonInSeconds = flattened.get(
+      'runTimeFullMarathonInSeconds'
+    )
 
     # Organizations
     self.cyclingOrganization = flattened.get('cyclingOrganization')
@@ -429,7 +439,9 @@ class ZwiftProfile:
     self.totalRunCalories = flattened.get('totalRunCalories', 0)
 
     # Social Metrics
-    self.numberOfFolloweesInCommon = flattened.get('numberOfFolloweesInCommon', 0)
+    self.numberOfFolloweesInCommon = flattened.get(
+      'numberOfFolloweesInCommon', 0
+    )
 
     logger.debug(f'Successfully parsed profile for rider {self.id}')
 

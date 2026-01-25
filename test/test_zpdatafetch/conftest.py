@@ -69,7 +69,12 @@ def league_ok():
   """Test data for league endpoint."""
   return {
     'teams': {
-      '1': {'tname': 'Test Team', 'tbc': 'ffffff', 'tbd': '000000', 'tc': 'ffffff'},
+      '1': {
+        'tname': 'Test Team',
+        'tbc': 'ffffff',
+        'tbd': '000000',
+        'tc': 'ffffff',
+      },
     },
     'data': [
       {

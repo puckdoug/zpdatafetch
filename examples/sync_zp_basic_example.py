@@ -12,7 +12,7 @@ credentials are handled automatically through your Zwiftpower session.
 from zpdatafetch import ZP, Cyclist, Result, Team
 
 
-def main():
+def main() -> None:
   """Fetch Zwiftpower data synchronously."""
   print('Zwiftpower Data Fetching Examples')
   print('=' * 60)
@@ -113,7 +113,8 @@ def main():
     if hasattr(signup, 'total_signups'):
       print(f'Total Signups: {signup.total_signups}')
     print(
-      f'Number of signup entries: {len(signup_data) if isinstance(signup_data, list) else "N/A"}'
+      f'Number of signup entries: '
+      f'{len(signup_data) if isinstance(signup_data, list) else "N/A"}'
     )
   else:
     print('Could not fetch signup data')

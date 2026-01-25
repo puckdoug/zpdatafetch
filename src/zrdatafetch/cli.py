@@ -33,7 +33,7 @@ from zrdatafetch.logging_config import setup_logging
 from zrdatafetch.zr import ZR_obj
 
 
-# ===============================================================================
+# ==============================================================================
 def main() -> int | None:
   """Main entry point for the zrdatafetch CLI.
 
@@ -65,7 +65,9 @@ Module for fetching Zwiftracing data using the Zwiftracing API
     '--batch-file',
     type=str,
     metavar='FILE',
-    help='read IDs from file (one per line) for batch request (rider command only)',
+    help=(
+      'read IDs from file (one per line) for batch request (rider command only)'
+    ),
   )
   p.add_argument(
     '--premium',
@@ -201,7 +203,7 @@ Module for fetching Zwiftracing data using the Zwiftracing API
 
 
 def _output_results(
-  args: Any,
+  args: Any,  # noqa: ANN401
   fetched: dict[int, Any],
   fetcher: ZRRiderFetch | ZRResultFetch | ZRTeamFetch | None,
 ) -> None:
@@ -295,7 +297,7 @@ def _output_results(
         print('  No extras')
   else:
     # Default: output object repr, with special handling for nested collections
-    def print_collection(obj: Any, indent: int = 0) -> None:
+    def print_collection(obj: Any, indent: int = 0) -> None:  # noqa: ANN401
       """Recursively print collections with proper indentation.
 
       Handles nested collections like ZRRaceResult -> ZRRiderResult or
@@ -339,7 +341,7 @@ def _output_results(
         print(f' {value!r}')
 
 
-# ===============================================================================
+# ==============================================================================
 if __name__ == '__main__':
   exit_code = main()
   if exit_code is not None:

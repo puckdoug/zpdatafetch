@@ -51,7 +51,7 @@ class ZRResultFetch(ZR_obj):
     self._zr: AsyncZR_obj | None = None
     self._zr_sync: ZR_obj | None = None
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def set_session(self, zr: AsyncZR_obj) -> None:
     """Set the AsyncZR_obj session to use for async fetching.
 
@@ -60,7 +60,7 @@ class ZRResultFetch(ZR_obj):
     """
     self._zr = zr
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def set_zr_session(self, zr: ZR_obj) -> None:
     """Set the ZR_obj session to use for fetching.
 
@@ -69,7 +69,7 @@ class ZRResultFetch(ZR_obj):
     """
     self._zr_sync = zr
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def _get_or_create_session(self) -> tuple[AsyncZR_obj, bool]:
     """Get or create an async session for fetching.
 
@@ -88,7 +88,7 @@ class ZRResultFetch(ZR_obj):
     await temp_zr.init_client()
     return (temp_zr, True)
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def _afetch_internal(self, *race_ids: int) -> dict[int, ZRRaceResult]:
     """Internal async fetch implementation.
 
@@ -107,7 +107,7 @@ class ZRResultFetch(ZR_obj):
     config.load()
     if not config.authorization:
       raise ConfigError(
-        'Zwiftracing authorization not found. Please run "zrdata config" to set it up.',
+        'Zwiftracing authorization not found. Please run "zrdata config".',
       )
 
     session, owns_session = await self._get_or_create_session()
@@ -152,7 +152,9 @@ class ZRResultFetch(ZR_obj):
           results[race_id] = result
           logger.info(f'Successfully fetched results for race_id={race_id}')
         else:
-          logger.error(f'Expected dict for result data, got {type(parsed).__name__}')
+          logger.error(
+            f'Expected dict for result data, got {type(parsed).__name__}'
+          )
 
       self._fetched = results
       self._raw = raw_results
@@ -165,7 +167,7 @@ class ZRResultFetch(ZR_obj):
       if owns_session:
         await session.close()
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def _fetch_sync(self, *race_ids: int) -> dict[int, ZRRaceResult]:
     """Synchronous fetch implementation.
 
@@ -186,7 +188,7 @@ class ZRResultFetch(ZR_obj):
     config.load()
     if not config.authorization:
       raise ConfigError(
-        'Zwiftracing authorization not found. Please run "zrdata config" to set it up.',
+        'Zwiftracing authorization not found. Please run "zrdata config".',
       )
 
     zr = ZR_obj()
@@ -217,7 +219,9 @@ class ZRResultFetch(ZR_obj):
             f'Successfully fetched results for race_id={race_id} in sync mode'
           )
         else:
-          logger.error(f'Expected dict for result data, got {type(parsed).__name__}')
+          logger.error(
+            f'Expected dict for result data, got {type(parsed).__name__}'
+          )
 
       self._fetched = results
       self._raw = raw_results
@@ -227,7 +231,7 @@ class ZRResultFetch(ZR_obj):
       logger.error(f'Failed to fetch race result(s): {e}')
       raise
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   @classmethod
   def set_sync_mode(cls, enabled: bool) -> None:
     """Enable or disable synchronous fetch mode.
@@ -239,7 +243,7 @@ class ZRResultFetch(ZR_obj):
     mode = 'synchronous' if enabled else 'asynchronous (parallel)'
     logger.info(f'ZRResultFetch mode set to: {mode}')
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def fetch(self, *race_ids: int) -> dict[int, ZRRaceResult]:
     """Fetch race result data (synchronous interface).
 
@@ -273,7 +277,7 @@ class ZRResultFetch(ZR_obj):
         raise
       return asyncio.run(self._afetch_internal(*race_ids))
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def afetch(self, *race_ids: int) -> dict[int, ZRRaceResult]:
     """Fetch race result data (asynchronous interface).
 
@@ -291,7 +295,7 @@ class ZRResultFetch(ZR_obj):
     """
     return await self._afetch_internal(*race_ids)
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def raw(self) -> dict[int, str]:
     """Return the raw response strings.
 
@@ -300,7 +304,7 @@ class ZRResultFetch(ZR_obj):
     """
     return self._raw
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def fetched(self) -> dict[int, ZRRaceResult]:
     """Return the fetched ZRRaceResult objects.
 
@@ -309,7 +313,7 @@ class ZRResultFetch(ZR_obj):
     """
     return self._fetched
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def json(self) -> str:
     """Serialize the fetched data to formatted JSON string.
 

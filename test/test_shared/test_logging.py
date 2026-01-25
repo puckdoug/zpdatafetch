@@ -250,7 +250,9 @@ def test_force_console_true():
   logger = logging.getLogger('zpdatafetch')
 
   # Should have console handler
-  handlers = [h for h in logger.handlers if isinstance(h, logging.StreamHandler)]
+  handlers = [
+    h for h in logger.handlers if isinstance(h, logging.StreamHandler)
+  ]
   assert len(handlers) >= 1
 
 

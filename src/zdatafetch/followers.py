@@ -85,7 +85,9 @@ class ZwiftFollowers:
         AuthenticationError: If authentication fails
     """
     if not include_followers and not include_followees:
-      logger.warning('Neither followers nor followees requested, nothing to fetch')
+      logger.warning(
+        'Neither followers nor followees requested, nothing to fetch'
+      )
       return
 
     # Load credentials from config
@@ -192,7 +194,9 @@ class ZwiftFollowers:
       return {}
 
     if not include_followers and not include_followees:
-      logger.warning('Neither followers nor followees requested, nothing to fetch')
+      logger.warning(
+        'Neither followers nor followees requested, nothing to fetch'
+      )
       return {}
 
     # Load credentials once
@@ -254,10 +258,14 @@ class ZwiftFollowers:
           followers_obj._raw = json.dumps(followers_obj._fetched, indent=2)
           results[rider_id] = followers_obj
 
-          logger.debug(f'Successfully fetched follower data for rider {rider_id}')
+          logger.debug(
+            f'Successfully fetched follower data for rider {rider_id}'
+          )
 
         except Exception as e:
-          logger.error(f'Error fetching follower data for rider {rider_id}: {e}')
+          logger.error(
+            f'Error fetching follower data for rider {rider_id}: {e}'
+          )
           continue
 
     logger.info(
@@ -281,7 +289,9 @@ class ZwiftFollowers:
 
     # Parse followers
     if 'followers' in raw_data:
-      followers_list = parse_json_safe(raw_data['followers'], context='followers')
+      followers_list = parse_json_safe(
+        raw_data['followers'], context='followers'
+      )
       if isinstance(followers_list, list):
         parsed['followers'] = followers_list
         self.followers = followers_list
@@ -297,7 +307,9 @@ class ZwiftFollowers:
 
     # Parse followees
     if 'followees' in raw_data:
-      followees_list = parse_json_safe(raw_data['followees'], context='followees')
+      followees_list = parse_json_safe(
+        raw_data['followees'], context='followees'
+      )
       if isinstance(followees_list, list):
         parsed['followees'] = followees_list
         self.followees = followees_list

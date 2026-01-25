@@ -21,14 +21,14 @@ def convert_bool_field(value: Any) -> bool:
   - None/empty values
   - Already boolean values
   """
-  if value is None or value == "":
+  if value is None or value == '':
     return False
   if isinstance(value, bool):
     return value
   if isinstance(value, int):
     return value != 0
   if isinstance(value, str):
-    return value.lower() not in ("0", "false", "")
+    return value.lower() not in ('0', 'false', '')
   return bool(value)
 
 
@@ -52,7 +52,7 @@ class ZPcp:
   percentage: float = 0.0
 
   @classmethod
-  def from_list(cls, data: Any) -> "ZPcp":
+  def from_list(cls, data: Any) -> 'ZPcp':
     """Create ZPcp instance from array format [rank, value, percentage].
 
     Args:
@@ -67,8 +67,8 @@ class ZPcp:
     try:
       rank = int(data[0]) if len(data) > 0 else 0
       # Value might be string with comma formatting ('1,212') - strip it
-      value_str = str(data[1]) if len(data) > 1 else "0"
-      value = float(value_str.replace(",", ""))
+      value_str = str(data[1]) if len(data) > 1 else '0'
+      value = float(value_str.replace(',', ''))
       percentage = float(data[2]) if len(data) > 2 else 0.0
       return cls(rank=rank, value=value, percentage=percentage)
     except (ValueError, IndexError, TypeError):
@@ -82,7 +82,7 @@ class ZPcp:
       return self.value
     if index == 2:
       return self.percentage
-    raise IndexError(f"ZPcp index out of range: {index}")
+    raise IndexError(f'ZPcp index out of range: {index}')
 
   def __iter__(self):
     """Support iteration over cp data."""
@@ -90,7 +90,7 @@ class ZPcp:
 
   def __repr__(self) -> str:
     """Return representation matching array format."""
-    return f"ZPcp({self.rank}, {self.value}, {self.percentage})"
+    return f'ZPcp({self.rank}, {self.value}, {self.percentage})'
 
   def as_list(self) -> list[Any]:
     """Return as list in original format [rank, value, percentage]."""
@@ -156,19 +156,19 @@ class ZPRiderSignup:
 
   # Rider identification
   zwift_id: int = 0
-  name: str = ""
-  age: str = ""
-  gender: str = ""
-  flag: str = ""
+  name: str = ''
+  age: str = ''
+  gender: str = ''
+  flag: str = ''
   height: int = 0
   weight: float = 0.0
 
   # Registration and status
-  category: str = ""
-  category_women: str = ""
+  category: str = ''
+  category_women: str = ''
   reg: int = 0
-  pen: str = ""
-  rank: str = ""
+  pen: str = ''
+  rank: str = ''
   zada: bool = False
 
   # Team information
@@ -177,7 +177,7 @@ class ZPRiderSignup:
 
   # Power and performance data
   zftp: int = 0
-  eff: str = ""
+  eff: str = ''
   skill: int = 0
   skill_power: int = 0
   skill_seg: int = 0
@@ -204,7 +204,7 @@ class ZPRiderSignup:
   _extra: dict[str, Any] = field(default_factory=dict, repr=False)
 
   @classmethod
-  def from_dict(cls, data: dict[str, Any]) -> "ZPRiderSignup":
+  def from_dict(cls, data: dict[str, Any]) -> 'ZPRiderSignup':
     """Create instance from API response dict.
 
     Known fields are extracted with type coercion and transformations.
@@ -218,132 +218,134 @@ class ZPRiderSignup:
       ZPRiderSignup instance with parsed fields
     """
     known_fields = {
-      "zwid",
-      "name",
-      "age",
-      "gender",
-      "flag",
-      "height",
-      "weight",
-      "div",
-      "divw",
-      "reg",
-      "label",
-      "rank",
-      "zada",
-      "tid",
-      "tname",
-      "ftp",
-      "eff",
-      "skill",
-      "skill_power",
-      "skill_seg",
-      "skill_race",
-      "skill_pos",
-      "wrg_cat",
-      "sweep",
-      "lead",
-      "cp_15_watts",
-      "cp_15_wkg",
-      "cp_60_watts",
-      "cp_60_wkg",
-      "cp_300_watts",
-      "cp_300_wkg",
-      "cp_1200_watts",
-      "cp_1200_wkg",
-      "watts",
-      "msec",
+      'zwid',
+      'name',
+      'age',
+      'gender',
+      'flag',
+      'height',
+      'weight',
+      'div',
+      'divw',
+      'reg',
+      'label',
+      'rank',
+      'zada',
+      'tid',
+      'tname',
+      'ftp',
+      'eff',
+      'skill',
+      'skill_power',
+      'skill_seg',
+      'skill_race',
+      'skill_pos',
+      'wrg_cat',
+      'sweep',
+      'lead',
+      'cp_15_watts',
+      'cp_15_wkg',
+      'cp_60_watts',
+      'cp_60_wkg',
+      'cp_300_watts',
+      'cp_300_wkg',
+      'cp_1200_watts',
+      'cp_1200_wkg',
+      'watts',
+      'msec',
     }
 
     # Fields to exclude (recognized from API but not explicitly handled)
     recognized_but_excluded = {
-      "tbd",
-      "tbc",
-      "tc",
-      "topen",
-      "pt",
-      "s",
-      "friend",
-      "events",
+      'tbd',
+      'tbc',
+      'tc',
+      'topen',
+      'pt',
+      's',
+      'friend',
+      'events',
     }
 
     # Extract known fields with proper type conversions
-    zwift_id = int(data.get("zwid", 0))
-    name = str(data.get("name", ""))
-    age = str(data.get("age", ""))
+    zwift_id = int(data.get('zwid', 0))
+    name = str(data.get('name', ''))
+    age = str(data.get('age', ''))
 
     # Gender conversion (handles both 'm'/'f' strings and 0/1 integers)
-    gender_raw = data.get("gender", "")
-    gender = convert_gender(gender_raw) if gender_raw != "" else ""
+    gender_raw = data.get('gender', '')
+    gender = convert_gender(gender_raw) if gender_raw != '' else ''
 
-    flag = str(data.get("flag", ""))
+    flag = str(data.get('flag', ''))
 
     # Height and weight from array format or direct value
-    height_raw = data.get("height", 0)
-    height = int(extract_value(height_raw, 0)) if extract_value(height_raw, 0) else 0
+    height_raw = data.get('height', 0)
+    height = (
+      int(extract_value(height_raw, 0)) if extract_value(height_raw, 0) else 0
+    )
 
-    weight_raw = data.get("weight", 0)
+    weight_raw = data.get('weight', 0)
     weight = float(extract_value(weight_raw, 0))
 
     # Category with division mapping (div: 0/5/10/20/30/40 -> empty/A+/A/B/C/D)
-    category = ""
-    if "category" in data:
-      category = str(data.get("category", ""))
-    elif "div" in data:
-      category = set_rider_category(int(data.get("div", 0)))
+    category = ''
+    if 'category' in data:
+      category = str(data.get('category', ''))
+    elif 'div' in data:
+      category = set_rider_category(int(data.get('div', 0)))
 
     # Women's category
-    category_women = ""
-    if "divw" in data:
-      category_women = set_rider_category(int(data.get("divw", 0)))
+    category_women = ''
+    if 'divw' in data:
+      category_women = set_rider_category(int(data.get('divw', 0)))
 
     # Registration and status
-    reg = int(data.get("reg", 0))
-    pen = convert_label_to_pen(int(data.get("label", 0)))
-    rank = str(data.get("rank", ""))
-    zada = convert_bool_field(data.get("zada", 0))
+    reg = int(data.get('reg', 0))
+    pen = convert_label_to_pen(int(data.get('label', 0)))
+    rank = str(data.get('rank', ''))
+    zada = convert_bool_field(data.get('zada', 0))
 
     # Team information - team_id as int or None
-    team_id_raw = data.get("tid")
+    team_id_raw = data.get('tid')
     team_id: int | None = None
-    if team_id_raw is not None and team_id_raw != "":
+    if team_id_raw is not None and team_id_raw != '':
       try:
         team_id = int(team_id_raw)
         if team_id == 0:
           team_id = None
       except (ValueError, TypeError):
         team_id = None
-    team_name_raw = data.get("tname", "")
+    team_name_raw = data.get('tname', '')
     team_name: str | None = str(team_name_raw) if team_name_raw else None
 
     # Power and performance
-    zftp_raw = data.get("ftp", 0)
+    zftp_raw = data.get('ftp', 0)
     try:
       zftp = int(zftp_raw) if zftp_raw else 0
     except (ValueError, TypeError):
       zftp = 0
-    eff = str(data.get("eff", ""))
-    skill = int(data.get("skill", 0))
-    skill_power = int(data.get("skill_power", 0))
-    skill_seg = int(data.get("skill_seg", 0))
-    skill_race = int(data.get("skill_race", 0))
-    skill_pos = int(data.get("skill_pos", 0))
+    eff = str(data.get('eff', ''))
+    skill = int(data.get('skill', 0))
+    skill_power = int(data.get('skill_power', 0))
+    skill_seg = int(data.get('skill_seg', 0))
+    skill_race = int(data.get('skill_race', 0))
+    skill_pos = int(data.get('skill_pos', 0))
 
     # Penalty flags
-    wrg_cat = convert_bool_field(data.get("wrg_cat", 0))
-    sweep = convert_bool_field(data.get("sweep", 0))
-    lead = convert_bool_field(data.get("lead", 0))
+    wrg_cat = convert_bool_field(data.get('wrg_cat', 0))
+    sweep = convert_bool_field(data.get('sweep', 0))
+    lead = convert_bool_field(data.get('lead', 0))
 
     # Critical power data (extract from [value1, value2, value3] format)
     # Critical power fields are [rank, value, percentage] arrays
-    cp_15_watts = ZPcp.from_list(data.get("cp_15_watts"))
-    cp_15_wkg = ZPcp.from_list(data.get("cp_15_wkg"))
-    cp_60_watts = ZPcp.from_list(data.get("cp_60_watts"))
-    cp_60_wkg = ZPcp.from_list(data.get("cp_60_wkg"))
-    cp_300_watts = ZPcp.from_list(data.get("cp_300_watts"))
-    cp_300_wkg = ZPcp.from_list(data.get("cp_300_wkg"))
-    cp_1200_watts = ZPcp.from_list(data.get("cp_1200_watts"))
-    cp_1200_wkg = ZPcp.from_list(data.get("cp_1200_wkg"))
+    cp_15_watts = ZPcp.from_list(data.get('cp_15_watts'))
+    cp_15_wkg = ZPcp.from_list(data.get('cp_15_wkg'))
+    cp_60_watts = ZPcp.from_list(data.get('cp_60_watts'))
+    cp_60_wkg = ZPcp.from_list(data.get('cp_60_wkg'))
+    cp_300_watts = ZPcp.from_list(data.get('cp_300_watts'))
+    cp_300_wkg = ZPcp.from_list(data.get('cp_300_wkg'))
+    cp_1200_watts = ZPcp.from_list(data.get('cp_1200_watts'))
+    cp_1200_wkg = ZPcp.from_list(data.get('cp_1200_wkg'))
 
     # Classify remaining fields
     excluded = {}
@@ -423,39 +425,39 @@ class ZPRiderSignup:
     Returns typed field values directly, excluding internal fields.
     """
     return {
-      "zwift_id": self.zwift_id,
-      "name": self.name,
-      "age": self.age,
-      "gender": self.gender,
-      "flag": self.flag,
-      "height": self.height,
-      "weight": self.weight,
-      "category": self.category,
-      "category_women": self.category_women,
-      "reg": self.reg,
-      "pen": self.pen,
-      "rank": self.rank,
-      "zada": self.zada,
-      "team_id": self.team_id,
-      "team_name": self.team_name,
-      "zftp": self.zftp,
-      "eff": self.eff,
-      "skill": self.skill,
-      "skill_power": self.skill_power,
-      "skill_seg": self.skill_seg,
-      "skill_race": self.skill_race,
-      "skill_pos": self.skill_pos,
-      "wrg_cat": self.wrg_cat,
-      "sweep": self.sweep,
-      "lead": self.lead,
-      "cp_15_watts": self.cp_15_watts.as_list(),
-      "cp_15_wkg": self.cp_15_wkg.as_list(),
-      "cp_60_watts": self.cp_60_watts.as_list(),
-      "cp_60_wkg": self.cp_60_wkg.as_list(),
-      "cp_300_watts": self.cp_300_watts.as_list(),
-      "cp_300_wkg": self.cp_300_wkg.as_list(),
-      "cp_1200_watts": self.cp_1200_watts.as_list(),
-      "cp_1200_wkg": self.cp_1200_wkg.as_list(),
+      'zwift_id': self.zwift_id,
+      'name': self.name,
+      'age': self.age,
+      'gender': self.gender,
+      'flag': self.flag,
+      'height': self.height,
+      'weight': self.weight,
+      'category': self.category,
+      'category_women': self.category_women,
+      'reg': self.reg,
+      'pen': self.pen,
+      'rank': self.rank,
+      'zada': self.zada,
+      'team_id': self.team_id,
+      'team_name': self.team_name,
+      'zftp': self.zftp,
+      'eff': self.eff,
+      'skill': self.skill,
+      'skill_power': self.skill_power,
+      'skill_seg': self.skill_seg,
+      'skill_race': self.skill_race,
+      'skill_pos': self.skill_pos,
+      'wrg_cat': self.wrg_cat,
+      'sweep': self.sweep,
+      'lead': self.lead,
+      'cp_15_watts': self.cp_15_watts.as_list(),
+      'cp_15_wkg': self.cp_15_wkg.as_list(),
+      'cp_60_watts': self.cp_60_watts.as_list(),
+      'cp_60_wkg': self.cp_60_wkg.as_list(),
+      'cp_300_watts': self.cp_300_watts.as_list(),
+      'cp_300_wkg': self.cp_300_wkg.as_list(),
+      'cp_1200_watts': self.cp_1200_watts.as_list(),
+      'cp_1200_wkg': self.cp_1200_wkg.as_list(),
     }
 
   def json(self) -> str:
@@ -489,7 +491,7 @@ class ZPRaceSignup:
   _data: dict[str, Any] = field(default_factory=dict, repr=False)
 
   @classmethod
-  def from_dict(cls, data: dict[str, Any]) -> "ZPRaceSignup":
+  def from_dict(cls, data: dict[str, Any]) -> 'ZPRaceSignup':
     """Create instance from API response dict.
 
     Parses race-level fields and creates ZPRiderSignup objects
@@ -501,12 +503,12 @@ class ZPRaceSignup:
     Returns:
       ZPRaceSignup instance with parsed fields
     """
-    known_fields = {"data", "race_id"}
-    recognized_but_excluded = {"status", "message", "event_name"}
+    known_fields = {'data', 'race_id'}
+    recognized_but_excluded = {'status', 'message', 'event_name'}
 
     # Parse rider list from nested "data" key
     riders = []
-    for rider_data in data.get("data", []):
+    for rider_data in data.get('data', []):
       riders.append(ZPRiderSignup.from_dict(rider_data))
 
     # Classify race-level fields
@@ -520,7 +522,7 @@ class ZPRaceSignup:
           extra[key] = value
 
     return cls(
-      race_id=int(data.get("race_id", 0)),
+      race_id=int(data.get('race_id', 0)),
       _riders=riders,
       _excluded=excluded,
       _extra=extra,
@@ -531,7 +533,9 @@ class ZPRaceSignup:
     """Return the number of riders signed up."""
     return len(self._riders)
 
-  def __getitem__(self, index: int | slice) -> ZPRiderSignup | list[ZPRiderSignup]:
+  def __getitem__(
+    self, index: int | slice
+  ) -> ZPRiderSignup | list[ZPRiderSignup]:
     """Access rider signups by index or slice."""
     return self._riders[index]
 
@@ -541,22 +545,24 @@ class ZPRaceSignup:
 
   def __getattr__(self, name: str) -> Any:
     """Allow attribute access to race-level signup fields for backwards compatibility."""
-    if name.startswith("_"):
-      raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
+    if name.startswith('_'):
+      raise AttributeError(
+        f"'{type(self).__name__}' object has no attribute '{name}'"
+      )
     # Check data dict for backwards compatibility
     if name in self._data:
       return self._data[name]
-    raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
+    raise AttributeError(
+      f"'{type(self).__name__}' object has no attribute '{name}'"
+    )
 
   def __repr__(self) -> str:
     """Return detailed representation."""
-    return f"ZPRaceSignup(race_id={self.race_id}, riders={len(self._riders)})"
+    return f'ZPRaceSignup(race_id={self.race_id}, riders={len(self._riders)})'
 
   def __str__(self) -> str:
     """Return human-readable string."""
-    return (
-      f"ZPRaceSignup(race_id={self.race_id}) with {len(self._riders)} riders signed up"
-    )
+    return f'ZPRaceSignup(race_id={self.race_id}) with {len(self._riders)} riders signed up'
 
   def excluded(self) -> dict[str, Any]:
     """Return recognized-but-not-explicit fields at race level."""

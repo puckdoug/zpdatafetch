@@ -8,7 +8,7 @@ using both sequential and batch methods with the synchronous API.
 from zrdatafetch import ZRRiderFetch
 
 
-def main():
+def main() -> None:
   """Fetch data for multiple riders using batch method."""
   print('Batch Fetching Example (Synchronous)')
   print('=' * 60)

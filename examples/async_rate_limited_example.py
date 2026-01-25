@@ -6,7 +6,9 @@ import asyncio
 from zpdatafetch import AsyncZP, Cyclist
 
 
-async def fetch_with_rate_limit(cyclist_ids: list[int], max_concurrent: int = 5):
+async def fetch_with_rate_limit(
+  cyclist_ids: list[int], max_concurrent: int = 5
+) -> None:
   """Fetch cyclist data with concurrency limit.
 
   Args:
@@ -16,7 +18,7 @@ async def fetch_with_rate_limit(cyclist_ids: list[int], max_concurrent: int = 5)
   # Create semaphore to limit concurrency
   semaphore = asyncio.Semaphore(max_concurrent)
 
-  async def fetch_one(zp, cyclist_id):
+  async def fetch_one(zp: AsyncZP, cyclist_id: int) -> Cyclist | None:
     """Fetch a single cyclist with semaphore."""
     async with semaphore:
       cyclist = Cyclist()
@@ -40,7 +42,7 @@ async def fetch_with_rate_limit(cyclist_ids: list[int], max_concurrent: int = 5)
     return successes, failures
 
 
-async def main():
+async def main() -> None:
   """Demonstrate rate-limited fetching."""
   print('Rate-Limited Async Fetching Example')
   print('=' * 50)

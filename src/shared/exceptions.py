@@ -5,7 +5,7 @@ both zpdatafetch and zrdatafetch packages.
 """
 
 
-# ===============================================================================
+# ==============================================================================
 class FetchError(Exception):
   """Base exception for fetch-related errors.
 
@@ -14,7 +14,7 @@ class FetchError(Exception):
   """
 
 
-# ===============================================================================
+# ==============================================================================
 class AuthenticationError(FetchError):
   """Raised when authentication fails.
 
@@ -24,7 +24,7 @@ class AuthenticationError(FetchError):
   """
 
 
-# ===============================================================================
+# ==============================================================================
 class NetworkError(FetchError):
   """Raised when network requests fail.
 
@@ -33,10 +33,11 @@ class NetworkError(FetchError):
   """
 
 
-# ===============================================================================
+# ==============================================================================
 class ConfigError(FetchError):
   """Raised when configuration is invalid or missing.
 
   This exception is raised when credentials are not found in the keyring,
-  configuration files are invalid, or other configuration issues are detected.
+  configuration files are invalid, or other configuration issues are
+  detected.
   """

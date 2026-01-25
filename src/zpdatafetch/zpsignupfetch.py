@@ -19,7 +19,7 @@ from zpdatafetch.zpracesignup import ZPRaceSignup
 logger = get_logger(__name__)
 
 
-# ===============================================================================
+# ==============================================================================
 class ZPSignupFetch(ZP_obj):
   """Fetches and stores race signup data from Zwiftpower.
 
@@ -52,11 +52,13 @@ class ZPSignupFetch(ZP_obj):
   def __init__(self) -> None:
     """Initialize a new Signup instance."""
     super().__init__()
-    self._fetched: dict[int, ZPRaceSignup] = {}  # Override type to use ZPRaceSignup
+    self._fetched: dict[
+      int, ZPRaceSignup
+    ] = {}  # Override type to use ZPRaceSignup
     self._zp: AsyncZP | None = None  # Async session
     self._zp_sync: ZP | None = None  # Sync session (for reference only)
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def set_session(self, zp: AsyncZP) -> None:
     """Set the AsyncZP session to use for async fetching.
 
@@ -65,7 +67,7 @@ class ZPSignupFetch(ZP_obj):
     """
     self._zp = zp
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def set_zp_session(self, zp: ZP) -> None:
     """Set the ZP session to use for fetching.
 
@@ -76,7 +78,7 @@ class ZPSignupFetch(ZP_obj):
     """
     self._zp_sync = zp
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def _get_or_create_session(self) -> tuple[AsyncZP, bool]:
     """Get or create an async session for fetching.
 
@@ -100,8 +102,10 @@ class ZPSignupFetch(ZP_obj):
     await temp_zp.login()
     return (temp_zp, True)
 
-  # -------------------------------------------------------------------------------
-  async def _fetch_parallel(self, *race_id_list: int) -> dict[int, ZPRaceSignup]:
+  # ----------------------------------------------------------------------------
+  async def _fetch_parallel(
+    self, *race_id_list: int
+  ) -> dict[int, ZPRaceSignup]:
     """Fetch race signups in parallel using async requests.
 
     Args:
@@ -164,7 +168,9 @@ class ZPSignupFetch(ZP_obj):
       self._raw = results_raw
       self._fetched = results_fetched
       self.processed = {}  # Reserved for future use
-      logger.info(f'Successfully fetched {len(validated_ids)} race signup list(s)')
+      logger.info(
+        f'Successfully fetched {len(validated_ids)} race signup list(s)'
+      )
 
       return self._fetched
 
@@ -172,9 +178,9 @@ class ZPSignupFetch(ZP_obj):
       if owns_session:
         await session.close()
 
-  # -------------------------------------------------------------------------------
-  # -------------------------------------------------------------------------------
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def _fetch_sequential(self, *race_id: int) -> dict[int, ZPRaceSignup]:
     """Fetch signup data sequentially (synchronous mode).
 
@@ -192,7 +198,9 @@ class ZPSignupFetch(ZP_obj):
       NetworkError: If network requests fail
       AuthenticationError: If authentication fails
     """
-    logger.info(f'Fetching signup data in synchronous mode for {len(race_id)} ID(s)')
+    logger.info(
+      f'Fetching signup data in synchronous mode for {len(race_id)} ID(s)'
+    )
 
     # SECURITY: Validate all IDs before processing
     try:
@@ -229,7 +237,9 @@ class ZPSignupFetch(ZP_obj):
 
     self.processed = {}  # Reserved for future use
 
-    logger.info(f'Successfully fetched {len(validated_ids)} signup(s) in sync mode')
+    logger.info(
+      f'Successfully fetched {len(validated_ids)} signup(s) in sync mode'
+    )
     return self._fetched
 
   @classmethod
@@ -258,7 +268,7 @@ class ZPSignupFetch(ZP_obj):
     }
     return json.JSONEncoder(indent=2).encode(serializable)
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def fetch(self, *race_id_list: int) -> dict[int, ZPRaceSignup]:
     """Fetch race signup data for one or more race IDs (synchronous).
 
@@ -293,7 +303,7 @@ class ZPSignupFetch(ZP_obj):
       # No running loop - safe to use asyncio.run()
       return asyncio.run(self._fetch_parallel(*race_id_list))
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def afetch(self, *race_id: int) -> dict[int, ZPRaceSignup]:
     """Fetch signup lists for one or more race IDs (asynchronous interface).
 
@@ -314,7 +324,7 @@ class ZPSignupFetch(ZP_obj):
     return await self._fetch_parallel(*race_id)
 
 
-# ===============================================================================
+# ==============================================================================
 def main() -> None:
   p = ArgumentParser(
     description='Module for fetching race signup data using the Zwiftpower API',
@@ -350,6 +360,6 @@ def main() -> None:
     print(x.raw)
 
 
-# ===============================================================================
+# ==============================================================================
 if __name__ == '__main__':
   main()

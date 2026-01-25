@@ -14,7 +14,7 @@ from zpdatafetch.logging_config import get_logger
 logger = get_logger(__name__)
 
 
-# ===============================================================================
+# ==============================================================================
 class ZPConfig(BaseConfig):
   """Manages Zwiftpower credentials using system keyring.
 
@@ -30,7 +30,7 @@ class ZPConfig(BaseConfig):
   username: str = ''
   password: str = ''
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def _get_domain(self) -> str:
     """Return the keyring domain for Zwiftpower credentials.
 
@@ -39,8 +39,10 @@ class ZPConfig(BaseConfig):
     """
     return 'zpdatafetch'
 
-  # -----------------------------------------------------------------------
-  def _prompt_for_credentials(self, username: str = '', password: str = '') -> None:
+  # ----------------------------------------------------------------------------
+  def _prompt_for_credentials(
+    self, username: str = '', password: str = ''
+  ) -> None:
     """Prompt for Zwiftpower username and password.
 
     Args:
@@ -65,7 +67,7 @@ class ZPConfig(BaseConfig):
       logger.debug('Password entered interactively')
       keyring.set_password(self.domain, 'password', self.password)
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def _clear_credentials_impl(self) -> None:
     """Clear username and password from memory."""
     if self.username:
@@ -75,7 +77,7 @@ class ZPConfig(BaseConfig):
       self.password = '*' * len(self.password)
       self.password = ''
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def _verify_exists_impl(self) -> bool:
     """Check if username and password are set.
 
@@ -84,7 +86,7 @@ class ZPConfig(BaseConfig):
     """
     return bool(self.username and self.password)
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def save(self) -> None:
     """Save current credentials to the system keyring.
 
@@ -95,7 +97,7 @@ class ZPConfig(BaseConfig):
     keyring.set_password(self.domain, 'password', self.password)
     logger.info('Credentials saved successfully')
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def load(self) -> None:
     """Load credentials from the system keyring.
 
@@ -122,7 +124,7 @@ class ZPConfig(BaseConfig):
 Config = ZPConfig
 
 
-# ===============================================================================
+# ==============================================================================
 def main() -> None:
   c = Config()
   c.load()
@@ -132,6 +134,6 @@ def main() -> None:
     print('No credentials found in keyring')
 
 
-# ===============================================================================
+# ==============================================================================
 if __name__ == '__main__':
   sys.exit(main())

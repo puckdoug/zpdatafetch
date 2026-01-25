@@ -57,10 +57,14 @@ def setup_logging_for_package(
 
   Example:
     # Enable console and file logging for zpdatafetch
-    setup_logging_for_package('zpdatafetch', log_file='zp.log', console_level='DEBUG')
+    setup_logging_for_package(
+      'zpdatafetch', log_file='zp.log', console_level='DEBUG'
+    )
 
     # File logging only
-    setup_logging_for_package('zpdatafetch', log_file='zp.log', force_console=False)
+    setup_logging_for_package(
+      'zpdatafetch', log_file='zp.log', force_console=False
+    )
 
     # Console logging only (interactive mode)
     setup_logging_for_package('zpdatafetch', console_level='INFO')
@@ -90,7 +94,7 @@ def setup_logging_for_package(
     console_handler = logging.StreamHandler(sys.stderr)
     console_handler.setLevel(console_level)
     # Simple format for interactive console - just the message
-    console_formatter = logging.Formatter("%(message)s")
+    console_formatter = logging.Formatter('%(message)s')
     console_handler.setFormatter(console_formatter)
     logger.addHandler(console_handler)
 
@@ -102,8 +106,9 @@ def setup_logging_for_package(
     file_handler = logging.FileHandler(log_path)
     file_handler.setLevel(file_level)
     file_formatter = logging.Formatter(
-      "%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s",
-      datefmt="%Y-%m-%d %H:%M:%S",
+      '%(asctime)s - %(name)s - %(levelname)s - '
+      '%(funcName)s:%(lineno)d - %(message)s',
+      datefmt='%Y-%m-%d %H:%M:%S',
     )
     file_handler.setFormatter(file_formatter)
     logger.addHandler(file_handler)
@@ -129,7 +134,7 @@ def _init_default_logging_for_package(package_name: str) -> None:
   if not logger.handlers:
     error_handler = logging.StreamHandler(sys.stderr)
     error_handler.setLevel(logging.ERROR)
-    error_formatter = logging.Formatter("ERROR: %(message)s")
+    error_formatter = logging.Formatter('ERROR: %(message)s')
     error_handler.setFormatter(error_formatter)
     logger.addHandler(error_handler)
 

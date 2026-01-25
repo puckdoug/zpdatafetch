@@ -1,6 +1,5 @@
 """Tests for Zwift API configuration."""
 
-
 from zdatafetch.config import Config
 
 

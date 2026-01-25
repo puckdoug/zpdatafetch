@@ -57,99 +57,99 @@ Commands:
 
   # Logging arguments
   p.add_argument(
-    "-v",
-    "--verbose",
-    action="store_true",
-    help="enable verbose output (INFO level logging)",
+    '-v',
+    '--verbose',
+    action='store_true',
+    help='enable verbose output (INFO level logging)',
   )
   p.add_argument(
-    "-vv",
-    "--debug",
-    action="store_true",
-    help="enable debug output (DEBUG level logging)",
+    '-vv',
+    '--debug',
+    action='store_true',
+    help='enable debug output (DEBUG level logging)',
   )
   p.add_argument(
-    "--log-file",
+    '--log-file',
     type=str,
-    metavar="PATH",
-    help="write logging output to file",
+    metavar='PATH',
+    help='write logging output to file',
   )
 
   # Output format arguments
   p.add_argument(
-    "-r",
-    "--raw",
-    action="store_true",
-    help="print raw result data as received from the server",
+    '-r',
+    '--raw',
+    action='store_true',
+    help='print raw result data as received from the server',
   )
 
   # Dry-run argument
   p.add_argument(
-    "--noaction",
-    action="store_true",
-    help="show what would be done without actually fetching data",
+    '--noaction',
+    action='store_true',
+    help='show what would be done without actually fetching data',
   )
 
   # Sync mode argument
   p.add_argument(
-    "--sync",
-    action="store_true",
-    help="use synchronous (non-parallel) requests",
+    '--sync',
+    action='store_true',
+    help='use synchronous (non-parallel) requests',
   )
 
   # Followers-specific arguments
   p.add_argument(
-    "--followers-only",
-    action="store_true",
-    help="fetch only followers, not followees (followers command only)",
+    '--followers-only',
+    action='store_true',
+    help='fetch only followers, not followees (followers command only)',
   )
   p.add_argument(
-    "--followees-only",
-    action="store_true",
-    help="fetch only followees, not followers (followers command only)",
+    '--followees-only',
+    action='store_true',
+    help='fetch only followees, not followers (followers command only)',
   )
 
   # RideOns-specific arguments
   p.add_argument(
-    "--give",
-    action="store_true",
-    help="give a RideOn instead of fetching (rideons command only)",
+    '--give',
+    action='store_true',
+    help='give a RideOn instead of fetching (rideons command only)',
   )
 
   # Activity-specific arguments
   p.add_argument(
-    "--start",
+    '--start',
     type=int,
     default=0,
-    help="starting activity ID for pagination (activity command only, default: 0)",
+    help='starting activity ID for pagination (activity command only, default: 0)',
   )
   p.add_argument(
-    "--limit",
+    '--limit',
     type=int,
     default=20,
-    help="number of activities to fetch (activity command only, default: 20)",
+    help='number of activities to fetch (activity command only, default: 20)',
   )
 
   # RidersInWorld-specific arguments
   p.add_argument(
-    "--world",
+    '--world',
     type=str,
-    help="world name or ID for ridersinworld command (e.g., watopia, london, 1, 3)",
+    help='world name or ID for ridersinworld command (e.g., watopia, london, 1, 3)',
   )
 
   # Commands
   p.add_argument(
-    "cmd",
-    nargs="?",
-    metavar="CMD",
-    help="command to execute: {config,profile,followers,rideons,activity,worlds,ridersinworld}",
+    'cmd',
+    nargs='?',
+    metavar='CMD',
+    help='command to execute: {config,profile,followers,rideons,activity,worlds,ridersinworld}',
   )
 
   # IDs for commands
   p.add_argument(
-    "id",
-    nargs="*",
-    help="ID(s) for the command",
+    'id',
+    nargs='*',
+    help='ID(s) for the command',
   )
 
   # Parse arguments
@@ -163,29 +163,29 @@ Commands:
     return None
 
   # Handle help command
-  if args.cmd == "help":
+  if args.cmd == 'help':
     p.print_help()
     return None
 
   # Handle config command
-  if args.cmd == "config":
+  if args.cmd == 'config':
     handle_config_command(Config, check_first=False)
     return None
 
   # Validate command name
   valid_commands = (
-    "profile",
-    "followers",
-    "rideons",
-    "activity",
-    "worlds",
-    "ridersinworld",
+    'profile',
+    'followers',
+    'rideons',
+    'activity',
+    'worlds',
+    'ridersinworld',
   )
   if not validate_command_name(args.cmd, valid_commands):
     return 1
 
   # Validate we have IDs (except for worlds command which takes no IDs)
-  if args.cmd != "worlds" and not validate_ids_provided(args.id, args.cmd):
+  if args.cmd != 'worlds' and not validate_ids_provided(args.id, args.cmd):
     return 1
 
   # Handle --noaction flag
@@ -196,7 +196,7 @@ Commands:
   # Execute command
   try:
     match args.cmd:
-      case "profile":
+      case 'profile':
         # Convert IDs to integers
         rider_ids = [int(id_str) for id_str in args.id]
 
@@ -216,18 +216,20 @@ Commands:
           if args.raw:
             # Raw: print each ID and raw data
             for rider_id, profile in profiles.items():
-              print(f"{rider_id}: {profile.raw()}")
+              print(f'{rider_id}: {profile.raw()}')
           else:
             # Normal: print dictionary format
-            print("{")
+            print('{')
             for rider_id, profile in profiles.items():
               # Indent the profile output
               profile_str = str(profile)
-              indented = "\n".join(f"  {line}" for line in profile_str.split("\n"))
-              print(f"  {rider_id}: {indented.lstrip()},")
-            print("}")
+              indented = '\n'.join(
+                f'  {line}' for line in profile_str.split('\n')
+              )
+              print(f'  {rider_id}: {indented.lstrip()},')
+            print('}')
 
-      case "followers":
+      case 'followers':
         # Convert IDs to integers
         rider_ids = [int(id_str) for id_str in args.id]
 
@@ -259,23 +261,25 @@ Commands:
           if args.raw:
             # Raw: print each ID and raw data
             for rider_id, followers in followers_data.items():
-              print(f"{rider_id}: {followers.raw()}")
+              print(f'{rider_id}: {followers.raw()}')
           else:
             # Normal: print dictionary format
-            print("{")
+            print('{')
             for rider_id, followers in followers_data.items():
               followers_str = str(followers)
-              indented = "\n".join(f"  {line}" for line in followers_str.split("\n"))
-              print(f"  {rider_id}: {indented.lstrip()},")
-            print("}")
+              indented = '\n'.join(
+                f'  {line}' for line in followers_str.split('\n')
+              )
+              print(f'  {rider_id}: {indented.lstrip()},')
+            print('}')
 
-      case "rideons":
+      case 'rideons':
         # RideOns requires rider_id and activity_id
         if args.give:
           # Give RideOn: needs exactly 2 IDs (rider_id, activity_id)
           if len(args.id) != 2:
             print(
-              "Error: --give requires exactly 2 arguments: rider_id activity_id",
+              'Error: --give requires exactly 2 arguments: rider_id activity_id',
               file=sys.stderr,
             )
             return 1
@@ -285,15 +289,18 @@ Commands:
 
           success = ZwiftRideOns.give_rideon(rider_id, activity_id)
           if success:
-            print(f"Successfully gave RideOn to activity {activity_id}")
+            print(f'Successfully gave RideOn to activity {activity_id}')
           else:
-            print(f"Failed to give RideOn to activity {activity_id}", file=sys.stderr)
+            print(
+              f'Failed to give RideOn to activity {activity_id}',
+              file=sys.stderr,
+            )
             return 1
         else:
           # Fetch RideOns: needs pairs of IDs (rider_id, activity_id)
           if len(args.id) % 2 != 0:
             print(
-              "Error: rideons command requires pairs of IDs: rider_id activity_id",
+              'Error: rideons command requires pairs of IDs: rider_id activity_id',
               file=sys.stderr,
             )
             return 1
@@ -321,17 +328,19 @@ Commands:
             if args.raw:
               # Raw: print each key and raw data
               for key, rideons in rideons_data.items():
-                print(f"{key}: {rideons.raw()}")
+                print(f'{key}: {rideons.raw()}')
             else:
               # Normal: print dictionary format
-              print("{")
+              print('{')
               for key, rideons in rideons_data.items():
                 rideons_str = str(rideons)
-                indented = "\n".join(f"  {line}" for line in rideons_str.split("\n"))
-                print(f"  {key}: {indented.lstrip()},")
-              print("}")
+                indented = '\n'.join(
+                  f'  {line}' for line in rideons_str.split('\n')
+                )
+                print(f'  {key}: {indented.lstrip()},')
+              print('}')
 
-      case "activity":
+      case 'activity':
         # Convert IDs to integers
         rider_ids = [int(id_str) for id_str in args.id]
 
@@ -355,17 +364,19 @@ Commands:
           if args.raw:
             # Raw: print each ID and raw data
             for rider_id, activity in activities.items():
-              print(f"{rider_id}: {activity.raw()}")
+              print(f'{rider_id}: {activity.raw()}')
           else:
             # Normal: print dictionary format
-            print("{")
+            print('{')
             for rider_id, activity in activities.items():
               activity_str = str(activity)
-              indented = "\n".join(f"  {line}" for line in activity_str.split("\n"))
-              print(f"  {rider_id}: {indented.lstrip()},")
-            print("}")
+              indented = '\n'.join(
+                f'  {line}' for line in activity_str.split('\n')
+              )
+              print(f'  {rider_id}: {indented.lstrip()},')
+            print('}')
 
-      case "worlds":
+      case 'worlds':
         # Worlds command takes no IDs
         worlds = ZwiftWorlds()
         worlds.fetch()
@@ -375,7 +386,7 @@ Commands:
         else:
           print(worlds)
 
-      case "ridersinworld":
+      case 'ridersinworld':
         # RidersInWorld can use --world flag or ID/name as argument
         if args.world:
           # Use --world flag
@@ -406,7 +417,7 @@ Commands:
               world_id = get_world_id(id_str)
               if world_id is None:
                 print(
-                  f"Error: Unknown world name or invalid ID: {id_str}",
+                  f'Error: Unknown world name or invalid ID: {id_str}',
                   file=sys.stderr,
                 )
                 return 1
@@ -428,29 +439,31 @@ Commands:
             if args.raw:
               # Raw: print each world ID and raw data
               for world_id, riders in riders_data.items():
-                print(f"{world_id}: {riders.raw()}")
+                print(f'{world_id}: {riders.raw()}')
             else:
               # Normal: print dictionary format
-              print("{")
+              print('{')
               for world_id, riders in riders_data.items():
                 riders_str = str(riders)
-                indented = "\n".join(f"  {line}" for line in riders_str.split("\n"))
-                print(f"  {world_id}: {indented.lstrip()},")
-              print("}")
+                indented = '\n'.join(
+                  f'  {line}' for line in riders_str.split('\n')
+                )
+                print(f'  {world_id}: {indented.lstrip()},')
+              print('}')
 
     return None
 
   except ConfigError as e:
-    print(f"Configuration error: {e}", file=sys.stderr)
+    print(f'Configuration error: {e}', file=sys.stderr)
     return 1
   except NetworkError as e:
-    print(f"Network error: {e}", file=sys.stderr)
+    print(f'Network error: {e}', file=sys.stderr)
     return 1
   except Exception as e:
-    logger.exception("Unexpected error")
-    print(f"Error: {e}", file=sys.stderr)
+    logger.exception('Unexpected error')
+    print(f'Error: {e}', file=sys.stderr)
     return 1
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
   sys.exit(main())

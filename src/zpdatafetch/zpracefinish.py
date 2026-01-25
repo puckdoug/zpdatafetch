@@ -261,7 +261,9 @@ class ZPRaceFinish:
     if not isinstance(event_date_value, str):
       event_date_value = float(event_date_value) if event_date_value else 0.0
     event_date_timestamp = (
-      float(event_date_value) if isinstance(event_date_value, (int, float)) else 0.0
+      float(event_date_value)
+      if isinstance(event_date_value, (int, float))
+      else 0.0
     )
     event_date = convert_timestamp_to_iso8601(event_date_value)
 

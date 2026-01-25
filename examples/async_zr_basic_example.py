@@ -10,15 +10,15 @@ import asyncio
 from zrdatafetch import AsyncZR_obj, ZRResultFetch, ZRRiderFetch, ZRTeamFetch
 
 
-async def main():
+async def main() -> None:
   """Fetch Zwiftracing data asynchronously."""
   print('Zwiftracing Async Data Fetching Examples')
   print('=' * 60)
 
   async with AsyncZR_obj() as zr:
-    # ============================================================================
+    # ==========================================================================
     # Example 1: Fetch a single rider
-    # ============================================================================
+    # ==========================================================================
     print('\n1. Fetch a single rider')
     print('-' * 60)
 
@@ -32,15 +32,16 @@ async def main():
     print(f'Current Rank: {rider.current_rank}')
     print(f'DRS Rating: {rider.drs_rating}')
 
-    # ============================================================================
+    # ==========================================================================
     # Example 2: Fetch race results
-    # ============================================================================
+    # ==========================================================================
     print('\n2. Fetch race results')
     print('-' * 60)
 
     result_fetcher = ZRResultFetch()
     result_fetcher.set_session(zr)
-    results = await result_fetcher.afetch(3590800)  # Returns dict[int, ZRRaceResult]
+    # Returns dict[int, ZRRaceResult]
+    results = await result_fetcher.afetch(3590800)
     result = results[3590800]
 
     print(f'Race ID: {result.race_id}')
@@ -55,9 +56,9 @@ async def main():
         second_place = result[1]
         print(f'2nd Place: Rider ID {second_place.zwift_id}')
 
-    # ============================================================================
+    # ==========================================================================
     # Example 3: Fetch team/club information
-    # ============================================================================
+    # ==========================================================================
     print('\n3. Fetch team/club information')
     print('-' * 60)
 
@@ -75,9 +76,9 @@ async def main():
       for i, member in enumerate(team[:5], 1):
         print(f'  {i}. {member.name} - Rating: {member.current_rating}')
 
-    # ============================================================================
+    # ==========================================================================
     # Example 4: Get full dict representation
-    # ============================================================================
+    # ==========================================================================
     print('\n4. Full dict representation of rider')
     print('-' * 60)
 

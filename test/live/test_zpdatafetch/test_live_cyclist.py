@@ -6,8 +6,8 @@ Run with: pytest -m live
 
 import pytest
 
-from zpdatafetch.zpcyclistfetch import ZPCyclistFetch
 from zpdatafetch.zpcyclist import ZPCyclist
+from zpdatafetch.zpcyclistfetch import ZPCyclistFetch
 
 
 @pytest.mark.live

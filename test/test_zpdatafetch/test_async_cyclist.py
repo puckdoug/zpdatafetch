@@ -7,8 +7,8 @@ import httpx
 import pytest
 
 from zpdatafetch.async_zp import AsyncZP
-from zpdatafetch.zpcyclistfetch import ZPCyclistFetch
 from zpdatafetch.zpcyclist import ZPCyclist
+from zpdatafetch.zpcyclistfetch import ZPCyclistFetch
 
 
 @pytest.mark.anyio

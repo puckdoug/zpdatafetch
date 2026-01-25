@@ -21,7 +21,7 @@ from zpdatafetch.zpprime import ZPPrime
 logger = get_logger(__name__)
 
 
-# ===============================================================================
+# ==============================================================================
 class ZPPrimesFetch(ZP_obj):
   """Fetches and stores race prime (sprint/KOM) data from Zwiftpower.
 
@@ -66,7 +66,7 @@ class ZPPrimesFetch(ZP_obj):
     self._zp: AsyncZP | None = None  # Async session
     self._zp_sync: ZP | None = None  # Sync session (for reference only)
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def set_session(self, zp: AsyncZP) -> None:
     """Set the AsyncZP session to use for async fetching.
 
@@ -75,7 +75,7 @@ class ZPPrimesFetch(ZP_obj):
     """
     self._zp = zp
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def set_zp_session(self, zp: ZP) -> None:
     """Set the ZP session to use for sync fetching.
 
@@ -88,7 +88,7 @@ class ZPPrimesFetch(ZP_obj):
     """
     self._zp_sync = zp
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   @classmethod
   def set_primetype(cls, t: str) -> str:
     """Convert prime type string to Zwiftpower API code or descriptive string.
@@ -114,7 +114,7 @@ class ZPPrimesFetch(ZP_obj):
       case _:
         return ''
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def _get_or_create_session(self) -> tuple[AsyncZP, bool]:
     """Get existing session or create temporary one.
 
@@ -150,7 +150,7 @@ class ZPPrimesFetch(ZP_obj):
     await temp_zp.login()
     return (temp_zp, True)
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def _fetch_parallel(self, *race_id: int) -> dict[int, ZPPrime]:
     """Internal method that performs parallel fetching (always async).
 
@@ -215,7 +215,9 @@ class ZPPrimesFetch(ZP_obj):
           results_raw[idx] = raw_json
           # Parse JSON for processing
           race, cat, primetype = url_mapping[idx]
-          parsed = parse_json_safe(raw_json, context=f'prime {race}/{cat}/{primetype}')
+          parsed = parse_json_safe(
+            raw_json, context=f'prime {race}/{cat}/{primetype}'
+          )
           results_parsed[idx] = parsed if isinstance(parsed, dict) else {}
         except Exception as e:
           results_raw[idx] = e
@@ -248,12 +250,18 @@ class ZPPrimesFetch(ZP_obj):
           )
           error_json = json.dumps({'data': [], 'error': str(raw_result)})
           p_raw[race][cat][primetype] = error_json
-          p_fetched_dict[race][cat][primetype] = {'data': [], 'error': str(raw_result)}
+          p_fetched_dict[race][cat][primetype] = {
+            'data': [],
+            'error': str(raw_result),
+          }
         else:
           p_raw[race][cat][primetype] = raw_result
           p_fetched_dict[race][cat][primetype] = parsed_result
 
-          if 'data' not in parsed_result or len(parsed_result.get('data', [])) == 0:
+          if (
+            'data' not in parsed_result
+            or len(parsed_result.get('data', [])) == 0
+          ):
             logger.debug(f'No results for {primetype} in category {cat}')
           else:
             logger.debug(f'Results found for {primetype} in category {cat}')
@@ -268,7 +276,9 @@ class ZPPrimesFetch(ZP_obj):
       self._raw = p_raw
       self._fetched = p_fetched
       self.processed = {}  # Reserved for future use
-      logger.info(f'Successfully fetched prime data for {len(validated_ids)} race(s)')
+      logger.info(
+        f'Successfully fetched prime data for {len(validated_ids)} race(s)'
+      )
       return self._fetched
 
     finally:
@@ -276,9 +286,9 @@ class ZPPrimesFetch(ZP_obj):
       if owns_session:
         await session.close()
 
-  # -------------------------------------------------------------------------------
-  # -------------------------------------------------------------------------------
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def _fetch_sequential(self, *race_id: int) -> dict[int, ZPPrime]:
     """Fetch primes data sequentially (synchronous mode).
 
@@ -296,7 +306,9 @@ class ZPPrimesFetch(ZP_obj):
       NetworkError: If network requests fail
       AuthenticationError: If authentication fails
     """
-    logger.info(f'Fetching primes data in synchronous mode for {len(race_id)} race(s)')
+    logger.info(
+      f'Fetching primes data in synchronous mode for {len(race_id)} race(s)'
+    )
 
     # SECURITY: Validate all IDs before processing
     try:
@@ -347,7 +359,9 @@ class ZPPrimesFetch(ZP_obj):
             else:
               logger.debug(f'Results found for {primetype} in category {cat}')
           except Exception as e:
-            logger.error(f'Error fetching {primetype} for race {race} cat {cat}: {e}')
+            logger.error(
+              f'Error fetching {primetype} for race {race} cat {cat}: {e}'
+            )
             error_json = json.dumps({'data': [], 'error': str(e)})
             p_raw[race][cat][primetype] = error_json
             p_fetched_dict[race][cat][primetype] = {'data': [], 'error': str(e)}
@@ -365,7 +379,9 @@ class ZPPrimesFetch(ZP_obj):
     self._fetched = p_fetched
     self.processed = {}  # Reserved for future use
 
-    logger.info(f'Successfully fetched {len(validated_ids)} race(s) in sync mode')
+    logger.info(
+      f'Successfully fetched {len(validated_ids)} race(s) in sync mode'
+    )
     return self._fetched
 
   @classmethod
@@ -413,7 +429,7 @@ class ZPPrimesFetch(ZP_obj):
       # No running loop - safe to use asyncio.run()
       return asyncio.run(self._fetch_parallel(*race_id))
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def afetch(self, *race_id: int) -> dict[int, ZPPrime]:
     """Fetch prime data for one or more race IDs (asynchronous interface).
 
@@ -433,7 +449,7 @@ class ZPPrimesFetch(ZP_obj):
     """
     return await self._fetch_parallel(*race_id)
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def json(self) -> str:
     """Return JSON string representation of fetched data.
 
@@ -449,7 +465,7 @@ class ZPPrimesFetch(ZP_obj):
     return json.JSONEncoder(indent=2).encode(serializable)
 
 
-# ===============================================================================
+# ==============================================================================
 def main() -> None:
   desc = """
 Module for fetching primes using the Zwiftpower API
@@ -486,6 +502,6 @@ Module for fetching primes using the Zwiftpower API
     print(x.raw)
 
 
-# ===============================================================================
+# ==============================================================================
 if __name__ == '__main__':
   main()

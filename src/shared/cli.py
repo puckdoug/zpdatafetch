@@ -141,8 +141,9 @@ def handle_config_command(
 
   Args:
     config_class: Config class to instantiate (ZPConfig or ZRConfig)
-    check_first: If True, check existing credentials before prompting (zrdatafetch style).
-                 If False, always prompt for new credentials (zpdatafetch style).
+    check_first: If True, check existing credentials before prompting
+                 (zrdatafetch style). If False, always prompt for new
+                 credentials (zpdatafetch style).
   """
   c = config_class()
 

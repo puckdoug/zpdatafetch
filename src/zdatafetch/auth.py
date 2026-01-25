@@ -37,8 +37,8 @@ class ZwiftAuth:
       refresh_token_expiration: Timestamp when refresh token expires
   """
 
-  AUTH_URL = "https://secure.zwift.com/auth/realms/zwift/tokens/access/codes"
-  CLIENT_ID = "Zwift_Mobile_Link"
+  AUTH_URL = 'https://secure.zwift.com/auth/realms/zwift/tokens/access/codes'
+  CLIENT_ID = 'Zwift_Mobile_Link'
 
   def __init__(self, username: str, password: str) -> None:
     """Initialize auth handler with credentials.
@@ -65,13 +65,13 @@ class ZwiftAuth:
         AuthenticationError: If login fails (invalid credentials, etc.)
         NetworkError: If network request fails
     """
-    logger.info("Authenticating with Zwift API")
+    logger.info('Authenticating with Zwift API')
 
     data = {
-      "username": self.username,
-      "password": self.password,
-      "grant_type": "password",
-      "client_id": self.CLIENT_ID,
+      'username': self.username,
+      'password': self.password,
+      'grant_type': 'password',
+      'client_id': self.CLIENT_ID,
     }
 
     try:
@@ -79,15 +79,17 @@ class ZwiftAuth:
         response = client.post(self.AUTH_URL, data=data, timeout=30.0)
 
         if response.status_code == 401:
-          raise AuthenticationError("Invalid Zwift credentials")
+          raise AuthenticationError('Invalid Zwift credentials')
         if response.status_code != 200:
           raise AuthenticationError(
-            f"Authentication failed with status {response.status_code}: {response.text}",
+            f'Authentication failed with status {response.status_code}: {response.text}',
           )
 
         self._parse_token_response(response.json())
 
-      logger.info(f'Authentication successful (token expires in {self.expires_in}s)')
+      logger.info(
+        f'Authentication successful (token expires in {self.expires_in}s)'
+      )
 
     except httpx.TimeoutException as e:
       raise NetworkError(f'Authentication request timed out: {e}') from e
@@ -164,20 +166,22 @@ class ZwiftAuth:
         response = client.post(self.AUTH_URL, data=data, timeout=30.0)
 
         if response.status_code == 401:
-          raise AuthenticationError('Token refresh failed - authentication required')
+          raise AuthenticationError(
+            'Token refresh failed - authentication required'
+          )
         if response.status_code != 200:
           raise AuthenticationError(
-            f"Token refresh failed with status {response.status_code}: {response.text}",
+            f'Token refresh failed with status {response.status_code}: {response.text}',
           )
 
         self._parse_token_response(response.json())
 
-      logger.debug("Token refreshed successfully")
+      logger.debug('Token refreshed successfully')
 
     except httpx.TimeoutException as e:
-      raise NetworkError(f"Token refresh request timed out: {e}") from e
+      raise NetworkError(f'Token refresh request timed out: {e}') from e
     except httpx.HTTPError as e:
-      raise NetworkError(f"Token refresh request failed: {e}") from e
+      raise NetworkError(f'Token refresh request failed: {e}') from e
 
   def is_authenticated(self) -> bool:
     """Check if currently authenticated with valid tokens.
@@ -186,9 +190,6 @@ class ZwiftAuth:
         True if we have valid access or refresh tokens, False otherwise
     """
     now = time.time()
-    return (
-      (self.access_token
-      and now < self.access_token_expiration)
-      or (self.refresh_token
-      and now < self.refresh_token_expiration)
+    return (self.access_token and now < self.access_token_expiration) or (
+      self.refresh_token and now < self.refresh_token_expiration
     )

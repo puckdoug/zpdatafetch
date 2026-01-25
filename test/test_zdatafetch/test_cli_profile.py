@@ -19,19 +19,19 @@ def test_cli_single_profile_output(combined_handler, monkeypatch, capsys):
 
   # Mock the config to return credentials
   class MockConfig:
-    username = "test@example.com"
-    password = "testpassword"
+    username = 'test@example.com'
+    password = 'testpassword'
 
     def load(self):
       pass
 
   zdatafetch.auth.httpx.Client = mock_client
   zdatafetch.profile.httpx.Client = mock_client
-  monkeypatch.setattr(zdatafetch.profile, "Config", MockConfig)
-  monkeypatch.setattr("zdatafetch.cli.Config", MockConfig)
+  monkeypatch.setattr(zdatafetch.profile, 'Config', MockConfig)
+  monkeypatch.setattr('zdatafetch.cli.Config', MockConfig)
 
   # Mock sys.argv for single profile
-  monkeypatch.setattr(sys, "argv", ["zdata", "profile", "550564"])
+  monkeypatch.setattr(sys, 'argv', ['zdata', 'profile', '550564'])
 
   try:
     # Run CLI
@@ -43,15 +43,15 @@ def test_cli_single_profile_output(combined_handler, monkeypatch, capsys):
     output = captured.out
 
     # Verify it's ZwiftProfile output format
-    assert "ZwiftProfile(" in output
-    assert "id: 550564" in output
-    assert "firstName:" in output
-    assert "lastName:" in output
-    assert "ftp:" in output
+    assert 'ZwiftProfile(' in output
+    assert 'id: 550564' in output
+    assert 'firstName:' in output
+    assert 'lastName:' in output
+    assert 'ftp:' in output
 
     # Verify it shows multiple fields (not just 3)
-    assert "male:" in output
-    assert "countryAlpha3:" in output
+    assert 'male:' in output
+    assert 'countryAlpha3:' in output
 
   finally:
     zdatafetch.auth.httpx.Client = original_client
@@ -70,19 +70,19 @@ def test_cli_multiple_profiles_output(combined_handler, monkeypatch, capsys):
 
   # Mock the config to return credentials
   class MockConfig:
-    username = "test@example.com"
-    password = "testpassword"
+    username = 'test@example.com'
+    password = 'testpassword'
 
     def load(self):
       pass
 
   zdatafetch.auth.httpx.Client = mock_client
   zdatafetch.profile.httpx.Client = mock_client
-  monkeypatch.setattr(zdatafetch.profile, "Config", MockConfig)
-  monkeypatch.setattr("zdatafetch.cli.Config", MockConfig)
+  monkeypatch.setattr(zdatafetch.profile, 'Config', MockConfig)
+  monkeypatch.setattr('zdatafetch.cli.Config', MockConfig)
 
   # Mock sys.argv for multiple profiles
-  monkeypatch.setattr(sys, "argv", ["zdata", "profile", "550564", "123456"])
+  monkeypatch.setattr(sys, 'argv', ['zdata', 'profile', '550564', '123456'])
 
   try:
     # Run CLI
@@ -94,18 +94,18 @@ def test_cli_multiple_profiles_output(combined_handler, monkeypatch, capsys):
     output = captured.out
 
     # Verify it's dictionary format
-    assert output.startswith("{")
-    assert output.rstrip().endswith("}")
+    assert output.startswith('{')
+    assert output.rstrip().endswith('}')
 
     # Verify both IDs are present as keys
-    assert "550564:" in output
-    assert "123456:" in output
+    assert '550564:' in output
+    assert '123456:' in output
 
     # Verify each entry is a ZwiftProfile
-    assert "ZwiftProfile(" in output
+    assert 'ZwiftProfile(' in output
 
     # Count how many ZwiftProfile entries (should be 2)
-    assert output.count("ZwiftProfile(") == 2
+    assert output.count('ZwiftProfile(') == 2
 
   finally:
     zdatafetch.auth.httpx.Client = original_client
@@ -124,19 +124,19 @@ def test_cli_single_profile_raw_output(combined_handler, monkeypatch, capsys):
 
   # Mock the config to return credentials
   class MockConfig:
-    username = "test@example.com"
-    password = "testpassword"
+    username = 'test@example.com'
+    password = 'testpassword'
 
     def load(self):
       pass
 
   zdatafetch.auth.httpx.Client = mock_client
   zdatafetch.profile.httpx.Client = mock_client
-  monkeypatch.setattr(zdatafetch.profile, "Config", MockConfig)
-  monkeypatch.setattr("zdatafetch.cli.Config", MockConfig)
+  monkeypatch.setattr(zdatafetch.profile, 'Config', MockConfig)
+  monkeypatch.setattr('zdatafetch.cli.Config', MockConfig)
 
   # Mock sys.argv for single profile with --raw
-  monkeypatch.setattr(sys, "argv", ["zdata", "profile", "--raw", "550564"])
+  monkeypatch.setattr(sys, 'argv', ['zdata', 'profile', '--raw', '550564'])
 
   try:
     # Run CLI
@@ -148,7 +148,7 @@ def test_cli_single_profile_raw_output(combined_handler, monkeypatch, capsys):
     output = captured.out
 
     # Verify it's raw JSON (not ZwiftProfile format)
-    assert "ZwiftProfile(" not in output
+    assert 'ZwiftProfile(' not in output
     assert '"id": 550564' in output or '"id":550564' in output
     assert '"firstName"' in output
 
@@ -157,7 +157,9 @@ def test_cli_single_profile_raw_output(combined_handler, monkeypatch, capsys):
     zdatafetch.profile.httpx.Client = original_client
 
 
-def test_cli_multiple_profiles_raw_output(combined_handler, monkeypatch, capsys):
+def test_cli_multiple_profiles_raw_output(
+  combined_handler, monkeypatch, capsys
+):
   """Test CLI raw output for multiple profiles."""
   import zdatafetch.auth
   import zdatafetch.profile
@@ -169,19 +171,21 @@ def test_cli_multiple_profiles_raw_output(combined_handler, monkeypatch, capsys)
 
   # Mock the config to return credentials
   class MockConfig:
-    username = "test@example.com"
-    password = "testpassword"
+    username = 'test@example.com'
+    password = 'testpassword'
 
     def load(self):
       pass
 
   zdatafetch.auth.httpx.Client = mock_client
   zdatafetch.profile.httpx.Client = mock_client
-  monkeypatch.setattr(zdatafetch.profile, "Config", MockConfig)
-  monkeypatch.setattr("zdatafetch.cli.Config", MockConfig)
+  monkeypatch.setattr(zdatafetch.profile, 'Config', MockConfig)
+  monkeypatch.setattr('zdatafetch.cli.Config', MockConfig)
 
   # Mock sys.argv for multiple profiles with --raw
-  monkeypatch.setattr(sys, "argv", ["zdata", "profile", "--raw", "550564", "123456"])
+  monkeypatch.setattr(
+    sys, 'argv', ['zdata', 'profile', '--raw', '550564', '123456']
+  )
 
   try:
     # Run CLI
@@ -193,8 +197,8 @@ def test_cli_multiple_profiles_raw_output(combined_handler, monkeypatch, capsys)
     output = captured.out
 
     # Verify it shows ID: raw_json format
-    assert "550564:" in output
-    assert "123456:" in output
+    assert '550564:' in output
+    assert '123456:' in output
     assert '"firstName"' in output
 
   finally:
@@ -208,16 +212,16 @@ def test_cli_profile_missing_credentials(monkeypatch, capsys):
 
   # Mock the config to return empty credentials
   class MockConfig:
-    username = ""
-    password = ""
+    username = ''
+    password = ''
 
     def load(self):
       pass
 
-  monkeypatch.setattr(zdatafetch.profile, "Config", MockConfig)
+  monkeypatch.setattr(zdatafetch.profile, 'Config', MockConfig)
 
   # Mock sys.argv
-  monkeypatch.setattr(sys, "argv", ["zdata", "profile", "550564"])
+  monkeypatch.setattr(sys, 'argv', ['zdata', 'profile', '550564'])
 
   # Run CLI - should return error code
   result = main()

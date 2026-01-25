@@ -61,7 +61,8 @@ def use_real_credentials(request, setup_test_credentials):
   # Use the system-specific backend (macOS Keychain on macOS)
   for backend in keyring.backend.get_all_keyring():
     if (
-      'macOS' in type(backend).__module__ or 'SecretService' in type(backend).__module__
+      'macOS' in type(backend).__module__
+      or 'SecretService' in type(backend).__module__
     ):
       keyring.set_keyring(backend)
       break

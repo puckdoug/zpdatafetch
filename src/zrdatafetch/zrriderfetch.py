@@ -54,7 +54,7 @@ class ZRRiderFetch(ZR_obj):
     self._zr: AsyncZR_obj | None = None
     self._zr_sync: ZR_obj | None = None
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def set_session(self, zr: AsyncZR_obj) -> None:
     """Set the AsyncZR_obj session to use for async fetching.
 
@@ -63,7 +63,7 @@ class ZRRiderFetch(ZR_obj):
     """
     self._zr = zr
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def set_zr_session(self, zr: ZR_obj) -> None:
     """Set the ZR_obj session to use for fetching.
 
@@ -72,7 +72,7 @@ class ZRRiderFetch(ZR_obj):
     """
     self._zr_sync = zr
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def _get_or_create_session(self) -> tuple[AsyncZR_obj, bool]:
     """Get or create an async session for fetching.
 
@@ -91,7 +91,7 @@ class ZRRiderFetch(ZR_obj):
     await temp_zr.init_client()
     return (temp_zr, True)
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def _afetch_internal(
     self,
     *zwift_ids: int,
@@ -115,7 +115,8 @@ class ZRRiderFetch(ZR_obj):
     config.load()
     if not config.authorization:
       raise ConfigError(
-        'Zwiftracing authorization not found. Please run "zrdata config" to set it up.',
+        'Zwiftracing authorization not found. '
+        'Please run "zrdata config" to set it up.',
       )
 
     session, owns_session = await self._get_or_create_session()
@@ -162,9 +163,13 @@ class ZRRiderFetch(ZR_obj):
               _extra=rider._extra,
             )
           results[zwift_id] = rider
-          logger.info(f'Successfully fetched rider {rider.name} (zwift_id={zwift_id})')
+          logger.info(
+            f'Successfully fetched rider {rider.name} (zwift_id={zwift_id})',
+          )
         else:
-          logger.error(f'Expected dict for rider data, got {type(parsed).__name__}')
+          logger.error(
+            f'Expected dict for rider data, got {type(parsed).__name__}',
+          )
 
       self._fetched = results
       self._raw = raw_results
@@ -177,7 +182,7 @@ class ZRRiderFetch(ZR_obj):
       if owns_session:
         await session.close()
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def _fetch_sync(
     self,
     *zwift_ids: int,
@@ -203,7 +208,8 @@ class ZRRiderFetch(ZR_obj):
     config.load()
     if not config.authorization:
       raise ConfigError(
-        'Zwiftracing authorization not found. Please run "zrdata config" to set it up.',
+        'Zwiftracing authorization not found. '
+        'Please run "zrdata config" to set it up.',
       )
 
     zr = ZR_obj()
@@ -250,9 +256,13 @@ class ZRRiderFetch(ZR_obj):
               _extra=rider._extra,
             )
           results[zwift_id] = rider
-          logger.info(f'Successfully fetched rider (zwift_id={zwift_id}) in sync mode')
+          logger.info(
+            f'Successfully fetched rider (zwift_id={zwift_id}) in sync mode',
+          )
         else:
-          logger.error(f'Expected dict for rider data, got {type(parsed).__name__}')
+          logger.error(
+            f'Expected dict for rider data, got {type(parsed).__name__}',
+          )
 
       self._fetched = results
       self._raw = raw_results
@@ -262,7 +272,7 @@ class ZRRiderFetch(ZR_obj):
       logger.error(f'Failed to fetch rider(s): {e}')
       raise
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   @classmethod
   def set_sync_mode(cls, enabled: bool) -> None:
     """Enable or disable synchronous fetch mode.
@@ -274,7 +284,7 @@ class ZRRiderFetch(ZR_obj):
     mode = 'synchronous' if enabled else 'asynchronous (parallel)'
     logger.info(f'ZRRiderFetch mode set to: {mode}')
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def fetch(
     self,
     *zwift_ids: int,
@@ -313,7 +323,7 @@ class ZRRiderFetch(ZR_obj):
         raise
       return asyncio.run(self._afetch_internal(*zwift_ids, epoch=epoch))
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def afetch(
     self,
     *zwift_ids: int,
@@ -336,7 +346,7 @@ class ZRRiderFetch(ZR_obj):
     """
     return await self._afetch_internal(*zwift_ids, epoch=epoch)
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   @staticmethod
   def fetch_batch(
     *zwift_ids: int,
@@ -369,7 +379,8 @@ class ZRRiderFetch(ZR_obj):
     config.load()
     if not config.authorization:
       raise ConfigError(
-        'Zwiftracing authorization not found. Please run "zrdata config" to set it up.',
+        'Zwiftracing authorization not found. '
+        'Please run "zrdata config" to set it up.',
       )
 
     logger.debug(f'Fetching batch of {len(zwift_ids)} riders, epoch={epoch}')
@@ -416,7 +427,9 @@ class ZRRiderFetch(ZR_obj):
       try:
         rider = ZRRiderRating.from_dict(rider_data)
         results[rider.zwift_id] = rider
-        logger.debug(f'Parsed batch rider: {rider.name} (zwift_id={rider.zwift_id})')
+        logger.debug(
+          f'Parsed batch rider: {rider.name} (zwift_id={rider.zwift_id})',
+        )
       except (KeyError, TypeError) as e:
         logger.warning(f'Skipping malformed rider in batch response: {e}')
         continue
@@ -426,7 +439,7 @@ class ZRRiderFetch(ZR_obj):
     )
     return results
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   @staticmethod
   async def afetch_batch(
     *zwift_ids: int,
@@ -458,10 +471,13 @@ class ZRRiderFetch(ZR_obj):
     config.load()
     if not config.authorization:
       raise ConfigError(
-        'Zwiftracing authorization not found. Please run "zrdata config" to set it up.',
+        'Zwiftracing authorization not found. '
+        'Please run "zrdata config" to set it up.',
       )
 
-    logger.debug(f'Fetching batch of {len(zwift_ids)} riders (async), epoch={epoch}')
+    logger.debug(
+      f'Fetching batch of {len(zwift_ids)} riders (async), epoch={epoch}',
+    )
 
     if not zr:
       zr = AsyncZR_obj()
@@ -498,13 +514,16 @@ class ZRRiderFetch(ZR_obj):
         try:
           rider = ZRRiderRating.from_dict(rider_data)
           results[rider.zwift_id] = rider
-          logger.debug(f'Parsed batch rider: {rider.name} (zwift_id={rider.zwift_id})')
+          logger.debug(
+            f'Parsed batch rider: {rider.name} (zwift_id={rider.zwift_id})',
+          )
         except (KeyError, TypeError) as e:
           logger.warning(f'Skipping malformed rider in batch response: {e}')
           continue
 
       logger.info(
-        f'Successfully fetched {len(results)}/{len(zwift_ids)} riders in batch (async)',
+        f'Successfully fetched {len(results)}/{len(zwift_ids)} riders '
+        f'in batch (async)',
       )
       return results
 
@@ -515,7 +534,7 @@ class ZRRiderFetch(ZR_obj):
       if owns_session and zr:
         await zr.close()
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def raw(self) -> dict[int, str]:
     """Return the raw response strings.
 
@@ -524,7 +543,7 @@ class ZRRiderFetch(ZR_obj):
     """
     return self._raw
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def fetched(self) -> dict[int, ZRRiderRating]:
     """Return the fetched ZRRiderRating objects.
 
@@ -533,7 +552,7 @@ class ZRRiderFetch(ZR_obj):
     """
     return self._fetched
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def json(self) -> str:
     """Serialize the fetched data to formatted JSON string.
 

@@ -234,7 +234,9 @@ class ZPRiderFinish:
     hreff = int(extract_numeric(hreff_value, int, 0))
 
     # Extract and format time values
-    time_seconds = float(extract_numeric(extract_value(data.get('time')), float, 0.0))
+    time_seconds = float(
+      extract_numeric(extract_value(data.get('time')), float, 0.0)
+    )
     time_gun_seconds = float(
       extract_numeric(data.get('time_gun'), float, 0.0),
     )
@@ -270,7 +272,9 @@ class ZPRiderFinish:
       avg_power=float(
         extract_numeric(extract_value(data.get('avg_power')), float, 0.0),
       ),
-      avg_wkg=float(extract_numeric(extract_value(data.get('avg_wkg')), float, 0.0)),
+      avg_wkg=float(
+        extract_numeric(extract_value(data.get('avg_wkg')), float, 0.0)
+      ),
       avg_hr=int(extract_numeric(extract_value(data.get('avg_hr')), int, 0)),
       max_hr=int(extract_numeric(extract_value(data.get('max_hr')), int, 0)),
       np=float(extract_numeric(extract_value(data.get('np')), float, 0.0)),
@@ -282,16 +286,32 @@ class ZPRiderFinish:
       w300=int(extract_numeric(extract_value(data.get('w300')), int, 0)),
       w1200=int(extract_numeric(extract_value(data.get('w1200')), int, 0)),
       wkg5=float(extract_numeric(extract_value(data.get('wkg5')), float, 0.0)),
-      wkg15=float(extract_numeric(extract_value(data.get('wkg15')), float, 0.0)),
-      wkg30=float(extract_numeric(extract_value(data.get('wkg30')), float, 0.0)),
-      wkg60=float(extract_numeric(extract_value(data.get('wkg60')), float, 0.0)),
-      wkg120=float(extract_numeric(extract_value(data.get('wkg120')), float, 0.0)),
-      wkg300=float(extract_numeric(extract_value(data.get('wkg300')), float, 0.0)),
-      wkg1200=float(extract_numeric(extract_value(data.get('wkg1200')), float, 0.0)),
-      wkg_ftp=float(extract_numeric(extract_value(data.get('wkg_ftp')), float, 0.0)),
+      wkg15=float(
+        extract_numeric(extract_value(data.get('wkg15')), float, 0.0)
+      ),
+      wkg30=float(
+        extract_numeric(extract_value(data.get('wkg30')), float, 0.0)
+      ),
+      wkg60=float(
+        extract_numeric(extract_value(data.get('wkg60')), float, 0.0)
+      ),
+      wkg120=float(
+        extract_numeric(extract_value(data.get('wkg120')), float, 0.0)
+      ),
+      wkg300=float(
+        extract_numeric(extract_value(data.get('wkg300')), float, 0.0)
+      ),
+      wkg1200=float(
+        extract_numeric(extract_value(data.get('wkg1200')), float, 0.0)
+      ),
+      wkg_ftp=float(
+        extract_numeric(extract_value(data.get('wkg_ftp')), float, 0.0)
+      ),
       wftp=int(extract_numeric(extract_value(data.get('wftp')), int, 0)),
       height=int(extract_numeric(extract_value(data.get('height')), int, 0)),
-      weight=float(extract_numeric(extract_value(data.get('weight')), float, 0.0)),
+      weight=float(
+        extract_numeric(extract_value(data.get('weight')), float, 0.0)
+      ),
       position_in_cat=int(extract_numeric(data.get('position_in_cat'), int, 0)),
       skill=float(extract_numeric(data.get('skill'), float, 0.0)),
       skill_b=float(extract_numeric(data.get('skill_b'), float, 0.0)),

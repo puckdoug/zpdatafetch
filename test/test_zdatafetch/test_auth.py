@@ -12,12 +12,12 @@ from zdatafetch.auth import ZwiftAuth
 def test_auth_initialization(mock_credentials):
   """Test ZwiftAuth initialization."""
   auth = ZwiftAuth(
-    username=mock_credentials["username"],
-    password=mock_credentials["password"],
+    username=mock_credentials['username'],
+    password=mock_credentials['password'],
   )
 
-  assert auth.username == mock_credentials["username"]
-  assert auth.password == mock_credentials["password"]
+  assert auth.username == mock_credentials['username']
+  assert auth.password == mock_credentials['password']
   assert auth.access_token is None
   assert auth.refresh_token is None
   assert auth.access_token_expiration == 0
@@ -39,10 +39,12 @@ def test_login_success(mock_auth, auth_handler, mock_token_response):
   try:
     mock_auth.login()
 
-    assert mock_auth.access_token == mock_token_response["access_token"]
-    assert mock_auth.refresh_token == mock_token_response["refresh_token"]
-    assert mock_auth.expires_in == mock_token_response["expires_in"]
-    assert mock_auth.refresh_expires_in == mock_token_response["refresh_expires_in"]
+    assert mock_auth.access_token == mock_token_response['access_token']
+    assert mock_auth.refresh_token == mock_token_response['refresh_token']
+    assert mock_auth.expires_in == mock_token_response['expires_in']
+    assert (
+      mock_auth.refresh_expires_in == mock_token_response['refresh_expires_in']
+    )
     assert mock_auth.access_token_expiration > time.time()
     assert mock_auth.refresh_token_expiration > time.time()
 
@@ -54,7 +56,7 @@ def test_login_invalid_credentials(mock_auth):
   """Test login with invalid credentials."""
 
   def handler(request):
-    return httpx.Response(401, text="Unauthorized")
+    return httpx.Response(401, text='Unauthorized')
 
   import zdatafetch.auth
 
@@ -66,7 +68,7 @@ def test_login_invalid_credentials(mock_auth):
   zdatafetch.auth.httpx.Client = mock_client
 
   try:
-    with pytest.raises(AuthenticationError, match="Invalid Zwift credentials"):
+    with pytest.raises(AuthenticationError, match='Invalid Zwift credentials'):
       mock_auth.login()
   finally:
     zdatafetch.auth.httpx.Client = original_client
@@ -76,7 +78,7 @@ def test_login_server_error(mock_auth):
   """Test login with server error."""
 
   def handler(request):
-    return httpx.Response(500, text="Internal Server Error")
+    return httpx.Response(500, text='Internal Server Error')
 
   import zdatafetch.auth
 
@@ -88,7 +90,7 @@ def test_login_server_error(mock_auth):
   zdatafetch.auth.httpx.Client = mock_client
 
   try:
-    with pytest.raises(AuthenticationError, match="Authentication failed"):
+    with pytest.raises(AuthenticationError, match='Authentication failed'):
       mock_auth.login()
   finally:
     zdatafetch.auth.httpx.Client = original_client
@@ -98,7 +100,7 @@ def test_login_network_error(mock_auth):
   """Test login with network error."""
 
   def handler(request):
-    raise httpx.ConnectError("Connection failed")
+    raise httpx.ConnectError('Connection failed')
 
   import zdatafetch.auth
 
@@ -110,7 +112,7 @@ def test_login_network_error(mock_auth):
   zdatafetch.auth.httpx.Client = mock_client
 
   try:
-    with pytest.raises(NetworkError, match="Authentication request failed"):
+    with pytest.raises(NetworkError, match='Authentication request failed'):
       mock_auth.login()
   finally:
     zdatafetch.auth.httpx.Client = original_client
@@ -120,7 +122,7 @@ def test_login_timeout(mock_auth):
   """Test login timeout."""
 
   def handler(request):
-    raise httpx.TimeoutException("Request timed out")
+    raise httpx.TimeoutException('Request timed out')
 
   import zdatafetch.auth
 
@@ -132,7 +134,7 @@ def test_login_timeout(mock_auth):
   zdatafetch.auth.httpx.Client = mock_client
 
   try:
-    with pytest.raises(NetworkError, match="Authentication request timed out"):
+    with pytest.raises(NetworkError, match='Authentication request timed out'):
       mock_auth.login()
   finally:
     zdatafetch.auth.httpx.Client = original_client
@@ -140,7 +142,7 @@ def test_login_timeout(mock_auth):
 
 def test_get_access_token_without_login(mock_auth):
   """Test getting access token without logging in first."""
-  with pytest.raises(RuntimeError, match="No valid token available"):
+  with pytest.raises(RuntimeError, match='No valid token available'):
     mock_auth.get_access_token()
 
 
@@ -158,7 +160,7 @@ def test_get_access_token_valid(mock_auth, auth_handler, mock_token_response):
   try:
     mock_auth.login()
     token = mock_auth.get_access_token()
-    assert token == mock_token_response["access_token"]
+    assert token == mock_token_response['access_token']
   finally:
     zdatafetch.auth.httpx.Client = original_client
 
@@ -182,7 +184,7 @@ def test_token_refresh(mock_auth, auth_handler, mock_token_response):
 
     # Getting the token should trigger a refresh
     token = mock_auth.get_access_token()
-    assert token == mock_token_response["access_token"]
+    assert token == mock_token_response['access_token']
     assert mock_auth.access_token_expiration > time.time()
 
   finally:
@@ -225,32 +227,36 @@ def test_parse_token_response(mock_auth, mock_token_response):
   now = time.time()
   mock_auth._parse_token_response(mock_token_response)
 
-  assert mock_auth.access_token == mock_token_response["access_token"]
-  assert mock_auth.refresh_token == mock_token_response["refresh_token"]
-  assert mock_auth.expires_in == mock_token_response["expires_in"]
-  assert mock_auth.refresh_expires_in == mock_token_response["refresh_expires_in"]
+  assert mock_auth.access_token == mock_token_response['access_token']
+  assert mock_auth.refresh_token == mock_token_response['refresh_token']
+  assert mock_auth.expires_in == mock_token_response['expires_in']
+  assert (
+    mock_auth.refresh_expires_in == mock_token_response['refresh_expires_in']
+  )
 
   # Check expiration timestamps are set correctly (with 5 second buffer)
   assert mock_auth.access_token_expiration > now
-  assert mock_auth.access_token_expiration <= now + mock_token_response['expires_in']
+  assert (
+    mock_auth.access_token_expiration <= now + mock_token_response['expires_in']
+  )
   assert mock_auth.refresh_token_expiration > now
   assert (
     mock_auth.refresh_token_expiration
-    <= now + mock_token_response["refresh_expires_in"]
+    <= now + mock_token_response['refresh_expires_in']
   )
 
 
 def test_token_response_with_kebab_case(mock_auth):
   """Test parsing token response with kebab-case keys."""
   token_response = {
-    "access-token": "test_token",
-    "refresh-token": "test_refresh",
-    "expires-in": 3600,
+    'access-token': 'test_token',
+    'refresh-token': 'test_refresh',
+    'expires-in': 3600,
   }
 
   mock_auth._parse_token_response(token_response)
 
   # Verify kebab-case converted to snake_case
-  assert mock_auth.access_token == "test_token"
-  assert mock_auth.refresh_token == "test_refresh"
+  assert mock_auth.access_token == 'test_token'
+  assert mock_auth.refresh_token == 'test_refresh'
   assert mock_auth.expires_in == 3600

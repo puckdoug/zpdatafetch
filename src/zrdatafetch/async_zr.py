@@ -17,7 +17,7 @@ from zrdatafetch.rate_limiter import RateLimiter
 logger = get_logger(__name__)
 
 
-# ===============================================================================
+# ==============================================================================
 class AsyncZR_obj:
   """Async version of the ZR_obj base class for Zwiftracing API.
 
@@ -42,7 +42,7 @@ class AsyncZR_obj:
   _shared_client: httpx.AsyncClient | None = None
   _owns_client: bool = False
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def __init__(
     self,
     shared_client: bool = False,
@@ -51,9 +51,11 @@ class AsyncZR_obj:
     """Initialize the AsyncZR_obj client.
 
     Args:
-      shared_client: Use a shared HTTP client for connection pooling (default: False).
-        Useful when creating multiple AsyncZR_obj instances for batch operations.
-      premium: Use premium tier rate limits (default: False for standard tier).
+      shared_client: Use a shared HTTP client for connection pooling
+        (default: False). Useful when creating multiple AsyncZR_obj
+        instances for batch operations.
+      premium: Use premium tier rate limits (default: False for
+        standard tier).
     """
     self._client: httpx.AsyncClient | None = None
     self._owns_client = not shared_client
@@ -67,7 +69,7 @@ class AsyncZR_obj:
         follow_redirects=True,
       )
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def init_client(
     self,
     client: httpx.AsyncClient | None = None,
@@ -98,7 +100,7 @@ class AsyncZR_obj:
         verify=True,
       )
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def _fetch_with_retry(
     self,
     endpoint: str,
@@ -137,7 +139,9 @@ class AsyncZR_obj:
 
     for attempt in range(max_retries):
       try:
-        logger.debug(f'Attempt {attempt + 1}/{max_retries}: {method} {endpoint}')
+        logger.debug(
+          f'Attempt {attempt + 1}/{max_retries}: {method} {endpoint}',
+        )
         response = await self._client.request(method, endpoint, **kwargs)
         response.raise_for_status()
 
@@ -204,10 +208,14 @@ class AsyncZR_obj:
       ) from last_exception
 
     raise NetworkError(
-      format_network_error('fetch endpoint', endpoint, Exception('Unknown error')),
+      format_network_error(
+        'fetch endpoint',
+        endpoint,
+        Exception('Unknown error'),
+      ),
     )
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def fetch_json(
     self,
     endpoint: str,
@@ -215,7 +223,7 @@ class AsyncZR_obj:
     max_retries: int = 3,
     **kwargs: Any,
   ) -> str:
-    """Fetch JSON data from a Zwiftracing endpoint and return as raw string (async).
+    """Fetch JSON data from Zwiftracing endpoint, return raw string (async).
 
     Automatically initializes client if needed. Retries on transient
     network errors. Returns the raw JSON response text without parsing.
@@ -279,7 +287,7 @@ class AsyncZR_obj:
         format_network_error('fetch JSON data', endpoint, e),
       ) from e
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   @classmethod
   async def close_shared_session(cls) -> None:
     """Close the shared async client if it exists.
@@ -297,7 +305,7 @@ class AsyncZR_obj:
       cls._shared_client = None
       logger.debug('Shared async client closed')
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def close(self) -> None:
     """Close the HTTP client and clean up resources.
 
@@ -313,12 +321,15 @@ class AsyncZR_obj:
       finally:
         self._client = None  # Clear reference to prevent warning in __del__
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def __aenter__(self) -> 'AsyncZR_obj':
-    """Enter async context manager - return self for use in 'async with' statement."""
+    """Enter async context manager.
+
+    Return self for use in 'async with' statement.
+    """
     return self
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> bool:
     """Exit async context manager - ensure cleanup always happens.
 
@@ -333,7 +344,7 @@ class AsyncZR_obj:
     await self.close()
     return False
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def __del__(self) -> None:
     """Fallback cleanup if context manager not used.
 

@@ -6,8 +6,8 @@ Run with: pytest --live
 
 import pytest
 
-from zpdatafetch.zpsignupfetch import ZPSignupFetch
 from zpdatafetch.zpracesignup import ZPRaceSignup
+from zpdatafetch.zpsignupfetch import ZPSignupFetch
 
 
 @pytest.mark.live

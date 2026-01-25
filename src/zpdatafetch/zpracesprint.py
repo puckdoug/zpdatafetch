@@ -391,7 +391,9 @@ class ZPRaceSprint:
     """Return the number of rider sprints."""
     return len(self._riders)
 
-  def __getitem__(self, index: int | slice) -> ZPRiderSprint | list[ZPRiderSprint]:
+  def __getitem__(
+    self, index: int | slice
+  ) -> ZPRiderSprint | list[ZPRiderSprint]:
     """Access rider sprints by index or slice."""
     return self._riders[index]
 
@@ -405,7 +407,9 @@ class ZPRaceSprint:
 
   def __str__(self) -> str:
     """Return human-readable string."""
-    return f'ZPRaceSprint(race_id={self.race_id}) with {len(self._riders)} riders'
+    return (
+      f'ZPRaceSprint(race_id={self.race_id}) with {len(self._riders)} riders'
+    )
 
   def excluded(self) -> dict[str, Any]:
     """Return recognized-but-not-explicit fields at race level."""

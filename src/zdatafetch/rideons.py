@@ -92,7 +92,9 @@ class ZwiftRideOns:
         'Zwift credentials not found. Run "zdata config" to set up credentials.',
       )
 
-    logger.debug(f'Fetching RideOns for activity {activity_id} (rider {rider_id})')
+    logger.debug(
+      f'Fetching RideOns for activity {activity_id} (rider {rider_id})'
+    )
 
     # Authenticate
     auth = ZwiftAuth(config.username, config.password)
@@ -173,7 +175,9 @@ class ZwiftRideOns:
         'Zwift credentials not found. Run "zdata config" to set up credentials.',
       )
 
-    logger.debug(f'Fetching RideOns for {len(activity_tuples)} activities in batch')
+    logger.debug(
+      f'Fetching RideOns for {len(activity_tuples)} activities in batch'
+    )
 
     # Authenticate once
     auth = ZwiftAuth(config.username, config.password)
@@ -186,9 +190,7 @@ class ZwiftRideOns:
     with httpx.Client() as client:
       for rider_id, activity_id in activity_tuples:
         try:
-          url = (
-            f'{cls.BASE_URL}/api/profiles/{rider_id}/activities/{activity_id}/rideons'
-          )
+          url = f'{cls.BASE_URL}/api/profiles/{rider_id}/activities/{activity_id}/rideons'
           response = client.get(url, headers=headers, timeout=30.0)
 
           if response.status_code == 200:
@@ -256,9 +258,7 @@ class ZwiftRideOns:
     headers = {'Authorization': f'Bearer {token}'}
 
     # POST RideOn
-    url = (
-      f'{ZwiftRideOns.BASE_URL}/api/profiles/{rider_id}/activities/{activity_id}/rideon'
-    )
+    url = f'{ZwiftRideOns.BASE_URL}/api/profiles/{rider_id}/activities/{activity_id}/rideon'
 
     try:
       with httpx.Client() as client:
@@ -302,7 +302,9 @@ class ZwiftRideOns:
 
     parsed = parse_json_safe(self._raw, context='rideons')
     if not isinstance(parsed, list):
-      logger.error(f'Expected list for RideOns data, got {type(parsed).__name__}')
+      logger.error(
+        f'Expected list for RideOns data, got {type(parsed).__name__}'
+      )
       self._fetched = {'rideons': []}
       self.rideons = []
       return
@@ -386,7 +388,9 @@ class ZwiftRideOns:
       return 'ZwiftRideOns(no data)'
 
     # Format all fields for display like profile.py does
-    lines = [f'ZwiftRideOns(rider_id={self.rider_id}, activity_id={self.activity_id})']
+    lines = [
+      f'ZwiftRideOns(rider_id={self.rider_id}, activity_id={self.activity_id})'
+    ]
     for key, value in self._fetched.items():
       lines.append(f'  {key}: {value!r},')
     lines.append(')')

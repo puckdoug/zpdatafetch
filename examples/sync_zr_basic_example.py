@@ -9,7 +9,7 @@ concurrent operations.
 from zrdatafetch import ZRResultFetch, ZRRiderFetch, ZRTeamFetch
 
 
-def main():
+def main() -> None:
   """Fetch Zwiftracing data synchronously."""
   print('Zwiftracing Data Fetching Examples')
   print('=' * 60)

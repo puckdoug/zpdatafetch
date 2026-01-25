@@ -105,7 +105,9 @@ def format_json_error(
 
   lines = []
   lines.append(f'Failed to parse response JSON from {endpoint}: {error!s}')
-  lines.append('Suggestion: The API response may be invalid or the format has changed.')
+  lines.append(
+    'Suggestion: The API response may be invalid or the format has changed.',
+  )
 
   return '\n'.join(lines)
 
@@ -139,7 +141,8 @@ def _get_recovery_suggestion(
       return 'Resource not found. Verify the endpoint URL is correct.'
     if 500 <= status_code < 600:
       return (
-        'Server error. The API may be temporarily unavailable. Retry after a moment.'
+        'Server error. The API may be temporarily unavailable. '
+        'Retry after a moment.'
       )
 
   error_str = str(error).lower()
@@ -148,6 +151,8 @@ def _get_recovery_suggestion(
   if 'timeout' in error_str:
     return 'The request timed out. Check your network connection or try again.'
   if 'ssl' in error_str or 'certificate' in error_str:
-    return 'SSL certificate verification failed. Check your system certificates.'
+    return (
+      'SSL certificate verification failed. Check your system certificates.'
+    )
 
   return 'Verify your network connection and try again.'

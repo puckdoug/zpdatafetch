@@ -102,7 +102,9 @@ class TestZR_objFetchJson:
     response = MagicMock()
     response.status_code = 404
     response.reason_phrase = 'Not Found'
-    http_error = httpx.HTTPStatusError('404 Not Found', request=None, response=response)
+    http_error = httpx.HTTPStatusError(
+      '404 Not Found', request=None, response=response
+    )
 
     with patch.object(ZR_obj, 'get_client') as mock_get_client:
       mock_client = MagicMock()

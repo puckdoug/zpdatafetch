@@ -47,14 +47,14 @@ class ZwiftRidersInWorld:
       riders: List of rider objects in the world
   """
 
-  BASE_URL = "https://us-or-rly101.zwift.com"
+  BASE_URL = 'https://us-or-rly101.zwift.com'
 
   def __init__(self) -> None:
     """Initialize empty riders in world data (no auth parameter).
 
     Credentials are loaded from Config at fetch time.
     """
-    self._raw: str = ""  # Raw JSON response
+    self._raw: str = ''  # Raw JSON response
     self._fetched: dict[str, Any] = {}  # Parsed data
     self.processed: dict = {}  # Reserved for future use
 
@@ -85,29 +85,29 @@ class ZwiftRidersInWorld:
         'Zwift credentials not found. Run "zdata config" to set up credentials.',
       )
 
-    logger.debug(f"Fetching riders in world {world_id}")
+    logger.debug(f'Fetching riders in world {world_id}')
 
     # Authenticate
     auth = ZwiftAuth(config.username, config.password)
     auth.login()
     token = auth.get_access_token()
-    headers = {"Authorization": f"Bearer {token}"}
+    headers = {'Authorization': f'Bearer {token}'}
 
     # Fetch data
     self.world_id = world_id
 
-    url = f"{self.BASE_URL}/relay/worlds/{world_id}"
+    url = f'{self.BASE_URL}/relay/worlds/{world_id}'
 
     try:
       with httpx.Client() as client:
         response = client.get(url, headers=headers, timeout=30.0)
 
         if response.status_code == 404:
-          raise NetworkError(f"World {world_id} not found")
+          raise NetworkError(f'World {world_id} not found')
         if response.status_code != 200:
           raise NetworkError(
-            f"Failed to fetch riders for world {world_id}: "
-            f"HTTP {response.status_code} - {response.text}",
+            f'Failed to fetch riders for world {world_id}: '
+            f'HTTP {response.status_code} - {response.text}',
           )
 
         # Parse and populate attributes
@@ -116,16 +116,16 @@ class ZwiftRidersInWorld:
         # Store raw response as formatted JSON from parsed data
         self._raw = json.dumps(self._fetched, indent=2)
         logger.info(
-          f"Successfully fetched {len(self.riders)} riders in world {world_id}",
+          f'Successfully fetched {len(self.riders)} riders in world {world_id}',
         )
 
     except httpx.TimeoutException as e:
       raise NetworkError(
-        f"Request timed out fetching riders for world {world_id}: {e}",
+        f'Request timed out fetching riders for world {world_id}: {e}',
       ) from e
     except httpx.HTTPError as e:
       raise NetworkError(
-        f"Network error fetching riders for world {world_id}: {e}",
+        f'Network error fetching riders for world {world_id}: {e}',
       ) from e
 
   def fetch_by_name(self, world_name: str) -> None:
@@ -144,9 +144,9 @@ class ZwiftRidersInWorld:
     world_id = get_world_id(world_name)
     if world_id is None:
       raise ValueError(
-        f"Unknown world name: {world_name}. "
-        f"Valid names: watopia, richmond, london, newyork, innsbruck, bologna, "
-        f"yorkshire, critcity, makuri, france, paris, scotland",
+        f'Unknown world name: {world_name}. '
+        f'Valid names: watopia, richmond, london, newyork, innsbruck, bologna, '
+        f'yorkshire, critcity, makuri, france, paris, scotland',
       )
     self.fetch(world_id)
 
@@ -154,7 +154,7 @@ class ZwiftRidersInWorld:
   def fetch_multiple(
     cls,
     *world_ids: int,
-  ) -> dict[int, "ZwiftRidersInWorld"]:
+  ) -> dict[int, 'ZwiftRidersInWorld']:
     """Fetch multiple worlds' riders, returning dict of objects.
 
     Args:
@@ -173,7 +173,7 @@ class ZwiftRidersInWorld:
             print(f"World {world_id}: {riders.rider_count()} riders")
     """
     if not world_ids:
-      logger.warning("No world IDs provided for batch fetch")
+      logger.warning('No world IDs provided for batch fetch')
       return {}
 
     # Load credentials once
@@ -185,20 +185,20 @@ class ZwiftRidersInWorld:
         'Zwift credentials not found. Run "zdata config" to set up credentials.',
       )
 
-    logger.debug(f"Fetching riders for {len(world_ids)} worlds in batch")
+    logger.debug(f'Fetching riders for {len(world_ids)} worlds in batch')
 
     # Authenticate once
     auth = ZwiftAuth(config.username, config.password)
     auth.login()
     token = auth.get_access_token()
-    headers = {"Authorization": f"Bearer {token}"}
+    headers = {'Authorization': f'Bearer {token}'}
 
     # Fetch all riders
     results = {}
     with httpx.Client() as client:
       for world_id in world_ids:
         try:
-          url = f"{cls.BASE_URL}/relay/worlds/{world_id}"
+          url = f'{cls.BASE_URL}/relay/worlds/{world_id}'
           response = client.get(url, headers=headers, timeout=30.0)
 
           if response.status_code == 200:
@@ -208,21 +208,21 @@ class ZwiftRidersInWorld:
             riders_obj._raw = json.dumps(riders_obj._fetched, indent=2)
             results[world_id] = riders_obj
             logger.debug(
-              f"Successfully fetched {len(riders_obj.riders)} "
-              f"riders for world {world_id}",
+              f'Successfully fetched {len(riders_obj.riders)} '
+              f'riders for world {world_id}',
             )
           else:
             logger.warning(
-              f"Failed to fetch riders for world {world_id}: "
-              f"HTTP {response.status_code}",
+              f'Failed to fetch riders for world {world_id}: '
+              f'HTTP {response.status_code}',
             )
 
         except Exception as e:
-          logger.error(f"Error fetching riders for world {world_id}: {e}")
+          logger.error(f'Error fetching riders for world {world_id}: {e}')
           continue
 
     logger.info(
-      f"Successfully fetched riders for {len(results)}/{len(world_ids)} worlds in batch",
+      f'Successfully fetched riders for {len(results)}/{len(world_ids)} worlds in batch',
     )
     return results
 
@@ -235,15 +235,15 @@ class ZwiftRidersInWorld:
         raw_json: JSON string from API response
     """
     if not raw_json:
-      logger.warning("No data to parse")
+      logger.warning('No data to parse')
       return
 
-    parsed = parse_json_safe(raw_json, context=f"world {self.world_id}")
+    parsed = parse_json_safe(raw_json, context=f'world {self.world_id}')
     if not isinstance(parsed, dict):
       logger.error(
-        f"Expected dict for riders in world data, got {type(parsed).__name__}",
+        f'Expected dict for riders in world data, got {type(parsed).__name__}',
       )
-      self._fetched = {"riders": []}
+      self._fetched = {'riders': []}
       self.riders = []
       return
 
@@ -253,16 +253,16 @@ class ZwiftRidersInWorld:
 
     # Extract riders - they might be in 'friendsInWorld' or 'playerEntryList' or similar
     # We'll store the full response and let the user navigate it
-    if "friendsInWorld" in parsed:
-      self.riders = parsed["friendsInWorld"]
-    elif "playerEntryList" in parsed:
-      self.riders = parsed["playerEntryList"]
+    if 'friendsInWorld' in parsed:
+      self.riders = parsed['friendsInWorld']
+    elif 'playerEntryList' in parsed:
+      self.riders = parsed['playerEntryList']
     else:
       # Store empty list if no recognized rider field
       self.riders = []
 
     logger.debug(
-      f"Successfully parsed world {self.world_id} data with {len(self.riders)} riders",
+      f'Successfully parsed world {self.world_id} data with {len(self.riders)} riders',
     )
 
   def rider_count(self) -> int:
@@ -279,7 +279,7 @@ class ZwiftRidersInWorld:
     Returns:
         List of rider IDs
     """
-    return [r.get("id", 0) for r in self.riders if "id" in r]
+    return [r.get('id', 0) for r in self.riders if 'id' in r]
 
   def __getattr__(self, name: str) -> Any:  # noqa: ANN401
     """Allow attribute access to any field.
@@ -293,7 +293,7 @@ class ZwiftRidersInWorld:
     Raises:
         AttributeError: If field doesn't exist
     """
-    if name.startswith("_"):
+    if name.startswith('_'):
       raise AttributeError(
         f"'{type(self).__name__}' object has no attribute '{name}'",
       )
@@ -322,14 +322,14 @@ class ZwiftRidersInWorld:
         Formatted string showing riders data
     """
     if not self._fetched:
-      return "ZwiftRidersInWorld(no data)"
+      return 'ZwiftRidersInWorld(no data)'
 
     # Format all fields for display like profile.py does
-    lines = [f"ZwiftRidersInWorld(world_id={self.world_id})"]
+    lines = [f'ZwiftRidersInWorld(world_id={self.world_id})']
     for key, value in self._fetched.items():
-      lines.append(f"  {key}: {value!r},")
-    lines.append(")")
-    return "\n".join(lines)
+      lines.append(f'  {key}: {value!r},')
+    lines.append(')')
+    return '\n'.join(lines)
 
   def __repr__(self) -> str:
     """Return detailed representation showing all fields.
@@ -338,8 +338,10 @@ class ZwiftRidersInWorld:
         String representation with all data
     """
     if not self._fetched:
-      return "ZwiftRidersInWorld()"
-    return f'ZwiftRidersInWorld(world_id={self.world_id}, riders={len(self.riders)})'
+      return 'ZwiftRidersInWorld()'
+    return (
+      f'ZwiftRidersInWorld(world_id={self.world_id}, riders={len(self.riders)})'
+    )
 
   def asdict(self) -> dict[str, Any]:
     """Return underlying data as dictionary.

@@ -15,7 +15,7 @@ from zrdatafetch.logging_config import get_logger
 logger = get_logger(__name__)
 
 
-# ===============================================================================
+# ==============================================================================
 class ZRConfig(BaseConfig):
   """Manages Zwiftracing API credentials using system keyring.
 
@@ -29,7 +29,7 @@ class ZRConfig(BaseConfig):
 
   authorization: str = ''
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def _get_domain(self) -> str:
     """Return the keyring domain for Zwiftracing credentials.
 
@@ -38,7 +38,7 @@ class ZRConfig(BaseConfig):
     """
     return 'zrdatafetch'
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def _prompt_for_credentials(self, authorization: str = '') -> None:
     """Prompt for Zwiftracing API authorization header.
 
@@ -56,14 +56,14 @@ class ZRConfig(BaseConfig):
 
     keyring.set_password(self.domain, 'authorization', self.authorization)
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def _clear_credentials_impl(self) -> None:
     """Clear authorization from memory."""
     if self.authorization:
       self.authorization = '*' * len(self.authorization)
       self.authorization = ''
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def _verify_exists_impl(self) -> bool:
     """Check if authorization is set.
 
@@ -72,7 +72,7 @@ class ZRConfig(BaseConfig):
     """
     return bool(self.authorization)
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def save(self) -> None:
     """Save authorization header to the system keyring.
 
@@ -82,7 +82,7 @@ class ZRConfig(BaseConfig):
     keyring.set_password(self.domain, 'authorization', self.authorization)
     logger.info('Authorization saved successfully')
 
-  # -----------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def load(self) -> None:
     """Load authorization header from the system keyring.
 
@@ -102,7 +102,7 @@ class ZRConfig(BaseConfig):
 Config = ZRConfig
 
 
-# ===============================================================================
+# ==============================================================================
 def main() -> None:
   """CLI entry point for config management."""
   c = Config()
@@ -113,6 +113,6 @@ def main() -> None:
     print('No authorization found in keyring')
 
 
-# ===============================================================================
+# ==============================================================================
 if __name__ == '__main__':
   sys.exit(main())

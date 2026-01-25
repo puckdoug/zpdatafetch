@@ -9,7 +9,7 @@ def test_ridersinworld_initialization():
   """Test ZwiftRidersInWorld initialization."""
   riders = ZwiftRidersInWorld()
 
-  assert riders._raw == ""
+  assert riders._raw == ''
   assert riders._fetched == {}
   assert riders.world_id == 0
   assert riders.riders == []
@@ -54,16 +54,16 @@ def test_parse_response_with_player_list():
   riders._parse_response(raw_json)
 
   assert len(riders.riders) == 2
-  assert riders.riders[0]["id"] == 550564
+  assert riders.riders[0]['id'] == 550564
 
 
 def test_rider_count():
   """Test rider count helper."""
   riders = ZwiftRidersInWorld()
   riders.riders = [
-    {"id": 1},
-    {"id": 2},
-    {"id": 3},
+    {'id': 1},
+    {'id': 2},
+    {'id': 3},
   ]
 
   assert riders.rider_count() == 3
@@ -73,8 +73,8 @@ def test_rider_ids():
   """Test extracting rider IDs."""
   riders = ZwiftRidersInWorld()
   riders.riders = [
-    {"id": 123, "firstName": "John"},
-    {"id": 456, "firstName": "Jane"},
+    {'id': 123, 'firstName': 'John'},
+    {'id': 456, 'firstName': 'Jane'},
   ]
 
   ids = riders.rider_ids()
@@ -85,39 +85,39 @@ def test_str_representation():
   """Test string representation."""
   riders = ZwiftRidersInWorld()
   riders.world_id = 1
-  riders.riders = [{"id": 1}, {"id": 2}]
-  riders._fetched = {"worldId": 1, "friendsInWorld": riders.riders}
+  riders.riders = [{'id': 1}, {'id': 2}]
+  riders._fetched = {'worldId': 1, 'friendsInWorld': riders.riders}
 
   output = str(riders)
-  assert "ZwiftRidersInWorld(world_id=1)" in output
-  assert "worldId:" in output
+  assert 'ZwiftRidersInWorld(world_id=1)' in output
+  assert 'worldId:' in output
 
 
 def test_json_serialization():
   """Test JSON serialization."""
   riders = ZwiftRidersInWorld()
   riders._fetched = {
-    "worldId": 1,
-    "friendsInWorld": [
-      {"id": 123, "firstName": "John"},
-      {"id": 456, "firstName": "Jane"},
+    'worldId': 1,
+    'friendsInWorld': [
+      {'id': 123, 'firstName': 'John'},
+      {'id': 456, 'firstName': 'Jane'},
     ],
   }
 
   json_str = riders.json()
   data = json.loads(json_str)
-  assert "worldId" in data
-  assert "friendsInWorld" in data
+  assert 'worldId' in data
+  assert 'friendsInWorld' in data
 
 
 def test_asdict():
   """Test dictionary access."""
   riders = ZwiftRidersInWorld()
-  riders._fetched = {"worldId": 1}
+  riders._fetched = {'worldId': 1}
 
   data = riders.asdict()
   assert isinstance(data, dict)
-  assert "worldId" in data
+  assert 'worldId' in data
 
 
 def test_parse_empty_world():
@@ -135,4 +135,4 @@ def test_parse_malformed_response():
   riders._parse_response('"not a dict"')
 
   assert riders.riders == []
-  assert riders._fetched == {"riders": []}
+  assert riders._fetched == {'riders': []}

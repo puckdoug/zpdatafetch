@@ -57,7 +57,9 @@ class ZPPrimeResult:
   _extra: dict[str, Any] = field(default_factory=dict, repr=False)
 
   @classmethod
-  def from_dict(cls, data: dict[str, Any], position: int = 0) -> 'ZPPrimeResult':
+  def from_dict(
+    cls, data: dict[str, Any], position: int = 0
+  ) -> 'ZPPrimeResult':
     """Create instance from rider data dict.
 
     Args:
@@ -266,7 +268,9 @@ class ZPPrimeSegment:
     """Return number of rider results in this segment."""
     return len(self._results)
 
-  def __getitem__(self, index: int | slice) -> ZPPrimeResult | list[ZPPrimeResult]:
+  def __getitem__(
+    self, index: int | slice
+  ) -> ZPPrimeResult | list[ZPPrimeResult]:
     """Get rider result(s) by index or slice."""
     return self._results[index]
 
@@ -522,7 +526,9 @@ class ZPPrime(Sequence):
     for category, cat_data in self._categories.items():
       categories_dict[category] = {}
       for prime_type, segments in cat_data.items():
-        categories_dict[category][prime_type] = [seg.asdict() for seg in segments]
+        categories_dict[category][prime_type] = [
+          seg.asdict() for seg in segments
+        ]
 
     return {
       'race_id': self.race_id,

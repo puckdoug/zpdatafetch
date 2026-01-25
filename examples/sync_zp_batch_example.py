@@ -8,7 +8,7 @@ and race results sequentially using the synchronous API.
 from zpdatafetch import ZP, Cyclist, Result
 
 
-def fetch_multiple_cyclists(athlete_ids: list[int]):
+def fetch_multiple_cyclists(athlete_ids: list[int]) -> None:
   """Fetch data for multiple cyclists sequentially.
 
   Args:
@@ -55,7 +55,7 @@ def fetch_multiple_cyclists(athlete_ids: list[int]):
   return cyclists_data
 
 
-def fetch_multiple_results(race_ids: list[int]):
+def fetch_multiple_results(race_ids: list[int]) -> None:
   """Fetch data for multiple race results sequentially.
 
   Args:
@@ -82,7 +82,9 @@ def fetch_multiple_results(race_ids: list[int]):
           'race_id': race_id,
           'name': result.name,
           'category': result.category if hasattr(result, 'category') else 'N/A',
-          'event_type': result.event_type if hasattr(result, 'event_type') else 'N/A',
+          'event_type': (
+            result.event_type if hasattr(result, 'event_type') else 'N/A'
+          ),
         }
       )
 
@@ -100,7 +102,7 @@ def fetch_multiple_results(race_ids: list[int]):
   return results_data
 
 
-def main():
+def main() -> None:
   """Demonstrate batch fetching with synchronous API."""
   print('Batch Fetching Example (Synchronous)')
   print('=' * 60)
@@ -158,7 +160,8 @@ def main():
     for result_info in successful:
       print(
         f'  - {result_info["name"]} (ID: {result_info["race_id"]}) '
-        f'Category: {result_info["category"]} Type: {result_info["event_type"]}',
+        f'Category: {result_info["category"]} '
+        f'Type: {result_info["event_type"]}',
       )
 
   if failed:

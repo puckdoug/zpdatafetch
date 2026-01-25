@@ -19,7 +19,7 @@ from zpdatafetch.zpteam import ZPTeam
 logger = get_logger(__name__)
 
 
-# ===============================================================================
+# ==============================================================================
 class ZPTeamFetch(ZP_obj):
   """Fetches and stores team roster data from Zwiftpower.
 
@@ -58,7 +58,7 @@ class ZPTeamFetch(ZP_obj):
     self._zp: AsyncZP | None = None  # Async session
     self._zp_sync: ZP | None = None  # Sync session (for reference only)
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def set_session(self, zp: AsyncZP) -> None:
     """Set the AsyncZP session to use for async fetching.
 
@@ -67,7 +67,7 @@ class ZPTeamFetch(ZP_obj):
     """
     self._zp = zp
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def set_zp_session(self, zp: ZP) -> None:
     """Set the ZP session to use for fetching.
 
@@ -78,7 +78,7 @@ class ZPTeamFetch(ZP_obj):
     """
     self._zp_sync = zp
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def _get_or_create_session(self) -> tuple[AsyncZP, bool]:
     """Get or create an async session for fetching.
 
@@ -102,7 +102,7 @@ class ZPTeamFetch(ZP_obj):
     await temp_zp.login()
     return (temp_zp, True)
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def _fetch_parallel(self, *team_id: int) -> dict[int, ZPTeam]:
     """Fetch team data in parallel using async requests.
 
@@ -172,9 +172,9 @@ class ZPTeamFetch(ZP_obj):
       if owns_session:
         await session.close()
 
-  # -------------------------------------------------------------------------------
-  # -------------------------------------------------------------------------------
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def _fetch_sequential(self, *team_id: int) -> dict[int, ZPTeam]:
     """Fetch team data sequentially (synchronous mode).
 
@@ -192,7 +192,9 @@ class ZPTeamFetch(ZP_obj):
       NetworkError: If network requests fail
       AuthenticationError: If authentication fails
     """
-    logger.info(f'Fetching team data in synchronous mode for {len(team_id)} ID(s)')
+    logger.info(
+      f'Fetching team data in synchronous mode for {len(team_id)} ID(s)'
+    )
 
     # SECURITY: Validate all IDs before processing
     try:
@@ -229,7 +231,9 @@ class ZPTeamFetch(ZP_obj):
 
     self.processed = {}  # Reserved for future use
 
-    logger.info(f'Successfully fetched {len(validated_ids)} team(s) in sync mode')
+    logger.info(
+      f'Successfully fetched {len(validated_ids)} team(s) in sync mode'
+    )
     return self._fetched
 
   @classmethod
@@ -277,7 +281,7 @@ class ZPTeamFetch(ZP_obj):
       # No running loop - safe to use asyncio.run()
       return asyncio.run(self._fetch_parallel(*team_id))
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   async def afetch(self, *team_id: int) -> dict[int, ZPTeam]:
     """Fetch team data for one or more team IDs (asynchronous interface).
 
@@ -297,7 +301,7 @@ class ZPTeamFetch(ZP_obj):
     """
     return await self._fetch_parallel(*team_id)
 
-  # -------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   def json(self) -> str:
     """Return JSON string representation of fetched data.
 
@@ -313,7 +317,7 @@ class ZPTeamFetch(ZP_obj):
     return json.JSONEncoder(indent=2).encode(serializable)
 
 
-# ===============================================================================
+# ==============================================================================
 def main() -> None:
   p = ArgumentParser(
     description='Module for fetching cyclist data using the Zwiftpower API',
@@ -349,6 +353,6 @@ def main() -> None:
     print(x.raw)
 
 
-# ===============================================================================
+# ==============================================================================
 if __name__ == '__main__':
   main()

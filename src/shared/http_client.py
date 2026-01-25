@@ -1,4 +1,6 @@
-"""Shared HTTP client utilities and base classes for both zpdatafetch and zrdatafetch.
+"""Shared HTTP client utilities and base classes.
+
+Used by both zpdatafetch and zrdatafetch packages.
 
 This module provides:
 1. Retry logic functions for both sync and async HTTP clients
@@ -17,9 +19,9 @@ import httpx
 
 from shared.exceptions import NetworkError
 
-# ===============================================================================
+# ==============================================================================
 # RETRY LOGIC FUNCTIONS
-# ===============================================================================
+# ==============================================================================
 
 
 def fetch_with_retry_sync(
@@ -92,7 +94,8 @@ def fetch_with_retry_sync(
         break
       wait_time = backoff_factor * (2**attempt)
       logger.warning(
-        f'Request error on attempt {attempt + 1}: {e}. Retrying in {wait_time:.1f}s...',
+        f'Request error on attempt {attempt + 1}: {e}. '
+        f'Retrying in {wait_time:.1f}s...',
       )
       time.sleep(wait_time)
 
@@ -116,7 +119,8 @@ async def fetch_with_retry_async(
 ) -> httpx.Response:
   """Fetch URL with exponential backoff retry logic (async variant).
 
-  Async version using anyio.sleep() for compatibility with both asyncio and trio.
+  Async version using anyio.sleep() for compatibility with both asyncio
+  and trio.
 
   Args:
     client: httpx.AsyncClient instance
@@ -174,7 +178,8 @@ async def fetch_with_retry_async(
         break
       wait_time = backoff_factor * (2**attempt)
       logger.warning(
-        f'Request error on attempt {attempt + 1}: {e}. Retrying in {wait_time:.1f}s...',
+        f'Request error on attempt {attempt + 1}: {e}. '
+        f'Retrying in {wait_time:.1f}s...',
       )
       await anyio.sleep(wait_time)
 
@@ -187,9 +192,9 @@ async def fetch_with_retry_async(
   raise NetworkError(f'Unexpected error fetching {url}')
 
 
-# ===============================================================================
+# ==============================================================================
 # ABSTRACT BASE CLASSES
-# ===============================================================================
+# ==============================================================================
 
 
 class BaseHTTPClient(ABC):
@@ -203,9 +208,9 @@ class BaseHTTPClient(ABC):
   _shared_client: httpx.Client | None = None
   _owns_client: bool = False
 
-  # ---------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   # TEMPLATE METHODS - Override in subclasses
-  # ---------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
 
   @abstractmethod
   def _create_client(self) -> httpx.Client:
@@ -217,7 +222,12 @@ class BaseHTTPClient(ABC):
       Configured httpx.Client instance
     """
 
-  def _before_request(self, url: str, method: str = 'GET', **kwargs: Any) -> None:
+  def _before_request(
+    self,
+    url: str,
+    method: str = 'GET',
+    **kwargs: Any,
+  ) -> None:
     """Hook called before making a request.
 
     Default: no-op. Override in subclasses for pre-request operations like:
@@ -252,9 +262,9 @@ class BaseHTTPClient(ABC):
     - Resource release
     """
 
-  # ---------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   # SHARED IMPLEMENTATIONS
-  # ---------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
 
   def init_client(self, client: httpx.Client | None = None) -> None:
     """Initialize or replace the HTTP client.
@@ -321,9 +331,9 @@ class AsyncBaseHTTPClient(ABC):
   _shared_client: httpx.AsyncClient | None = None
   _owns_client: bool = False
 
-  # ---------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   # TEMPLATE METHODS - Override in subclasses
-  # ---------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
 
   @abstractmethod
   async def _create_client(self) -> httpx.AsyncClient:
@@ -333,7 +343,12 @@ class AsyncBaseHTTPClient(ABC):
       Returns: Configured httpx.AsyncClient instance
     """
 
-  async def _before_request(self, url: str, method: str = 'GET', **kwargs: Any) -> None:
+  async def _before_request(
+    self,
+    url: str,
+    method: str = 'GET',
+    **kwargs: Any,
+  ) -> None:
     """Hook called before making a request.
 
     Default: no-op. Override for pre-request operations.
@@ -351,9 +366,9 @@ class AsyncBaseHTTPClient(ABC):
     Default: no-op. Override for cleanup operations.
     """
 
-  # ---------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   # SHARED IMPLEMENTATIONS
-  # ---------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
 
   async def init_client(self, client: httpx.AsyncClient | None = None) -> None:
     """Initialize or replace the async HTTP client.

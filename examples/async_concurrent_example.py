@@ -7,7 +7,7 @@ import time
 from zpdatafetch import AsyncZP, Cyclist, Result
 
 
-async def fetch_sequential():
+async def fetch_sequential() -> None:
   """Fetch data sequentially (slower)."""
   print('\n=== Sequential Fetching ===')
   start = time.time()
@@ -31,7 +31,7 @@ async def fetch_sequential():
   print(f'Sequential fetch completed in {elapsed:.2f} seconds')
 
 
-async def fetch_concurrent():
+async def fetch_concurrent() -> None:
   """Fetch data concurrently (faster)."""
   print('\n=== Concurrent Fetching ===')
   start = time.time()
@@ -58,7 +58,7 @@ async def fetch_concurrent():
   print(f'Concurrent fetch completed in {elapsed:.2f} seconds')
 
 
-async def main():
+async def main() -> None:
   """Compare sequential vs concurrent fetching."""
   print('Comparing Sequential vs Concurrent Fetching')
   print('=' * 50)

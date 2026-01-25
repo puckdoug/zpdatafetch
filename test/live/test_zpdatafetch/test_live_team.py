@@ -6,8 +6,8 @@ Run with: pytest --live
 
 import pytest
 
-from zpdatafetch.zpteamfetch import ZPTeamFetch
 from zpdatafetch.zpteam import ZPTeam
+from zpdatafetch.zpteamfetch import ZPTeamFetch
 
 
 @pytest.mark.live

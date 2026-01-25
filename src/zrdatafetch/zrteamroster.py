@@ -9,7 +9,12 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 
 from zrdatafetch.logging_config import get_logger
-from zrdatafetch.zr_utils import extract_nested_value, safe_float, safe_int, safe_str
+from zrdatafetch.zr_utils import (
+  extract_nested_value,
+  safe_float,
+  safe_int,
+  safe_str,
+)
 
 logger = get_logger(__name__)
 
@@ -134,7 +139,9 @@ class ZRTeamMember:
       )
 
       # Max30 ratings and categories
-      max30_rating = safe_float(extract_nested_value(data, 'race', 'max30', 'rating'))
+      max30_rating = safe_float(
+        extract_nested_value(data, 'race', 'max30', 'rating')
+      )
       max30_category_mixed = safe_str(
         extract_nested_value(data, 'race', 'max30', 'mixed', 'category'),
       )
@@ -143,7 +150,9 @@ class ZRTeamMember:
       )
 
       # Max90 ratings and categories
-      max90_rating = safe_float(extract_nested_value(data, 'race', 'max90', 'rating'))
+      max90_rating = safe_float(
+        extract_nested_value(data, 'race', 'max90', 'rating')
+      )
       max90_category_mixed = safe_str(
         extract_nested_value(data, 'race', 'max90', 'mixed', 'category'),
       )
@@ -154,7 +163,9 @@ class ZRTeamMember:
       # Power metrics
       power_awc = safe_float(extract_nested_value(data, 'power', 'AWC'))
       power_cp = safe_float(extract_nested_value(data, 'power', 'CP'))
-      power_cs = safe_float(extract_nested_value(data, 'power', 'compoundScore'))
+      power_cs = safe_float(
+        extract_nested_value(data, 'power', 'compoundScore')
+      )
       power_w5 = safe_float(extract_nested_value(data, 'power', 'w5'))
       power_w15 = safe_float(extract_nested_value(data, 'power', 'w15'))
       power_w30 = safe_float(extract_nested_value(data, 'power', 'w30'))

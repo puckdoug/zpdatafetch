@@ -8,7 +8,7 @@ to respect API quotas. The API supports standard and premium rate limits.
 from zrdatafetch import ZR_obj, ZRRiderFetch
 
 
-def main():
+def main() -> None:
   """Demonstrate rate limiting with synchronous API."""
   print('Rate Limiting Example (Synchronous)')
   print('=' * 60)
@@ -47,7 +47,7 @@ def main():
 
   premium_fetcher = ZRRiderFetch()
   premium_riders = premium_fetcher.fetch(67890)
-  premium_rider = premium_riders[67890]
+  premium_riders[67890]
 
   print(f'\nRate limiter tier: {premium_fetcher.rate_limiter.tier}')
   print(f'Rate limiter status: {premium_fetcher.rate_limiter.get_status()}')

@@ -5,10 +5,10 @@ This example demonstrates how to manage Zwiftpower sessions efficiently,
 including session sharing and reuse across multiple data fetching objects.
 """
 
-from zpdatafetch import ZP, Cyclist, Primes, Result, Team
+from zpdatafetch import ZP, Cyclist, Result, Team
 
 
-def example_session_sharing():
+def example_session_sharing() -> None:
   """Demonstrate session sharing across multiple objects."""
   print('\n1. Session Sharing')
   print('-' * 60)
@@ -55,7 +55,7 @@ def example_session_sharing():
   print('\nBenefit: Shared connection pooling and cookies')
 
 
-def example_multiple_sessions():
+def example_multiple_sessions() -> None:
   """Demonstrate using multiple independent sessions."""
   print('\n2. Multiple Independent Sessions')
   print('-' * 60)
@@ -81,7 +81,7 @@ def example_multiple_sessions():
   print('\nBenefit: Isolation between different data types/sources')
 
 
-def example_session_reuse():
+def example_session_reuse() -> None:
   """Demonstrate efficient session reuse."""
   print('\n3. Session Reuse')
   print('-' * 60)
@@ -106,7 +106,7 @@ def example_session_reuse():
   print('\nBenefit: Efficient connection pooling and reduced overhead')
 
 
-def example_context_manager():
+def example_context_manager() -> None:
   """Demonstrate using context managers for automatic cleanup."""
   print('\n4. Context Manager Pattern')
   print('-' * 60)
@@ -131,7 +131,7 @@ def example_context_manager():
     print('Session cleanup (if needed)')
 
 
-def example_error_handling():
+def example_error_handling() -> None:
   """Demonstrate error handling with sessions."""
   print('\n5. Error Handling with Sessions')
   print('-' * 60)
@@ -162,7 +162,7 @@ def example_error_handling():
   print('Session remains valid for subsequent operations')
 
 
-def main():
+def main() -> None:
   """Demonstrate various session management patterns."""
   print('Zwiftpower Session Management Examples')
   print('=' * 60)

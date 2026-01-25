@@ -87,7 +87,9 @@ def test_fetch_json_success(zp):
 
   def handler(request):
     if 'login' in str(request.url):
-      return httpx.Response(200, text='<html><form action="/login"></form></html>')
+      return httpx.Response(
+        200, text='<html><form action="/login"></form></html>'
+      )
     return httpx.Response(200, text=json.dumps(test_data))
 
   zp.init_client(
@@ -101,7 +103,9 @@ def test_fetch_json_success(zp):
 def test_fetch_json_invalid_json(zp):
   def handler(request):
     if 'login' in str(request.url):
-      return httpx.Response(200, text='<html><form action="/login"></form></html>')
+      return httpx.Response(
+        200, text='<html><form action="/login"></form></html>'
+      )
     return httpx.Response(200, text='not valid json')
 
   zp.init_client(
@@ -115,7 +119,9 @@ def test_fetch_json_invalid_json(zp):
 def test_fetch_json_network_error(zp):
   def handler(request):
     if 'login' in str(request.url):
-      return httpx.Response(200, text='<html><form action="/login"></form></html>')
+      return httpx.Response(
+        200, text='<html><form action="/login"></form></html>'
+      )
     raise httpx.ConnectError('Network error')
 
   zp.init_client(
@@ -131,7 +137,9 @@ def test_fetch_page_success(zp):
 
   def handler(request):
     if 'login' in str(request.url):
-      return httpx.Response(200, text='<html><form action="/login"></form></html>')
+      return httpx.Response(
+        200, text='<html><form action="/login"></form></html>'
+      )
     return httpx.Response(200, text=test_html)
 
   zp.init_client(
@@ -145,7 +153,9 @@ def test_fetch_page_success(zp):
 def test_fetch_page_http_error(zp):
   def handler(request):
     if 'login' in str(request.url):
-      return httpx.Response(200, text='<html><form action="/login"></form></html>')
+      return httpx.Response(
+        200, text='<html><form action="/login"></form></html>'
+      )
     return httpx.Response(404, text='Not Found')
 
   zp.init_client(
@@ -300,7 +310,9 @@ def test_fetch_with_retry_success(zp):
   zp.init_client(
     httpx.Client(follow_redirects=True, transport=httpx.MockTransport(handler)),
   )
-  response = zp._fetch_with_retry('https://zwiftpower.com/api/test', max_retries=3)
+  response = zp._fetch_with_retry(
+    'https://zwiftpower.com/api/test', max_retries=3
+  )
   assert response.status_code == 200
 
 

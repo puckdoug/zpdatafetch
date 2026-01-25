@@ -78,7 +78,9 @@ def test_team_fetch_single_id(team, login_page, logged_in_page):
 def test_team_json_output(team):
   from zpdatafetch.zpteam import ZPTeam
 
-  team._fetched = {999: ZPTeam.from_dict({'data': [{'name': 'ZPTeamFetch Rider'}]})}
+  team._fetched = {
+    999: ZPTeam.from_dict({'data': [{'name': 'ZPTeamFetch Rider'}]})
+  }
   json_str = team.json()
   assert '999' in json_str
   assert 'ZPTeamFetch Rider' in json_str

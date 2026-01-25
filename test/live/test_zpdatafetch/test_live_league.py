@@ -6,8 +6,8 @@ Run with: pytest --live
 
 import pytest
 
-from zpdatafetch.zpleaguefetch import ZPLeagueFetch
 from zpdatafetch.zpleague import ZPLeague
+from zpdatafetch.zpleaguefetch import ZPLeagueFetch
 
 
 @pytest.mark.live
@@ -100,7 +100,9 @@ async def test_live_league_afetch_single_id(valid_league_id, league_fixtures):
 
 @pytest.mark.live
 @pytest.mark.anyio
-async def test_live_league_afetch_multiple_ids(valid_league_ids, league_fixtures):
+async def test_live_league_afetch_multiple_ids(
+  valid_league_ids, league_fixtures
+):
   """Test fetching multiple league IDs via async interface."""
   league = ZPLeagueFetch()
   result = await league.afetch(*valid_league_ids)

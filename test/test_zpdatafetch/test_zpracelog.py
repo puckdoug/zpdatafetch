@@ -73,7 +73,8 @@ class TestRacelogInitialization:
     """Test that race data is preserved correctly."""
     racelog = ZPRacelog(sample_race_list)
     assert (
-      racelog._races[0].event_title == 'Stage 1: Fresh Outta 25: Prospect Park Loop'
+      racelog._races[0].event_title
+      == 'Stage 1: Fresh Outta 25: Prospect Park Loop'
     )
     assert racelog._races[1].position == 29
 
@@ -347,9 +348,17 @@ class TestRacelogDaysLast:
     racelog = ZPRacelog(
       [
         {'zid': '1', 'event_date': int(sixty_days_ago), 'event_title': 'Old 1'},
-        {'zid': '2', 'event_date': int(twenty_days_ago), 'event_title': 'Recent 1'},
+        {
+          'zid': '2',
+          'event_date': int(twenty_days_ago),
+          'event_title': 'Recent 1',
+        },
         {'zid': '3', 'event_date': int(forty_days_ago), 'event_title': 'Old 2'},
-        {'zid': '4', 'event_date': int(five_days_ago), 'event_title': 'Recent 2'},
+        {
+          'zid': '4',
+          'event_date': int(five_days_ago),
+          'event_title': 'Recent 2',
+        },
         {'zid': '5', 'event_date': int(now), 'event_title': 'Recent 3'},
       ],
     )
@@ -497,7 +506,9 @@ class TestRacelogWithRealData:
   @pytest.fixture
   def real_racelog(self):
     """Load real racelog from fixture file."""
-    fixture_path = Path(__file__).parent.parent.parent / 'tmp' / '7574336_all.json'
+    fixture_path = (
+      Path(__file__).parent.parent.parent / 'tmp' / '7574336_all.json'
+    )
     if not fixture_path.exists():
       pytest.skip('Fixture file not available')
 
@@ -545,7 +556,9 @@ class TestRacelogWithRealData:
 
   def test_real_data_large_dataset(self):
     """Test with larger dataset (550564_all.json)."""
-    fixture_path = Path(__file__).parent.parent.parent / 'tmp' / '550564_all.json'
+    fixture_path = (
+      Path(__file__).parent.parent.parent / 'tmp' / '550564_all.json'
+    )
     if not fixture_path.exists():
       pytest.skip('Large fixture file not available')
 
