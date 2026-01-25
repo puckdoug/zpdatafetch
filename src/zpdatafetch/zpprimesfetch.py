@@ -138,8 +138,10 @@ class ZPPrimesFetch(ZP_obj):
       # Copy authentication state from sync to async client
       if self._zp_sync._client and async_zp._client:
         # Share the cookies - this preserves the login session
-        async_zp._client.cookies = self._zp_sync._client.cookies
-        logger.debug('Copied authentication cookies from sync to async session')
+        assert async_zp._client is not None
+      assert self._zp_sync._client is not None
+      async_zp._client.cookies = self._zp_sync._client.cookies  # type: ignore[assignment]
+      logger.debug('Copied authentication cookies from sync to async session')
 
       # Don't store this - create fresh each time to avoid lifecycle issues
       return (async_zp, True)  # We own this temporary wrapper
@@ -216,7 +218,8 @@ class ZPPrimesFetch(ZP_obj):
           # Parse JSON for processing
           race, cat, primetype = url_mapping[idx]
           parsed = parse_json_safe(
-            raw_json, context=f'prime {race}/{cat}/{primetype}'
+            raw_json,
+            context=f'prime {race}/{cat}/{primetype}',
           )
           results_parsed[idx] = parsed if isinstance(parsed, dict) else {}
         except Exception as e:
@@ -258,10 +261,7 @@ class ZPPrimesFetch(ZP_obj):
           p_raw[race][cat][primetype] = raw_result
           p_fetched_dict[race][cat][primetype] = parsed_result
 
-          if (
-            'data' not in parsed_result
-            or len(parsed_result.get('data', [])) == 0
-          ):
+          if 'data' not in parsed_result or len(parsed_result.get('data', [])) == 0:
             logger.debug(f'No results for {primetype} in category {cat}')
           else:
             logger.debug(f'Results found for {primetype} in category {cat}')
@@ -277,7 +277,7 @@ class ZPPrimesFetch(ZP_obj):
       self._fetched = p_fetched
       self.processed = {}  # Reserved for future use
       logger.info(
-        f'Successfully fetched prime data for {len(validated_ids)} race(s)'
+        f'Successfully fetched prime data for {len(validated_ids)} race(s)',
       )
       return self._fetched
 
@@ -307,7 +307,7 @@ class ZPPrimesFetch(ZP_obj):
       AuthenticationError: If authentication fails
     """
     logger.info(
-      f'Fetching primes data in synchronous mode for {len(race_id)} race(s)'
+      f'Fetching primes data in synchronous mode for {len(race_id)} race(s)',
     )
 
     # SECURITY: Validate all IDs before processing
@@ -354,13 +354,15 @@ class ZPPrimesFetch(ZP_obj):
               parsed if isinstance(parsed, dict) else {}
             )
 
-            if 'data' not in parsed or len(parsed.get('data', [])) == 0:
+            if 'data' not in parsed or (
+              isinstance(parsed, dict) and len(parsed.get('data', [])) == 0
+            ):
               logger.debug(f'No results for {primetype} in category {cat}')
             else:
               logger.debug(f'Results found for {primetype} in category {cat}')
           except Exception as e:
             logger.error(
-              f'Error fetching {primetype} for race {race} cat {cat}: {e}'
+              f'Error fetching {primetype} for race {race} cat {cat}: {e}',
             )
             error_json = json.dumps({'data': [], 'error': str(e)})
             p_raw[race][cat][primetype] = error_json
@@ -380,7 +382,7 @@ class ZPPrimesFetch(ZP_obj):
     self.processed = {}  # Reserved for future use
 
     logger.info(
-      f'Successfully fetched {len(validated_ids)} race(s) in sync mode'
+      f'Successfully fetched {len(validated_ids)} race(s) in sync mode',
     )
     return self._fetched
 

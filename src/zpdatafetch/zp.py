@@ -30,7 +30,9 @@ class ZP(BaseHTTPClient):
   """
 
   _client: httpx.Client | None = None
-  _login_url: str = 'https://zwiftpower.com/ucp.php?mode=login&login=external&oauth_service=oauthzpsso'
+  _login_url: str = (
+    'https://zwiftpower.com/ucp.php?mode=login&login=external&oauth_service=oauthzpsso'
+  )
   _shared_client: httpx.Client | None = None
   _owns_client: bool = False
 
@@ -101,6 +103,7 @@ class ZP(BaseHTTPClient):
 
     if not self._client:
       self.init_client()
+    assert self._client is not None
 
     try:
       logger.debug(f'Fetching url: {self._login_url}')
@@ -207,14 +210,17 @@ class ZP(BaseHTTPClient):
       Configured httpx.Client instance
     """
     logger.debug(
-      'Creating new httpx client with HTTPS certificate verification'
+      'Creating new httpx client with HTTPS certificate verification',
     )
     # SECURITY: Explicitly enable certificate verification for HTTPS connections
     return httpx.Client(follow_redirects=True, verify=True)
 
   # ----------------------------------------------------------------------------
   def _before_request(
-    self, url: str, method: str = 'GET', **kwargs: Any
+    self,
+    url: str,
+    method: str = 'GET',
+    **kwargs: Any,
   ) -> None:
     """Ensure logged in before making requests."""
     if not self._client:
@@ -259,6 +265,7 @@ class ZP(BaseHTTPClient):
       logger.debug(f'Fetching JSON from: {endpoint}')
       if not self._client:
         self.init_client()
+      assert self._client is not None
       pres = fetch_with_retry_sync(
         self._client,
         endpoint,
@@ -310,6 +317,7 @@ class ZP(BaseHTTPClient):
 
       if not self._client:
         self.init_client()
+      assert self._client is not None
       pres = fetch_with_retry_sync(
         self._client,
         endpoint,
@@ -383,6 +391,7 @@ class ZP(BaseHTTPClient):
     """
     if not self._client:
       self.login()
+    assert self._client is not None
     return fetch_with_retry_sync(
       self._client,
       url,
@@ -476,7 +485,7 @@ def main() -> None:
   Core module for accessing Zwiftpower API endpoints
   """
   zp = ZP()
-  zp.verbose = True
+  zp.verbose = True  # type: ignore[attr-defined]
   zp.login()
   if zp.login_response:
     print(zp.login_response.status_code)

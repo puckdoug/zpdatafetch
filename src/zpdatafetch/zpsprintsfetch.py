@@ -96,6 +96,8 @@ class ZPSprintsFetch(ZP_obj):
     if self._zp_sync:
       async_zp = AsyncZP(skip_credential_check=True)
       await async_zp.init_client()
+      assert async_zp._client is not None
+      assert self._zp_sync._client is not None
       async_zp._client.cookies = self._zp_sync._client.cookies
       return (async_zp, True)
 
@@ -304,7 +306,7 @@ class ZPSprintsFetch(ZP_obj):
       AuthenticationError: If authentication fails
     """
     logger.info(
-      f'Fetching sprints data in synchronous mode for {len(race_id)} ID(s)'
+      f'Fetching sprints data in synchronous mode for {len(race_id)} ID(s)',
     )
 
     # SECURITY: Validate all IDs before processing
@@ -343,7 +345,7 @@ class ZPSprintsFetch(ZP_obj):
     self.processed = {}  # Reserved for future use
 
     logger.info(
-      f'Successfully fetched {len(validated_ids)} sprints(s) in sync mode'
+      f'Successfully fetched {len(validated_ids)} sprints(s) in sync mode',
     )
 
     # Fetch primes data and enrich sprints with banner names

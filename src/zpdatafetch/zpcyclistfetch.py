@@ -11,16 +11,16 @@ import anyio
 
 # Python 3.10 compatibility
 if sys.version_info >= (3, 11):
-  from builtins import BaseExceptionGroup  # type: ignore[attr-defined]
+  from builtins import BaseExceptionGroup
 else:
   # For Python 3.10, anyio provides ExceptionGroup
   try:
-    from exceptiongroup import (
-      BaseExceptionGroup,  # type: ignore[import-not-found]
+    from exceptiongroup import (  # type: ignore[import-untyped]
+      BaseExceptionGroup,
     )
   except ImportError:
     # Fallback - catch the anyio exception type
-    BaseExceptionGroup = Exception  # type: ignore[misc,assignment]
+    BaseExceptionGroup = Exception
 
 from shared.json_helpers import parse_json_safe
 from shared.validation import ValidationError, validate_id_list
@@ -107,6 +107,8 @@ class ZPCyclistFetch(ZP_obj):
     if self._zp_sync:
       async_zp = AsyncZP(skip_credential_check=True)
       await async_zp.init_client()
+      assert async_zp._client is not None
+      assert self._zp_sync._client is not None
       async_zp._client.cookies = self._zp_sync._client.cookies
       return (async_zp, True)
 
@@ -149,7 +151,8 @@ class ZPCyclistFetch(ZP_obj):
       # Execute all fetches in parallel
       results_raw: dict[int, str] = {}
       results_fetched_dict: dict[
-        int, dict[str, Any]
+        int,
+        dict[str, Any],
       ] = {}  # Temporary dict structure
 
       async def fetch_and_store(
@@ -194,9 +197,16 @@ class ZPCyclistFetch(ZP_obj):
         # Extract the first NetworkError from the exception group
         from shared.exceptions import NetworkError
 
-        for exc in eg.exceptions:
-          if isinstance(exc, NetworkError):
-            raise exc
+        # BaseExceptionGroup from Python 3.11+ has exceptions attribute
+        # The exceptiongroup backport also has it
+        # But our fallback (Exception) does not
+        if hasattr(eg, 'exceptions') and callable(
+          getattr(eg, '__iter__', None),
+        ):
+          exceptions_list = getattr(eg, 'exceptions', [])
+          for exc in exceptions_list:
+            if isinstance(exc, NetworkError):
+              raise exc
         # If no NetworkError found, re-raise the exception group
         raise
 
@@ -210,7 +220,7 @@ class ZPCyclistFetch(ZP_obj):
       self._fetched = results_fetched
       self.processed = {}  # Reserved for future use
       logger.info(
-        f'Successfully fetched {len(validated_ids)} cyclist profile(s)'
+        f'Successfully fetched {len(validated_ids)} cyclist profile(s)',
       )
 
       return self._fetched
@@ -250,7 +260,7 @@ class ZPCyclistFetch(ZP_obj):
       AuthenticationError: If authentication fails
     """
     logger.info(
-      f'Fetching cyclist data in synchronous mode for {len(zwift_id)} ID(s)'
+      f'Fetching cyclist data in synchronous mode for {len(zwift_id)} ID(s)',
     )
 
     # SECURITY: Validate all Zwift IDs before processing
@@ -265,7 +275,8 @@ class ZPCyclistFetch(ZP_obj):
 
     results_raw: dict[int, str] = {}
     results_fetched_dict: dict[
-      int, dict[str, Any]
+      int,
+      dict[str, Any],
     ] = {}  # Temporary dict structure
 
     # Fetch each ID sequentially

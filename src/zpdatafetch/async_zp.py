@@ -47,7 +47,9 @@ class AsyncZP(AsyncBaseHTTPClient):
   """
 
   _client: httpx.AsyncClient | None = None
-  _login_url: str = 'https://zwiftpower.com/ucp.php?mode=login&login=external&oauth_service=oauthzpsso'
+  _login_url: str = (
+    'https://zwiftpower.com/ucp.php?mode=login&login=external&oauth_service=oauthzpsso'
+  )
   _shared_client: httpx.AsyncClient | None = None
   _owns_client: bool = False
 
@@ -84,7 +86,8 @@ class AsyncZP(AsyncBaseHTTPClient):
     if shared_client and AsyncZP._shared_client is None:
       logger.debug('Creating shared async HTTP client for connection pooling')
       AsyncZP._shared_client = httpx.AsyncClient(
-        follow_redirects=True, verify=True
+        follow_redirects=True,
+        verify=True,
       )
 
   # ----------------------------------------------------------------------------
@@ -122,6 +125,7 @@ class AsyncZP(AsyncBaseHTTPClient):
 
     if not self._client:
       await self.init_client()
+    assert self._client is not None
 
     try:
       logger.debug(f'Fetching url: {self._login_url}')
@@ -227,14 +231,17 @@ class AsyncZP(AsyncBaseHTTPClient):
       Configured httpx.AsyncClient instance
     """
     logger.debug(
-      'Creating new httpx async client with HTTPS certificate verification'
+      'Creating new httpx async client with HTTPS certificate verification',
     )
     # SECURITY: Explicitly enable certificate verification for HTTPS
     return httpx.AsyncClient(follow_redirects=True, verify=True)
 
   # ----------------------------------------------------------------------------
   async def _before_request(
-    self, url: str, method: str = 'GET', **kwargs: Any
+    self,
+    url: str,
+    method: str = 'GET',
+    **kwargs: Any,
   ) -> None:
     """Ensure logged in before making requests."""
     if not self._client:
@@ -282,6 +289,7 @@ class AsyncZP(AsyncBaseHTTPClient):
       logger.debug(f'Fetching JSON from: {endpoint}')
       if not self._client:
         await self.init_client()
+      assert self._client is not None
       pres = await fetch_with_retry_async(
         self._client,
         endpoint,
@@ -299,10 +307,7 @@ class AsyncZP(AsyncBaseHTTPClient):
     except httpx.HTTPStatusError as e:
       logger.debug(f'HTTP error fetching {endpoint}: {e}')
       # Special handling for 403 on cyclist profile URLs
-      if (
-        e.response.status_code == 403
-        and 'zwiftpower.com/cache3/profile/' in endpoint
-      ):
+      if e.response.status_code == 403 and 'zwiftpower.com/cache3/profile/' in endpoint:
         raise NetworkError(
           format_network_error(
             'fetch Zwift profile',
@@ -350,6 +355,7 @@ class AsyncZP(AsyncBaseHTTPClient):
       logger.debug(f'Fetching HTML page from: {endpoint}')
       if not self._client:
         await self.init_client()
+      assert self._client is not None
       pres = await fetch_with_retry_async(
         self._client,
         endpoint,
@@ -403,6 +409,7 @@ class AsyncZP(AsyncBaseHTTPClient):
     """
     if not self._client:
       await self.login()
+    assert self._client is not None
     return await fetch_with_retry_async(
       self._client,
       url,

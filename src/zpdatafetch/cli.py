@@ -161,16 +161,16 @@ Module for fetching zwiftpower data using the Zwifpower API
             # Extract key parts
             first_line = lines[0] if lines else str(e)
             endpoint = next(
-              (line for line in lines if 'Endpoint:' in line), None
+              (line for line in lines if 'Endpoint:' in line),
+              None,
             )
             status = next(
-              (line for line in lines if 'HTTP Status:' in line), None
+              (line for line in lines if 'HTTP Status:' in line),
+              None,
             )
 
             if zwid and endpoint:
-              url = (
-                endpoint.split(': ', 1)[1] if ': ' in endpoint else 'unknown'
-              )
+              url = endpoint.split(': ', 1)[1] if ': ' in endpoint else 'unknown'
               # Extract status code and construct error message
               status_code = (
                 status.split(': ')[1] if status and ': ' in status else '403'
@@ -187,7 +187,8 @@ Module for fetching zwiftpower data using the Zwifpower API
             # Normal mode: simplified message with suggestion and profile link
             lines = error_msg.split('\n')
             suggestion = next(
-              (line for line in lines if 'Suggestion:' in line), None
+              (line for line in lines if 'Suggestion:' in line),
+              None,
             )
             if zwid and suggestion:
               print(
@@ -299,7 +300,7 @@ Module for fetching zwiftpower data using the Zwifpower API
       if args.excluded:
         # Check for excluded at the collection level
         if hasattr(value, 'excluded'):
-          value_excluded = value.excluded()  # type: ignore[call-non-callable]
+          value_excluded = value.excluded()
           if value_excluded:
             print(f'  collection excluded: {value_excluded}')
             has_excluded = True
@@ -321,7 +322,7 @@ Module for fetching zwiftpower data using the Zwifpower API
       if args.extras:
         # Check for extras at the collection level
         if hasattr(value, 'extras'):
-          value_extras = value.extras()  # type: ignore[call-non-callable]
+          value_extras = value.extras()
           if value_extras:
             print(f'  collection extras: {value_extras}')
             has_extras = True
@@ -362,7 +363,7 @@ Module for fetching zwiftpower data using the Zwifpower API
         print(f'{prefix}{obj!r}')
         # Iterate through items and show each recursively
         try:
-          for item in obj:  # type: ignore[iteration-not-supported]
+          for item in obj:
             print_collection(item, indent + 1)
         except (TypeError, AttributeError):
           pass

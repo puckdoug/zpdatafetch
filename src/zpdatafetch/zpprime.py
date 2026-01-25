@@ -58,7 +58,9 @@ class ZPPrimeResult:
 
   @classmethod
   def from_dict(
-    cls, data: dict[str, Any], position: int = 0
+    cls,
+    data: dict[str, Any],
+    position: int = 0,
   ) -> 'ZPPrimeResult':
     """Create instance from rider data dict.
 
@@ -269,7 +271,8 @@ class ZPPrimeSegment:
     return len(self._results)
 
   def __getitem__(
-    self, index: int | slice
+    self,
+    index: int | slice,
   ) -> ZPPrimeResult | list[ZPPrimeResult]:
     """Get rider result(s) by index or slice."""
     return self._results[index]
@@ -416,7 +419,7 @@ class ZPPrime(Sequence):
     """Return truly unknown/new fields from API response."""
     return dict(self._extra)
 
-  def __contains__(self, key: object) -> bool:
+  def __contains__(self, key: object) -> bool:  # type: ignore[override]
     """Check if category exists in prime data (dict-style) or segment exists (sequence)."""
     if isinstance(key, str):
       return key in self._categories
@@ -526,9 +529,7 @@ class ZPPrime(Sequence):
     for category, cat_data in self._categories.items():
       categories_dict[category] = {}
       for prime_type, segments in cat_data.items():
-        categories_dict[category][prime_type] = [
-          seg.asdict() for seg in segments
-        ]
+        categories_dict[category][prime_type] = [seg.asdict() for seg in segments]
 
     return {
       'race_id': self.race_id,

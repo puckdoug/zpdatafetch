@@ -53,7 +53,8 @@ class ZPSignupFetch(ZP_obj):
     """Initialize a new Signup instance."""
     super().__init__()
     self._fetched: dict[
-      int, ZPRaceSignup
+      int,
+      ZPRaceSignup,
     ] = {}  # Override type to use ZPRaceSignup
     self._zp: AsyncZP | None = None  # Async session
     self._zp_sync: ZP | None = None  # Sync session (for reference only)
@@ -94,6 +95,8 @@ class ZPSignupFetch(ZP_obj):
     if self._zp_sync:
       async_zp = AsyncZP(skip_credential_check=True)
       await async_zp.init_client()
+      assert async_zp._client is not None
+      assert self._zp_sync._client is not None
       async_zp._client.cookies = self._zp_sync._client.cookies
       return (async_zp, True)
 
@@ -104,7 +107,8 @@ class ZPSignupFetch(ZP_obj):
 
   # ----------------------------------------------------------------------------
   async def _fetch_parallel(
-    self, *race_id_list: int
+    self,
+    *race_id_list: int,
   ) -> dict[int, ZPRaceSignup]:
     """Fetch race signups in parallel using async requests.
 
@@ -169,7 +173,7 @@ class ZPSignupFetch(ZP_obj):
       self._fetched = results_fetched
       self.processed = {}  # Reserved for future use
       logger.info(
-        f'Successfully fetched {len(validated_ids)} race signup list(s)'
+        f'Successfully fetched {len(validated_ids)} race signup list(s)',
       )
 
       return self._fetched
@@ -199,7 +203,7 @@ class ZPSignupFetch(ZP_obj):
       AuthenticationError: If authentication fails
     """
     logger.info(
-      f'Fetching signup data in synchronous mode for {len(race_id)} ID(s)'
+      f'Fetching signup data in synchronous mode for {len(race_id)} ID(s)',
     )
 
     # SECURITY: Validate all IDs before processing
@@ -238,7 +242,7 @@ class ZPSignupFetch(ZP_obj):
     self.processed = {}  # Reserved for future use
 
     logger.info(
-      f'Successfully fetched {len(validated_ids)} signup(s) in sync mode'
+      f'Successfully fetched {len(validated_ids)} signup(s) in sync mode',
     )
     return self._fetched
 

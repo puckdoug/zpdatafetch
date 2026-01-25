@@ -24,19 +24,23 @@ def setup_logging(
   if verbose:
     console_level = logging.DEBUG
 
-  # Build logging config
-  config = {
-    'level': console_level,
-    'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    'datefmt': '%Y-%m-%d %H:%M:%S',
-  }
-
-  # Add file handler if log_file specified and not forcing console
+  # Configure basic logging
   if log_file and not force_console:
-    config['filename'] = log_file
-    config['filemode'] = 'a'
-
-  logging.basicConfig(**config)
+    # Log to file only
+    logging.basicConfig(
+      level=console_level,
+      format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+      datefmt='%Y-%m-%d %H:%M:%S',
+      filename=log_file,
+      filemode='a',
+    )
+  else:
+    # Log to console
+    logging.basicConfig(
+      level=console_level,
+      format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+      datefmt='%Y-%m-%d %H:%M:%S',
+    )
 
   # If both file and console are needed, add file handler separately
   if log_file and force_console:

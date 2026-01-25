@@ -88,7 +88,7 @@ class ZwiftAuth:
         self._parse_token_response(response.json())
 
       logger.info(
-        f'Authentication successful (token expires in {self.expires_in}s)'
+        f'Authentication successful (token expires in {self.expires_in}s)',
       )
 
     except httpx.TimeoutException as e:
@@ -143,7 +143,7 @@ class ZwiftAuth:
         return self.access_token
 
     raise RuntimeError(
-      'No valid token available. Call login() first or re-authenticate.'
+      'No valid token available. Call login() first or re-authenticate.',
     )
 
   def _refresh_token(self) -> None:
@@ -167,7 +167,7 @@ class ZwiftAuth:
 
         if response.status_code == 401:
           raise AuthenticationError(
-            'Token refresh failed - authentication required'
+            'Token refresh failed - authentication required',
           )
         if response.status_code != 200:
           raise AuthenticationError(
@@ -190,6 +190,7 @@ class ZwiftAuth:
         True if we have valid access or refresh tokens, False otherwise
     """
     now = time.time()
-    return (self.access_token and now < self.access_token_expiration) or (
-      self.refresh_token and now < self.refresh_token_expiration
+    return bool(
+      (self.access_token and now < self.access_token_expiration)
+      or (self.refresh_token and now < self.refresh_token_expiration),
     )

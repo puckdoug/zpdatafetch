@@ -6,7 +6,7 @@ support for standard and premium tier rate limits.
 
 import time
 from collections import deque
-from typing import Literal
+from typing import Any, Literal
 
 import anyio
 
@@ -155,7 +155,7 @@ class RateLimiter:
     Returns:
       Dict with endpoint status including requests used and remaining
     """
-    status = {'tier': self.tier, 'endpoints': {}}
+    status: dict[str, Any] = {'tier': self.tier, 'endpoints': {}}
     now = time.time()
 
     for endpoint, (max_requests, window) in self.limits.items():

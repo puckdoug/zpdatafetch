@@ -155,10 +155,7 @@ class ZRRiderFetch(ZR_obj):
               max30_rank=rider.max30_rank,
               max90_rating=rider.max90_rating,
               max90_rank=rider.max90_rank,
-              drs_rating=rider.drs_rating,
-              drs_rank=rider.drs_rank,
               zrcs=rider.zrcs,
-              source=rider.source,
               _excluded=rider._excluded,
               _extra=rider._extra,
             )
@@ -248,10 +245,7 @@ class ZRRiderFetch(ZR_obj):
               max30_rank=rider.max30_rank,
               max90_rating=rider.max90_rating,
               max90_rank=rider.max90_rank,
-              drs_rating=rider.drs_rating,
-              drs_rank=rider.drs_rank,
               zrcs=rider.zrcs,
-              source=rider.source,
               _excluded=rider._excluded,
               _extra=rider._extra,
             )

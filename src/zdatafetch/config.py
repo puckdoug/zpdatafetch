@@ -6,6 +6,7 @@ system keyring for secure credential management.
 
 import sys
 from getpass import getpass
+from typing import Any
 
 import keyring
 
@@ -43,15 +44,16 @@ class Config(BaseConfig):
     return 'zdatafetch'
 
   # ----------------------------------------------------------------------------
-  def _prompt_for_credentials(
-    self, username: str = '', password: str = ''
-  ) -> None:
+  def _prompt_for_credentials(self, **kwargs: Any) -> None:  # noqa: ANN401
     """Prompt for Zwift username and password.
 
     Args:
       username: Zwift username (prompts if empty)
       password: Zwift password (prompts securely if empty)
     """
+    username = kwargs.get('username', '')
+    password = kwargs.get('password', '')
+
     if username:
       self.username = username
       logger.debug('Using provided username')

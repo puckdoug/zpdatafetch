@@ -130,6 +130,7 @@ class AsyncZR_obj:
     """
     if self._client is None:
       await self.init_client()
+    assert self._client is not None
 
     # Check rate limits before attempting request
     endpoint_type = RateLimiter.get_endpoint_type(method, endpoint)

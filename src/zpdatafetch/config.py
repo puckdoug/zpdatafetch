@@ -5,6 +5,7 @@ Manages Zwiftpower credentials using the system keyring for secure storage.
 
 import sys
 from getpass import getpass
+from typing import Any
 
 import keyring
 
@@ -40,15 +41,16 @@ class ZPConfig(BaseConfig):
     return 'zpdatafetch'
 
   # ----------------------------------------------------------------------------
-  def _prompt_for_credentials(
-    self, username: str = '', password: str = ''
-  ) -> None:
+  def _prompt_for_credentials(self, **kwargs: Any) -> None:  # noqa: ANN401
     """Prompt for Zwiftpower username and password.
 
     Args:
       username: Zwiftpower username (prompts if empty)
       password: Zwiftpower password (prompts securely if empty)
     """
+    username = kwargs.get('username', '')
+    password = kwargs.get('password', '')
+
     if username:
       self.username = username
       logger.debug('Using provided username')

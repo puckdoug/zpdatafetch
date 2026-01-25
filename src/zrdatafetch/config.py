@@ -6,6 +6,7 @@ for secure storage.
 
 import sys
 from getpass import getpass
+from typing import Any
 
 import keyring
 
@@ -39,12 +40,14 @@ class ZRConfig(BaseConfig):
     return 'zrdatafetch'
 
   # ----------------------------------------------------------------------------
-  def _prompt_for_credentials(self, authorization: str = '') -> None:
+  def _prompt_for_credentials(self, **kwargs: Any) -> None:  # noqa: ANN401
     """Prompt for Zwiftracing API authorization header.
 
     Args:
       authorization: Zwiftracing API authorization header (prompts if empty)
     """
+    authorization = kwargs.get('authorization', '')
+
     if authorization:
       self.authorization = authorization
       logger.debug('Using provided authorization')

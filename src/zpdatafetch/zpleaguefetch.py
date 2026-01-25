@@ -107,6 +107,8 @@ class ZPLeagueFetch(ZP_obj):
     if self._zp_sync:
       async_zp = AsyncZP(skip_credential_check=True)
       await async_zp.init_client()
+      assert async_zp._client is not None
+      assert self._zp_sync._client is not None
       async_zp._client.cookies = self._zp_sync._client.cookies
       return (async_zp, True)
 
@@ -207,7 +209,7 @@ class ZPLeagueFetch(ZP_obj):
       AuthenticationError: If authentication fails
     """
     logger.info(
-      f'Fetching league data in synchronous mode for {len(league_id)} ID(s)'
+      f'Fetching league data in synchronous mode for {len(league_id)} ID(s)',
     )
 
     # SECURITY: Validate all IDs before processing
@@ -236,7 +238,8 @@ class ZPLeagueFetch(ZP_obj):
       parsed = parse_json_safe(raw_json, context=f'league {id_val}')
       league_dict = parsed if isinstance(parsed, dict) else {}
       results_fetched[id_val] = ZPLeague.from_dict(
-        league_dict, league_id=id_val
+        league_dict,
+        league_id=id_val,
       )
 
       logger.debug(f'Successfully fetched league data for league ID: {id_val}')
@@ -248,7 +251,7 @@ class ZPLeagueFetch(ZP_obj):
     self.processed = {}  # Reserved for future use
 
     logger.info(
-      f'Successfully fetched {len(validated_ids)} league(s) in sync mode'
+      f'Successfully fetched {len(validated_ids)} league(s) in sync mode',
     )
     return self._fetched
 
