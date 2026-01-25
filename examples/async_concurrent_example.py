@@ -4,7 +4,7 @@
 import asyncio
 import time
 
-from zpdatafetch import AsyncCyclist, AsyncResult, AsyncZP
+from zpdatafetch import AsyncZP, Cyclist, Result
 
 
 async def fetch_sequential():
@@ -14,18 +14,18 @@ async def fetch_sequential():
 
   async with AsyncZP() as zp:
     # Create objects
-    cyclist = AsyncCyclist()
-    result = AsyncResult()
+    cyclist = Cyclist()
+    result = Result()
 
     cyclist.set_session(zp)
     result.set_session(zp)
 
     # Fetch one at a time
     print('Fetching cyclists...')
-    await cyclist.fetch(123456, 789012)
+    await cyclist.afetch(123456, 789012)
 
     print('Fetching race results...')
-    await result.fetch(3590800, 3590801)
+    await result.afetch(3590800, 3590801)
 
   elapsed = time.time() - start
   print(f'Sequential fetch completed in {elapsed:.2f} seconds')
@@ -38,8 +38,8 @@ async def fetch_concurrent():
 
   async with AsyncZP() as zp:
     # Create objects
-    cyclist = AsyncCyclist()
-    result = AsyncResult()
+    cyclist = Cyclist()
+    result = Result()
 
     cyclist.set_session(zp)
     result.set_session(zp)
@@ -47,8 +47,8 @@ async def fetch_concurrent():
     # Fetch concurrently using asyncio.gather
     print('Fetching cyclists and results concurrently...')
     cyclist_data, result_data = await asyncio.gather(
-      cyclist.fetch(123456, 789012),
-      result.fetch(3590800, 3590801),
+      cyclist.afetch(123456, 789012),
+      result.afetch(3590800, 3590801),
     )
 
     print(f'Fetched {len(cyclist_data)} cyclists')

@@ -3,7 +3,7 @@
 
 import asyncio
 
-from zpdatafetch import AsyncCyclist, AsyncZP
+from zpdatafetch import AsyncZP, Cyclist
 
 
 async def main():
@@ -13,16 +13,22 @@ async def main():
     print('Logged in to Zwiftpower')
 
     # Create cyclist object and set session
-    cyclist = AsyncCyclist()
+    cyclist = Cyclist()
     cyclist.set_session(zp)
 
-    # Fetch data for one or more cyclists
+    # Fetch data for one or more cyclists using afetch
     print('Fetching cyclist data...')
-    data = await cyclist.fetch(123456)
+    cyclists = await cyclist.afetch(123456)
+
+    # Get the cyclist data from the returned dictionary
+    cyclist_data = cyclists.get(123456)
 
     # Display results
-    print('\nCyclist Data:')
-    print(cyclist.json())
+    if cyclist_data:
+      print('\nCyclist Data:')
+      print(cyclist_data.asdict())
+    else:
+      print('\nNo cyclist data found')
 
 
 if __name__ == '__main__':

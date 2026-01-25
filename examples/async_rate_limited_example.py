@@ -3,7 +3,7 @@
 
 import asyncio
 
-from zpdatafetch import AsyncCyclist, AsyncZP
+from zpdatafetch import AsyncZP, Cyclist
 
 
 async def fetch_with_rate_limit(cyclist_ids: list[int], max_concurrent: int = 5):
@@ -19,10 +19,10 @@ async def fetch_with_rate_limit(cyclist_ids: list[int], max_concurrent: int = 5)
   async def fetch_one(zp, cyclist_id):
     """Fetch a single cyclist with semaphore."""
     async with semaphore:
-      cyclist = AsyncCyclist()
+      cyclist = Cyclist()
       cyclist.set_session(zp)
       print(f'Fetching cyclist {cyclist_id}...')
-      data = await cyclist.fetch(cyclist_id)
+      data = await cyclist.afetch(cyclist_id)
       print(f'✓ Fetched cyclist {cyclist_id}')
       return data
 
