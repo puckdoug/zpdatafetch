@@ -1,32 +1,64 @@
 # Changelog
 
-## [unreleased]
+## [2.0.0]
+
+This update makes significnat changes to the library and CLI methods. The main goal was to move back to delivering results a native python objects. At the saiem time, the `.raw()` method wasn't delivering exact copies of the data returned from each website and this has been changed as well. Temporarily, there's a flag/method to support the legacy v1 format. This will be removed in a future relase.
+
+There's also the basic start of work to fetch data from the Zwift mobile endpoint. This is currently still quite primitive and should not be relied upon, but may be useful for exploration.
 
 ### Added
 
-- **Synchronous debug mode** - New `--sync` command-line flag and `set_sync_mode()` method for all data classes
-  - Forces sequential, non-parallel requests
-  - Provides clear, separate execution path
-  - Library usage: `Cyclist.set_sync_mode(True)` to enable, `Cyclist.set_sync_mode(False)` to disable
-  - CLI usage: `zpdata --sync cyclist 123456` or `zrdata --sync rider 123456`
-- **--v1fetch flag** - New CLI flag for outputting fetched data in v1.8 format for backward compatibility
-  - Returns parsed/fetched data as JSON
-  - Library usage: `.fetched()` method returns the same data
-  - CLI usage: `zpdata --v1fetch cyclist 123456` or `zrdata --v1fetch rider 123456`. This has been added temporarily to support migration but will be removed in a future release.
+- **Typed dataclass objects** for all API responses with attribute-based access
+  - ZwiftPower: `ZPCyclist`, `ZPRaceResult`, `ZPRiderFinish`, `ZPTeam`, `ZPTeamMember`, `ZPRaceSignup`, `ZPRiderSignup`, `ZPPrime`, `ZPPrimeResult`, `ZPPrimeSegment`, `ZPRaceSprint`, `ZPRiderSprint`, `ZPLeague`, `ZPRaceFinish`, `ZPRacelog`
+  - Zwiftracing: `ZRRiderRating`, `ZRRaceResult`, `ZRRiderResult`, `ZRTeamRoster`, `ZRTeamMember`
+- **Utility functions** - Shared utilities in `zp_utils.py` and `zr_utils.py`
+- **Data dictionary documentation** - Comprehensive field documentation for all data structures
+- **Fixed async examples** - Corrected 3 async ZwiftPower examples to use proper imports (`Cyclist` with `.afetch()`)
+- **Synchronous debug mode** - `--sync` flag and `set_sync_mode()` for sequential requests
+- **--v1fetch flag** - Temporary backwards compatibility for old output format
+- Added new access method for zwift mobile API (still experimental!)
 
 ### Changed
 
-- **POTENTIALLY BREAKING: --raw flag output format** - The `--raw` CLI flag now outputs true unadulterated raw response text from the server
-  - **Single ID queries**: Outputs just the raw JSON string (no ID wrapper)
-    - Example: `zpdata --raw cyclist 123456` → `{"name": "John", "id": 123456, ...}`
-  - **Multiple ID queries**: Outputs as `key: value` format (one per line) to maintain ID mapping
-    - Example: `zpdata --raw cyclist 123456 789012` →
-      ```
-      123456: {"name": "John", "id": 123456, ...}
-      789012: {"name": "Jane", "id": 789012, ...}
-      ```
-  - **Library API unchanged**: `.raw()` method still returns `dict[int, str]` mapping IDs to raw strings
-  - **Migration**: If you relied on the old `--raw` output format, use `--v1fetch` instead for backward compatibility
+- **POTENTIALLY BREAKING: --raw flag output format** - Now outputs true raw response text
+  - Single ID: `zpdata --raw cyclist 123456` → `{"name": "John", ...}`
+  - Multiple IDs: `key: value` format to maintain ID mapping
+  - Library `.raw()` method unchanged: returns `dict[int, str]`
+- **Standardized `.asdict()` method** - All dataclasses use consistent dictionary serialization
+- **Consistent fetch patterns** - Both ZwiftPower and Zwiftracing use same fetcher/dataclass separation
+
+### Breaking Changes
+
+- **Dataclass architecture refactor** - All ZwiftPower and Zwiftracing data now returned as typed dataclass objects instead of raw dictionaries
+  - **ZwiftPower**: Fetcher classes now return `dict[int, DataClass]` instead of storing data in fetcher instance
+    - `Cyclist.fetch(123)` returns `dict[int, ZPCyclist]` with cyclist data in dataclass attributes
+    - `Result.fetch(456)` returns `dict[int, ZPRaceResult]` containing `ZPRiderFinish` objects
+    - `Team.fetch(789)` returns `dict[int, ZPTeam]` containing `ZPTeamMember` objects
+    - `Signup.fetch(456)` returns `dict[int, ZPRaceSignup]` containing `ZPRiderSignup` objects
+    - `Primes.fetch(456)` returns `dict[int, ZPPrime]` containing `ZPPrimeResult` and `ZPPrimeSegment` objects
+    - `Sprints.fetch(456)` returns `dict[int, ZPRaceSprint]` containing `ZPRiderSprint` objects
+    - `League.fetch(789)` returns `dict[int, ZPLeague]`
+  - **Zwiftracing**: Fetcher classes also return typed dataclass objects
+    - `ZRRiderFetch.fetch(123)` returns `dict[int, ZRRiderRating]`
+    - `ZRResultFetch.fetch(456)` returns `dict[int, ZRRaceResult]` containing `ZRRiderResult` objects
+    - `ZRTeamFetch.fetch(789)` returns `dict[int, ZRTeamRoster]` containing `ZRTeamMember` objects
+  - **Migration**: Access data via dataclass attributes instead of dictionary keys
+    - Old: `cyclist.fetch(123); name = cyclist.name`
+    - New: `cyclists = cyclist.fetch(123); name = cyclists[123].name`
+    - Use `.asdict()` method on dataclass instances for dictionary representation
+  - **Backwards compatibility**: `--v1fetch` CLI flag and `.fetched()` method provide old format temporarily
+- **Renamed classes for consistency** - All ZwiftPower classes now prefixed with `ZP`
+  - Fetch classes: `Cyclist` → `ZPCyclistFetch`, `Result` → `ZPResultFetch`, etc.
+  - Data classes: New typed dataclasses (`ZPCyclist`, `ZPRaceResult`, `ZPTeam`, etc.)
+  - Old names remain as aliases for backwards compatibility (`Cyclist = ZPCyclistFetch`)
+- **Fetcher instance no longer stores data** - Data returned from `fetch()`/`afetch()` methods, not stored in fetcher
+  - Old pattern: `cyclist = Cyclist(); cyclist.fetch(123); print(cyclist.name)`
+  - New pattern: `cyclist = Cyclist(); data = cyclist.fetch(123); print(data[123].name)`
+- **ZPCyclist attribute changes** - Key cyclist info now extracted from most recent race
+  - Added: `zwift_id`, `team_id`, `team_name`, `gender`, `category`, `category_women`, `zftp`, `height`, `weight`, `skill`, `age`
+  - Removed direct access to `_data` dictionary (use `.asdict()` instead)
+  - Race history via `.racelog` property returns `ZPRacelog` with `ZPRaceFinish` objects
+- **Removed DRS-specific fields** - Zwiftracing rider fetch no longer includes DRS rating fields
 
 ## [1.8.0]
 
