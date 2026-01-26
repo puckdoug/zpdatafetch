@@ -388,13 +388,13 @@ flowchart LR
 
 ---
 
-#### Account ID
+#### Aid
 
 | Raw API Field | Python Attribute | Type | Transformation | Lineage  |
 | ------------- | ---------------- | ---- | -------------- | -------- |
 | `aid`         | `aid`            | int  | None           | Mastered |
 
-Account ID (purpose unknown).
+aid (purpose unknown)
 
 ```mermaid
 flowchart LR

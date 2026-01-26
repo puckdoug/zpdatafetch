@@ -24,7 +24,7 @@ async def main() -> None:
 
     fetcher = ZRRiderFetch()
     fetcher.set_session(zr)
-    riders = await fetcher.afetch(12345)  # Returns dict[int, ZRRiderRating]
+    riders = await fetcher.afetch(12345)  # Returns dict[int, ZRRider]
     rider = riders[12345]
 
     print(f'Rider Name: {rider.name}')

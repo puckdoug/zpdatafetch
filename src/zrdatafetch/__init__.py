@@ -12,7 +12,7 @@ Basic Usage (Separate Fetcher and Dataclass Pattern):
   from zrdatafetch import ZRRiderFetch
 
   fetcher = ZRRiderFetch()
-  riders = fetcher.fetch(12345, 67890)  # Returns dict[int, ZRRiderRating]
+  riders = fetcher.fetch(12345, 67890)  # Returns dict[int, ZRRider]
   for zwift_id, rider in riders.items():
     print(f"{rider.name}: {rider.current_rating}")
 
@@ -29,11 +29,11 @@ from zrdatafetch.zr import ZR_obj
 from zrdatafetch.zrraceresult import ZRRaceResult, ZRRiderResult
 from zrdatafetch.zrresultfetch import ZRResultFetch
 
+# Pure dataclasses (data containers, no fetch logic)
+from zrdatafetch.zrrider import ZRRider
+
 # Fetcher classes (handle API requests, return native dataclass objects)
 from zrdatafetch.zrriderfetch import ZRRiderFetch
-
-# Pure dataclasses (data containers, no fetch logic)
-from zrdatafetch.zrriderrating import ZRRiderRating
 from zrdatafetch.zrteamfetch import ZRTeamFetch
 from zrdatafetch.zrteamroster import ZRTeamMember, ZRTeamRoster
 
@@ -48,7 +48,7 @@ __all__ = [
   'ZRResultFetch',
   'ZRTeamFetch',
   # Pure dataclasses (no fetch logic)
-  'ZRRiderRating',
+  'ZRRider',
   'ZRRaceResult',
   'ZRRiderResult',
   'ZRTeamMember',

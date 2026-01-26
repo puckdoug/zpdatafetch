@@ -59,7 +59,7 @@ def main() -> None:
   print(f'Fetching all {len(zwift_ids)} riders in one batch request...\n')
 
   try:
-    # Batch fetch returns dict[int, ZRRiderRating]
+    # Batch fetch returns dict[int, ZRRider]
     riders = ZRRiderFetch.fetch_batch(*zwift_ids)
 
     print(f'✓ Successfully fetched {len(riders)} riders in one request\n')

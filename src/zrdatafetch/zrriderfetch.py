@@ -1,7 +1,7 @@
 """Fetcher class for Zwiftracing rider rating data.
 
 This module provides the ZRRiderFetch class for fetching rider rating data
-from the Zwiftracing API. Returns native ZRRiderRating dataclass objects.
+from the Zwiftracing API. Returns native ZRRider dataclass objects.
 """
 
 import asyncio
@@ -13,7 +13,7 @@ from zrdatafetch.async_zr import AsyncZR_obj
 from zrdatafetch.config import Config
 from zrdatafetch.logging_config import get_logger
 from zrdatafetch.zr import ZR_obj
-from zrdatafetch.zrriderrating import ZRRiderRating
+from zrdatafetch.zrrider import ZRRider
 
 logger = get_logger(__name__)
 
@@ -21,7 +21,7 @@ logger = get_logger(__name__)
 class ZRRiderFetch(ZR_obj):
   """Fetches rider rating data from Zwiftracing API.
 
-  Returns native ZRRiderRating dataclass objects instead of raw dicts.
+  Returns native ZRRider dataclass objects instead of raw dicts.
   Supports both synchronous and asynchronous operations.
 
   Synchronous usage:
@@ -40,7 +40,7 @@ class ZRRiderFetch(ZR_obj):
     riders = ZRRiderFetch.fetch_batch(12345, 67890, 11111)
 
   Attributes:
-    _fetched: Dictionary mapping zwift IDs to ZRRiderRating objects
+    _fetched: Dictionary mapping zwift IDs to ZRRider objects
     _raw: Dictionary mapping zwift IDs to raw JSON strings
   """
 
@@ -49,7 +49,7 @@ class ZRRiderFetch(ZR_obj):
   def __init__(self) -> None:
     """Initialize a new ZRRiderFetch instance."""
     super().__init__()
-    self._fetched: dict[int, ZRRiderRating] = {}
+    self._fetched: dict[int, ZRRider] = {}
     self._raw: dict[int, str] = {}
     self._zr: AsyncZR_obj | None = None
     self._zr_sync: ZR_obj | None = None
@@ -96,7 +96,7 @@ class ZRRiderFetch(ZR_obj):
     self,
     *zwift_ids: int,
     epoch: int | None = None,
-  ) -> dict[int, ZRRiderRating]:
+  ) -> dict[int, ZRRider]:
     """Internal async fetch implementation.
 
     Args:
@@ -104,7 +104,7 @@ class ZRRiderFetch(ZR_obj):
       epoch: Unix timestamp for historical data (None for current)
 
     Returns:
-      Dictionary mapping zwift IDs to ZRRiderRating objects
+      Dictionary mapping zwift IDs to ZRRider objects
     """
     if not zwift_ids:
       logger.warning('No zwift_ids provided for fetch')
@@ -122,7 +122,7 @@ class ZRRiderFetch(ZR_obj):
     session, owns_session = await self._get_or_create_session()
 
     try:
-      results: dict[int, ZRRiderRating] = {}
+      results: dict[int, ZRRider] = {}
       raw_results: dict[int, str] = {}
 
       for zwift_id in zwift_ids:
@@ -139,13 +139,13 @@ class ZRRiderFetch(ZR_obj):
         raw_json = await session.fetch_json(endpoint, headers=headers)
         raw_results[zwift_id] = raw_json
 
-        # Parse response and create ZRRiderRating object
+        # Parse response and create ZRRider object
         parsed = parse_json_safe(raw_json, context=f'rider {zwift_id}')
         if isinstance(parsed, dict):
-          rider = ZRRiderRating.from_dict(parsed)
+          rider = ZRRider.from_dict(parsed)
           # Ensure zwift_id is set (in case API doesn't return it)
           if rider.zwift_id == 0:
-            rider = ZRRiderRating(
+            rider = ZRRider(
               zwift_id=zwift_id,
               name=rider.name,
               gender=rider.gender,
@@ -184,7 +184,7 @@ class ZRRiderFetch(ZR_obj):
     self,
     *zwift_ids: int,
     epoch: int | None = None,
-  ) -> dict[int, ZRRiderRating]:
+  ) -> dict[int, ZRRider]:
     """Synchronous fetch implementation.
 
     Args:
@@ -192,7 +192,7 @@ class ZRRiderFetch(ZR_obj):
       epoch: Unix timestamp for historical data (None for current)
 
     Returns:
-      Dictionary mapping zwift IDs to ZRRiderRating objects
+      Dictionary mapping zwift IDs to ZRRider objects
     """
     logger.info(f'Fetching {len(zwift_ids)} rider(s) in synchronous mode')
 
@@ -212,7 +212,7 @@ class ZRRiderFetch(ZR_obj):
     zr = ZR_obj()
 
     try:
-      results: dict[int, ZRRiderRating] = {}
+      results: dict[int, ZRRider] = {}
       raw_results: dict[int, str] = {}
 
       for zwift_id in zwift_ids:
@@ -229,13 +229,13 @@ class ZRRiderFetch(ZR_obj):
         raw_json = zr.fetch_json(endpoint, headers=headers)
         raw_results[zwift_id] = raw_json
 
-        # Parse response and create ZRRiderRating object
+        # Parse response and create ZRRider object
         parsed = parse_json_safe(raw_json, context=f'rider {zwift_id}')
         if isinstance(parsed, dict):
-          rider = ZRRiderRating.from_dict(parsed)
+          rider = ZRRider.from_dict(parsed)
           # Ensure zwift_id is set
           if rider.zwift_id == 0:
-            rider = ZRRiderRating(
+            rider = ZRRider(
               zwift_id=zwift_id,
               name=rider.name,
               gender=rider.gender,
@@ -283,7 +283,7 @@ class ZRRiderFetch(ZR_obj):
     self,
     *zwift_ids: int,
     epoch: int | None = None,
-  ) -> dict[int, ZRRiderRating]:
+  ) -> dict[int, ZRRider]:
     """Fetch rider rating data (synchronous interface).
 
     Args:
@@ -291,7 +291,7 @@ class ZRRiderFetch(ZR_obj):
       epoch: Unix timestamp for historical data (None for current)
 
     Returns:
-      Dictionary mapping zwift IDs to ZRRiderRating objects
+      Dictionary mapping zwift IDs to ZRRider objects
 
     Raises:
       NetworkError: If the API request fails
@@ -322,7 +322,7 @@ class ZRRiderFetch(ZR_obj):
     self,
     *zwift_ids: int,
     epoch: int | None = None,
-  ) -> dict[int, ZRRiderRating]:
+  ) -> dict[int, ZRRider]:
     """Fetch rider rating data (asynchronous interface).
 
     Args:
@@ -330,7 +330,7 @@ class ZRRiderFetch(ZR_obj):
       epoch: Unix timestamp for historical data (None for current)
 
     Returns:
-      Dictionary mapping zwift IDs to ZRRiderRating objects
+      Dictionary mapping zwift IDs to ZRRider objects
 
     Example:
       async with AsyncZR_obj() as zr:
@@ -346,7 +346,7 @@ class ZRRiderFetch(ZR_obj):
     *zwift_ids: int,
     epoch: int | None = None,
     zr: ZR_obj | None = None,
-  ) -> dict[int, ZRRiderRating]:
+  ) -> dict[int, ZRRider]:
     """Fetch multiple riders in a single request (POST, synchronous).
 
     Uses the Zwiftracing API batch endpoint.
@@ -357,7 +357,7 @@ class ZRRiderFetch(ZR_obj):
       zr: Optional ZR_obj session
 
     Returns:
-      Dictionary mapping rider IDs to ZRRiderRating objects
+      Dictionary mapping rider IDs to ZRRider objects
 
     Example:
       riders = ZRRiderFetch.fetch_batch(12345, 67890, 11111)
@@ -409,8 +409,8 @@ class ZRRiderFetch(ZR_obj):
       logger.error(f'Failed to fetch batch: {e}')
       raise
 
-    # Parse response into ZRRiderRating objects
-    results: dict[int, ZRRiderRating] = {}
+    # Parse response into ZRRider objects
+    results: dict[int, ZRRider] = {}
 
     parsed = parse_json_safe(raw_data, context='batch riders')
     if not isinstance(parsed, list):
@@ -419,7 +419,7 @@ class ZRRiderFetch(ZR_obj):
 
     for rider_data in parsed:
       try:
-        rider = ZRRiderRating.from_dict(rider_data)
+        rider = ZRRider.from_dict(rider_data)
         results[rider.zwift_id] = rider
         logger.debug(
           f'Parsed batch rider: {rider.name} (zwift_id={rider.zwift_id})',
@@ -439,7 +439,7 @@ class ZRRiderFetch(ZR_obj):
     *zwift_ids: int,
     epoch: int | None = None,
     zr: AsyncZR_obj | None = None,
-  ) -> dict[int, ZRRiderRating]:
+  ) -> dict[int, ZRRider]:
     """Fetch multiple riders in a single request (POST, asynchronous).
 
     Args:
@@ -448,7 +448,7 @@ class ZRRiderFetch(ZR_obj):
       zr: Optional AsyncZR_obj session
 
     Returns:
-      Dictionary mapping rider IDs to ZRRiderRating objects
+      Dictionary mapping rider IDs to ZRRider objects
 
     Example:
       async with AsyncZR_obj() as zr:
@@ -496,8 +496,8 @@ class ZRRiderFetch(ZR_obj):
         json=list(zwift_ids),
       )
 
-      # Parse response into ZRRiderRating objects
-      results: dict[int, ZRRiderRating] = {}
+      # Parse response into ZRRider objects
+      results: dict[int, ZRRider] = {}
 
       parsed = parse_json_safe(raw_data, context='batch riders (async)')
       if not isinstance(parsed, list):
@@ -506,7 +506,7 @@ class ZRRiderFetch(ZR_obj):
 
       for rider_data in parsed:
         try:
-          rider = ZRRiderRating.from_dict(rider_data)
+          rider = ZRRider.from_dict(rider_data)
           results[rider.zwift_id] = rider
           logger.debug(
             f'Parsed batch rider: {rider.name} (zwift_id={rider.zwift_id})',
@@ -538,11 +538,11 @@ class ZRRiderFetch(ZR_obj):
     return self._raw
 
   # ----------------------------------------------------------------------------
-  def fetched(self) -> dict[int, ZRRiderRating]:
-    """Return the fetched ZRRiderRating objects.
+  def fetched(self) -> dict[int, ZRRider]:
+    """Return the fetched ZRRider objects.
 
     Returns:
-      Dictionary mapping zwift IDs to ZRRiderRating objects
+      Dictionary mapping zwift IDs to ZRRider objects
     """
     return self._fetched
 

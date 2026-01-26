@@ -10,7 +10,7 @@ import asyncio
 import time
 
 from zrdatafetch import AsyncZR_obj, ZRRiderFetch
-from zrdatafetch.zrriderfetch import ZRRiderRating
+from zrdatafetch.zrriderfetch import ZRRider
 
 
 async def fetch_sequential(zwift_ids: list[int], zr: AsyncZR_obj) -> None:
@@ -43,7 +43,7 @@ async def fetch_concurrent(zwift_ids: list[int], zr: AsyncZR_obj) -> None:
   print('-' * 60)
   start = time.time()
 
-  async def fetch_one(zwift_id: int) -> ZRRiderRating | None:
+  async def fetch_one(zwift_id: int) -> ZRRider | None:
     try:
       fetcher = ZRRiderFetch()
       fetcher.set_session(zr)
@@ -78,7 +78,7 @@ async def fetch_with_limited_concurrency(
 
   semaphore = asyncio.Semaphore(max_concurrent)
 
-  async def fetch_one(zwift_id: int) -> ZRRiderRating | None:
+  async def fetch_one(zwift_id: int) -> ZRRider | None:
     async with semaphore:
       try:
         fetcher = ZRRiderFetch()

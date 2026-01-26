@@ -1,6 +1,6 @@
-"""Pure dataclass for Zwiftracing rider rating data.
+"""Pure dataclass for Zwiftracing rider data.
 
-This module provides the ZRRiderRating dataclass for representing rider
+This module provides the ZRRider dataclass for representing rider
 rating data without any fetch logic. Fetching is handled by ZRRiderFetch.
 """
 
@@ -19,7 +19,7 @@ logger = get_logger(__name__)
 
 
 @dataclass(slots=True)
-class ZRRiderRating:
+class ZRRider:
   """Rider rating data from Zwiftracing API.
 
   Represents a rider's current and historical ratings across multiple
@@ -59,7 +59,7 @@ class ZRRiderRating:
   _extra: dict[str, Any] = field(default_factory=dict, repr=False)
 
   @classmethod
-  def from_dict(cls, data: dict[str, Any]) -> 'ZRRiderRating':
+  def from_dict(cls, data: dict[str, Any]) -> 'ZRRider':
     """Create instance from API response dict.
 
     Parses Zwiftracing API response and extracts rider rating fields.
@@ -69,7 +69,7 @@ class ZRRiderRating:
       data: Dictionary containing rider data from API
 
     Returns:
-      ZRRiderRating instance with parsed fields
+      ZRRider instance with parsed fields
     """
     # Known fields that will be extracted
     known_fields = {
@@ -113,7 +113,7 @@ class ZRRiderRating:
 
       # Max90 rating
       max90_rating = safe_float(
-        extract_nested_value(data, 'race', 'max90', 'rating')
+        extract_nested_value(data, 'race', 'max90', 'rating'),
       )
       max90_rank = safe_str(
         extract_nested_value(data, 'race', 'max90', 'mixed', 'category'),
@@ -122,7 +122,7 @@ class ZRRiderRating:
 
       # Max30 rating
       max30_rating = safe_float(
-        extract_nested_value(data, 'race', 'max30', 'rating')
+        extract_nested_value(data, 'race', 'max30', 'rating'),
       )
       max30_rank = safe_str(
         extract_nested_value(data, 'race', 'max30', 'mixed', 'category'),

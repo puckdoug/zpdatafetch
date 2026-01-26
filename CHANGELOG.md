@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.1]
+
+Reverted unnecessary name change for ZRRider (changed to ZRRiderRating with 2.0.0). 
+
 ## [2.0.0]
 
 This update makes significnat changes to the library and CLI methods. The main goal was to move back to delivering results a native python objects. At the saiem time, the `.raw()` method wasn't delivering exact copies of the data returned from each website and this has been changed as well. Temporarily, there's a flag/method to support the legacy v1 format. This will be removed in a future relase.
@@ -10,7 +14,7 @@ There's also the basic start of work to fetch data from the Zwift mobile endpoin
 
 - **Typed dataclass objects** for all API responses with attribute-based access
   - ZwiftPower: `ZPCyclist`, `ZPRaceResult`, `ZPRiderFinish`, `ZPTeam`, `ZPTeamMember`, `ZPRaceSignup`, `ZPRiderSignup`, `ZPPrime`, `ZPPrimeResult`, `ZPPrimeSegment`, `ZPRaceSprint`, `ZPRiderSprint`, `ZPLeague`, `ZPRaceFinish`, `ZPRacelog`
-  - Zwiftracing: `ZRRiderRating`, `ZRRaceResult`, `ZRRiderResult`, `ZRTeamRoster`, `ZRTeamMember`
+  - Zwiftracing: `ZRRider`, `ZRRaceResult`, `ZRRiderResult`, `ZRTeamRoster`, `ZRTeamMember`
 - **Utility functions** - Shared utilities in `zp_utils.py` and `zr_utils.py`
 - **Data dictionary documentation** - Comprehensive field documentation for all data structures
 - **Fixed async examples** - Corrected 3 async ZwiftPower examples to use proper imports (`Cyclist` with `.afetch()`)
@@ -39,7 +43,7 @@ There's also the basic start of work to fetch data from the Zwift mobile endpoin
     - `Sprints.fetch(456)` returns `dict[int, ZPRaceSprint]` containing `ZPRiderSprint` objects
     - `League.fetch(789)` returns `dict[int, ZPLeague]`
   - **Zwiftracing**: Fetcher classes also return typed dataclass objects
-    - `ZRRiderFetch.fetch(123)` returns `dict[int, ZRRiderRating]`
+    - `ZRRiderFetch.fetch(123)` returns `dict[int, ZRRider]`
     - `ZRResultFetch.fetch(456)` returns `dict[int, ZRRaceResult]` containing `ZRRiderResult` objects
     - `ZRTeamFetch.fetch(789)` returns `dict[int, ZRTeamRoster]` containing `ZRTeamMember` objects
   - **Migration**: Access data via dataclass attributes instead of dictionary keys
