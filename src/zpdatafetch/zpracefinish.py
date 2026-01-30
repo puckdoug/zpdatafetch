@@ -78,24 +78,24 @@ class ZPRaceFinish:
   np: float = 0.0  # Normalized Power
 
   # Wattage at different intervals
-  w5: int = 0
-  w15: int = 0
-  w30: int = 0
-  w60: int = 0
-  w120: int = 0
-  w300: int = 0
-  w1200: int = 0
+  power5s: int = 0
+  power15s: int = 0
+  power30s: int = 0
+  power1m: int = 0
+  power2m: int = 0
+  power5m: int = 0
+  power20m: int = 0
 
   # Wattage per kg at different intervals
-  wkg5: float = 0.0
-  wkg15: float = 0.0
-  wkg30: float = 0.0
-  wkg60: float = 0.0
-  wkg120: float = 0.0
-  wkg300: float = 0.0
-  wkg1200: float = 0.0
-  wkg_ftp: float = 0.0
-  wftp: int = 0
+  wkg5s: float = 0.0
+  wkg15s: float = 0.0
+  wkg30s: float = 0.0
+  wkg1m: float = 0.0
+  wkg2m: float = 0.0
+  wkg5m: float = 0.0
+  wkg20m: float = 0.0
+  wkgftp: float = 0.0
+  ftp: int = 0
 
   # Physical attributes
   height: int = 0  # Height in cm
@@ -203,22 +203,22 @@ class ZPRaceFinish:
       'max_hr',
       'hrmax',
       'np',
-      'w5',
-      'w15',
-      'w30',
-      'w60',
-      'w120',
-      'w300',
-      'w1200',
-      'wkg5',
-      'wkg15',
-      'wkg30',
-      'wkg60',
-      'wkg120',
-      'wkg300',
-      'wkg1200',
-      'wkg_ftp',
-      'wftp',
+      'w5',  # API field name (maps to power5s)
+      'w15',  # API field name (maps to power15s)
+      'w30',  # API field name (maps to power30s)
+      'w60',  # API field name (maps to power1m)
+      'w120',  # API field name (maps to power2m)
+      'w300',  # API field name (maps to power5m)
+      'w1200',  # API field name (maps to power20m)
+      'wkg5',  # API field name (maps to wkg5s)
+      'wkg15',  # API field name (maps to wkg15s)
+      'wkg30',  # API field name (maps to wkg30s)
+      'wkg60',  # API field name (maps to wkg1m)
+      'wkg120',  # API field name (maps to wkg2m)
+      'wkg300',  # API field name (maps to wkg5m)
+      'wkg1200',  # API field name (maps to wkg20m)
+      'wkg_ftp',  # API field name (maps to wkgftp)
+      'wftp',  # API field name (maps to ftp)
       'height',
       'weight',
       'position_in_cat',
@@ -261,9 +261,7 @@ class ZPRaceFinish:
     if not isinstance(event_date_value, str):
       event_date_value = float(event_date_value) if event_date_value else 0.0
     event_date_timestamp = (
-      float(event_date_value)
-      if isinstance(event_date_value, (int, float))
-      else 0.0
+      float(event_date_value) if isinstance(event_date_value, (int, float)) else 0.0
     )
     event_date = convert_timestamp_to_iso8601(event_date_value)
 
@@ -334,22 +332,22 @@ class ZPRaceFinish:
       avg_hr=get_field_value('avg_hr', 0, int),
       max_hr=get_field_value('max_hr', 0, int),
       np=get_field_value('np', 0.0, float),
-      w5=get_field_value('w5', 0, int),
-      w15=get_field_value('w15', 0, int),
-      w30=get_field_value('w30', 0, int),
-      w60=get_field_value('w60', 0, int),
-      w120=get_field_value('w120', 0, int),
-      w300=get_field_value('w300', 0, int),
-      w1200=get_field_value('w1200', 0, int),
-      wkg5=get_field_value('wkg5', 0.0, float),
-      wkg15=get_field_value('wkg15', 0.0, float),
-      wkg30=get_field_value('wkg30', 0.0, float),
-      wkg60=get_field_value('wkg60', 0.0, float),
-      wkg120=get_field_value('wkg120', 0.0, float),
-      wkg300=get_field_value('wkg300', 0.0, float),
-      wkg1200=get_field_value('wkg1200', 0.0, float),
-      wkg_ftp=get_field_value('wkg_ftp', 0.0, float),
-      wftp=get_field_value('wftp', 0, int),
+      power5s=get_field_value('w5', 0, int),
+      power15s=get_field_value('w15', 0, int),
+      power30s=get_field_value('w30', 0, int),
+      power1m=get_field_value('w60', 0, int),
+      power2m=get_field_value('w120', 0, int),
+      power5m=get_field_value('w300', 0, int),
+      power20m=get_field_value('w1200', 0, int),
+      wkg5s=get_field_value('wkg5', 0.0, float),
+      wkg15s=get_field_value('wkg15', 0.0, float),
+      wkg30s=get_field_value('wkg30', 0.0, float),
+      wkg1m=get_field_value('wkg60', 0.0, float),
+      wkg2m=get_field_value('wkg120', 0.0, float),
+      wkg5m=get_field_value('wkg300', 0.0, float),
+      wkg20m=get_field_value('wkg1200', 0.0, float),
+      wkgftp=get_field_value('wkg_ftp', 0.0, float),
+      ftp=get_field_value('wftp', 0, int),
       height=get_field_value('height', 0, int),
       weight=get_field_value('weight', 0.0, float),
       position_in_cat=get_field_value('position_in_cat', 0, int),

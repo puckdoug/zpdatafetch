@@ -47,24 +47,24 @@ class ZPRiderFinish:
   np: float = 0.0  # Normalized Power
 
   # Wattage at different intervals
-  w5: int = 0
-  w15: int = 0
-  w30: int = 0
-  w60: int = 0
-  w120: int = 0
-  w300: int = 0
-  w1200: int = 0
+  power5s: int = 0
+  power15s: int = 0
+  power30s: int = 0
+  power1m: int = 0
+  power2m: int = 0
+  power5m: int = 0
+  power20m: int = 0
 
   # Wattage per kg at different intervals
-  wkg5: float = 0.0
-  wkg15: float = 0.0
-  wkg30: float = 0.0
-  wkg60: float = 0.0
-  wkg120: float = 0.0
-  wkg300: float = 0.0
-  wkg1200: float = 0.0
-  wkg_ftp: float = 0.0
-  wftp: int = 0
+  wkg5s: float = 0.0
+  wkg15s: float = 0.0
+  wkg30s: float = 0.0
+  wkg1m: float = 0.0
+  wkg2m: float = 0.0
+  wkg5m: float = 0.0
+  wkg20m: float = 0.0
+  wkgftp: float = 0.0
+  ftp: int = 0
 
   # Physical attributes
   height: int = 0  # Height in cm
@@ -135,22 +135,22 @@ class ZPRiderFinish:
       'avg_hr',
       'max_hr',
       'np',
-      'w5',
-      'w15',
-      'w30',
-      'w60',
-      'w120',
-      'w300',
-      'w1200',
-      'wkg5',
-      'wkg15',
-      'wkg30',
-      'wkg60',
-      'wkg120',
-      'wkg300',
-      'wkg1200',
-      'wkg_ftp',
-      'wftp',
+      'w5',  # API field name (maps to power5s)
+      'w15',  # API field name (maps to power15s)
+      'w30',  # API field name (maps to power30s)
+      'w60',  # API field name (maps to power1m)
+      'w120',  # API field name (maps to power2m)
+      'w300',  # API field name (maps to power5m)
+      'w1200',  # API field name (maps to power20m)
+      'wkg5',  # API field name (maps to wkg5s)
+      'wkg15',  # API field name (maps to wkg15s)
+      'wkg30',  # API field name (maps to wkg30s)
+      'wkg60',  # API field name (maps to wkg1m)
+      'wkg120',  # API field name (maps to wkg2m)
+      'wkg300',  # API field name (maps to wkg5m)
+      'wkg1200',  # API field name (maps to wkg20m)
+      'wkg_ftp',  # API field name (maps to wkgftp)
+      'wftp',  # API field name (maps to ftp)
       'height',
       'weight',
       'position_in_cat',
@@ -234,9 +234,7 @@ class ZPRiderFinish:
     hreff = int(extract_numeric(hreff_value, int, 0))
 
     # Extract and format time values
-    time_seconds = float(
-      extract_numeric(extract_value(data.get('time')), float, 0.0)
-    )
+    time_seconds = float(extract_numeric(extract_value(data.get('time')), float, 0.0))
     time_gun_seconds = float(
       extract_numeric(data.get('time_gun'), float, 0.0),
     )
@@ -272,46 +270,28 @@ class ZPRiderFinish:
       avg_power=float(
         extract_numeric(extract_value(data.get('avg_power')), float, 0.0),
       ),
-      avg_wkg=float(
-        extract_numeric(extract_value(data.get('avg_wkg')), float, 0.0)
-      ),
+      avg_wkg=float(extract_numeric(extract_value(data.get('avg_wkg')), float, 0.0)),
       avg_hr=int(extract_numeric(extract_value(data.get('avg_hr')), int, 0)),
       max_hr=int(extract_numeric(extract_value(data.get('max_hr')), int, 0)),
       np=float(extract_numeric(extract_value(data.get('np')), float, 0.0)),
-      w5=int(extract_numeric(extract_value(data.get('w5')), int, 0)),
-      w15=int(extract_numeric(extract_value(data.get('w15')), int, 0)),
-      w30=int(extract_numeric(extract_value(data.get('w30')), int, 0)),
-      w60=int(extract_numeric(extract_value(data.get('w60')), int, 0)),
-      w120=int(extract_numeric(extract_value(data.get('w120')), int, 0)),
-      w300=int(extract_numeric(extract_value(data.get('w300')), int, 0)),
-      w1200=int(extract_numeric(extract_value(data.get('w1200')), int, 0)),
-      wkg5=float(extract_numeric(extract_value(data.get('wkg5')), float, 0.0)),
-      wkg15=float(
-        extract_numeric(extract_value(data.get('wkg15')), float, 0.0)
-      ),
-      wkg30=float(
-        extract_numeric(extract_value(data.get('wkg30')), float, 0.0)
-      ),
-      wkg60=float(
-        extract_numeric(extract_value(data.get('wkg60')), float, 0.0)
-      ),
-      wkg120=float(
-        extract_numeric(extract_value(data.get('wkg120')), float, 0.0)
-      ),
-      wkg300=float(
-        extract_numeric(extract_value(data.get('wkg300')), float, 0.0)
-      ),
-      wkg1200=float(
-        extract_numeric(extract_value(data.get('wkg1200')), float, 0.0)
-      ),
-      wkg_ftp=float(
-        extract_numeric(extract_value(data.get('wkg_ftp')), float, 0.0)
-      ),
-      wftp=int(extract_numeric(extract_value(data.get('wftp')), int, 0)),
+      power5s=int(extract_numeric(extract_value(data.get('w5')), int, 0)),
+      power15s=int(extract_numeric(extract_value(data.get('w15')), int, 0)),
+      power30s=int(extract_numeric(extract_value(data.get('w30')), int, 0)),
+      power1m=int(extract_numeric(extract_value(data.get('w60')), int, 0)),
+      power2m=int(extract_numeric(extract_value(data.get('w120')), int, 0)),
+      power5m=int(extract_numeric(extract_value(data.get('w300')), int, 0)),
+      power20m=int(extract_numeric(extract_value(data.get('w1200')), int, 0)),
+      wkg5s=float(extract_numeric(extract_value(data.get('wkg5')), float, 0.0)),
+      wkg15s=float(extract_numeric(extract_value(data.get('wkg15')), float, 0.0)),
+      wkg30s=float(extract_numeric(extract_value(data.get('wkg30')), float, 0.0)),
+      wkg1m=float(extract_numeric(extract_value(data.get('wkg60')), float, 0.0)),
+      wkg2m=float(extract_numeric(extract_value(data.get('wkg120')), float, 0.0)),
+      wkg5m=float(extract_numeric(extract_value(data.get('wkg300')), float, 0.0)),
+      wkg20m=float(extract_numeric(extract_value(data.get('wkg1200')), float, 0.0)),
+      wkgftp=float(extract_numeric(extract_value(data.get('wkg_ftp')), float, 0.0)),
+      ftp=int(extract_numeric(extract_value(data.get('wftp')), int, 0)),
       height=int(extract_numeric(extract_value(data.get('height')), int, 0)),
-      weight=float(
-        extract_numeric(extract_value(data.get('weight')), float, 0.0)
-      ),
+      weight=float(extract_numeric(extract_value(data.get('weight')), float, 0.0)),
       position_in_cat=int(extract_numeric(data.get('position_in_cat'), int, 0)),
       skill=float(extract_numeric(data.get('skill'), float, 0.0)),
       skill_b=float(extract_numeric(data.get('skill_b'), float, 0.0)),

@@ -1256,13 +1256,13 @@ flowchart LR
 
 | Raw API Field | Python Attribute | Type  | Transformation             | Lineage  |
 | ------------- | ---------------- | ----- | -------------------------- | -------- |
-| `w5`          | `w5`             | float | Array extraction if needed | Mastered |
+| `w5`          | `power5s`        | float | Array extraction if needed | Mastered |
 
 Maximum 5-second power output in watts. If field is in array format `[value, flag]`, the first element is extracted.
 
 ```mermaid
 flowchart LR
-  A(Zwiftpower: w5) -- array extraction --> B(zpdatafetch: w5)
+  A(Zwiftpower: w5) -- array extraction --> B(zpdatafetch: power5s)
 ```
 
 ---
@@ -1271,13 +1271,13 @@ flowchart LR
 
 | Raw API Field | Python Attribute | Type  | Transformation             | Lineage  |
 | ------------- | ---------------- | ----- | -------------------------- | -------- |
-| `w15`         | `w15`            | float | Array extraction if needed | Mastered |
+| `w15`         | `power15s`       | float | Array extraction if needed | Mastered |
 
 Maximum 15-second power output in watts. If field is in array format `[value, flag]`, the first element is extracted.
 
 ```mermaid
 flowchart LR
-  A(Zwiftpower: w15) -- array extraction --> B(zpdatafetch: w15)
+  A(Zwiftpower: w15) -- array extraction --> B(zpdatafetch: power15s)
 ```
 
 ---
@@ -1286,13 +1286,13 @@ flowchart LR
 
 | Raw API Field | Python Attribute | Type  | Transformation             | Lineage  |
 | ------------- | ---------------- | ----- | -------------------------- | -------- |
-| `w30`         | `w30`            | float | Array extraction if needed | Mastered |
+| `w30`         | `power30s`       | float | Array extraction if needed | Mastered |
 
 Maximum 30-second power output in watts. If field is in array format `[value, flag]`, the first element is extracted.
 
 ```mermaid
 flowchart LR
-  A(Zwiftpower: w30) -- array extraction --> B(zpdatafetch: w30)
+  A(Zwiftpower: w30) -- array extraction --> B(zpdatafetch: power30s)
 ```
 
 ---
@@ -1301,13 +1301,13 @@ flowchart LR
 
 | Raw API Field | Python Attribute | Type  | Transformation             | Lineage  |
 | ------------- | ---------------- | ----- | -------------------------- | -------- |
-| `w60`         | `w60`            | float | Array extraction if needed | Mastered |
+| `w60`         | `power1m`        | float | Array extraction if needed | Mastered |
 
 Maximum 1-minute power output in watts. If field is in array format `[value, flag]`, the first element is extracted.
 
 ```mermaid
 flowchart LR
-  A(Zwiftpower: w60) -- array extraction --> B(zpdatafetch: w60)
+  A(Zwiftpower: w60) -- array extraction --> B(zpdatafetch: power1m)
 ```
 
 ---
@@ -1316,13 +1316,13 @@ flowchart LR
 
 | Raw API Field | Python Attribute | Type  | Transformation             | Lineage  |
 | ------------- | ---------------- | ----- | -------------------------- | -------- |
-| `w120`        | `w120`           | float | Array extraction if needed | Mastered |
+| `w120`        | `power2m`        | float | Array extraction if needed | Mastered |
 
 Maximum 2-minute power output in watts. If field is in array format `[value, flag]`, the first element is extracted.
 
 ```mermaid
 flowchart LR
-  A(Zwiftpower: w120) -- array extraction --> B(zpdatafetch: w120)
+  A(Zwiftpower: w120) -- array extraction --> B(zpdatafetch: power2m)
 ```
 
 ---
@@ -1331,13 +1331,13 @@ flowchart LR
 
 | Raw API Field | Python Attribute | Type  | Transformation             | Lineage  |
 | ------------- | ---------------- | ----- | -------------------------- | -------- |
-| `w300`        | `w300`           | float | Array extraction if needed | Mastered |
+| `w300`        | `power5m`        | float | Array extraction if needed | Mastered |
 
 Maximum 5-minute power output in watts. If field is in array format `[value, flag]`, the first element is extracted.
 
 ```mermaid
 flowchart LR
-  A(Zwiftpower: w300) -- array extraction --> B(zpdatafetch: w300)
+  A(Zwiftpower: w300) -- array extraction --> B(zpdatafetch: power5m)
 ```
 
 ---
@@ -1346,13 +1346,13 @@ flowchart LR
 
 | Raw API Field | Python Attribute | Type  | Transformation             | Lineage  |
 | ------------- | ---------------- | ----- | -------------------------- | -------- |
-| `w1200`       | `w1200`          | float | Array extraction if needed | Mastered |
+| `w1200`       | `power20m`       | float | Array extraction if needed | Mastered |
 
 Maximum 20-minute power output in watts. If field is in array format `[value, flag]`, the first element is extracted.
 
 ```mermaid
 flowchart LR
-  A(Zwiftpower: w1200) -- array extraction --> B(zpdatafetch: w1200)
+  A(Zwiftpower: w1200) -- array extraction --> B(zpdatafetch: power20m)
 ```
 
 ---
@@ -1361,13 +1361,13 @@ flowchart LR
 
 | Raw API Field | Python Attribute | Type  | Transformation             | Lineage  |
 | ------------- | ---------------- | ----- | -------------------------- | -------- |
-| `wkg5`        | `wkg5`           | float | Array extraction if needed | Mastered |
+| `wkg5`        | `wkg5s`          | float | Array extraction if needed | Mastered |
 
 Maximum 5-second power output in watts per kilogram. If field is in array format `[value, flag]`, the first element is extracted.
 
 ```mermaid
 flowchart LR
-  A(Zwiftpower: wkg5) -- array extraction --> B(zpdatafetch: wkg5)
+  A(Zwiftpower: wkg5) -- array extraction --> B(zpdatafetch: wkg5s)
 ```
 
 ---
@@ -1376,13 +1376,13 @@ flowchart LR
 
 | Raw API Field | Python Attribute | Type  | Transformation             | Lineage  |
 | ------------- | ---------------- | ----- | -------------------------- | -------- |
-| `wkg15`       | `wkg15`          | float | Array extraction if needed | Mastered |
+| `wkg15`       | `wkg15s`         | float | Array extraction if needed | Mastered |
 
 Maximum 15-second power output in watts per kilogram. If field is in array format `[value, flag]`, the first element is extracted.
 
 ```mermaid
 flowchart LR
-  A(Zwiftpower: wkg15) -- array extraction --> B(zpdatafetch: wkg15)
+  A(Zwiftpower: wkg15) -- array extraction --> B(zpdatafetch: wkg15s)
 ```
 
 ---
@@ -1391,13 +1391,13 @@ flowchart LR
 
 | Raw API Field | Python Attribute | Type  | Transformation             | Lineage  |
 | ------------- | ---------------- | ----- | -------------------------- | -------- |
-| `wkg30`       | `wkg30`          | float | Array extraction if needed | Mastered |
+| `wkg30`       | `wkg30s`         | float | Array extraction if needed | Mastered |
 
 Maximum 30-second power output in watts per kilogram. If field is in array format `[value, flag]`, the first element is extracted.
 
 ```mermaid
 flowchart LR
-  A(Zwiftpower: wkg30) -- array extraction --> B(zpdatafetch: wkg30)
+  A(Zwiftpower: wkg30) -- array extraction --> B(zpdatafetch: wkg30s)
 ```
 
 ---
@@ -1406,13 +1406,13 @@ flowchart LR
 
 | Raw API Field | Python Attribute | Type  | Transformation             | Lineage  |
 | ------------- | ---------------- | ----- | -------------------------- | -------- |
-| `wkg60`       | `wkg60`          | float | Array extraction if needed | Mastered |
+| `wkg60`       | `wkg1m`          | float | Array extraction if needed | Mastered |
 
 Maximum 1-minute power output in watts per kilogram. If field is in array format `[value, flag]`, the first element is extracted.
 
 ```mermaid
 flowchart LR
-  A(Zwiftpower: wkg60) -- array extraction --> B(zpdatafetch: wkg60)
+  A(Zwiftpower: wkg60) -- array extraction --> B(zpdatafetch: wkg1m)
 ```
 
 ---
@@ -1421,13 +1421,13 @@ flowchart LR
 
 | Raw API Field | Python Attribute | Type  | Transformation             | Lineage  |
 | ------------- | ---------------- | ----- | -------------------------- | -------- |
-| `wkg120`      | `wkg120`         | float | Array extraction if needed | Mastered |
+| `wkg120`      | `wkg2m`          | float | Array extraction if needed | Mastered |
 
 Maximum 2-minute power output in watts per kilogram. If field is in array format `[value, flag]`, the first element is extracted.
 
 ```mermaid
 flowchart LR
-  A(Zwiftpower: wkg120) -- array extraction --> B(zpdatafetch: wkg120)
+  A(Zwiftpower: wkg120) -- array extraction --> B(zpdatafetch: wkg2m)
 ```
 
 ---
@@ -1436,13 +1436,13 @@ flowchart LR
 
 | Raw API Field | Python Attribute | Type  | Transformation             | Lineage  |
 | ------------- | ---------------- | ----- | -------------------------- | -------- |
-| `wkg300`      | `wkg300`         | float | Array extraction if needed | Mastered |
+| `wkg300`      | `wkg5m`          | float | Array extraction if needed | Mastered |
 
 Maximum 5-minute power output in watts per kilogram. If field is in array format `[value, flag]`, the first element is extracted.
 
 ```mermaid
 flowchart LR
-  A(Zwiftpower: wkg300) -- array extraction --> B(zpdatafetch: wkg300)
+  A(Zwiftpower: wkg300) -- array extraction --> B(zpdatafetch: wkg5m)
 ```
 
 ---
@@ -1451,13 +1451,13 @@ flowchart LR
 
 | Raw API Field | Python Attribute | Type  | Transformation             | Lineage  |
 | ------------- | ---------------- | ----- | -------------------------- | -------- |
-| `wkg1200`     | `wkg1200`        | float | Array extraction if needed | Mastered |
+| `wkg1200`     | `wkg20m`         | float | Array extraction if needed | Mastered |
 
 Maximum 20-minute power output in watts per kilogram. If field is in array format `[value, flag]`, the first element is extracted.
 
 ```mermaid
 flowchart LR
-  A(Zwiftpower: wkg1200) -- array extraction --> B(zpdatafetch: wkg1200)
+  A(Zwiftpower: wkg1200) -- array extraction --> B(zpdatafetch: wkg20m)
 ```
 
 ---
@@ -1466,13 +1466,13 @@ flowchart LR
 
 | Raw API Field | Python Attribute | Type  | Transformation | Lineage  |
 | ------------- | ---------------- | ----- | -------------- | -------- |
-| `wkg_ftp`     | `wkg_ftp`        | float | None           | Mastered |
+| `wkg_ftp`     | `wkgftp`         | float | None           | Mastered |
 
 Power in watts per kilogram at Functional Threshold Power.
 
 ```mermaid
 flowchart LR
-  A(Zwiftpower: wkg_ftp) --> B(zpdatafetch: wkg_ftp)
+  A(Zwiftpower: wkg_ftp) --> B(zpdatafetch: wkgftp)
 ```
 
 ---
@@ -1481,13 +1481,13 @@ flowchart LR
 
 | Raw API Field | Python Attribute | Type  | Transformation | Lineage  |
 | ------------- | ---------------- | ----- | -------------- | -------- |
-| `wftp`        | `wftp`           | float | None           | Mastered |
+| `wftp`        | `ftp`            | float | None           | Mastered |
 
 Power in watts at Functional Threshold Power.
 
 ```mermaid
 flowchart LR
-  A(Zwiftpower: wftp) --> B(zpdatafetch: wftp)
+  A(Zwiftpower: wftp) --> B(zpdatafetch: ftp)
 ```
 
 ---
@@ -3846,13 +3846,13 @@ Zwift Racing Compound Score.
 
 | Raw API Field | Python Attribute | Type  | Transformation         | Lineage |
 | ------------- | ---------------- | ----- | ---------------------- | ------- |
-| `power.w5`    | `w5`             | float | Nested path extraction |         |
+| `power.w5`    | `power_5s`       | float | Nested path extraction |         |
 
 Maximum 5-second power output in watts.
 
 ```mermaid
 flowchart LR
-  A(Zwiftracing: power.w5) -- nested extraction --> B(zrdatafetch: w5)
+  A(Zwiftracing: power.w5) -- nested extraction --> B(zrdatafetch: power_5s)
 ```
 
 ---
@@ -3861,13 +3861,13 @@ flowchart LR
 
 | Raw API Field | Python Attribute | Type  | Transformation         | Lineage |
 | ------------- | ---------------- | ----- | ---------------------- | ------- |
-| `power.w15`   | `w15`            | float | Nested path extraction |         |
+| `power.w15`   | `power_15s`      | float | Nested path extraction |         |
 
 Maximum 15-second power output in watts.
 
 ```mermaid
 flowchart LR
-  A(Zwiftracing: power.w15) -- nested extraction --> B(zrdatafetch: w15)
+  A(Zwiftracing: power.w15) -- nested extraction --> B(zrdatafetch: power_15s)
 ```
 
 ---
@@ -3876,13 +3876,13 @@ flowchart LR
 
 | Raw API Field | Python Attribute | Type  | Transformation         | Lineage |
 | ------------- | ---------------- | ----- | ---------------------- | ------- |
-| `power.w30`   | `w30`            | float | Nested path extraction |         |
+| `power.w30`   | `power_30s`      | float | Nested path extraction |         |
 
 Maximum 30-second power output in watts.
 
 ```mermaid
 flowchart LR
-  A(Zwiftracing: power.w30) -- nested extraction --> B(zrdatafetch: w30)
+  A(Zwiftracing: power.w30) -- nested extraction --> B(zrdatafetch: power_30s)
 ```
 
 ---
@@ -3891,13 +3891,13 @@ flowchart LR
 
 | Raw API Field | Python Attribute | Type  | Transformation         | Lineage |
 | ------------- | ---------------- | ----- | ---------------------- | ------- |
-| `power.w60`   | `w60`            | float | Nested path extraction |         |
+| `power.w60`   | `power_1m`       | float | Nested path extraction |         |
 
 Maximum 1-minute power output in watts.
 
 ```mermaid
 flowchart LR
-  A(Zwiftracing: power.w60) -- nested extraction --> B(zrdatafetch: w60)
+  A(Zwiftracing: power.w60) -- nested extraction --> B(zrdatafetch: power_1m)
 ```
 
 ---
@@ -3906,13 +3906,13 @@ flowchart LR
 
 | Raw API Field | Python Attribute | Type  | Transformation         | Lineage |
 | ------------- | ---------------- | ----- | ---------------------- | ------- |
-| `power.w120`  | `w120`           | float | Nested path extraction |         |
+| `power.w120`  | `power_2m`       | float | Nested path extraction |         |
 
 Maximum 2-minute power output in watts.
 
 ```mermaid
 flowchart LR
-  A(Zwiftracing: power.w120) -- nested extraction --> B(zrdatafetch: w120)
+  A(Zwiftracing: power.w120) -- nested extraction --> B(zrdatafetch: power_2m)
 ```
 
 ---
@@ -3921,13 +3921,13 @@ flowchart LR
 
 | Raw API Field | Python Attribute | Type  | Transformation         | Lineage |
 | ------------- | ---------------- | ----- | ---------------------- | ------- |
-| `power.w300`  | `w300`           | float | Nested path extraction |         |
+| `power.w300`  | `power_5m`       | float | Nested path extraction |         |
 
 Maximum 5-minute power output in watts.
 
 ```mermaid
 flowchart LR
-  A(Zwiftracing: power.w300) -- nested extraction --> B(zrdatafetch: w300)
+  A(Zwiftracing: power.w300) -- nested extraction --> B(zrdatafetch: power_5m)
 ```
 
 ---
@@ -3936,13 +3936,13 @@ flowchart LR
 
 | Raw API Field | Python Attribute | Type  | Transformation         | Lineage |
 | ------------- | ---------------- | ----- | ---------------------- | ------- |
-| `power.w1200` | `w1200`          | float | Nested path extraction |         |
+| `power.w1200` | `power_20m`      | float | Nested path extraction |         |
 
 Maximum 20-minute power output in watts.
 
 ```mermaid
 flowchart LR
-  A(Zwiftracing: power.w1200) -- nested extraction --> B(zrdatafetch: w1200)
+  A(Zwiftracing: power.w1200) -- nested extraction --> B(zrdatafetch: power_20m)
 ```
 
 ---
@@ -3951,13 +3951,13 @@ flowchart LR
 
 | Raw API Field | Python Attribute | Type  | Transformation         | Lineage |
 | ------------- | ---------------- | ----- | ---------------------- | ------- |
-| `power.wkg5`  | `wkg5`           | float | Nested path extraction |         |
+| `power.wkg5`  | `wkg_5s`         | float | Nested path extraction |         |
 
 Maximum 5-second power output in watts per kilogram.
 
 ```mermaid
 flowchart LR
-  A(Zwiftracing: power.wkg5) -- nested extraction --> B(zrdatafetch: wkg5)
+  A(Zwiftracing: power.wkg5) -- nested extraction --> B(zrdatafetch: wkg_5s)
 ```
 
 ---
@@ -3966,13 +3966,13 @@ flowchart LR
 
 | Raw API Field | Python Attribute | Type  | Transformation         | Lineage |
 | ------------- | ---------------- | ----- | ---------------------- | ------- |
-| `power.wkg15` | `wkg15`          | float | Nested path extraction |         |
+| `power.wkg15` | `wkg_15s`        | float | Nested path extraction |         |
 
 Maximum 15-second power output in watts per kilogram.
 
 ```mermaid
 flowchart LR
-  A(Zwiftracing: power.wkg15) -- nested extraction --> B(zrdatafetch: wkg15)
+  A(Zwiftracing: power.wkg15) -- nested extraction --> B(zrdatafetch: wkg_15s)
 ```
 
 ---
@@ -3981,13 +3981,13 @@ flowchart LR
 
 | Raw API Field | Python Attribute | Type  | Transformation         | Lineage |
 | ------------- | ---------------- | ----- | ---------------------- | ------- |
-| `power.wkg30` | `wkg30`          | float | Nested path extraction |         |
+| `power.wkg30` | `wkg_30s`        | float | Nested path extraction |         |
 
 Maximum 30-second power output in watts per kilogram.
 
 ```mermaid
 flowchart LR
-  A(Zwiftracing: power.wkg30) -- nested extraction --> B(zrdatafetch: wkg30)
+  A(Zwiftracing: power.wkg30) -- nested extraction --> B(zrdatafetch: wkg_30s)
 ```
 
 ---
@@ -3996,13 +3996,13 @@ flowchart LR
 
 | Raw API Field | Python Attribute | Type  | Transformation         | Lineage |
 | ------------- | ---------------- | ----- | ---------------------- | ------- |
-| `power.wkg60` | `wkg60`          | float | Nested path extraction |         |
+| `power.wkg60` | `wkg_1m`         | float | Nested path extraction |         |
 
 Maximum 1-minute power output in watts per kilogram.
 
 ```mermaid
 flowchart LR
-  A(Zwiftracing: power.wkg60) -- nested extraction --> B(zrdatafetch: wkg60)
+  A(Zwiftracing: power.wkg60) -- nested extraction --> B(zrdatafetch: wkg_1m)
 ```
 
 ---
@@ -4011,7 +4011,7 @@ flowchart LR
 
 | Raw API Field  | Python Attribute | Type  | Transformation         | Lineage |
 | -------------- | ---------------- | ----- | ---------------------- | ------- |
-| `power.wkg120` | `wkg120`         | float | Nested path extraction |         |
+| `power.wkg120` | `wkg_2m`         | float | Nested path extraction |         |
 
 Maximum 2-minute power output in watts per kilogram.
 
@@ -4021,7 +4021,7 @@ Maximum 2-minute power output in watts per kilogram.
 
 | Raw API Field  | Python Attribute | Type  | Transformation         | Lineage |
 | -------------- | ---------------- | ----- | ---------------------- | ------- |
-| `power.wkg300` | `wkg300`         | float | Nested path extraction |         |
+| `power.wkg300` | `wkg_5m`         | float | Nested path extraction |         |
 
 Maximum 5-minute power output in watts per kilogram.
 
@@ -4031,7 +4031,7 @@ Maximum 5-minute power output in watts per kilogram.
 
 | Raw API Field   | Python Attribute | Type  | Transformation         | Lineage |
 | --------------- | ---------------- | ----- | ---------------------- | ------- |
-| `power.wkg1200` | `wkg1200`        | float | Nested path extraction |         |
+| `power.wkg1200` | `wkg_20m`        | float | Nested path extraction |         |
 
 Maximum 20-minute power output in watts per kilogram.
 

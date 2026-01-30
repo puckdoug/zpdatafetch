@@ -43,20 +43,20 @@ class ZRTeamMember:
     power_awc: Anaerobic work capacity (watts)
     power_cp: Critical power (watts)
     power_cs: Compound score
-    power_w5: 5-second power (watts)
-    power_w15: 15-second power
-    power_w30: 30-second power
-    power_w60: 60-second power
-    power_w120: 2-minute power
-    power_w300: 5-minute power
-    power_w1200: 20-minute power
-    power_wkg5: 5-second power per kg
-    power_wkg15: 15-second power per kg
-    power_wkg30: 30-second power per kg
-    power_wkg60: 60-second power per kg
-    power_wkg120: 2-minute power per kg
-    power_wkg300: 5-minute power per kg
-    power_wkg1200: 20-minute power per kg
+    power_5s: 5-second power (watts)
+    power_15s: 15-second power
+    power_30s: 30-second power
+    power_1m: 1-minute power
+    power_2m: 2-minute power
+    power_5m: 5-minute power
+    power_20m: 20-minute power
+    wkg_5s: 5-second power per kg
+    wkg_15s: 15-second power per kg
+    wkg_30s: 30-second power per kg
+    wkg_1m: 1-minute power per kg
+    wkg_2m: 2-minute power per kg
+    wkg_5m: 5-minute power per kg
+    wkg_20m: 20-minute power per kg
     _excluded: Recognized but not explicitly handled fields
     _extra: Unknown/new fields from API changes
   """
@@ -78,20 +78,20 @@ class ZRTeamMember:
   power_awc: float = 0.0
   power_cp: float = 0.0
   power_cs: float = 0.0
-  power_w5: float = 0.0
-  power_w15: float = 0.0
-  power_w30: float = 0.0
-  power_w60: float = 0.0
-  power_w120: float = 0.0
-  power_w300: float = 0.0
-  power_w1200: float = 0.0
-  power_wkg5: float = 0.0
-  power_wkg15: float = 0.0
-  power_wkg30: float = 0.0
-  power_wkg60: float = 0.0
-  power_wkg120: float = 0.0
-  power_wkg300: float = 0.0
-  power_wkg1200: float = 0.0
+  power_5s: float = 0.0
+  power_15s: float = 0.0
+  power_30s: float = 0.0
+  power_1m: float = 0.0
+  power_2m: float = 0.0
+  power_5m: float = 0.0
+  power_20m: float = 0.0
+  wkg_5s: float = 0.0
+  wkg_15s: float = 0.0
+  wkg_30s: float = 0.0
+  wkg_1m: float = 0.0
+  wkg_2m: float = 0.0
+  wkg_5m: float = 0.0
+  wkg_20m: float = 0.0
 
   # Field classification
   _excluded: dict[str, Any] = field(default_factory=dict, repr=False)
@@ -140,7 +140,7 @@ class ZRTeamMember:
 
       # Max30 ratings and categories
       max30_rating = safe_float(
-        extract_nested_value(data, 'race', 'max30', 'rating')
+        extract_nested_value(data, 'race', 'max30', 'rating'),
       )
       max30_category_mixed = safe_str(
         extract_nested_value(data, 'race', 'max30', 'mixed', 'category'),
@@ -151,7 +151,7 @@ class ZRTeamMember:
 
       # Max90 ratings and categories
       max90_rating = safe_float(
-        extract_nested_value(data, 'race', 'max90', 'rating')
+        extract_nested_value(data, 'race', 'max90', 'rating'),
       )
       max90_category_mixed = safe_str(
         extract_nested_value(data, 'race', 'max90', 'mixed', 'category'),
@@ -164,22 +164,22 @@ class ZRTeamMember:
       power_awc = safe_float(extract_nested_value(data, 'power', 'AWC'))
       power_cp = safe_float(extract_nested_value(data, 'power', 'CP'))
       power_cs = safe_float(
-        extract_nested_value(data, 'power', 'compoundScore')
+        extract_nested_value(data, 'power', 'compoundScore'),
       )
-      power_w5 = safe_float(extract_nested_value(data, 'power', 'w5'))
-      power_w15 = safe_float(extract_nested_value(data, 'power', 'w15'))
-      power_w30 = safe_float(extract_nested_value(data, 'power', 'w30'))
-      power_w60 = safe_float(extract_nested_value(data, 'power', 'w60'))
-      power_w120 = safe_float(extract_nested_value(data, 'power', 'w120'))
-      power_w300 = safe_float(extract_nested_value(data, 'power', 'w300'))
-      power_w1200 = safe_float(extract_nested_value(data, 'power', 'w1200'))
-      power_wkg5 = safe_float(extract_nested_value(data, 'power', 'wkg5'))
-      power_wkg15 = safe_float(extract_nested_value(data, 'power', 'wkg15'))
-      power_wkg30 = safe_float(extract_nested_value(data, 'power', 'wkg30'))
-      power_wkg60 = safe_float(extract_nested_value(data, 'power', 'wkg60'))
-      power_wkg120 = safe_float(extract_nested_value(data, 'power', 'wkg120'))
-      power_wkg300 = safe_float(extract_nested_value(data, 'power', 'wkg300'))
-      power_wkg1200 = safe_float(extract_nested_value(data, 'power', 'wkg1200'))
+      power_5s = safe_float(extract_nested_value(data, 'power', 'w5'))
+      power_15s = safe_float(extract_nested_value(data, 'power', 'w15'))
+      power_30s = safe_float(extract_nested_value(data, 'power', 'w30'))
+      power_1m = safe_float(extract_nested_value(data, 'power', 'w60'))
+      power_2m = safe_float(extract_nested_value(data, 'power', 'w120'))
+      power_5m = safe_float(extract_nested_value(data, 'power', 'w300'))
+      power_20m = safe_float(extract_nested_value(data, 'power', 'w1200'))
+      wkg_5s = safe_float(extract_nested_value(data, 'power', 'wkg5'))
+      wkg_15s = safe_float(extract_nested_value(data, 'power', 'wkg15'))
+      wkg_30s = safe_float(extract_nested_value(data, 'power', 'wkg30'))
+      wkg_1m = safe_float(extract_nested_value(data, 'power', 'wkg60'))
+      wkg_2m = safe_float(extract_nested_value(data, 'power', 'wkg120'))
+      wkg_5m = safe_float(extract_nested_value(data, 'power', 'wkg300'))
+      wkg_20m = safe_float(extract_nested_value(data, 'power', 'wkg1200'))
 
       # Classify remaining fields
       excluded = {}
@@ -209,20 +209,20 @@ class ZRTeamMember:
         power_awc=power_awc,
         power_cp=power_cp,
         power_cs=power_cs,
-        power_w5=power_w5,
-        power_w15=power_w15,
-        power_w30=power_w30,
-        power_w60=power_w60,
-        power_w120=power_w120,
-        power_w300=power_w300,
-        power_w1200=power_w1200,
-        power_wkg5=power_wkg5,
-        power_wkg15=power_wkg15,
-        power_wkg30=power_wkg30,
-        power_wkg60=power_wkg60,
-        power_wkg120=power_wkg120,
-        power_wkg300=power_wkg300,
-        power_wkg1200=power_wkg1200,
+        power_5s=power_5s,
+        power_15s=power_15s,
+        power_30s=power_30s,
+        power_1m=power_1m,
+        power_2m=power_2m,
+        power_5m=power_5m,
+        power_20m=power_20m,
+        wkg_5s=wkg_5s,
+        wkg_15s=wkg_15s,
+        wkg_30s=wkg_30s,
+        wkg_1m=wkg_1m,
+        wkg_2m=wkg_2m,
+        wkg_5m=wkg_5m,
+        wkg_20m=wkg_20m,
         _excluded=excluded,
         _extra=extra,
       )

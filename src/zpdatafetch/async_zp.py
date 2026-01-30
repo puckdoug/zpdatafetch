@@ -161,7 +161,11 @@ class AsyncZP(AsyncBaseHTTPClient):
             suggestion='Zwiftpower may have changed their login flow. Contact support if this persists.',
           ),
         )
-      login_url_from_form = soup.form['action'][0:]
+      action_value = soup.form['action']
+      # BeautifulSoup can return str or list[str] for attributes
+      login_url_from_form = (
+        action_value[0] if isinstance(action_value, list) else action_value
+      )
       logger.debug(f'Extracted login form URL: {login_url_from_form}')
     except (AttributeError, KeyError) as e:
       logger.error(f'Could not parse login form: {e}')
