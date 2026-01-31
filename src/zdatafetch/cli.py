@@ -10,6 +10,7 @@ from argparse import ArgumentParser
 from shared.cli import (
   configure_logging_from_args,
   format_noaction_output,
+  get_package_version,
   handle_config_command,
   validate_command_name,
   validate_command_provided,
@@ -54,6 +55,13 @@ Commands:
 
   # Create parser (custom for zdatafetch, no --v1fetch)
   p = ArgumentParser(description=desc)
+
+  # Version argument
+  p.add_argument(
+    '--version',
+    action='version',
+    version=f'%(prog)s {get_package_version()}',
+  )
 
   # Logging arguments
   p.add_argument(
@@ -223,9 +231,7 @@ Commands:
             for rider_id, profile in profiles.items():
               # Indent the profile output
               profile_str = str(profile)
-              indented = '\n'.join(
-                f'  {line}' for line in profile_str.split('\n')
-              )
+              indented = '\n'.join(f'  {line}' for line in profile_str.split('\n'))
               print(f'  {rider_id}: {indented.lstrip()},')
             print('}')
 
@@ -267,9 +273,7 @@ Commands:
             print('{')
             for rider_id, followers in followers_data.items():
               followers_str = str(followers)
-              indented = '\n'.join(
-                f'  {line}' for line in followers_str.split('\n')
-              )
+              indented = '\n'.join(f'  {line}' for line in followers_str.split('\n'))
               print(f'  {rider_id}: {indented.lstrip()},')
             print('}')
 
@@ -334,9 +338,7 @@ Commands:
               print('{')
               for key, rideons in rideons_data.items():
                 rideons_str = str(rideons)
-                indented = '\n'.join(
-                  f'  {line}' for line in rideons_str.split('\n')
-                )
+                indented = '\n'.join(f'  {line}' for line in rideons_str.split('\n'))
                 print(f'  {key}: {indented.lstrip()},')
               print('}')
 
@@ -370,9 +372,7 @@ Commands:
             print('{')
             for rider_id, activity in activities.items():
               activity_str = str(activity)
-              indented = '\n'.join(
-                f'  {line}' for line in activity_str.split('\n')
-              )
+              indented = '\n'.join(f'  {line}' for line in activity_str.split('\n'))
               print(f'  {rider_id}: {indented.lstrip()},')
             print('}')
 
@@ -445,9 +445,7 @@ Commands:
               print('{')
               for world_id, riders in riders_data.items():
                 riders_str = str(riders)
-                indented = '\n'.join(
-                  f'  {line}' for line in riders_str.split('\n')
-                )
+                indented = '\n'.join(f'  {line}' for line in riders_str.split('\n'))
                 print(f'  {world_id}: {indented.lstrip()},')
               print('}')
 

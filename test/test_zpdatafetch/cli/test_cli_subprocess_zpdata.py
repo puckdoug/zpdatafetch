@@ -21,9 +21,7 @@ class TestZPDataCLIHelp:
       check=False,
     )
     assert result.returncode == 0
-    assert (
-      'usage:' in result.stdout.lower() or 'usage:' in result.stderr.lower()
-    )
+    assert 'usage:' in result.stdout.lower() or 'usage:' in result.stderr.lower()
 
   def test_zpdata_no_args(self):
     """Test zpdata with no arguments exits gracefully."""
@@ -36,6 +34,23 @@ class TestZPDataCLIHelp:
     )
     # Should exit with 0 (no command specified)
     assert result.returncode == 0
+
+  def test_zpdata_version(self):
+    """Test zpdata --version outputs version information."""
+    result = subprocess.run(
+      ['zpdata', '--version'],
+      capture_output=True,
+      text=True,
+      timeout=5,
+      check=False,
+    )
+    assert result.returncode == 0
+    # Version output goes to stdout
+    output = result.stdout + result.stderr
+    # Should contain "zpdata" and a version number (e.g., "2.0.2")
+    assert 'zpdata' in output.lower()
+    # Check for version pattern (digits.digits.digits or "unknown")
+    assert any(char.isdigit() for char in output) or 'unknown' in output.lower()
 
 
 # ===============================================================================
@@ -79,11 +94,7 @@ class TestZPDataCyclistCommand:
     )
     assert result.returncode == 0
     # Should report what it would do
-    assert (
-      '123' in result.stdout
-      or '456' in result.stdout
-      or 'Would' in result.stdout
-    )
+    assert '123' in result.stdout or '456' in result.stdout or 'Would' in result.stdout
 
 
 # ===============================================================================
@@ -226,9 +237,7 @@ class TestZPDataLeagueCommand:
     assert result.returncode == 0
     # Should report what it would do
     assert (
-      '2780' in result.stdout
-      or '2781' in result.stdout
-      or 'Would' in result.stdout
+      '2780' in result.stdout or '2781' in result.stdout or 'Would' in result.stdout
     )
 
 

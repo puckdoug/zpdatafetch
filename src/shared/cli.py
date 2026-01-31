@@ -7,23 +7,48 @@ functionality for both zpdatafetch and zrdatafetch CLIs.
 import logging
 from argparse import ArgumentParser, Namespace
 from collections.abc import Callable
+from importlib.metadata import PackageNotFoundError, version
+
+
+def get_package_version(package_name: str = 'zpdatafetch') -> str:
+  """Get version from installed package metadata.
+
+  Args:
+    package_name: Name of the package to get version for
+
+  Returns:
+    Version string from package metadata, or 'unknown' if not found
+  """
+  try:
+    return version(package_name)
+  except PackageNotFoundError:
+    return 'unknown'
 
 
 def create_base_parser(
   description: str,
   command_metavar: str,
+  package_name: str = 'zpdatafetch',
 ) -> ArgumentParser:
   """Create argument parser with common CLI arguments.
 
   Args:
     description: CLI description text
     command_metavar: Metavar for command choices (e.g., '{config,rider,result}')
+    package_name: Name of package for version string (default: 'zpdatafetch')
 
   Returns:
     ArgumentParser configured with common arguments for both packages.
     Caller can add package-specific arguments after this call.
   """
   parser = ArgumentParser(description=description)
+
+  # Version argument
+  parser.add_argument(
+    '--version',
+    action='version',
+    version=f'%(prog)s {get_package_version(package_name)}',
+  )
 
   # Logging arguments
   parser.add_argument(
