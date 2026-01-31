@@ -1,8 +1,21 @@
 # Changelog
 
+## [2.0.3]
+
+Added --version flag to all cli interfaces
+
+## [2.0.2]
+
+Reverted power field names for zwiftpower to earlier naming convention which is easier to understand. e.g.
+
+- w5 -> power5s
+- w120 -> power2m
+
+Though not identical to zwiftpower this is the form the data used before the major changes introduced in version 2.x and I find it more intuitive.
+
 ## [2.0.1]
 
-Reverted unnecessary name change for ZRRider (changed to ZRRiderRating with 2.0.0). 
+Reverted unnecessary name change for ZRRider (changed to ZRRiderRating with 2.0.0).
 
 ## [2.0.0]
 
