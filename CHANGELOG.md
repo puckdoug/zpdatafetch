@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.1.0]
+
+Expanded `ZRRider` with 27 new fields from the ZwiftRacing to add vELO2:
+
+- Race stats: `race_finishes`, `race_dnfs`, `race_wins`, `race_podiums`
+- Terrain handicaps: `handicap_flat`, `handicap_rolling`, `handicap_hilly`, `handicap_mountainous`
+- Phenotype: `phenotype`, `phenotype_bias`, `phenotype_sprinter`, `phenotype_puncheur`, `phenotype_pursuiter`, `phenotype_climber`, `phenotype_tt`
+- Seed ratings: `seed_race`, `seed_time_trial`, `seed_endurance`, `seed_pursuit`, `seed_sprint`, `seed_punch`, `seed_climb`, `seed_time_trial_factor`
+- vELO2 ratings: `velo_race`, `velo_time_trial`, `velo_endurance`, `velo_pursuit`, `velo_sprint`, `velo_punch`, `velo_climb`, `velo_time_trial_factor`
+
 ## [2.0.3]
 
 Added --version flag to all cli interfaces

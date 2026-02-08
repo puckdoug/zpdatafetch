@@ -1,0 +1,102 @@
+{
+  "riderId": 550564,
+  "name": "Doug Morris [TeamDIRT.racing]",
+  "gender": "M",
+  "country": "ch",
+  "age": "50+",
+  "height": 182,
+  "weight": 98,
+  "zpCategory": "C",
+  "zpFTP": 277,
+  "power": {
+    "wkg5": 8.683673469387756,
+    "wkg15": 7.795918367346939,
+    "wkg30": 6.63265306122449,
+    "wkg60": 4.887755102040816,
+    "wkg120": 3.816326530612245,
+    "wkg300": 3.2448979591836733,
+    "wkg1200": 2.816326530612245,
+    "w5": 851,
+    "w15": 764,
+    "w30": 650,
+    "w60": 479,
+    "w120": 374,
+    "w300": 318,
+    "w1200": 276,
+    "CP": 260.71524357427205,
+    "AWC": 18865.96340805342,
+    "compoundScore": 857.6987316665796
+  },
+  "race": {
+    "last": {
+      "rating": 911.874511461762,
+      "date": 1770318900,
+      "mixed": { "category": "Silver", "number": 8 }
+    },
+    "current": {
+      "rating": 911.874511461762,
+      "date": 1770318900,
+      "mixed": { "category": "Silver", "number": 8 }
+    },
+    "max30": {
+      "rating": 911.874511461762,
+      "date": 1770318900,
+      "expires": 1772910900,
+      "mixed": { "category": "Silver", "number": 8 }
+    },
+    "max90": {
+      "rating": 911.874511461762,
+      "date": 1770318900,
+      "expires": 1778094900,
+      "mixed": { "category": "Silver", "number": 8 }
+    },
+    "finishes": 13,
+    "dnfs": 0,
+    "wins": 1,
+    "podiums": 3
+  },
+  "handicaps": {
+    "profile": {
+      "flat": 72.04669345999261,
+      "rolling": -90.91606555665757,
+      "hilly": -137.23179706665286,
+      "mountainous": -151.2294403674514
+    }
+  },
+  "phenotype": {
+    "scores": {
+      "sprinter": 94,
+      "puncheur": 68.6,
+      "pursuiter": 43.4,
+      "climber": 38.2,
+      "tt": 78.1
+    },
+    "value": "Sprinter",
+    "bias": 32.95
+  },
+  "club": { "id": 2707, "name": "DIRT" },
+  "seed": {
+    "race": 425.76515,
+    "timeTrial": 434.759,
+    "factors": {
+      "endurance": 386,
+      "pursuit": 397,
+      "sprint": 544.5,
+      "punch": 479.61,
+      "climb": 394.5,
+      "timeTrial": 476
+    }
+  },
+  "velo": {
+    "race": 432.73065125557014,
+    "timeTrial": 441.60965517467037,
+    "factors": {
+      "endurance": 403.4543215640642,
+      "pursuit": 400.02650976543055,
+      "sprint": 549.3658233937314,
+      "punch": 483.3924028713085,
+      "climb": 386.25065653902146,
+      "timeTrial": 479
+    }
+  }
+}
