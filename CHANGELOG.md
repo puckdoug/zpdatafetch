@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.1.1]
+
+Updgraded libraries becuase of a security update for `cryptography`
+
 ## [2.1.0]
 
 Expanded `ZRRider` with 27 new fields from the ZwiftRacing to add vELO2:

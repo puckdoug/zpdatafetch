@@ -1,6 +1,6 @@
 [project]
 name = "zpdatafetch"
-version = "2.1.0"
+version = "2.1.1"
 description = "A package for fetching data from Zwiftpower and Zwiftracing.app"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -19,7 +19,7 @@ dependencies = [
   # Async support (anyio provides backend-agnostic async utilities)
   "anyio>=4.4.0",
   "beautifulsoup4>=4.12.3",
-  "cryptography>=44.0.0",
+  "cryptography>=46.0.5",
   # Note: httpx 0.28.0 depends on httpcore 1.1.x which has a compatibility
   # issue with Python 3.14's typing.Union. This causes test failures on 3.14.
   # Workaround: test_shared_client_connection_pooling is marked as xfail on 3.14.
