@@ -269,7 +269,7 @@ including rider ratings, race results, and team rosters.
 
 ```sh
 usage: zrdata [-h] [-v] [-vv] [--log-file PATH] [-r] [--v1fetch] [--noaction] [--sync]
-              [--batch] [--batch-file FILE] [--premium]
+              [--batch] [--batch-file FILE] [--premium] [--at DATETIME]
               [{config,rider,result,team}] [id ...]
 
 Module for fetching Zwiftracing data using the Zwiftracing API
@@ -291,6 +291,7 @@ options:
   --batch               use batch POST endpoint for multiple IDs (rider command only)
   --batch-file FILE     read IDs from file (one per line) for batch request (rider command only)
   --premium             use premium tier rate limits (higher request quotas)
+  --at DATETIME         fetch historical ratings at a date/time in UTC (rider command only)
 ```
 
 **Note:** All objects support both synchronous (`fetch()`) and asynchronous (`afetch()`) methods. See the Async API section below for details.
@@ -321,6 +322,28 @@ zrdata config
 
 # Set up authorization
 zrdata config  # Will prompt for authorization header
+```
+
+### Historical Ratings
+
+Use `--at` to fetch rider ratings at a specific point in time. Accepts ISO 8601
+date/time strings, interpreted as UTC:
+
+```sh
+# Fetch ratings as of a specific date
+zrdata rider --at 2024-06-15 12345
+
+# Fetch ratings at a specific date and time
+zrdata rider --at "2024-06-15 14:30" 12345
+
+# ISO 8601 with T separator
+zrdata rider --at 2024-06-15T14:30:00 12345
+
+# Combine with batch
+zrdata rider --batch --at 2024-06-15 12345 67890 11111
+
+# Preview what would be fetched
+zrdata rider --noaction --at 2024-06-15 12345
 ```
 
 ### Advanced Options
@@ -709,10 +732,11 @@ async def main():
         for zwift_id, rider in riders.items():
             print(f"{rider.name}: {rider.current_rating}")
 
-        # Batch fetch with historical data
+        # Batch fetch with historical data (epoch is a Unix timestamp)
+        from shared.validation import parse_datetime_to_epoch
         historical = await ZRRider.afetch_batch(
             12345, 67890,
-            epoch=1704067200,  # Unix timestamp
+            epoch=parse_datetime_to_epoch('2024-01-01'),
             zr=zr
         )
 

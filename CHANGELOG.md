@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.1.2]
+
+Added ability to fetch a rider at a particular timestamep to the CLI
+
 ## [2.1.1]
 
 Updgraded libraries becuase of a security update for `cryptography`

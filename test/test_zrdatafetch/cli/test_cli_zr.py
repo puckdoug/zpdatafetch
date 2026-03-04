@@ -189,6 +189,59 @@ class TestCLICommandRouting:
 
 
 # ===============================================================================
+class TestCLIAtFlag:
+  """Test --at flag for historical rider data."""
+
+  def test_rider_noaction_with_at(self, capsys):
+    """Test --at with --noaction shows date and epoch."""
+    with patch(
+      'sys.argv',
+      ['zrdata', 'rider', '--noaction', '--at', '2024-06-15', '12345'],
+    ):
+      result = main()
+      assert result is None
+      output = capsys.readouterr().out
+      assert '2024-06-15' in output
+      assert 'epoch' in output
+
+  def test_rider_noaction_batch_with_at(self, capsys):
+    """Test --at with --noaction --batch shows date and epoch."""
+    with patch(
+      'sys.argv',
+      ['zrdata', 'rider', '--noaction', '--batch', '--at', '2024-06-15',
+       '12345', '67890'],
+    ):
+      result = main()
+      assert result is None
+      output = capsys.readouterr().out
+      assert '2024-06-15' in output
+      assert 'batch POST' in output
+
+  def test_rider_invalid_at_value(self, capsys):
+    """Test --at with invalid date returns error."""
+    with patch(
+      'sys.argv',
+      ['zrdata', 'rider', '--at', 'not-a-date', '12345'],
+    ):
+      result = main()
+      assert result == 1
+      output = capsys.readouterr().out
+      assert 'Invalid date/time' in output
+
+  def test_rider_at_with_datetime(self, capsys):
+    """Test --at with full datetime string."""
+    with patch(
+      'sys.argv',
+      ['zrdata', 'rider', '--noaction', '--at', '2024-06-15T14:30:00',
+       '12345'],
+    ):
+      result = main()
+      assert result is None
+      output = capsys.readouterr().out
+      assert '1718461800' in output
+
+
+# ===============================================================================
 class TestCLIEntryPoint:
   """Test CLI as entry point."""
 

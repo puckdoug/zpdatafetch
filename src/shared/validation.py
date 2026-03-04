@@ -15,7 +15,9 @@ These ranges are based on Python's native integer limits and observed
 API behavior.
 """
 
+import calendar
 import sys
+from datetime import datetime, timezone
 from typing import Literal
 
 # ID Range Constants
@@ -176,6 +178,43 @@ def validate_epoch(value: int) -> int:
     )
 
   return value
+
+
+def parse_datetime_to_epoch(value: str) -> int:
+  """Parse a date/time string to a validated Unix epoch timestamp (UTC).
+
+  Accepts ISO 8601 formats:
+    - '2024-06-15'              (date only, midnight UTC)
+    - '2024-06-15 14:30'        (date and time, UTC)
+    - '2024-06-15T14:30:00'     (ISO 8601, UTC)
+    - '2024-06-15T14:30:00Z'    (ISO 8601 with Z suffix)
+    - '2024-06-15T14:30:00+00:00' (ISO 8601 with timezone)
+
+  Args:
+      value: Date/time string to parse
+
+  Returns:
+      Unix epoch timestamp (int, UTC)
+
+  Raises:
+      ValidationError: If the string cannot be parsed or the resulting
+          epoch is out of range
+  """
+  try:
+    # Python's fromisoformat handles 'Z' suffix from 3.11+
+    dt = datetime.fromisoformat(value)
+  except ValueError as e:
+    raise ValidationError(
+      f"Invalid date/time '{value}': use ISO 8601 format "
+      f"(e.g. '2024-06-15' or '2024-06-15T14:30:00')",
+    ) from e
+
+  # Assume UTC if no timezone specified
+  if dt.tzinfo is None:
+    dt = dt.replace(tzinfo=timezone.utc)
+
+  epoch = calendar.timegm(dt.utctimetuple())
+  return validate_epoch(epoch)
 
 
 def validate_batch_size(count: int, max_size: int = MAX_BATCH_SIZE) -> None:

@@ -23,6 +23,7 @@ from shared.cli import (
   validate_command_provided,
   validate_ids_provided,
 )
+from shared.validation import ValidationError, parse_datetime_to_epoch
 from zrdatafetch import (
   Config,
   ZRResultFetch,
@@ -74,6 +75,15 @@ Module for fetching Zwiftracing data using the Zwiftracing API
     action='store_true',
     help='use premium tier rate limits (higher request quotas)',
   )
+  p.add_argument(
+    '--at',
+    type=str,
+    metavar='DATETIME',
+    help=(
+      'fetch historical ratings at a given date/time (UTC), '
+      "e.g. '2024-06-15' or '2024-06-15T14:30:00' (rider command only)"
+    ),
+  )
 
   # Use parse_intermixed_args to handle flags after positional arguments
   # This allows: zrdata rider --noaction 12345 67890
@@ -117,11 +127,25 @@ Module for fetching Zwiftracing data using the Zwiftracing API
       if not validate_ids_provided(args.id, 'rider'):
         return 1
 
+      # Parse --at to epoch
+      epoch: int | None = None
+      if args.at:
+        try:
+          epoch = parse_datetime_to_epoch(args.at)
+        except ValidationError as e:
+          print(f'Error: {e}')
+          return 1
+
       if args.noaction:
         if args.batch or args.batch_file:
-          print(f'Would fetch {len(args.id)} riders using batch POST')
+          msg = f'Would fetch {len(args.id)} riders using batch POST'
         else:
-          format_noaction_output('rider', args.id, args.raw)
+          msg = f"Would fetch rider data for: {', '.join(args.id)}"
+          if args.raw:
+            msg += ' (raw output format)'
+        if epoch is not None:
+          msg += f' at {args.at} (epoch {epoch})'
+        print(msg)
         return None
 
       try:
@@ -130,11 +154,11 @@ Module for fetching Zwiftracing data using the Zwiftracing API
 
         # Handle batch request
         if args.batch or args.batch_file:
-          riders = ZRRiderFetch.fetch_batch(*rider_ids)
+          riders = ZRRiderFetch.fetch_batch(*rider_ids, epoch=epoch)
           fetcher = None  # Batch doesn't use fetcher instance
         else:
           fetcher = ZRRiderFetch()
-          riders = fetcher.fetch(*rider_ids)
+          riders = fetcher.fetch(*rider_ids, epoch=epoch)
 
         # Output results
         _output_results(args, riders, fetcher)

@@ -14,6 +14,7 @@ from shared.validation import (
   RACE_ID_MIN,
   ZWIFT_ID_MAX,
   ValidationError,
+  parse_datetime_to_epoch,
   validate_batch_size,
   validate_epoch,
   validate_id_list,
@@ -141,6 +142,56 @@ class TestValidateEpoch:
     """Epochs beyond 2038 should be rejected."""
     with pytest.raises(ValidationError):
       validate_epoch(EPOCH_MAX + 1)
+
+
+class TestParseDatetimeToEpoch:
+  """Test parse_datetime_to_epoch conversion."""
+
+  def test_date_only(self):
+    """Date-only string should parse to midnight UTC."""
+    # 2024-06-15 00:00:00 UTC = 1718409600
+    assert parse_datetime_to_epoch('2024-06-15') == 1718409600
+
+  def test_date_and_time(self):
+    """Date and time should parse correctly."""
+    # 2024-06-15 14:30:00 UTC = 1718461800
+    assert parse_datetime_to_epoch('2024-06-15 14:30') == 1718461800
+
+  def test_iso8601_t_separator(self):
+    """ISO 8601 with T separator should parse correctly."""
+    assert parse_datetime_to_epoch('2024-06-15T14:30:00') == 1718461800
+
+  def test_iso8601_with_z_suffix(self):
+    """ISO 8601 with Z suffix should parse correctly."""
+    assert parse_datetime_to_epoch('2024-06-15T14:30:00Z') == 1718461800
+
+  def test_iso8601_with_utc_offset(self):
+    """ISO 8601 with +00:00 offset should parse correctly."""
+    assert parse_datetime_to_epoch('2024-06-15T14:30:00+00:00') == 1718461800
+
+  def test_iso8601_with_nonzero_offset(self):
+    """ISO 8601 with non-zero offset should convert to UTC."""
+    # 14:30 +02:00 = 12:30 UTC
+    assert parse_datetime_to_epoch('2024-06-15T14:30:00+02:00') == 1718454600
+
+  def test_unix_epoch_start(self):
+    """1970-01-01 should return 0."""
+    assert parse_datetime_to_epoch('1970-01-01') == 0
+
+  def test_invalid_string_raises(self):
+    """Invalid date strings should raise ValidationError."""
+    with pytest.raises(ValidationError, match='Invalid date/time'):
+      parse_datetime_to_epoch('not-a-date')
+
+  def test_empty_string_raises(self):
+    """Empty string should raise ValidationError."""
+    with pytest.raises(ValidationError, match='Invalid date/time'):
+      parse_datetime_to_epoch('')
+
+  def test_date_beyond_2038_raises(self):
+    """Dates beyond 2038 should raise ValidationError (epoch overflow)."""
+    with pytest.raises(ValidationError):
+      parse_datetime_to_epoch('2039-01-01')
 
 
 class TestValidateBatchSize:
