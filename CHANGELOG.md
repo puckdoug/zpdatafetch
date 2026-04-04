@@ -2,11 +2,13 @@
 
 ## [2.1.2]
 
-Added ability to fetch a rider at a particular timestamep to the CLI
+- Added ability to fetch a rider at a particular timestamep to the CLI. 
+- Updated error messages to use stderr (some went to stdout)
+- Updated library versions
 
 ## [2.1.1]
 
-Updgraded libraries becuase of a security update for `cryptography`
+- Updgraded libraries becuase of a security update for `cryptography`
 
 ## [2.1.0]
 
