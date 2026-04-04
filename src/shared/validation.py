@@ -201,8 +201,9 @@ def parse_datetime_to_epoch(value: str) -> int:
           epoch is out of range
   """
   try:
-    # Python's fromisoformat handles 'Z' suffix from 3.11+
-    dt = datetime.fromisoformat(value)
+    # Replace trailing 'Z' with '+00:00' for Python 3.10 compatibility
+    normalized = value.replace('Z', '+00:00') if value.endswith('Z') else value
+    dt = datetime.fromisoformat(normalized)
   except ValueError as e:
     raise ValidationError(
       f"Invalid date/time '{value}': use ISO 8601 format "
