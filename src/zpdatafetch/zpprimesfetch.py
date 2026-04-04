@@ -136,11 +136,10 @@ class ZPPrimesFetch(ZP_obj):
       await async_zp.init_client()
 
       # Copy authentication state from sync to async client
-      if self._zp_sync._client and async_zp._client:
-        # Share the cookies - this preserves the login session
-        assert async_zp._client is not None
       assert self._zp_sync._client is not None
-      async_zp._client.cookies = self._zp_sync._client.cookies  # type: ignore[assignment]
+      assert async_zp._client is not None
+      # Share the cookies - this preserves the login session
+      async_zp._client.cookies = self._zp_sync._client.cookies
       logger.debug('Copied authentication cookies from sync to async session')
 
       # Don't store this - create fresh each time to avoid lifecycle issues

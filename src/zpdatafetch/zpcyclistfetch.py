@@ -20,7 +20,7 @@ else:
     )
   except ImportError:
     # Fallback - catch the anyio exception type
-    BaseExceptionGroup = Exception
+    BaseExceptionGroup: type[BaseException] = Exception
 
 from shared.json_helpers import parse_json_safe
 from shared.validation import ValidationError, validate_id_list

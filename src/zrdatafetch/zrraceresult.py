@@ -6,7 +6,7 @@ any fetch logic. Fetching is handled by ZRResultFetch.
 
 from collections.abc import Iterator, Sequence
 from dataclasses import asdict, dataclass, field
-from typing import Any
+from typing import Any, overload
 
 from zrdatafetch.logging_config import get_logger
 from zrdatafetch.zr_utils import safe_float, safe_int, safe_str
@@ -236,14 +236,21 @@ class ZRRaceResult(Sequence):
     """
     return len(self._results)
 
-  def __getitem__(self, index: int) -> ZRRiderResult:  # type: ignore[override]
-    """Access rider result by index.
+  @overload
+  def __getitem__(self, index: int) -> ZRRiderResult: ...
+  @overload
+  def __getitem__(self, index: slice) -> Sequence[ZRRiderResult]: ...
+
+  def __getitem__(
+    self, index: int | slice,
+  ) -> ZRRiderResult | Sequence[ZRRiderResult]:
+    """Access rider result by index or slice.
 
     Args:
-      index: Integer index
+      index: Integer index or slice
 
     Returns:
-      ZRRiderResult object
+      ZRRiderResult object or sequence of results
 
     Raises:
       IndexError: If index out of range

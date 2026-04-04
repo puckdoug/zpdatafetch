@@ -124,10 +124,6 @@ select = [
   "UP",  # pyupgrade
   "ANN",  # flake8-annotations (type hints)
 ]
-ignore = [
-  "ANN101",  # Missing type annotation for self
-  "ANN102",  # Missing type annotation for cls
-]
 
 # Per-file ignores for justified Any usage
 [tool.ruff.lint.per-file-ignores]

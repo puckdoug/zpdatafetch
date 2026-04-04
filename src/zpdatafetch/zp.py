@@ -489,7 +489,6 @@ def main() -> None:
   Core module for accessing Zwiftpower API endpoints
   """
   zp = ZP()
-  zp.verbose = True  # type: ignore[attr-defined]
   zp.login()
   if zp.login_response:
     print(zp.login_response.status_code)

@@ -6,7 +6,7 @@ any fetch logic. Fetching is handled by ZRTeamFetch.
 
 from collections.abc import Iterator, Sequence
 from dataclasses import asdict, dataclass, field
-from typing import Any
+from typing import Any, overload
 
 from zrdatafetch.logging_config import get_logger
 from zrdatafetch.zr_utils import (
@@ -358,14 +358,21 @@ class ZRTeamRoster(Sequence):
     """
     return len(self._members)
 
-  def __getitem__(self, index: int) -> ZRTeamMember:  # type: ignore[override]
-    """Access team member by index.
+  @overload
+  def __getitem__(self, index: int) -> ZRTeamMember: ...
+  @overload
+  def __getitem__(self, index: slice) -> Sequence[ZRTeamMember]: ...
+
+  def __getitem__(
+    self, index: int | slice,
+  ) -> ZRTeamMember | Sequence[ZRTeamMember]:
+    """Access team member by index or slice.
 
     Args:
-      index: Integer index
+      index: Integer index or slice
 
     Returns:
-      ZRTeamMember object
+      ZRTeamMember object or sequence of members
 
     Raises:
       IndexError: If index out of range

@@ -225,7 +225,7 @@ class TestCLIAtFlag:
     ):
       result = main()
       assert result == 1
-      output = capsys.readouterr().out
+      output = capsys.readouterr().err
       assert 'Invalid date/time' in output
 
   def test_rider_at_with_datetime(self, capsys):

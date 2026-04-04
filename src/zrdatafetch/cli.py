@@ -133,7 +133,7 @@ Module for fetching Zwiftracing data using the Zwiftracing API
         try:
           epoch = parse_datetime_to_epoch(args.at)
         except ValidationError as e:
-          print(f'Error: {e}')
+          print(f'Error: {e}', file=sys.stderr)
           return 1
 
       if args.noaction:
@@ -164,10 +164,10 @@ Module for fetching Zwiftracing data using the Zwiftracing API
         _output_results(args, riders, fetcher)
 
       except ValueError as e:
-        print(f'Error: Invalid Zwift ID: {e}')
+        print(f'Error: Invalid Zwift ID: {e}', file=sys.stderr)
         return 1
       except Exception as e:
-        print(f'Error fetching rider: {e}')
+        print(f'Error fetching rider: {e}', file=sys.stderr)
         return 1
 
     case 'result':
@@ -188,10 +188,10 @@ Module for fetching Zwiftracing data using the Zwiftracing API
         _output_results(args, results, fetcher)
 
       except ValueError as e:
-        print(f'Error: Invalid race ID: {e}')
+        print(f'Error: Invalid race ID: {e}', file=sys.stderr)
         return 1
       except Exception as e:
-        print(f'Error fetching result: {e}')
+        print(f'Error fetching result: {e}', file=sys.stderr)
         return 1
 
     case 'team':
@@ -212,10 +212,10 @@ Module for fetching Zwiftracing data using the Zwiftracing API
         _output_results(args, teams, fetcher)
 
       except ValueError as e:
-        print(f'Error: Invalid team ID: {e}')
+        print(f'Error: Invalid team ID: {e}', file=sys.stderr)
         return 1
       except Exception as e:
-        print(f'Error fetching team: {e}')
+        print(f'Error fetching team: {e}', file=sys.stderr)
         return 1
 
     case _:

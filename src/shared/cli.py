@@ -5,6 +5,7 @@ functionality for both zpdatafetch and zrdatafetch CLIs.
 """
 
 import logging
+import sys
 from argparse import ArgumentParser, Namespace
 from collections.abc import Callable
 from importlib.metadata import PackageNotFoundError, version
@@ -216,7 +217,7 @@ def validate_command_name(
     True if valid, False if invalid.
   """
   if cmd not in valid_commands:
-    print(f'Error: Unknown command "{cmd}"')
+    print(f'Error: Unknown command "{cmd}"', file=sys.stderr)
     return False
   return True
 
@@ -235,7 +236,7 @@ def validate_ids_provided(
     True if IDs provided, False otherwise.
   """
   if not ids:
-    print(f'Error: {cmd} command requires one or more IDs')
+    print(f'Error: {cmd} command requires one or more IDs', file=sys.stderr)
     return False
   return True
 
@@ -271,5 +272,5 @@ def read_ids_from_file(filepath: str) -> list[str] | None:
     with open(filepath) as f:
       return [line.strip() for line in f if line.strip()]
   except OSError as e:
-    print(f'Error reading batch file: {e}')
+    print(f'Error reading batch file: {e}', file=sys.stderr)
     return None

@@ -7,7 +7,8 @@ team rosters, and prime data.
 
 import json
 import sys
-from typing import Any
+from collections.abc import Iterable
+from typing import Any, cast
 
 from shared.cli import (
   configure_logging_from_args,
@@ -267,7 +268,7 @@ Module for fetching zwiftpower data using the Zwifpower API
     case 'team':
       x = ZPTeamFetch()
     case _:
-      print(f'Unknown command: {args.cmd}')
+      print(f'Unknown command: {args.cmd}', file=sys.stderr)
       return 1
 
   x.fetch(*args.id)
@@ -308,7 +309,7 @@ Module for fetching zwiftpower data using the Zwifpower API
         # Check for excluded in each item if it's a collection
         if hasattr(value, '__iter__') and not isinstance(value, str):
           try:
-            for item in value:  # type: ignore[iteration-not-supported]
+            for item in cast(Iterable[Any], value):
               if hasattr(item, 'excluded'):
                 item_excluded = item.excluded()
                 if item_excluded:
@@ -330,7 +331,7 @@ Module for fetching zwiftpower data using the Zwifpower API
         # Check for extras in each item if it's a collection
         if hasattr(value, '__iter__') and not isinstance(value, str):
           try:
-            for item in value:  # type: ignore[iteration-not-supported]
+            for item in cast(Iterable[Any], value):
               if hasattr(item, 'extras'):
                 item_extras = item.extras()
                 if item_extras:
@@ -381,7 +382,7 @@ Module for fetching zwiftpower data using the Zwifpower API
       ):
         print()  # Newline after key for collections
         try:
-          for item in value:  # type: ignore[iteration-not-supported]
+          for item in cast(Iterable[Any], value):
             print_collection(item, indent=1)
         except (TypeError, AttributeError):
           pass

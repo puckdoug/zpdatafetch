@@ -3,7 +3,7 @@
 import json
 from collections.abc import Iterator, Sequence
 from dataclasses import asdict, dataclass, field
-from typing import Any
+from typing import Any, overload
 
 from zpdatafetch.zp_utils import (
   convert_gender,
@@ -511,14 +511,19 @@ class ZPRaceResult(Sequence):
     """
     return len(self._riders)
 
-  def __getitem__(self, index: int) -> ZPRiderFinish:  # type: ignore[override]
-    """Access rider finish by index.
+  @overload
+  def __getitem__(self, index: int) -> ZPRiderFinish: ...
+  @overload
+  def __getitem__(self, index: slice) -> Sequence[ZPRiderFinish]: ...
+
+  def __getitem__(self, index: int | slice) -> ZPRiderFinish | Sequence[ZPRiderFinish]:
+    """Access rider finish by index or slice.
 
     Args:
-      index: Integer index
+      index: Integer index or slice
 
     Returns:
-      Single rider
+      Single rider or sequence of riders
 
     Raises:
       IndexError: If index out of range

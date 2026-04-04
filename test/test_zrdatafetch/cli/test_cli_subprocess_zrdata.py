@@ -69,7 +69,7 @@ class TestZRDataRiderCommand:
       check=False,
     )
     assert result.returncode == 1
-    assert "Error" in result.stdout or "Error" in result.stderr
+    assert "Error" in result.stderr
 
   def test_rider_noaction_single_id(self):
     """Test rider command with --noaction flag (no network)."""
@@ -135,7 +135,7 @@ class TestZRDataBatchCommand:
       check=False,
     )
     assert result.returncode == 1
-    assert "Error" in result.stdout or "Error" in result.stderr
+    assert "Error" in result.stderr
 
   def test_batch_noaction_single_id(self):
     """Test --batch with --noaction and single ID."""
@@ -182,7 +182,7 @@ class TestZRDataBatchCommand:
       check=False,
     )
     assert result.returncode == 1
-    assert "Error" in result.stdout or "Error" in result.stderr
+    assert "Error" in result.stderr
 
   def test_batch_file_with_ids(self, tmp_path):
     """Test --batch-file with valid file."""
@@ -321,7 +321,7 @@ class TestZRDataResultCommand:
       check=False,
     )
     assert result.returncode == 1
-    assert "Error" in result.stdout or "Error" in result.stderr
+    assert "Error" in result.stderr
 
   def test_result_noaction_single_id(self):
     """Test result command with --noaction flag (no network)."""
@@ -387,7 +387,7 @@ class TestZRDataTeamCommand:
       check=False,
     )
     assert result.returncode == 1
-    assert "Error" in result.stdout or "Error" in result.stderr
+    assert "Error" in result.stderr
 
   def test_team_noaction_single_id(self):
     """Test team command with --noaction flag (no network)."""
