@@ -1,6 +1,6 @@
-# zpdatafetch & zrdatafetch
+# zpdatafetch, zrdatafetch & zsdatafetch
 
-A python library and command-line tool for fetching data from ZwiftPower.com and Zwiftracing.app APIs.
+A python library and command-line tool for fetching data from ZwiftPower.com, Zwiftracing.app, and Zwift Status APIs.
 
 ## Installation
 
@@ -24,16 +24,19 @@ real free-threaded environment. Please do
 
 ## Overview
 
-This package provides two main command-line tools:
+This package provides four command-line tools:
 
-| Tool         | API         | Purpose                              | Data Types                                                |
-| ------------ | ----------- | ------------------------------------ | --------------------------------------------------------- |
-| **`zpdata`** | ZwiftPower  | Race rankings, signups, results      | Cyclist, Primes, Results, Signups, Sprints, Teams, League |
-| **`zrdata`** | Zwiftracing | Rider ratings, race results, rosters | Rider Ratings, Race Results, Team Rosters                 |
+| Tool         | API          | Purpose                                    | Data Types                                                |
+| ------------ | ------------ | ------------------------------------------ | --------------------------------------------------------- |
+| **`zpdata`** | ZwiftPower   | Race rankings, signups, results            | Cyclist, Primes, Results, Signups, Sprints, Teams, League |
+| **`zrdata`** | Zwiftracing  | Rider ratings, race results, rosters       | Rider Ratings, Race Results, Team Rosters                 |
+| **`zdata`**  | Zwift        | Profiles, followers, activities, worlds    | Profile, Followers, RideOns, Activity, Worlds, Riders     |
+| **`zsdata`** | Zwift Status | Service status, incidents, maintenance     | Summary, Components, Incidents, Maintenance               |
 
-Both tools support batch operations, flexible logging, and can be used as
-standalone CLI tools or imported as libraries. They maintain separate credential
-stores for each API.
+All tools support flexible logging and can be used as standalone CLI tools or
+imported as Python libraries. `zpdata`, `zrdata`, and `zdata` require
+credentials; `zsdata` uses the public Zwift Status API (no authentication
+required).
 
 ## Key Features
 
@@ -53,6 +56,22 @@ stores for each API.
 - **Power metrics** - Zwiftracing compound score and power data
 - **Race results** - Complete race result data with rating changes
 - **Team rosters** - Full team member details and power metrics
+
+### For zdata (Zwift)
+
+- **Rider profiles** - Fetch rider profile data by Zwift ID
+- **Followers** - Follower and followee lists with filtering
+- **RideOns** - Fetch RideOn data or give RideOns to activities
+- **Activity history** - Fetch activity data with pagination
+- **Worlds** - List currently active Zwift worlds
+- **Riders in world** - See who is riding in a specific world
+
+### For zsdata (Zwift Status)
+
+- **Service status** - Overall system status and component health
+- **Components** - Individual service component status (Game, Web, Companion, etc.)
+- **Incidents** - Current and historical incident reports with timelines
+- **Maintenance** - Scheduled maintenance windows (all, upcoming, active)
 
 ### Common Features
 
@@ -81,8 +100,14 @@ For Zwiftracing (`zrdata`), you will need your Zwiftracing API authorization hea
 
 ```sh
 keyring set zrdatafetch authorization
-# or wioth zrdata
+# or with zrdata
 zrdata config
+```
+
+For Zwift (`zdata`), you will need your Zwift account credentials:
+
+```sh
+zdata config
 ```
 
 In principle, the library can use alternate backend keyrings, but I have not
@@ -1126,6 +1151,108 @@ obj.fetch(id) or obj.fetch([id1, id2, id3]) # fetch the data from zwiftpower. As
 obj.json() # return the data as a json object
 obj.asdict() # return the data as a dictionary
 print(obj) # effectively the same as obj.asdict()
+```
+
+## Zwift Data (zdata)
+
+The `zdata` command-line tool provides access to Zwift's unofficial API for
+rider profiles, social data, activities, and world information. Requires Zwift
+account credentials.
+
+### Command-line usage
+
+```sh
+zdata config                        # Set up Zwift credentials
+zdata profile 550564                # Fetch rider profile
+zdata profile 550564 123456         # Fetch multiple profiles
+zdata followers 550564              # Fetch followers and followees
+zdata followers --followers-only 550564  # Followers only
+zdata followers --followees-only 550564  # Followees only
+zdata rideons 550564 12345678       # Fetch RideOns (rider_id activity_id)
+zdata rideons --give 550564 12345678  # Give a RideOn
+zdata activity 550564               # Fetch activity history
+zdata activity --limit 50 550564    # Fetch 50 activities
+zdata worlds                        # List active worlds
+zdata ridersinworld 1               # Riders in world by ID
+zdata ridersinworld watopia         # Riders in world by name
+zdata profile --raw 550564          # Raw JSON output
+zdata -v profile 550564             # Verbose logging
+```
+
+### Library usage
+
+```python
+from zdatafetch import (
+    ZwiftProfile,
+    ZwiftFollowers,
+    ZwiftRideOns,
+    ZwiftActivity,
+    ZwiftWorlds,
+    ZwiftRidersInWorld,
+)
+
+# Fetch rider profile
+profile = ZwiftProfile()
+profile.fetch(550564)
+print(profile.json())
+
+# Fetch followers
+followers = ZwiftFollowers()
+followers.fetch(550564)
+print(f"Followers: {followers.follower_count()}")
+
+# Fetch activity history
+activity = ZwiftActivity()
+activity.fetch(550564, start=0, limit=20)
+
+# List active worlds
+worlds = ZwiftWorlds()
+worlds.fetch()
+
+# Give a RideOn
+ZwiftRideOns.give_rideon(550564, 12345678)
+```
+
+## Zwift Status Data (zsdata)
+
+The `zsdata` command-line tool provides access to the public Zwift Status API
+(powered by Statuspage.io). No authentication required.
+
+### Command-line usage
+
+```sh
+zsdata status                       # Overall status summary
+zsdata status --components          # Component list only
+zsdata incidents                    # All incidents
+zsdata incidents --unresolved       # Unresolved incidents only
+zsdata maintenance                  # All scheduled maintenance
+zsdata maintenance --upcoming       # Upcoming maintenance only
+zsdata maintenance --active         # Active maintenance only
+zsdata status --raw                 # Raw JSON output
+zsdata status --json                # Parsed JSON output
+zsdata -v status                    # Verbose logging
+```
+
+### Library usage
+
+```python
+from zsdatafetch import ZSSummaryFetch, ZSIncidentFetch, ZSMaintenanceFetch
+
+# Get overall status
+summary = ZSSummaryFetch().fetch()
+print(summary.status.description)  # "All Systems Operational"
+for comp in summary.components:
+    print(f"  {comp.name}: {comp.status}")
+
+# Get unresolved incidents
+incidents = ZSIncidentFetch().fetch(unresolved_only=True)
+for incident in incidents:
+    print(f"{incident.name} ({incident.impact})")
+
+# Get upcoming maintenance
+maintenance = ZSMaintenanceFetch().fetch(upcoming=True)
+for m in maintenance:
+    print(f"{m.name}: {m.scheduled_for} - {m.scheduled_until}")
 ```
 
 ## Development

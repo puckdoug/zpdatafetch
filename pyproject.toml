@@ -1,6 +1,6 @@
 [project]
 name = "zpdatafetch"
-version = "2.1.2"
+version = "2.2.0"
 description = "A package for fetching data from Zwiftpower and Zwiftracing.app"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -39,6 +39,7 @@ Repository = "https://github.com/puckdoug/zpdatafetch"
 zdata = "zdatafetch.cli:main"
 zpdata = "zpdatafetch.cli:main"
 zrdata = "zrdatafetch.cli:main"
+zsdata = "zsdatafetch.cli:main"
 
 [project.optional-dependencies]
 # For users who want both backends
@@ -144,6 +145,8 @@ select = [
 "src/zpdatafetch/*.py" = ["E501"]
 # zdatafetch files have decorative comment lines that exceed 80 chars
 "src/zdatafetch/*.py" = ["E501"]
+# zsdatafetch async_zs uses Any for context manager exc params
+"src/zsdatafetch/async_zs.py" = ["ANN401"]
 # Test files don't need type annotations (fixtures don't have types) and allow long lines
 "test/**/*.py" = ["ANN001", "ANN002", "ANN003", "ANN201", "ANN202", "E501"]
 

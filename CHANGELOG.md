@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.2.0]
+
+- Updates to zdata / zdatafetch
+- Introduce `zsdata` / `zsdatafetch` for Zwift Status data access
+  - New CLI: `zsdata` with commands `status`, `incidents`, `maintenance`
+  - New library: `zsdatafetch` with `ZSSummaryFetch`, `ZSIncidentFetch`, `ZSMaintenanceFetch`
+  - Dataclass models: `ZSPage`, `ZSStatus`, `ZSComponent`, `ZSIncident`, `ZSIncidentUpdate`, `ZSMaintenance`, `ZSMaintenanceUpdate`, `ZSSummary`
+  - Public API — no authentication required
+  - Supports sync and async (asyncio/trio) usage
+  - Flags: `--components`, `--unresolved`, `--upcoming`, `--active`
+
 ## [2.1.2]
 
 - Added ability to fetch a rider at a particular timestamep to the CLI. 

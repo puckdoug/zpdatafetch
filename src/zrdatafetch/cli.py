@@ -56,6 +56,23 @@ Module for fetching Zwiftracing data using the Zwiftracing API
     command_metavar='{config,rider,result,team}',
   )
 
+  # zrdatafetch-specific output options
+  p.add_argument(
+    '--extras',
+    action='store_true',
+    help='report recently added fields not handled natively',
+  )
+  p.add_argument(
+    '--excluded',
+    action='store_true',
+    help='report recognized fields not yet explicitly handled',
+  )
+  p.add_argument(
+    '--v1fetch',
+    action='store_true',
+    help='output fetched data in v1.8 format (for backward compatibility)',
+  )
+
   # Add zrdatafetch-specific arguments
   p.add_argument(
     '--batch',

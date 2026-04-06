@@ -83,21 +83,6 @@ def create_base_parser(
     action='store_true',
     help='output fetched data as JSON (default: object repr)',
   )
-  parser.add_argument(
-    '--extras',
-    action='store_true',
-    help='report recently added fields not handled natively',
-  )
-  parser.add_argument(
-    '--excluded',
-    action='store_true',
-    help='report recognized fields not yet explicitly handled',
-  )
-  parser.add_argument(
-    '--v1fetch',
-    action='store_true',
-    help='output fetched data in v1.8 format (for backward compatibility)',
-  )
 
   # Dry-run argument
   parser.add_argument(
