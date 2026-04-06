@@ -91,7 +91,7 @@ class ZwiftRidersInWorld:
     auth = ZwiftAuth(config.username, config.password)
     auth.login()
     token = auth.get_access_token()
-    headers = {'Authorization': f'Bearer {token}'}
+    headers = {'Authorization': f'Bearer {token}', 'Accept': 'application/json'}
 
     # Fetch data
     self.world_id = world_id
@@ -191,7 +191,7 @@ class ZwiftRidersInWorld:
     auth = ZwiftAuth(config.username, config.password)
     auth.login()
     token = auth.get_access_token()
-    headers = {'Authorization': f'Bearer {token}'}
+    headers = {'Authorization': f'Bearer {token}', 'Accept': 'application/json'}
 
     # Fetch all riders
     results = {}

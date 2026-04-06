@@ -196,7 +196,7 @@ class ZwiftProfile:
     # Fetch data
     url = f'{self.BASE_URL}/api/profiles/{rider_id}'
     token = auth.get_access_token()
-    headers = {'Authorization': f'Bearer {token}'}
+    headers = {'Authorization': f'Bearer {token}', 'Accept': 'application/json'}
 
     try:
       with httpx.Client() as client:
@@ -264,7 +264,7 @@ class ZwiftProfile:
     auth = ZwiftAuth(config.username, config.password)
     auth.login()
     token = auth.get_access_token()
-    headers = {'Authorization': f'Bearer {token}'}
+    headers = {'Authorization': f'Bearer {token}', 'Accept': 'application/json'}
 
     # Fetch all profiles
     results = {}

@@ -105,7 +105,7 @@ class ZwiftFollowers:
     auth = ZwiftAuth(config.username, config.password)
     auth.login()
     token = auth.get_access_token()
-    headers = {'Authorization': f'Bearer {token}'}
+    headers = {'Authorization': f'Bearer {token}', 'Accept': 'application/json'}
 
     # Fetch data
     self.rider_id = rider_id
@@ -214,7 +214,7 @@ class ZwiftFollowers:
     auth = ZwiftAuth(config.username, config.password)
     auth.login()
     token = auth.get_access_token()
-    headers = {'Authorization': f'Bearer {token}'}
+    headers = {'Authorization': f'Bearer {token}', 'Accept': 'application/json'}
 
     # Fetch all follower data
     results = {}
