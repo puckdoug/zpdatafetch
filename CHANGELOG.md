@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.2.2] 
+
+- Bug fix for zdata
+
 ## [2.2.1]
 
 - Technical only - updated Pypi trusted publisher / github workflow

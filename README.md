@@ -1,4 +1,4 @@
-# zpdatafetch, zrdatafetch & zsdatafetch
+# zdatafetch, zpdatafetch, zrdatafetch, & zsdatafetch
 
 A python library and command-line tool for fetching data from ZwiftPower.com, Zwiftracing.app, and Zwift Status APIs.
 
