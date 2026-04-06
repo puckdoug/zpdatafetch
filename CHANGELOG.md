@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.2.1]
+
+- Technical only - updated Pypi trusted publisher / github workflow
+
 ## [2.2.0]
 
 - Updates to zdata / zdatafetch
