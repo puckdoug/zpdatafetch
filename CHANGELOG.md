@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.2.3]
+
+- Update because of CVE in cryptography: CVE-2025-71176
+
 ## [2.2.2] 
 
 - Bug fix for zdata
