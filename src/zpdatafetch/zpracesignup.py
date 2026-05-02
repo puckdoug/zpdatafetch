@@ -7,6 +7,7 @@ from typing import Any
 from zpdatafetch.zp_utils import (
   convert_gender,
   convert_label_to_pen,
+  extract_numeric,
   extract_value,
   set_rider_category,
 )
@@ -284,8 +285,7 @@ class ZPRiderSignup:
       int(extract_value(height_raw, 0)) if extract_value(height_raw, 0) else 0
     )
 
-    weight_raw = data.get('weight', 0)
-    weight = float(extract_value(weight_raw, 0))
+    weight = extract_numeric(data.get('weight'), float, 0.0)
 
     # Category with division mapping (div: 0/5/10/20/30/40 -> empty/A+/A/B/C/D)
     category = ''

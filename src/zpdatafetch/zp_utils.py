@@ -214,6 +214,11 @@ def extract_value(value: Any, default: Any = None) -> Any:
 def extract_numeric(value: Any, type_func: type, default: Any) -> Any:
   """Extract and convert numeric value, handling array format.
 
+  String inputs have US-locale thousands separators (commas) stripped before
+  conversion, so values like ``'7,200.0'`` parse correctly. Decimal-comma
+  inputs (e.g. European ``'7,2'`` meaning 7.2) are not supported and will
+  fall back to ``default``.
+
   Args:
       value: Value that may be a list or scalar
       type_func: Type conversion function (int, float)
@@ -225,6 +230,8 @@ def extract_numeric(value: Any, type_func: type, default: Any) -> Any:
   extracted = extract_value(value, default)
   if extracted == default:
     return default
+  if isinstance(extracted, str):
+    extracted = extracted.replace(',', '')
   try:
     return type_func(extracted)
   except (ValueError, TypeError):

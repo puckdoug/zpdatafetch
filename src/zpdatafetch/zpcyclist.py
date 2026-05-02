@@ -9,6 +9,7 @@ import json
 from dataclasses import dataclass, field
 from typing import Any
 
+from zpdatafetch.zp_utils import extract_numeric
 from zpdatafetch.zpracelog import ZPRacelog
 
 
@@ -206,11 +207,7 @@ class ZPCyclist:
         height = 0
 
       # Extract weight
-      weight_value = extract_value(last_race.get('weight', 0.0))
-      try:
-        weight = float(weight_value) if weight_value else 0.0
-      except (ValueError, TypeError):
-        weight = 0.0
+      weight = extract_numeric(last_race.get('weight'), float, 0.0)
 
       # Extract skill
       skill_value = extract_value(last_race.get('skill', 0.0))

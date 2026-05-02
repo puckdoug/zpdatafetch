@@ -11,6 +11,7 @@ from typing import Any
 
 from zpdatafetch.zp_utils import (
   convert_gender,
+  extract_numeric,
   extract_value,
   format_time_hms,
   set_rider_category,
@@ -164,9 +165,8 @@ class ZPTeamMember:
     gender = convert_gender(data.get('gender', ''))
     flag = str(data.get('flag', ''))
 
-    # Weight from array format or direct value (using extract_value utility)
-    weight_val = extract_value(data.get('w', 0), 0)
-    weight = float(weight_val) if weight_val else 0.0
+    # Weight from array format or direct value
+    weight = extract_numeric(data.get('w'), float, 0.0)
 
     # FTP from array format or direct value (using extract_value utility)
     ftp_val = extract_value(data.get('ftp', 0), 0)

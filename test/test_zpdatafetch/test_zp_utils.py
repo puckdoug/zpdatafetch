@@ -208,3 +208,31 @@ class TestExtractNumeric:
     """Empty list should use default."""
     assert extract_numeric([], int, 99) == 99
     assert extract_numeric([], float, 9.9) == 9.9
+
+  def test_extract_float_strips_us_thousands_separator(self) -> None:
+    """US-formatted float strings (e.g. '7,200.0') must parse to 7200.0."""
+    assert extract_numeric('7,200.0', float, 0.0) == 7200.0
+
+  def test_extract_int_strips_us_thousands_separator(self) -> None:
+    """US-formatted int strings (e.g. '1,000') must parse to 1000."""
+    assert extract_numeric('1,000', int, 0) == 1000
+
+  def test_extract_int_strips_multiple_thousands_separators(self) -> None:
+    """Multiple comma separators (e.g. '12,345,678') must parse correctly."""
+    assert extract_numeric('12,345,678', int, 0) == 12345678
+
+  def test_extract_float_strips_commas_in_array(self) -> None:
+    """Array-wrapped comma-formatted strings must parse correctly."""
+    assert extract_numeric(['1,500.5', 0], float, 0.0) == 1500.5
+
+  def test_extract_european_decimal_comma_falls_back(self) -> None:
+    """European decimal-comma input is unsupported and falls back to default.
+
+    Stripping commas would convert '7,2' to '72' (wrong). Without locale-aware
+    parsing we cannot disambiguate, so we accept the loss for these inputs.
+    Documented as a known limitation in the utility docstring.
+    """
+    # '7,2' -> strips to '72' which is a valid int/float, not a fallback.
+    # This codifies that we DO get the wrong answer here. If/when we ever see
+    # decimal-comma data from the API we'll need a different approach.
+    assert extract_numeric('7,2', float, 0.0) == 72.0

@@ -16,6 +16,7 @@ from typing import Any, overload
 from zpdatafetch.zp_utils import (
   convert_gender,
   convert_msec_to_iso8601,
+  extract_numeric,
   set_rider_category,
 )
 
@@ -117,7 +118,7 @@ class ZPPrimeResult:
       elapsed=float(data.get('elapsed', 0.0)),
       elapsed_diff=float(data.get('elapsed_diff', 0.0)),
       zftp=int(data.get('ftp', 0)) if data.get('ftp') else 0,
-      weight=float(data.get('w', 0.0)) if data.get('w') else 0.0,
+      weight=extract_numeric(data.get('w'), float, 0.0),
       age=str(data.get('age', '')),
       gender=convert_gender(data.get('gender', '')),
       flag=str(data.get('flag', '')),

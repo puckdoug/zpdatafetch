@@ -294,6 +294,9 @@ class ZPRaceFinish:
         return default
       # Extract from array if needed
       value = extract_array_value(value)
+      # Strip US thousands separators from string inputs (e.g. '7,200.0').
+      if isinstance(value, str) and field_type in (int, float):
+        value = value.replace(',', '')
       try:
         return field_type(value) if value is not None else default
       except (ValueError, TypeError):

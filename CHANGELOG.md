@@ -1,10 +1,15 @@
 # Changelog
 
+## [2.2.4]
+
+- Bug fix: numeric API fields with US-style thousands separators (e.g. weight returned as `'7,200.0'`)
+- Updated package versions (inculding cryptography, again)
+
 ## [2.2.3]
 
 - Update because of CVE in cryptography: CVE-2025-71176
 
-## [2.2.2] 
+## [2.2.2]
 
 - Bug fix for zdata
 
@@ -25,7 +30,7 @@
 
 ## [2.1.2]
 
-- Added ability to fetch a rider at a particular timestamep to the CLI. 
+- Added ability to fetch a rider at a particular timestamep to the CLI.
 - Updated error messages to use stderr (some went to stdout)
 - Updated library versions
 

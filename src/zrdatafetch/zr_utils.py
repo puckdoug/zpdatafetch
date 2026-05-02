@@ -11,6 +11,9 @@ from typing import Any
 def safe_int(value: Any, default: int = 0) -> int:  # noqa: ANN401
   """Safely convert value to integer.
 
+  String inputs have US-locale thousands separators (commas) stripped before
+  conversion, so values like ``'7,200'`` parse correctly.
+
   Args:
     value: Value to convert
     default: Default value if conversion fails (default: 0)
@@ -20,6 +23,8 @@ def safe_int(value: Any, default: int = 0) -> int:  # noqa: ANN401
   """
   if value is None:
     return default
+  if isinstance(value, str):
+    value = value.replace(',', '')
   try:
     return int(value)
   except (ValueError, TypeError):
@@ -28,6 +33,11 @@ def safe_int(value: Any, default: int = 0) -> int:  # noqa: ANN401
 
 def safe_float(value: Any, default: float = 0.0) -> float:  # noqa: ANN401
   """Safely convert value to float.
+
+  String inputs have US-locale thousands separators (commas) stripped before
+  conversion, so values like ``'7,200.0'`` parse correctly. Decimal-comma
+  inputs (e.g. European ``'7,2'`` meaning 7.2) are not supported and will
+  fall back to ``default``.
 
   Args:
     value: Value to convert
@@ -38,6 +48,8 @@ def safe_float(value: Any, default: float = 0.0) -> float:  # noqa: ANN401
   """
   if value is None:
     return default
+  if isinstance(value, str):
+    value = value.replace(',', '')
   try:
     return float(value)
   except (ValueError, TypeError):

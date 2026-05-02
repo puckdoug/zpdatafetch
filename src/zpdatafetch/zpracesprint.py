@@ -12,6 +12,7 @@ from typing import Any
 from zpdatafetch.zp_utils import (
   convert_gender,
   convert_label_to_pen,
+  extract_numeric,
   extract_value,
 )
 
@@ -170,8 +171,7 @@ class ZPRiderSprint:
     height_val = extract_value(data.get('height', 0), 0)
     height = int(height_val) if height_val else 0
 
-    weight_val = extract_value(data.get('weight', 0), 0)
-    weight = float(weight_val) if weight_val else 0.0
+    weight = extract_numeric(data.get('weight'), float, 0.0)
 
     # Category
     category = str(data.get('category', ''))
