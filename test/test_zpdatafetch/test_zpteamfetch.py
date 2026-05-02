@@ -21,6 +21,14 @@ def test_zpteammember_empty_instantiation():
   assert obj.name == ''
 
 
+def test_zpteammember_from_dict_weight_with_thousands_separator():
+  """Regression: ZwiftPower returns weight as a US-formatted string with a
+  comma thousands separator for values >= 1000 (observed: '7,200.0' for team
+  2707). ``ZPTeamMember.from_dict`` must parse this without raising."""
+  member = ZPTeamMember.from_dict({'zwid': 1, 'w': '7,200.0'})
+  assert member.weight == 7200.0
+
+
 def test_team(team):
   assert team is not None
 
