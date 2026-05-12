@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.2.5]
+
+- Updated package versions (inculding cryptography, again)
+
 ## [2.2.4]
 
 - Bug fix: numeric API fields with US-style thousands separators (e.g. weight returned as `'7,200.0'`)
