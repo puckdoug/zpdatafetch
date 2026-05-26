@@ -1,6 +1,6 @@
 [project]
 name = "zpdatafetch"
-version = "2.2.5"
+version = "2.2.6"
 description = "A package for fetching data from Zwiftpower and Zwiftracing.app"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -25,6 +25,7 @@ dependencies = [
   # Workaround: test_shared_client_connection_pooling is marked as xfail on 3.14.
   # This will be resolved when httpx 0.29.0+ is released (depends on httpcore 1.2.0+).
   "httpx>=0.28.0",
+  "idna>=3.16",
   "keyring>=25.2.0",
   "keyrings-alt",
   "lxml>=6.1.0",

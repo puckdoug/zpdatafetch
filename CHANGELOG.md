@@ -1,8 +1,12 @@
 # Changelog
 
+## [2.2.6]
+
+- Updated package versions to address security alerts (inculding cryptography, again)
+
 ## [2.2.5]
 
-- Updated package versions (inculding cryptography, again)
+- Updated package versions to address security alerts (inculding cryptography, again)
 
 ## [2.2.4]
 
