@@ -11,9 +11,6 @@ on:
     types:
       - completed
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   build:
     # Only run if:
@@ -122,9 +119,9 @@ jobs:
             await checkWorkflow('macos-test.yml', 'macos-test');
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v8
         with:
-          version: "0.9.5"
+          version: "0.11.16"
           enable-cache: true
 
       - name: Set up Python

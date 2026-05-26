@@ -12,7 +12,8 @@ on:
     branches: ["main"]
 
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  UV_LOG: debug
+  RUST_BACKTRACE: 1
 
 jobs:
   test:
@@ -21,27 +22,48 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14", "3.14t"]
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v4
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v8
         with:
-          version: "0.9.5"
+          version: "0.11.16"
           enable-cache: true
+          cache-suffix: ${{ matrix.python-version }}
 
       - name: Set up Python
-        run: uv python install ${{ matrix.python-version }}
+        run: |
+          set -euo pipefail
+          uv python install ${{ matrix.python-version }}
 
       - name: Install dependencies
-        run: uv sync --all-groups
+        run: |
+          set -euo pipefail
+          uv sync --all-groups --verbose
 
       - name: Lint with Ruff
         run: uv run ruff check --output-format=github src
         continue-on-error: true
 
       - name: Test with pytest
-        run: uv run pytest
+        run: |
+          set -euo pipefail
+          uv run pytest -v
+
+      - name: Upload diagnostic logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-py${{ matrix.python-version }}-logs
+          path: |
+            uv.lock
+            ${{ runner.temp }}/**/*.log
+          if-no-files-found: ignore
+          retention-days: 7
         # Note: On Python 3.14+, test_shared_client_connection_pooling is expected to fail (xfail)
         # due to httpcore 1.1.x incompatibility with Python 3.14's typing.Union
         # This is an upstream issue that will be resolved in httpcore 1.2.0+
