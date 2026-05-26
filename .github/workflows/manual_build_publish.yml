@@ -107,7 +107,7 @@ jobs:
             await checkWorkflow('macos-test.yml', 'macos-test');
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v8
+        uses: astral-sh/setup-uv@v8.1.0
         with:
           version: "0.11.16"
           enable-cache: true
