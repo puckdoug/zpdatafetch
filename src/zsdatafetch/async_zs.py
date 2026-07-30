@@ -6,7 +6,7 @@ This API is public and unauthenticated.
 
 from typing import Any, ClassVar
 
-import httpx
+import httpx2
 
 from shared.error_helpers import format_network_error
 from shared.exceptions import NetworkError
@@ -35,7 +35,7 @@ class AsyncZS_obj:
 
   def __init__(self) -> None:
     """Initialize AsyncZS_obj."""
-    self._client: httpx.AsyncClient | None = None
+    self._client: httpx2.AsyncClient | None = None
 
   async def init_client(self) -> None:
     """Initialize the async HTTP client."""
@@ -43,7 +43,7 @@ class AsyncZS_obj:
       logger.debug(
         'Creating async HTTP client for Zwift Status',
       )
-      self._client = httpx.AsyncClient(
+      self._client = httpx2.AsyncClient(
         timeout=30.0,
         follow_redirects=True,
       )
@@ -90,20 +90,24 @@ class AsyncZS_obj:
 
     try:
       response = await fetch_with_retry_async(
-        self._client, url, logger=logger,
+        self._client,
+        url,
+        logger=logger,
       )
       return response.text
-    except httpx.HTTPStatusError as e:
+    except httpx2.HTTPStatusError as e:
       logger.error(
         f'HTTP error GET {endpoint}: {e.response.status_code}',
       )
       raise NetworkError(
         format_network_error(
-          'get request', endpoint, e,
+          'get request',
+          endpoint,
+          e,
           status_code=e.response.status_code,
         ),
       ) from e
-    except httpx.RequestError as e:
+    except httpx2.RequestError as e:
       logger.error(f'Network error GET {endpoint}: {e}')
       raise NetworkError(
         format_network_error('get request', endpoint, e),

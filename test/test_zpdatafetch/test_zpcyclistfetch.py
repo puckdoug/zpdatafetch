@@ -1,6 +1,6 @@
 import json
 
-import httpx
+import httpx2
 
 from zpdatafetch.zpcyclist import ZPCyclist
 
@@ -37,12 +37,12 @@ def test_cyclist_sync_mode_fetch(cyclist, login_page, logged_in_page):
 
   def handler(request):
     if 'login' in str(request.url) and request.method == 'GET':
-      return httpx.Response(200, text=login_page)
+      return httpx2.Response(200, text=login_page)
     if request.method == 'POST':
-      return httpx.Response(200, text=logged_in_page)
+      return httpx2.Response(200, text=logged_in_page)
     if 'profile' in str(request.url) and '_all.json' in str(request.url):
-      return httpx.Response(200, text=json.dumps(test_data))
-    return httpx.Response(404)
+      return httpx2.Response(200, text=json.dumps(test_data))
+    return httpx2.Response(404)
 
   # Enable sync mode
   ZPCyclistFetch.set_sync_mode(True)
@@ -52,9 +52,9 @@ def test_cyclist_sync_mode_fetch(cyclist, login_page, logged_in_page):
 
   def mock_init(self, skip_credential_check=False, shared_client=False):
     original_init(self, skip_credential_check=True, shared_client=False)
-    self._client = httpx.Client(
+    self._client = httpx2.Client(
       follow_redirects=True,
-      transport=httpx.MockTransport(handler),
+      transport=httpx2.MockTransport(handler),
     )
 
   ZP.__init__ = mock_init
@@ -101,12 +101,12 @@ def test_cyclist_fetch_single_id(cyclist, login_page, logged_in_page):
 
   def handler(request):
     if 'login' in str(request.url) and request.method == 'GET':
-      return httpx.Response(200, text=login_page)
+      return httpx2.Response(200, text=login_page)
     if request.method == 'POST':
-      return httpx.Response(200, text=logged_in_page)
+      return httpx2.Response(200, text=logged_in_page)
     if 'profile' in str(request.url) and '_all.json' in str(request.url):
-      return httpx.Response(200, text=json.dumps(test_data))
-    return httpx.Response(404)
+      return httpx2.Response(200, text=json.dumps(test_data))
+    return httpx2.Response(404)
 
   from zpdatafetch.async_zp import AsyncZP
 
@@ -115,9 +115,9 @@ def test_cyclist_fetch_single_id(cyclist, login_page, logged_in_page):
 
   def mock_init(self, skip_credential_check=False):
     original_init(self, skip_credential_check=True)
-    self._client = httpx.AsyncClient(
+    self._client = httpx2.AsyncClient(
       follow_redirects=True,
-      transport=httpx.MockTransport(handler),
+      transport=httpx2.MockTransport(handler),
     )
 
   AsyncZP.__init__ = mock_init
@@ -151,14 +151,14 @@ def test_cyclist_fetch_single_id(cyclist, login_page, logged_in_page):
 def test_cyclist_fetch_multiple_ids(cyclist, login_page, logged_in_page):
   def handler(request):
     if 'login' in str(request.url) and request.method == 'GET':
-      return httpx.Response(200, text=login_page)
+      return httpx2.Response(200, text=login_page)
     if request.method == 'POST':
-      return httpx.Response(200, text=logged_in_page)
+      return httpx2.Response(200, text=logged_in_page)
     if '123456' in str(request.url) and '_all.json' in str(request.url):
-      return httpx.Response(200, text=json.dumps({'id': 123456}))
+      return httpx2.Response(200, text=json.dumps({'id': 123456}))
     if '789012' in str(request.url) and '_all.json' in str(request.url):
-      return httpx.Response(200, text=json.dumps({'id': 789012}))
-    return httpx.Response(404)
+      return httpx2.Response(200, text=json.dumps({'id': 789012}))
+    return httpx2.Response(404)
 
   from zpdatafetch.async_zp import AsyncZP
 
@@ -166,9 +166,9 @@ def test_cyclist_fetch_multiple_ids(cyclist, login_page, logged_in_page):
 
   def mock_init(self, skip_credential_check=False):
     original_init(self, skip_credential_check=True)
-    self._client = httpx.AsyncClient(
+    self._client = httpx2.AsyncClient(
       follow_redirects=True,
-      transport=httpx.MockTransport(handler),
+      transport=httpx2.MockTransport(handler),
     )
 
   AsyncZP.__init__ = mock_init

@@ -164,7 +164,7 @@ def mock_profile_not_found():
 @pytest.fixture
 def auth_handler(mock_token_response):
   """HTTP handler for authentication requests."""
-  import httpx
+  import httpx2
 
   def handler(request):
     if 'auth/realms/zwift/tokens/access/codes' in str(request.url):
@@ -173,12 +173,12 @@ def auth_handler(mock_token_response):
         body = request.content.decode('utf-8')
         if 'grant_type=password' in body:
           # Initial login
-          return httpx.Response(200, text=json.dumps(mock_token_response))
+          return httpx2.Response(200, text=json.dumps(mock_token_response))
         if 'grant_type=refresh_token' in body:
           # Token refresh
-          return httpx.Response(200, text=json.dumps(mock_token_response))
-        return httpx.Response(400, text='Invalid grant_type')
-    return httpx.Response(404)
+          return httpx2.Response(200, text=json.dumps(mock_token_response))
+        return httpx2.Response(400, text='Invalid grant_type')
+    return httpx2.Response(404)
 
   return handler
 
@@ -186,25 +186,25 @@ def auth_handler(mock_token_response):
 @pytest.fixture
 def profile_handler(mock_profile_data):
   """HTTP handler for profile requests."""
-  import httpx
+  import httpx2
 
   def handler(request):
     if '/api/profiles/' in str(request.url):
       # Check for authorization header
       if 'Authorization' not in request.headers:
-        return httpx.Response(401, text='Unauthorized')
+        return httpx2.Response(401, text='Unauthorized')
 
       # Extract rider ID from URL
       url_parts = str(request.url).split('/')
       rider_id = url_parts[-1]
 
       if rider_id == '550564':
-        return httpx.Response(200, text=json.dumps(mock_profile_data))
+        return httpx2.Response(200, text=json.dumps(mock_profile_data))
       if rider_id == '999999':
-        return httpx.Response(404, text='Profile not found')
-      return httpx.Response(200, text=json.dumps(mock_profile_data))
+        return httpx2.Response(404, text='Profile not found')
+      return httpx2.Response(200, text=json.dumps(mock_profile_data))
 
-    return httpx.Response(404)
+    return httpx2.Response(404)
 
   return handler
 
@@ -212,7 +212,7 @@ def profile_handler(mock_profile_data):
 @pytest.fixture
 def combined_handler(auth_handler, profile_handler):
   """Combined HTTP handler for auth and profile requests."""
-  import httpx
+  import httpx2
 
   def handler(request):
     # Try auth handler first
@@ -221,6 +221,6 @@ def combined_handler(auth_handler, profile_handler):
     # Then try profile handler
     if '/api/profiles/' in str(request.url):
       return profile_handler(request)
-    return httpx.Response(404)
+    return httpx2.Response(404)
 
   return handler

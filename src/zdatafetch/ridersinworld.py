@@ -6,7 +6,7 @@ Provides access to riders currently in a specific world from Zwift's unofficial 
 import json
 from typing import Any
 
-import httpx
+import httpx2
 
 from shared.exceptions import ConfigError, NetworkError
 from shared.json_helpers import parse_json_safe
@@ -99,7 +99,7 @@ class ZwiftRidersInWorld:
     url = f'{self.BASE_URL}/relay/worlds/{world_id}'
 
     try:
-      with httpx.Client() as client:
+      with httpx2.Client() as client:
         response = client.get(url, headers=headers, timeout=30.0)
 
         if response.status_code == 404:
@@ -119,11 +119,11 @@ class ZwiftRidersInWorld:
           f'Successfully fetched {len(self.riders)} riders in world {world_id}',
         )
 
-    except httpx.TimeoutException as e:
+    except httpx2.TimeoutException as e:
       raise NetworkError(
         f'Request timed out fetching riders for world {world_id}: {e}',
       ) from e
-    except httpx.HTTPError as e:
+    except httpx2.HTTPError as e:
       raise NetworkError(
         f'Network error fetching riders for world {world_id}: {e}',
       ) from e
@@ -195,7 +195,7 @@ class ZwiftRidersInWorld:
 
     # Fetch all riders
     results = {}
-    with httpx.Client() as client:
+    with httpx2.Client() as client:
       for world_id in world_ids:
         try:
           url = f'{cls.BASE_URL}/relay/worlds/{world_id}'

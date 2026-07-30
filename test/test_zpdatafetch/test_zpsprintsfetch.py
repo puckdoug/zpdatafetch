@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-import httpx
+import httpx2
 
 from zpdatafetch.zpracesprint import ZPRaceSprint, ZPRiderSprint
 
@@ -43,9 +43,9 @@ def test_sprints_fetch_race_sprints(
 
   def mock_init(self, skip_credential_check=False):
     original_init(self, skip_credential_check=True)
-    self._client = httpx.AsyncClient(
+    self._client = httpx2.AsyncClient(
       follow_redirects=True,
-      transport=httpx.MockTransport(sprints_handler),
+      transport=httpx2.MockTransport(sprints_handler),
     )
 
   AsyncZP.__init__ = mock_init
@@ -85,9 +85,9 @@ def test_sprints_shares_zp_session_with_primes(
   def mock_init(self, skip_credential_check=False):
     original_init(self, skip_credential_check=True)
     login_count['count'] += 1  # Track how many AsyncZP instances are created
-    self._client = httpx.AsyncClient(
+    self._client = httpx2.AsyncClient(
       follow_redirects=True,
-      transport=httpx.MockTransport(sprints_handler),
+      transport=httpx2.MockTransport(sprints_handler),
     )
 
   AsyncZP.__init__ = mock_init

@@ -2,7 +2,7 @@
 
 from unittest.mock import AsyncMock, patch
 
-import httpx
+import httpx2
 import pytest
 
 from zpdatafetch.async_zp import AsyncZP
@@ -21,9 +21,9 @@ async def test_async_sprints_fetch(
     zp.username = 'testuser'
     zp.password = 'testpass'
     await zp.init_client(
-      httpx.AsyncClient(
+      httpx2.AsyncClient(
         follow_redirects=True,
-        transport=httpx.MockTransport(sprints_handler),
+        transport=httpx2.MockTransport(sprints_handler),
       ),
     )
 

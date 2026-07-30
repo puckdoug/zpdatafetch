@@ -7,7 +7,7 @@ allowing for concurrent requests and better performance in async applications.
 from typing import Any
 
 import anyio
-import httpx
+import httpx2
 
 from shared.error_helpers import format_network_error
 from shared.exceptions import NetworkError
@@ -35,11 +35,11 @@ class AsyncZR_obj:
 
   Attributes:
     _base_url: Base URL for Zwiftracing API
-    _client: httpx.AsyncClient instance
+    _client: httpx2.AsyncClient instance
   """
 
   _base_url: str = 'https://api.zwiftracing.app/api'
-  _shared_client: httpx.AsyncClient | None = None
+  _shared_client: httpx2.AsyncClient | None = None
   _owns_client: bool = False
 
   # ----------------------------------------------------------------------------
@@ -57,13 +57,13 @@ class AsyncZR_obj:
       premium: Use premium tier rate limits (default: False for
         standard tier).
     """
-    self._client: httpx.AsyncClient | None = None
+    self._client: httpx2.AsyncClient | None = None
     self._owns_client = not shared_client
     self.rate_limiter = RateLimiter(tier='premium' if premium else 'standard')
 
     if shared_client and AsyncZR_obj._shared_client is None:
       logger.debug('Creating shared async HTTP client for connection pooling')
-      AsyncZR_obj._shared_client = httpx.AsyncClient(
+      AsyncZR_obj._shared_client = httpx2.AsyncClient(
         base_url=self._base_url,
         timeout=30.0,
         follow_redirects=True,
@@ -72,12 +72,12 @@ class AsyncZR_obj:
   # ----------------------------------------------------------------------------
   async def init_client(
     self,
-    client: httpx.AsyncClient | None = None,
+    client: httpx2.AsyncClient | None = None,
   ) -> None:
     """Initialize or replace the async HTTP client.
 
     Args:
-      client: Optional httpx.AsyncClient instance to use. If None, uses shared
+      client: Optional httpx2.AsyncClient instance to use. If None, uses shared
         client if available, otherwise creates a new client.
     """
     logger.debug('Initializing httpx async client for Zwiftracing')
@@ -93,7 +93,7 @@ class AsyncZR_obj:
         'Creating new httpx async client with HTTPS certificate verification',
       )
       # SECURITY: Explicitly enable certificate verification for HTTPS
-      self._client = httpx.AsyncClient(
+      self._client = httpx2.AsyncClient(
         base_url=self._base_url,
         timeout=30.0,
         follow_redirects=True,
@@ -108,7 +108,7 @@ class AsyncZR_obj:
     max_retries: int = 3,
     backoff_factor: float = 1.0,
     **kwargs: Any,
-  ) -> httpx.Response:
+  ) -> httpx2.Response:
     """Fetch endpoint with exponential backoff retry logic (async).
 
     Retries on transient errors (connection errors, timeouts) but not on
@@ -123,7 +123,7 @@ class AsyncZR_obj:
       **kwargs: Additional arguments to pass to httpx client method
 
     Returns:
-      httpx.Response: The successful response
+      httpx2.Response: The successful response
 
     Raises:
       NetworkError: If all retries are exhausted or rate limit exceeded
@@ -150,7 +150,7 @@ class AsyncZR_obj:
         self.rate_limiter.record_request(endpoint_type)
         return response
 
-      except (httpx.ConnectError, httpx.TimeoutException) as e:
+      except (httpx2.ConnectError, httpx2.TimeoutException) as e:
         last_exception = e
         if attempt == max_retries - 1:
           break
@@ -161,7 +161,7 @@ class AsyncZR_obj:
         )
         await anyio.sleep(wait_time)
 
-      except httpx.HTTPStatusError as e:
+      except httpx2.HTTPStatusError as e:
         # Handle rate limit error (429)
         if e.response.status_code == 429:
           tier = self.rate_limiter.tier
@@ -191,7 +191,7 @@ class AsyncZR_obj:
             ),
           ) from e
 
-      except httpx.RequestError as e:
+      except httpx2.RequestError as e:
         last_exception = e
         if attempt == max_retries - 1:
           break
@@ -242,7 +242,7 @@ class AsyncZR_obj:
 
     Raises:
       NetworkError: If the HTTP request fails after retries
-      httpx.HTTPStatusError: If response has error status
+      httpx2.HTTPStatusError: If response has error status
 
     Example:
       # GET request
@@ -272,7 +272,7 @@ class AsyncZR_obj:
       return res
     except NetworkError:
       raise
-    except httpx.HTTPStatusError as e:
+    except httpx2.HTTPStatusError as e:
       logger.error(f'HTTP error fetching {endpoint}: {e}')
       raise NetworkError(
         format_network_error(
@@ -282,7 +282,7 @@ class AsyncZR_obj:
           status_code=e.response.status_code,
         ),
       ) from e
-    except httpx.RequestError as e:
+    except httpx2.RequestError as e:
       logger.error(f'Network error fetching {endpoint}: {e}')
       raise NetworkError(
         format_network_error('fetch JSON data', endpoint, e),

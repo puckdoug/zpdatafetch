@@ -2,7 +2,7 @@
 
 import json
 
-import httpx
+import httpx2
 import pytest
 
 from zsdatafetch.models.summary import ZSSummary
@@ -24,12 +24,14 @@ class TestZSSummaryFetch:
   def test_fetch_summary(self, summary_json):
     def handler(request):
       assert '/summary.json' in str(request.url)
-      return httpx.Response(
-        200, text=summary_json, request=request,
+      return httpx2.Response(
+        200,
+        text=summary_json,
+        request=request,
       )
 
-    ZS_obj._client = httpx.Client(
-      transport=httpx.MockTransport(handler),
+    ZS_obj._client = httpx2.Client(
+      transport=httpx2.MockTransport(handler),
     )
     fetcher = ZSSummaryFetch()
     result = fetcher.fetch()
@@ -41,12 +43,14 @@ class TestZSSummaryFetch:
   def test_fetch_components_only(self, components_json):
     def handler(request):
       assert '/components.json' in str(request.url)
-      return httpx.Response(
-        200, text=components_json, request=request,
+      return httpx2.Response(
+        200,
+        text=components_json,
+        request=request,
       )
 
-    ZS_obj._client = httpx.Client(
-      transport=httpx.MockTransport(handler),
+    ZS_obj._client = httpx2.Client(
+      transport=httpx2.MockTransport(handler),
     )
     fetcher = ZSSummaryFetch()
     result = fetcher.fetch(components_only=True)
@@ -55,12 +59,14 @@ class TestZSSummaryFetch:
 
   def test_fetch_raw(self, summary_json):
     def handler(request):
-      return httpx.Response(
-        200, text=summary_json, request=request,
+      return httpx2.Response(
+        200,
+        text=summary_json,
+        request=request,
       )
 
-    ZS_obj._client = httpx.Client(
-      transport=httpx.MockTransport(handler),
+    ZS_obj._client = httpx2.Client(
+      transport=httpx2.MockTransport(handler),
     )
     fetcher = ZSSummaryFetch()
     fetcher.fetch()
@@ -69,12 +75,14 @@ class TestZSSummaryFetch:
 
   def test_fetched(self, summary_json):
     def handler(request):
-      return httpx.Response(
-        200, text=summary_json, request=request,
+      return httpx2.Response(
+        200,
+        text=summary_json,
+        request=request,
       )
 
-    ZS_obj._client = httpx.Client(
-      transport=httpx.MockTransport(handler),
+    ZS_obj._client = httpx2.Client(
+      transport=httpx2.MockTransport(handler),
     )
     fetcher = ZSSummaryFetch()
     assert fetcher.fetched() is None
@@ -83,12 +91,14 @@ class TestZSSummaryFetch:
 
   def test_json_output(self, summary_json):
     def handler(request):
-      return httpx.Response(
-        200, text=summary_json, request=request,
+      return httpx2.Response(
+        200,
+        text=summary_json,
+        request=request,
       )
 
-    ZS_obj._client = httpx.Client(
-      transport=httpx.MockTransport(handler),
+    ZS_obj._client = httpx2.Client(
+      transport=httpx2.MockTransport(handler),
     )
     fetcher = ZSSummaryFetch()
     fetcher.fetch()
@@ -99,13 +109,15 @@ class TestZSSummaryFetch:
 
   def test_sync_mode(self, summary_json):
     def handler(request):
-      return httpx.Response(
-        200, text=summary_json, request=request,
+      return httpx2.Response(
+        200,
+        text=summary_json,
+        request=request,
       )
 
     ZSSummaryFetch.set_sync_mode(True)
-    ZS_obj._client = httpx.Client(
-      transport=httpx.MockTransport(handler),
+    ZS_obj._client = httpx2.Client(
+      transport=httpx2.MockTransport(handler),
     )
     fetcher = ZSSummaryFetch()
     result = fetcher.fetch()
@@ -114,14 +126,17 @@ class TestZSSummaryFetch:
   @pytest.mark.anyio
   async def test_afetch_summary(self, summary_json):
     async def handler(request):
-      return httpx.Response(
-        200, text=summary_json, request=request,
+      return httpx2.Response(
+        200,
+        text=summary_json,
+        request=request,
       )
 
     from zsdatafetch.async_zs import AsyncZS_obj
+
     zs = AsyncZS_obj()
-    zs._client = httpx.AsyncClient(
-      transport=httpx.MockTransport(handler),
+    zs._client = httpx2.AsyncClient(
+      transport=httpx2.MockTransport(handler),
     )
     fetcher = ZSSummaryFetch()
     fetcher.set_session(zs)

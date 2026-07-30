@@ -138,17 +138,17 @@ def primes_test_data():
 @pytest.fixture
 def sprints_handler(login_page, logged_in_page, sprints_test_data):
   """HTTP handler for sprints-related requests."""
-  import httpx
+  import httpx2
 
   def handler(request):
     if 'login' in str(request.url) and request.method == 'GET':
-      return httpx.Response(200, text=login_page)
+      return httpx2.Response(200, text=login_page)
     if request.method == 'POST':
-      return httpx.Response(200, text=logged_in_page)
+      return httpx2.Response(200, text=logged_in_page)
     if 'event_sprints' in str(request.url):
-      return httpx.Response(200, text=json.dumps(sprints_test_data))
+      return httpx2.Response(200, text=json.dumps(sprints_test_data))
     if 'event_primes' in str(request.url):
-      return httpx.Response(200, text=json.dumps({'data': []}))
-    return httpx.Response(404)
+      return httpx2.Response(200, text=json.dumps({'data': []}))
+    return httpx2.Response(404)
 
   return handler

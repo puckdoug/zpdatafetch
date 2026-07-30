@@ -3,7 +3,7 @@
 import json
 from pathlib import Path
 
-import httpx
+import httpx2
 import pytest
 
 from zpdatafetch.zpcyclist import ZPCyclist
@@ -16,18 +16,18 @@ from zpdatafetch.zpracelog import ZPRacelog
 def mock_cyclist_data():
   """Mock cyclist data with race log."""
   return {
-    "data": [
+    'data': [
       {
-        "zid": "5230175",
-        "pos": 112,
-        "event_title": "Race 1",
-        "zwid": 7574336,
+        'zid': '5230175',
+        'pos': 112,
+        'event_title': 'Race 1',
+        'zwid': 7574336,
       },
       {
-        "zid": "5236642",
-        "pos": 29,
-        "event_title": "Race 2",
-        "zwid": 7574336,
+        'zid': '5236642',
+        'pos': 29,
+        'event_title': 'Race 2',
+        'zwid': 7574336,
       },
     ],
   }
@@ -35,15 +35,15 @@ def mock_cyclist_data():
 
 @pytest.fixture
 def mock_transport(mock_cyclist_data):
-  """Create a mock transport for httpx."""
+  """Create a mock transport for httpx2."""
 
-  def handler(request) -> httpx.Response:
-    return httpx.Response(
+  def handler(request) -> httpx2.Response:
+    return httpx2.Response(
       200,
       json=mock_cyclist_data,
     )
 
-  return httpx.MockTransport(handler)
+  return httpx2.MockTransport(handler)
 
 
 class TestCyclistRacelogMethod:
@@ -80,9 +80,9 @@ class TestCyclistRacelogMethod:
     cyclist._fetched[7574336] = ZPCyclist.from_dict(mock_cyclist_data)
 
     racelog = cyclist.racelog(7574336)
-    assert racelog[0].event_title == "Race 1"
+    assert racelog[0].event_title == 'Race 1'
     assert racelog[0].position == 112
-    assert racelog[1].event_title == "Race 2"
+    assert racelog[1].event_title == 'Race 2'
     assert racelog[1].position == 29
 
 
@@ -96,8 +96,8 @@ class TestCyclistRacelogErrors:
     with pytest.raises(ValueError) as exc_info:
       cyclist.racelog(123456)
 
-    assert "No data fetched" in str(exc_info.value)
-    assert "123456" in str(exc_info.value)
+    assert 'No data fetched' in str(exc_info.value)
+    assert '123456' in str(exc_info.value)
 
   def test_racelog_raises_key_error_if_missing_data_key(self):
     """Test that racelog() raises KeyError if 'data' key missing."""
@@ -107,8 +107,8 @@ class TestCyclistRacelogErrors:
     with pytest.raises(KeyError) as exc_info:
       cyclist.racelog(999)
 
-    assert "missing" in str(exc_info.value).lower()
-    assert "data" in str(exc_info.value).lower()
+    assert 'missing' in str(exc_info.value).lower()
+    assert 'data' in str(exc_info.value).lower()
 
   def test_racelog_error_message_suggests_fetch(self):
     """Test that error message suggests calling fetch()."""
@@ -117,7 +117,7 @@ class TestCyclistRacelogErrors:
     with pytest.raises(ValueError) as exc_info:
       cyclist.racelog(123456)
 
-    assert "fetch()" in str(exc_info.value) or "afetch()" in str(exc_info.value)
+    assert 'fetch()' in str(exc_info.value) or 'afetch()' in str(exc_info.value)
 
 
 class TestCyclistRacelogWithEmptyData:
@@ -126,7 +126,7 @@ class TestCyclistRacelogWithEmptyData:
   def test_racelog_with_empty_data_array(self):
     """Test racelog with empty data array."""
     cyclist = ZPCyclistFetch()
-    cyclist._fetched[123] = ZPCyclist.from_dict({"data": []})
+    cyclist._fetched[123] = ZPCyclist.from_dict({'data': []})
 
     racelog = cyclist.racelog(123)
     assert isinstance(racelog, ZPRacelog)
@@ -137,15 +137,15 @@ class TestCyclistRacelogWithEmptyData:
     cyclist = ZPCyclistFetch()
     cyclist._fetched[123] = ZPCyclist.from_dict(
       {
-        "data": [
-          {"zid": "123", "pos": 1, "event_title": "Test Race"},
+        'data': [
+          {'zid': '123', 'pos': 1, 'event_title': 'Test Race'},
         ],
       },
     )
 
     racelog = cyclist.racelog(123)
     assert len(racelog) == 1
-    assert racelog[0].event_title == "Test Race"
+    assert racelog[0].event_title == 'Test Race'
 
 
 class TestCyclistRacelogIntegration:
@@ -175,16 +175,16 @@ class TestCyclistRacelogIntegration:
     # Mock data for two different cyclists
     cyclist._fetched[111] = ZPCyclist.from_dict(
       {
-        "data": [
-          {"zid": "1", "pos": 1},
-          {"zid": "2", "pos": 2},
+        'data': [
+          {'zid': '1', 'pos': 1},
+          {'zid': '2', 'pos': 2},
         ],
       },
     )
     cyclist._fetched[222] = ZPCyclist.from_dict(
       {
-        "data": [
-          {"zid": "3", "pos": 3},
+        'data': [
+          {'zid': '3', 'pos': 3},
         ],
       },
     )
@@ -202,9 +202,11 @@ class TestCyclistRacelogWithRealFixture:
   @pytest.fixture
   def real_cyclist_data(self):
     """Load real cyclist data from fixture."""
-    fixture_path = Path(__file__).parent.parent.parent / "tmp" / "7574336_all.json"
+    fixture_path = (
+      Path(__file__).parent.parent.parent / 'tmp' / '7574336_all.json'
+    )
     if not fixture_path.exists():
-      pytest.skip("Fixture file not available")
+      pytest.skip('Fixture file not available')
 
     with open(fixture_path) as f:
       return json.load(f)
@@ -222,7 +224,7 @@ class TestCyclistRacelogWithRealFixture:
     # Test that we can iterate
     for race in racelog:
       assert isinstance(race, ZPRaceFinish)
-      assert hasattr(race, "event_title")
+      assert hasattr(race, 'event_title')
 
   def test_racelog_serialization_with_real_data(self, real_cyclist_data):
     """Test that racelog from real data can be serialized."""
@@ -259,9 +261,11 @@ class TestCyclistRacelogWithRealFixture:
 
   def test_large_racelog(self):
     """Test with large racelog (550564_all.json)."""
-    fixture_path = Path(__file__).parent.parent.parent / "tmp" / "550564_all.json"
+    fixture_path = (
+      Path(__file__).parent.parent.parent / 'tmp' / '550564_all.json'
+    )
     if not fixture_path.exists():
-      pytest.skip("Large fixture file not available")
+      pytest.skip('Large fixture file not available')
 
     with open(fixture_path) as f:
       data = json.load(f)

@@ -2,7 +2,7 @@
 
 import time
 
-import httpx
+import httpx2
 import pytest
 
 from shared.exceptions import AuthenticationError, NetworkError
@@ -29,12 +29,12 @@ def test_login_success(mock_auth, auth_handler, mock_token_response):
   # Mock the httpx client
   import zdatafetch.auth
 
-  original_client = httpx.Client
+  original_client = httpx2.Client
 
   def mock_client(*args, **kwargs):
-    return original_client(transport=httpx.MockTransport(auth_handler))
+    return original_client(transport=httpx2.MockTransport(auth_handler))
 
-  zdatafetch.auth.httpx.Client = mock_client
+  zdatafetch.auth.httpx2.Client = mock_client
 
   try:
     mock_auth.login()
@@ -49,95 +49,95 @@ def test_login_success(mock_auth, auth_handler, mock_token_response):
     assert mock_auth.refresh_token_expiration > time.time()
 
   finally:
-    zdatafetch.auth.httpx.Client = original_client
+    zdatafetch.auth.httpx2.Client = original_client
 
 
 def test_login_invalid_credentials(mock_auth):
   """Test login with invalid credentials."""
 
   def handler(request):
-    return httpx.Response(401, text='Unauthorized')
+    return httpx2.Response(401, text='Unauthorized')
 
   import zdatafetch.auth
 
-  original_client = httpx.Client
+  original_client = httpx2.Client
 
   def mock_client(*args, **kwargs):
-    return original_client(transport=httpx.MockTransport(handler))
+    return original_client(transport=httpx2.MockTransport(handler))
 
-  zdatafetch.auth.httpx.Client = mock_client
+  zdatafetch.auth.httpx2.Client = mock_client
 
   try:
     with pytest.raises(AuthenticationError, match='Invalid Zwift credentials'):
       mock_auth.login()
   finally:
-    zdatafetch.auth.httpx.Client = original_client
+    zdatafetch.auth.httpx2.Client = original_client
 
 
 def test_login_server_error(mock_auth):
   """Test login with server error."""
 
   def handler(request):
-    return httpx.Response(500, text='Internal Server Error')
+    return httpx2.Response(500, text='Internal Server Error')
 
   import zdatafetch.auth
 
-  original_client = httpx.Client
+  original_client = httpx2.Client
 
   def mock_client(*args, **kwargs):
-    return original_client(transport=httpx.MockTransport(handler))
+    return original_client(transport=httpx2.MockTransport(handler))
 
-  zdatafetch.auth.httpx.Client = mock_client
+  zdatafetch.auth.httpx2.Client = mock_client
 
   try:
     with pytest.raises(AuthenticationError, match='Authentication failed'):
       mock_auth.login()
   finally:
-    zdatafetch.auth.httpx.Client = original_client
+    zdatafetch.auth.httpx2.Client = original_client
 
 
 def test_login_network_error(mock_auth):
   """Test login with network error."""
 
   def handler(request):
-    raise httpx.ConnectError('Connection failed')
+    raise httpx2.ConnectError('Connection failed')
 
   import zdatafetch.auth
 
-  original_client = httpx.Client
+  original_client = httpx2.Client
 
   def mock_client(*args, **kwargs):
-    return original_client(transport=httpx.MockTransport(handler))
+    return original_client(transport=httpx2.MockTransport(handler))
 
-  zdatafetch.auth.httpx.Client = mock_client
+  zdatafetch.auth.httpx2.Client = mock_client
 
   try:
     with pytest.raises(NetworkError, match='Authentication request failed'):
       mock_auth.login()
   finally:
-    zdatafetch.auth.httpx.Client = original_client
+    zdatafetch.auth.httpx2.Client = original_client
 
 
 def test_login_timeout(mock_auth):
   """Test login timeout."""
 
   def handler(request):
-    raise httpx.TimeoutException('Request timed out')
+    raise httpx2.TimeoutException('Request timed out')
 
   import zdatafetch.auth
 
-  original_client = httpx.Client
+  original_client = httpx2.Client
 
   def mock_client(*args, **kwargs):
-    return original_client(transport=httpx.MockTransport(handler))
+    return original_client(transport=httpx2.MockTransport(handler))
 
-  zdatafetch.auth.httpx.Client = mock_client
+  zdatafetch.auth.httpx2.Client = mock_client
 
   try:
     with pytest.raises(NetworkError, match='Authentication request timed out'):
       mock_auth.login()
   finally:
-    zdatafetch.auth.httpx.Client = original_client
+    zdatafetch.auth.httpx2.Client = original_client
 
 
 def test_get_access_token_without_login(mock_auth):
@@ -150,31 +150,31 @@ def test_get_access_token_valid(mock_auth, auth_handler, mock_token_response):
   """Test getting valid access token."""
   import zdatafetch.auth
 
-  original_client = httpx.Client
+  original_client = httpx2.Client
 
   def mock_client(*args, **kwargs):
-    return original_client(transport=httpx.MockTransport(auth_handler))
+    return original_client(transport=httpx2.MockTransport(auth_handler))
 
-  zdatafetch.auth.httpx.Client = mock_client
+  zdatafetch.auth.httpx2.Client = mock_client
 
   try:
     mock_auth.login()
     token = mock_auth.get_access_token()
     assert token == mock_token_response['access_token']
   finally:
-    zdatafetch.auth.httpx.Client = original_client
+    zdatafetch.auth.httpx2.Client = original_client
 
 
 def test_token_refresh(mock_auth, auth_handler, mock_token_response):
   """Test automatic token refresh."""
   import zdatafetch.auth
 
-  original_client = httpx.Client
+  original_client = httpx2.Client
 
   def mock_client(*args, **kwargs):
-    return original_client(transport=httpx.MockTransport(auth_handler))
+    return original_client(transport=httpx2.MockTransport(auth_handler))
 
-  zdatafetch.auth.httpx.Client = mock_client
+  zdatafetch.auth.httpx2.Client = mock_client
 
   try:
     mock_auth.login()
@@ -188,19 +188,19 @@ def test_token_refresh(mock_auth, auth_handler, mock_token_response):
     assert mock_auth.access_token_expiration > time.time()
 
   finally:
-    zdatafetch.auth.httpx.Client = original_client
+    zdatafetch.auth.httpx2.Client = original_client
 
 
 def test_is_authenticated(mock_auth, auth_handler):
   """Test authentication status check."""
   import zdatafetch.auth
 
-  original_client = httpx.Client
+  original_client = httpx2.Client
 
   def mock_client(*args, **kwargs):
-    return original_client(transport=httpx.MockTransport(auth_handler))
+    return original_client(transport=httpx2.MockTransport(auth_handler))
 
-  zdatafetch.auth.httpx.Client = mock_client
+  zdatafetch.auth.httpx2.Client = mock_client
 
   try:
     # Not authenticated initially
@@ -219,7 +219,7 @@ def test_is_authenticated(mock_auth, auth_handler):
     assert not mock_auth.is_authenticated()
 
   finally:
-    zdatafetch.auth.httpx.Client = original_client
+    zdatafetch.auth.httpx2.Client = original_client
 
 
 def test_parse_token_response(mock_auth, mock_token_response):
