@@ -1,7 +1,6 @@
 import json
-import sys
 
-import httpx
+import httpx2
 import pytest
 
 from shared.exceptions import AuthenticationError, NetworkError
@@ -16,12 +15,14 @@ def test_fetch_login_page(
   def handler(request):
     match request.method:
       case 'GET':
-        return httpx.Response(200, text=login_page)
+        return httpx2.Response(200, text=login_page)
       case 'POST':
-        return httpx.Response(200, text=logged_in_page)
+        return httpx2.Response(200, text=logged_in_page)
 
   zp.init_client(
-    httpx.Client(follow_redirects=True, transport=httpx.MockTransport(handler)),
+    httpx2.Client(
+      follow_redirects=True, transport=httpx2.MockTransport(handler)
+    ),
   )
   zp.login()
   assert zp.login_response.status_code == 200
@@ -29,10 +30,12 @@ def test_fetch_login_page(
 
 def test_login_network_error_on_get(zp, login_page):
   def handler(request):
-    raise httpx.ConnectError('Connection failed')
+    raise httpx2.ConnectError('Connection failed')
 
   zp.init_client(
-    httpx.Client(follow_redirects=True, transport=httpx.MockTransport(handler)),
+    httpx2.Client(
+      follow_redirects=True, transport=httpx2.MockTransport(handler)
+    ),
   )
 
   with pytest.raises(NetworkError, match='Failed to fetch login page'):
@@ -41,10 +44,12 @@ def test_login_network_error_on_get(zp, login_page):
 
 def test_login_http_error_on_get(zp):
   def handler(request):
-    return httpx.Response(500, text='Server Error')
+    return httpx2.Response(500, text='Server Error')
 
   zp.init_client(
-    httpx.Client(follow_redirects=True, transport=httpx.MockTransport(handler)),
+    httpx2.Client(
+      follow_redirects=True, transport=httpx2.MockTransport(handler)
+    ),
   )
 
   with pytest.raises(NetworkError, match='Failed to fetch login page'):
@@ -53,10 +58,12 @@ def test_login_http_error_on_get(zp):
 
 def test_login_missing_form(zp):
   def handler(request):
-    return httpx.Response(200, text='<html><body>No form here</body></html>')
+    return httpx2.Response(200, text='<html><body>No form here</body></html>')
 
   zp.init_client(
-    httpx.Client(follow_redirects=True, transport=httpx.MockTransport(handler)),
+    httpx2.Client(
+      follow_redirects=True, transport=httpx2.MockTransport(handler)
+    ),
   )
 
   with pytest.raises(AuthenticationError, match='Failed to parse login form'):
@@ -69,10 +76,10 @@ def test_login_failed_authentication(zp, login_page):
   # Creating a proper redirect mock in httpx is complex, so we test the logic
 
   # Create a mock response that looks like a failed login redirect
-  mock_response = httpx.Response(
+  mock_response = httpx2.Response(
     200,
     text=login_page,
-    request=httpx.Request('POST', 'https://zwiftpower.com/ucp.php?mode=login'),
+    request=httpx2.Request('POST', 'https://zwiftpower.com/ucp.php?mode=login'),
   )
 
   # Verify our detection logic would catch this
@@ -87,13 +94,15 @@ def test_fetch_json_success(zp):
 
   def handler(request):
     if 'login' in str(request.url):
-      return httpx.Response(
+      return httpx2.Response(
         200, text='<html><form action="/login"></form></html>'
       )
-    return httpx.Response(200, text=json.dumps(test_data))
+    return httpx2.Response(200, text=json.dumps(test_data))
 
   zp.init_client(
-    httpx.Client(follow_redirects=True, transport=httpx.MockTransport(handler)),
+    httpx2.Client(
+      follow_redirects=True, transport=httpx2.MockTransport(handler)
+    ),
   )
 
   result = zp.fetch_json('https://zwiftpower.com/api/test')
@@ -103,13 +112,15 @@ def test_fetch_json_success(zp):
 def test_fetch_json_invalid_json(zp):
   def handler(request):
     if 'login' in str(request.url):
-      return httpx.Response(
+      return httpx2.Response(
         200, text='<html><form action="/login"></form></html>'
       )
-    return httpx.Response(200, text='not valid json')
+    return httpx2.Response(200, text='not valid json')
 
   zp.init_client(
-    httpx.Client(follow_redirects=True, transport=httpx.MockTransport(handler)),
+    httpx2.Client(
+      follow_redirects=True, transport=httpx2.MockTransport(handler)
+    ),
   )
 
   result = zp.fetch_json('https://zwiftpower.com/api/test')
@@ -119,13 +130,15 @@ def test_fetch_json_invalid_json(zp):
 def test_fetch_json_network_error(zp):
   def handler(request):
     if 'login' in str(request.url):
-      return httpx.Response(
+      return httpx2.Response(
         200, text='<html><form action="/login"></form></html>'
       )
-    raise httpx.ConnectError('Network error')
+    raise httpx2.ConnectError('Network error')
 
   zp.init_client(
-    httpx.Client(follow_redirects=True, transport=httpx.MockTransport(handler)),
+    httpx2.Client(
+      follow_redirects=True, transport=httpx2.MockTransport(handler)
+    ),
   )
 
   with pytest.raises(NetworkError, match='Failed after'):
@@ -137,13 +150,15 @@ def test_fetch_page_success(zp):
 
   def handler(request):
     if 'login' in str(request.url):
-      return httpx.Response(
+      return httpx2.Response(
         200, text='<html><form action="/login"></form></html>'
       )
-    return httpx.Response(200, text=test_html)
+    return httpx2.Response(200, text=test_html)
 
   zp.init_client(
-    httpx.Client(follow_redirects=True, transport=httpx.MockTransport(handler)),
+    httpx2.Client(
+      follow_redirects=True, transport=httpx2.MockTransport(handler)
+    ),
   )
 
   result = zp.fetch_page('https://zwiftpower.com/profile.php?z=123')
@@ -153,13 +168,15 @@ def test_fetch_page_success(zp):
 def test_fetch_page_http_error(zp):
   def handler(request):
     if 'login' in str(request.url):
-      return httpx.Response(
+      return httpx2.Response(
         200, text='<html><form action="/login"></form></html>'
       )
-    return httpx.Response(404, text='Not Found')
+    return httpx2.Response(404, text='Not Found')
 
   zp.init_client(
-    httpx.Client(follow_redirects=True, transport=httpx.MockTransport(handler)),
+    httpx2.Client(
+      follow_redirects=True, transport=httpx2.MockTransport(handler)
+    ),
   )
 
   with pytest.raises(NetworkError, match='Failed to fetch page'):
@@ -199,15 +216,15 @@ def test_context_manager(zp):
 
   def handler(request):
     if 'login' in str(request.url):
-      return httpx.Response(
+      return httpx2.Response(
         200,
         text='<html><form action="https://zwiftpower.com/login"></form></html>',
       )
-    return httpx.Response(200, text=json.dumps({'data': 'test'}))
+    return httpx2.Response(200, text=json.dumps({'data': 'test'}))
 
-  client = httpx.Client(
+  client = httpx2.Client(
     follow_redirects=True,
-    transport=httpx.MockTransport(handler),
+    transport=httpx2.MockTransport(handler),
   )
 
   with ZP(skip_credential_check=True) as zp_ctx:
@@ -226,26 +243,26 @@ def test_context_manager_with_exception(zp):
 
   def handler(request):
     if 'login' in str(request.url):
-      return httpx.Response(
+      return httpx2.Response(
         200,
         text='<html><form action="https://zwiftpower.com/login"></form></html>',
       )
-    raise httpx.ConnectError('Forced error')
+    raise httpx2.ConnectError('Forced error')
 
   with ZP(skip_credential_check=True) as zp_ctx:
 
     def mock_handler(request):
       if 'login' in str(request.url):
-        return httpx.Response(
+        return httpx2.Response(
           200,
           text='<html><form action="https://zwiftpower.com/login"></form></html>',
         )
-      raise httpx.ConnectError('Forced error')
+      raise httpx2.ConnectError('Forced error')
 
     zp_ctx.init_client(
-      httpx.Client(
+      httpx2.Client(
         follow_redirects=True,
-        transport=httpx.MockTransport(mock_handler),
+        transport=httpx2.MockTransport(mock_handler),
       ),
     )
     zp_ctx.login()
@@ -258,26 +275,20 @@ def test_context_manager_with_exception(zp):
   assert isinstance(zp_ctx, ZP)
 
 
-@pytest.mark.xfail(
-  sys.version_info >= (3, 14),
-  reason='httpcore 1.1.x incompatible with Python 3.14 typing.Union - '
-  'upstream issue encode/httpcore, fixed in 1.2.0+',
-  strict=False,
-)
 def test_shared_client_connection_pooling():
   """Test shared client enables connection pooling."""
 
   def handler(request):
     if 'login' in str(request.url):
-      return httpx.Response(
+      return httpx2.Response(
         200,
         text='<html><form action="https://zwiftpower.com/login"></form></html>',
       )
-    return httpx.Response(200, json={'id': request.url.params.get('id', '?')})
+    return httpx2.Response(200, json={'id': request.url.params.get('id', '?')})
 
-  client = httpx.Client(
+  client = httpx2.Client(
     follow_redirects=True,
-    transport=httpx.MockTransport(handler),
+    transport=httpx2.MockTransport(handler),
   )
 
   try:
@@ -305,10 +316,12 @@ def test_fetch_with_retry_success(zp):
   """Test _fetch_with_retry succeeds on first attempt."""
 
   def handler(request):
-    return httpx.Response(200, json={'data': 'success'})
+    return httpx2.Response(200, json={'data': 'success'})
 
   zp.init_client(
-    httpx.Client(follow_redirects=True, transport=httpx.MockTransport(handler)),
+    httpx2.Client(
+      follow_redirects=True, transport=httpx2.MockTransport(handler)
+    ),
   )
   response = zp._fetch_with_retry(
     'https://zwiftpower.com/api/test', max_retries=3
@@ -324,11 +337,13 @@ def test_fetch_with_retry_transient_error(zp):
     nonlocal attempt_count
     attempt_count += 1
     if attempt_count < 3:
-      raise httpx.ConnectError('Transient error')
-    return httpx.Response(200, json={'data': 'success'})
+      raise httpx2.ConnectError('Transient error')
+    return httpx2.Response(200, json={'data': 'success'})
 
   zp.init_client(
-    httpx.Client(follow_redirects=True, transport=httpx.MockTransport(handler)),
+    httpx2.Client(
+      follow_redirects=True, transport=httpx2.MockTransport(handler)
+    ),
   )
   response = zp._fetch_with_retry(
     'https://zwiftpower.com/api/test',
@@ -343,10 +358,12 @@ def test_fetch_with_retry_max_retries_exceeded(zp):
   """Test _fetch_with_retry fails after max retries."""
 
   def handler(request):
-    raise httpx.ConnectError('Persistent error')
+    raise httpx2.ConnectError('Persistent error')
 
   zp.init_client(
-    httpx.Client(follow_redirects=True, transport=httpx.MockTransport(handler)),
+    httpx2.Client(
+      follow_redirects=True, transport=httpx2.MockTransport(handler)
+    ),
   )
 
   with pytest.raises(NetworkError, match='Failed after 3 attempts'):

@@ -6,7 +6,7 @@ Provides access to active worlds from Zwift's unofficial API.
 import json
 from typing import Any
 
-import httpx
+import httpx2
 
 from shared.exceptions import ConfigError, NetworkError
 from shared.json_helpers import parse_json_safe
@@ -129,7 +129,7 @@ class ZwiftWorlds:
     url = f'{self.BASE_URL}/relay/worlds'
 
     try:
-      with httpx.Client() as client:
+      with httpx2.Client() as client:
         response = client.get(url, headers=headers, timeout=30.0)
 
         if response.status_code != 200:
@@ -144,9 +144,9 @@ class ZwiftWorlds:
         self._raw = json.dumps(self._fetched, indent=2)
         logger.info(f'Successfully fetched {len(self.worlds)} active worlds')
 
-    except httpx.TimeoutException as e:
+    except httpx2.TimeoutException as e:
       raise NetworkError(f'Request timed out fetching worlds: {e}') from e
-    except httpx.HTTPError as e:
+    except httpx2.HTTPError as e:
       raise NetworkError(f'Network error fetching worlds: {e}') from e
 
   def _parse_response(self, raw_json: str) -> None:

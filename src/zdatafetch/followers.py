@@ -6,7 +6,7 @@ Provides access to follower/followee relationship data from Zwift's unofficial A
 import json
 from typing import Any
 
-import httpx
+import httpx2
 
 from shared.exceptions import ConfigError, NetworkError
 from shared.json_helpers import parse_json_safe
@@ -112,7 +112,7 @@ class ZwiftFollowers:
     raw_data = {}
 
     try:
-      with httpx.Client() as client:
+      with httpx2.Client() as client:
         # Fetch followers
         if include_followers:
           url = f'{self.BASE_URL}/api/profiles/{rider_id}/followers'
@@ -154,11 +154,11 @@ class ZwiftFollowers:
         self._raw = json.dumps(self._fetched, indent=2)
         logger.info(f'Successfully fetched follower data for rider {rider_id}')
 
-    except httpx.TimeoutException as e:
+    except httpx2.TimeoutException as e:
       raise NetworkError(
         f'Request timed out fetching follower data for rider {rider_id}: {e}',
       ) from e
-    except httpx.HTTPError as e:
+    except httpx2.HTTPError as e:
       raise NetworkError(
         f'Network error fetching follower data for rider {rider_id}: {e}',
       ) from e
@@ -218,7 +218,7 @@ class ZwiftFollowers:
 
     # Fetch all follower data
     results = {}
-    with httpx.Client() as client:
+    with httpx2.Client() as client:
       for rider_id in rider_ids:
         try:
           raw_data = {}

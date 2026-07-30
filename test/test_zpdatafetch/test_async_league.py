@@ -2,7 +2,7 @@
 
 import json
 
-import httpx
+import httpx2
 import pytest
 
 from zpdatafetch.async_zp import AsyncZP
@@ -16,20 +16,20 @@ async def test_async_league_fetch(league_ok, login_page, logged_in_page):
 
   def handler(request):
     if request.method == 'GET' and 'login' in str(request.url):
-      return httpx.Response(200, text=login_page)
+      return httpx2.Response(200, text=login_page)
     if request.method == 'POST':
-      return httpx.Response(200, text=logged_in_page)
+      return httpx2.Response(200, text=logged_in_page)
     if 'league_standings_2780.json' in str(request.url):
-      return httpx.Response(200, text=json.dumps(league_ok))
-    return httpx.Response(404)
+      return httpx2.Response(200, text=json.dumps(league_ok))
+    return httpx2.Response(404)
 
   async with AsyncZP(skip_credential_check=True) as zp:
     zp.username = 'testuser'
     zp.password = 'testpass'
     await zp.init_client(
-      httpx.AsyncClient(
+      httpx2.AsyncClient(
         follow_redirects=True,
-        transport=httpx.MockTransport(handler),
+        transport=httpx2.MockTransport(handler),
       ),
     )
 

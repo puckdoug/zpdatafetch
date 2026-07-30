@@ -4,7 +4,7 @@ import json
 import logging
 from unittest.mock import patch
 
-import httpx
+import httpx2
 
 from zsdatafetch.cli import main
 from zsdatafetch.zs import ZS_obj
@@ -68,7 +68,8 @@ class TestCLI:
 
   def test_incidents_noaction(self, capsys):
     with patch(
-      'sys.argv', ['zsdata', 'incidents', '--noaction'],
+      'sys.argv',
+      ['zsdata', 'incidents', '--noaction'],
     ):
       result = main()
     assert result is None
@@ -87,7 +88,8 @@ class TestCLI:
 
   def test_maintenance_noaction(self, capsys):
     with patch(
-      'sys.argv', ['zsdata', 'maintenance', '--noaction'],
+      'sys.argv',
+      ['zsdata', 'maintenance', '--noaction'],
     ):
       result = main()
     assert result is None
@@ -118,12 +120,14 @@ class TestCLI:
 
   def test_status_command(self, summary_json, capsys):
     def handler(request):
-      return httpx.Response(
-        200, text=summary_json, request=request,
+      return httpx2.Response(
+        200,
+        text=summary_json,
+        request=request,
       )
 
-    ZS_obj._client = httpx.Client(
-      transport=httpx.MockTransport(handler),
+    ZS_obj._client = httpx2.Client(
+      transport=httpx2.MockTransport(handler),
     )
     with patch('sys.argv', ['zsdata', 'status', '--sync']):
       result = main()
@@ -133,15 +137,18 @@ class TestCLI:
 
   def test_status_raw(self, summary_json, capsys):
     def handler(request):
-      return httpx.Response(
-        200, text=summary_json, request=request,
+      return httpx2.Response(
+        200,
+        text=summary_json,
+        request=request,
       )
 
-    ZS_obj._client = httpx.Client(
-      transport=httpx.MockTransport(handler),
+    ZS_obj._client = httpx2.Client(
+      transport=httpx2.MockTransport(handler),
     )
     with patch(
-      'sys.argv', ['zsdata', 'status', '--raw', '--sync'],
+      'sys.argv',
+      ['zsdata', 'status', '--raw', '--sync'],
     ):
       result = main()
     assert result is None
@@ -151,15 +158,18 @@ class TestCLI:
 
   def test_status_json(self, summary_json, capsys):
     def handler(request):
-      return httpx.Response(
-        200, text=summary_json, request=request,
+      return httpx2.Response(
+        200,
+        text=summary_json,
+        request=request,
       )
 
-    ZS_obj._client = httpx.Client(
-      transport=httpx.MockTransport(handler),
+    ZS_obj._client = httpx2.Client(
+      transport=httpx2.MockTransport(handler),
     )
     with patch(
-      'sys.argv', ['zsdata', 'status', '--json', '--sync'],
+      'sys.argv',
+      ['zsdata', 'status', '--json', '--sync'],
     ):
       result = main()
     assert result is None
@@ -169,32 +179,40 @@ class TestCLI:
 
   def test_incidents_command(self, incidents_json, capsys):
     def handler(request):
-      return httpx.Response(
-        200, text=incidents_json, request=request,
+      return httpx2.Response(
+        200,
+        text=incidents_json,
+        request=request,
       )
 
-    ZS_obj._client = httpx.Client(
-      transport=httpx.MockTransport(handler),
+    ZS_obj._client = httpx2.Client(
+      transport=httpx2.MockTransport(handler),
     )
     with patch(
-      'sys.argv', ['zsdata', 'incidents', '--sync'],
+      'sys.argv',
+      ['zsdata', 'incidents', '--sync'],
     ):
       result = main()
     assert result is None
 
   def test_maintenance_command(
-    self, maintenance_json, capsys,
+    self,
+    maintenance_json,
+    capsys,
   ):
     def handler(request):
-      return httpx.Response(
-        200, text=maintenance_json, request=request,
+      return httpx2.Response(
+        200,
+        text=maintenance_json,
+        request=request,
       )
 
-    ZS_obj._client = httpx.Client(
-      transport=httpx.MockTransport(handler),
+    ZS_obj._client = httpx2.Client(
+      transport=httpx2.MockTransport(handler),
     )
     with patch(
-      'sys.argv', ['zsdata', 'maintenance', '--sync'],
+      'sys.argv',
+      ['zsdata', 'maintenance', '--sync'],
     ):
       result = main()
     assert result is None
