@@ -1,7 +1,9 @@
-default: ruff ty pytest
+default: ruff ty test
 
-pytest *ARGS:
+test *ARGS:
   OSTYPE=`uname` . .venv/bin/activate ; pytest {{ARGS}}
+
+check: ruff ty
 
 ruff:
   OSTYPE=`uname` . .venv/bin/activate ; ruff check src test

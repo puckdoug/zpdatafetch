@@ -22,6 +22,12 @@ def _close_handlers():
       pass
 
 
+def _app_handlers():
+  """Return only the handlers owned by the app, excluding pytest's capture handlers."""
+  logger = logging.getLogger('zpdatafetch')
+  return [h for h in logger.handlers if not type(h).__module__.startswith('_pytest')]
+
+
 @pytest.fixture(autouse=True)
 def reset_logging():
   """Reset logging configuration before and after each test."""
@@ -49,17 +55,17 @@ def test_default_logging_level():
   assert logger.level == logging.ERROR
 
   # Should have one handler (stderr)
-  assert len(logger.handlers) == 1
-  assert logger.handlers[0].level == logging.ERROR
+  handlers = _app_handlers()
+  assert len(handlers) == 1
+  assert handlers[0].level == logging.ERROR
 
 
 def test_default_logging_format():
   """Test that default logging has simple ERROR format configured."""
-  logger = logging.getLogger('zpdatafetch')
-
   # Should have one stderr handler
-  assert len(logger.handlers) == 1
-  handler = logger.handlers[0]
+  handlers = _app_handlers()
+  assert len(handlers) == 1
+  handler = handlers[0]
 
   # Verify it's a StreamHandler (stderr gets captured by pytest, so we can't check the exact stream)
   assert isinstance(handler, logging.StreamHandler)
