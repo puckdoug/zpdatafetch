@@ -7,7 +7,7 @@ serialization for all Zwiftracing data classes.
 import json
 from typing import Any, ClassVar
 
-import httpx
+import httpx2
 
 from shared.error_helpers import format_network_error
 from shared.exceptions import NetworkError
@@ -33,13 +33,13 @@ class ZR_obj:
     _premium_mode: Class-level setting for premium tier rate limits
   """
 
-  _client: ClassVar[httpx.Client | None] = None
+  _client: ClassVar[httpx2.Client | None] = None
   _base_url: ClassVar[str] = 'https://api.zwiftracing.app/api'
   _premium_mode: ClassVar[bool] = False  # Default to standard tier
 
   # ----------------------------------------------------------------------------
   @classmethod
-  def get_client(cls) -> httpx.Client:
+  def get_client(cls) -> httpx2.Client:
     """Get or create a shared HTTP client.
 
     Creates a single shared client for connection pooling across all
@@ -47,11 +47,11 @@ class ZR_obj:
     API requests.
 
     Returns:
-      httpx.Client instance configured for Zwiftracing API
+      httpx2.Client instance configured for Zwiftracing API
     """
     if cls._client is None:
       logger.debug('Creating shared HTTP client for Zwiftracing')
-      cls._client = httpx.Client(
+      cls._client = httpx2.Client(
         base_url=cls._base_url,
         timeout=30.0,
         follow_redirects=True,
@@ -111,7 +111,7 @@ class ZR_obj:
       endpoint: API endpoint path (e.g., '/public/riders/123')
       method: HTTP method ('GET' or 'POST'). Default: 'GET'
       premium: Use premium tier rate limits (default: False for standard)
-      **kwargs: Additional arguments passed to httpx.get() or httpx.post()
+      **kwargs: Additional arguments passed to httpx2.get() or httpx2.post()
         (e.g., headers, params, json, etc.)
 
     Returns:
@@ -170,7 +170,7 @@ class ZR_obj:
       rate_limiter.record_request(endpoint_type)
       return response.text
 
-    except httpx.HTTPStatusError as e:
+    except httpx2.HTTPStatusError as e:
       logger.error(f'HTTP error {method} {endpoint}: {e.response.status_code}')
       raise NetworkError(
         format_network_error(
@@ -180,7 +180,7 @@ class ZR_obj:
           status_code=e.response.status_code,
         ),
       ) from e
-    except httpx.RequestError as e:
+    except httpx2.RequestError as e:
       logger.error(f'Network error {method} {endpoint}: {e}')
       raise NetworkError(
         format_network_error(f'{method.lower()} request', endpoint, e),

@@ -15,7 +15,7 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 import anyio
-import httpx
+import httpx2
 
 from shared.exceptions import NetworkError
 
@@ -25,21 +25,21 @@ from shared.exceptions import NetworkError
 
 
 def fetch_with_retry_sync(
-  client: httpx.Client,
+  client: httpx2.Client,
   url: str,
   method: str = 'GET',
   max_retries: int = 3,
   backoff_factor: float = 1.0,
   logger: logging.Logger | None = None,
   **kwargs: Any,
-) -> httpx.Response:
+) -> httpx2.Response:
   """Fetch URL with exponential backoff retry logic (sync variant).
 
   Retries on transient errors (connection errors, timeouts, 5xx errors)
   but not on client errors (4xx).
 
   Args:
-    client: httpx.Client instance
+    client: httpx2.Client instance
     url: URL to fetch
     method: HTTP method (default: 'GET')
     max_retries: Maximum number of retry attempts (default: 3)
@@ -48,7 +48,7 @@ def fetch_with_retry_sync(
     **kwargs: Additional arguments to pass to client.request()
 
   Returns:
-    httpx.Response: The successful response
+    httpx2.Response: The successful response
 
   Raises:
     NetworkError: If all retries are exhausted
@@ -64,7 +64,7 @@ def fetch_with_retry_sync(
       response = client.request(method, url, **kwargs)
       response.raise_for_status()
       return response
-    except (httpx.ConnectError, httpx.TimeoutException) as e:
+    except (httpx2.ConnectError, httpx2.TimeoutException) as e:
       last_exception = e
       if attempt == max_retries - 1:
         break
@@ -74,7 +74,7 @@ def fetch_with_retry_sync(
         f'Retrying in {wait_time:.1f}s...',
       )
       time.sleep(wait_time)
-    except httpx.HTTPStatusError as e:
+    except httpx2.HTTPStatusError as e:
       if 500 <= e.response.status_code < 600:
         last_exception = e
         if attempt == max_retries - 1:
@@ -88,7 +88,7 @@ def fetch_with_retry_sync(
       else:
         # Client errors (4xx) - don't retry, re-raise for caller to handle
         raise
-    except httpx.RequestError as e:
+    except httpx2.RequestError as e:
       last_exception = e
       if attempt == max_retries - 1:
         break
@@ -109,21 +109,21 @@ def fetch_with_retry_sync(
 
 
 async def fetch_with_retry_async(
-  client: httpx.AsyncClient,
+  client: httpx2.AsyncClient,
   url: str,
   method: str = 'GET',
   max_retries: int = 3,
   backoff_factor: float = 1.0,
   logger: logging.Logger | None = None,
   **kwargs: Any,
-) -> httpx.Response:
+) -> httpx2.Response:
   """Fetch URL with exponential backoff retry logic (async variant).
 
   Async version using anyio.sleep() for compatibility with both asyncio
   and trio.
 
   Args:
-    client: httpx.AsyncClient instance
+    client: httpx2.AsyncClient instance
     url: URL to fetch
     method: HTTP method (default: 'GET')
     max_retries: Maximum number of retry attempts (default: 3)
@@ -132,7 +132,7 @@ async def fetch_with_retry_async(
     **kwargs: Additional arguments to pass to client.request()
 
   Returns:
-    httpx.Response: The successful response
+    httpx2.Response: The successful response
 
   Raises:
     NetworkError: If all retries are exhausted
@@ -148,7 +148,7 @@ async def fetch_with_retry_async(
       response = await client.request(method, url, **kwargs)
       response.raise_for_status()
       return response
-    except (httpx.ConnectError, httpx.TimeoutException) as e:
+    except (httpx2.ConnectError, httpx2.TimeoutException) as e:
       last_exception = e
       if attempt == max_retries - 1:
         break
@@ -158,7 +158,7 @@ async def fetch_with_retry_async(
         f'Retrying in {wait_time:.1f}s...',
       )
       await anyio.sleep(wait_time)
-    except httpx.HTTPStatusError as e:
+    except httpx2.HTTPStatusError as e:
       if 500 <= e.response.status_code < 600:
         last_exception = e
         if attempt == max_retries - 1:
@@ -172,7 +172,7 @@ async def fetch_with_retry_async(
       else:
         # Client errors (4xx) - don't retry, re-raise for caller to handle
         raise
-    except httpx.RequestError as e:
+    except httpx2.RequestError as e:
       last_exception = e
       if attempt == max_retries - 1:
         break
@@ -204,8 +204,8 @@ class BaseHTTPClient(ABC):
   Subclasses implement hooks for package-specific behavior.
   """
 
-  _client: httpx.Client | None = None
-  _shared_client: httpx.Client | None = None
+  _client: httpx2.Client | None = None
+  _shared_client: httpx2.Client | None = None
   _owns_client: bool = False
 
   # ----------------------------------------------------------------------------
@@ -213,13 +213,13 @@ class BaseHTTPClient(ABC):
   # ----------------------------------------------------------------------------
 
   @abstractmethod
-  def _create_client(self) -> httpx.Client:
+  def _create_client(self) -> httpx2.Client:
     """Create and configure an HTTP client.
 
     Subclasses implement this to provide package-specific client configuration.
 
     Returns:
-      Configured httpx.Client instance
+      Configured httpx2.Client instance
     """
 
   def _before_request(
@@ -241,7 +241,7 @@ class BaseHTTPClient(ABC):
       **kwargs: Additional request parameters
     """
 
-  def _after_request(self, response: httpx.Response) -> None:
+  def _after_request(self, response: httpx2.Response) -> None:
     """Hook called after receiving a response.
 
     Default: no-op. Override in subclasses for post-response operations like:
@@ -266,7 +266,7 @@ class BaseHTTPClient(ABC):
   # SHARED IMPLEMENTATIONS
   # ----------------------------------------------------------------------------
 
-  def init_client(self, client: httpx.Client | None = None) -> None:
+  def init_client(self, client: httpx2.Client | None = None) -> None:
     """Initialize or replace the HTTP client.
 
     Three-way logic:
@@ -275,7 +275,7 @@ class BaseHTTPClient(ABC):
     3. Else create new client via _create_client()
 
     Args:
-      client: Optional httpx.Client instance to use
+      client: Optional httpx2.Client instance to use
     """
     if client:
       self._client = client
@@ -327,8 +327,8 @@ class AsyncBaseHTTPClient(ABC):
   Async version of BaseHTTPClient with same pattern but async methods.
   """
 
-  _client: httpx.AsyncClient | None = None
-  _shared_client: httpx.AsyncClient | None = None
+  _client: httpx2.AsyncClient | None = None
+  _shared_client: httpx2.AsyncClient | None = None
   _owns_client: bool = False
 
   # ----------------------------------------------------------------------------
@@ -336,11 +336,11 @@ class AsyncBaseHTTPClient(ABC):
   # ----------------------------------------------------------------------------
 
   @abstractmethod
-  async def _create_client(self) -> httpx.AsyncClient:
+  async def _create_client(self) -> httpx2.AsyncClient:
     """Create and configure an async HTTP client.
 
     Args:
-      Returns: Configured httpx.AsyncClient instance
+      Returns: Configured httpx2.AsyncClient instance
     """
 
   async def _before_request(
@@ -354,7 +354,7 @@ class AsyncBaseHTTPClient(ABC):
     Default: no-op. Override for pre-request operations.
     """
 
-  async def _after_request(self, response: httpx.Response) -> None:
+  async def _after_request(self, response: httpx2.Response) -> None:
     """Hook called after receiving a response.
 
     Default: no-op. Override for post-response operations.
@@ -370,7 +370,7 @@ class AsyncBaseHTTPClient(ABC):
   # SHARED IMPLEMENTATIONS
   # ----------------------------------------------------------------------------
 
-  async def init_client(self, client: httpx.AsyncClient | None = None) -> None:
+  async def init_client(self, client: httpx2.AsyncClient | None = None) -> None:
     """Initialize or replace the async HTTP client.
 
     Three-way logic:
@@ -379,7 +379,7 @@ class AsyncBaseHTTPClient(ABC):
     3. Else create new client via _create_client()
 
     Args:
-      client: Optional httpx.AsyncClient instance to use
+      client: Optional httpx2.AsyncClient instance to use
     """
     if client:
       self._client = client

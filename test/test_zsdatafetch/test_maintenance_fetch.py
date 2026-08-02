@@ -2,7 +2,7 @@
 
 import json
 
-import httpx
+import httpx2
 import pytest
 
 from zsdatafetch.zs import ZS_obj
@@ -26,12 +26,14 @@ class TestZSMaintenanceFetch:
       assert '/scheduled-maintenances.json' in url
       assert 'upcoming' not in url
       assert 'active' not in url
-      return httpx.Response(
-        200, text=maintenance_json, request=request,
+      return httpx2.Response(
+        200,
+        text=maintenance_json,
+        request=request,
       )
 
-    ZS_obj._client = httpx.Client(
-      transport=httpx.MockTransport(handler),
+    ZS_obj._client = httpx2.Client(
+      transport=httpx2.MockTransport(handler),
     )
     fetcher = ZSMaintenanceFetch()
     result = fetcher.fetch()
@@ -40,14 +42,14 @@ class TestZSMaintenanceFetch:
   def test_fetch_upcoming(self, maintenance_upcoming_json):
     def handler(request):
       assert 'upcoming.json' in str(request.url)
-      return httpx.Response(
+      return httpx2.Response(
         200,
         text=maintenance_upcoming_json,
         request=request,
       )
 
-    ZS_obj._client = httpx.Client(
-      transport=httpx.MockTransport(handler),
+    ZS_obj._client = httpx2.Client(
+      transport=httpx2.MockTransport(handler),
     )
     fetcher = ZSMaintenanceFetch()
     result = fetcher.fetch(upcoming=True)
@@ -56,14 +58,14 @@ class TestZSMaintenanceFetch:
   def test_fetch_active(self, maintenance_active_json):
     def handler(request):
       assert 'active.json' in str(request.url)
-      return httpx.Response(
+      return httpx2.Response(
         200,
         text=maintenance_active_json,
         request=request,
       )
 
-    ZS_obj._client = httpx.Client(
-      transport=httpx.MockTransport(handler),
+    ZS_obj._client = httpx2.Client(
+      transport=httpx2.MockTransport(handler),
     )
     fetcher = ZSMaintenanceFetch()
     result = fetcher.fetch(active=True)
@@ -75,12 +77,14 @@ class TestZSMaintenanceFetch:
     )
 
     def handler(request):
-      return httpx.Response(
-        200, text=empty, request=request,
+      return httpx2.Response(
+        200,
+        text=empty,
+        request=request,
       )
 
-    ZS_obj._client = httpx.Client(
-      transport=httpx.MockTransport(handler),
+    ZS_obj._client = httpx2.Client(
+      transport=httpx2.MockTransport(handler),
     )
     fetcher = ZSMaintenanceFetch()
     result = fetcher.fetch()
@@ -88,12 +92,14 @@ class TestZSMaintenanceFetch:
 
   def test_raw(self, maintenance_json):
     def handler(request):
-      return httpx.Response(
-        200, text=maintenance_json, request=request,
+      return httpx2.Response(
+        200,
+        text=maintenance_json,
+        request=request,
       )
 
-    ZS_obj._client = httpx.Client(
-      transport=httpx.MockTransport(handler),
+    ZS_obj._client = httpx2.Client(
+      transport=httpx2.MockTransport(handler),
     )
     fetcher = ZSMaintenanceFetch()
     fetcher.fetch()
@@ -112,17 +118,21 @@ class TestZSMaintenanceFetch:
 
   @pytest.mark.anyio
   async def test_afetch_maintenance(
-    self, maintenance_json,
+    self,
+    maintenance_json,
   ):
     async def handler(request):
-      return httpx.Response(
-        200, text=maintenance_json, request=request,
+      return httpx2.Response(
+        200,
+        text=maintenance_json,
+        request=request,
       )
 
     from zsdatafetch.async_zs import AsyncZS_obj
+
     zs = AsyncZS_obj()
-    zs._client = httpx.AsyncClient(
-      transport=httpx.MockTransport(handler),
+    zs._client = httpx2.AsyncClient(
+      transport=httpx2.MockTransport(handler),
     )
     fetcher = ZSMaintenanceFetch()
     fetcher.set_session(zs)

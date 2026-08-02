@@ -2,7 +2,7 @@
 
 import json
 
-import httpx
+import httpx2
 import pytest
 
 from shared.exceptions import ConfigError, NetworkError
@@ -26,10 +26,10 @@ def test_fetch_single_profile(combined_handler, mock_profile_data, monkeypatch):
   import zdatafetch.config
   import zdatafetch.profile
 
-  original_client = httpx.Client
+  original_client = httpx2.Client
 
   def mock_client(*args, **kwargs):
-    return original_client(transport=httpx.MockTransport(combined_handler))
+    return original_client(transport=httpx2.MockTransport(combined_handler))
 
   # Mock the config to return credentials
   class MockConfig:
@@ -39,8 +39,8 @@ def test_fetch_single_profile(combined_handler, mock_profile_data, monkeypatch):
     def load(self):
       pass
 
-  zdatafetch.auth.httpx.Client = mock_client
-  zdatafetch.profile.httpx.Client = mock_client
+  zdatafetch.auth.httpx2.Client = mock_client
+  zdatafetch.profile.httpx2.Client = mock_client
   monkeypatch.setattr(zdatafetch.profile, 'Config', MockConfig)
 
   try:
@@ -59,8 +59,8 @@ def test_fetch_single_profile(combined_handler, mock_profile_data, monkeypatch):
     assert isinstance(profile._raw, str)
 
   finally:
-    zdatafetch.auth.httpx.Client = original_client
-    zdatafetch.profile.httpx.Client = original_client
+    zdatafetch.auth.httpx2.Client = original_client
+    zdatafetch.profile.httpx2.Client = original_client
 
 
 def test_fetch_multiple_profiles(combined_handler, monkeypatch):
@@ -69,10 +69,10 @@ def test_fetch_multiple_profiles(combined_handler, monkeypatch):
   import zdatafetch.config
   import zdatafetch.profile
 
-  original_client = httpx.Client
+  original_client = httpx2.Client
 
   def mock_client(*args, **kwargs):
-    return original_client(transport=httpx.MockTransport(combined_handler))
+    return original_client(transport=httpx2.MockTransport(combined_handler))
 
   # Mock the config to return credentials
   class MockConfig:
@@ -82,8 +82,8 @@ def test_fetch_multiple_profiles(combined_handler, monkeypatch):
     def load(self):
       pass
 
-  zdatafetch.auth.httpx.Client = mock_client
-  zdatafetch.profile.httpx.Client = mock_client
+  zdatafetch.auth.httpx2.Client = mock_client
+  zdatafetch.profile.httpx2.Client = mock_client
   monkeypatch.setattr(zdatafetch.profile, 'Config', MockConfig)
 
   try:
@@ -101,8 +101,8 @@ def test_fetch_multiple_profiles(combined_handler, monkeypatch):
     assert profiles[550564].id == 550564
 
   finally:
-    zdatafetch.auth.httpx.Client = original_client
-    zdatafetch.profile.httpx.Client = original_client
+    zdatafetch.auth.httpx2.Client = original_client
+    zdatafetch.profile.httpx2.Client = original_client
 
 
 def test_fetch_profile_not_found(combined_handler, monkeypatch):
@@ -111,10 +111,10 @@ def test_fetch_profile_not_found(combined_handler, monkeypatch):
   import zdatafetch.config
   import zdatafetch.profile
 
-  original_client = httpx.Client
+  original_client = httpx2.Client
 
   def mock_client(*args, **kwargs):
-    return original_client(transport=httpx.MockTransport(combined_handler))
+    return original_client(transport=httpx2.MockTransport(combined_handler))
 
   # Mock the config to return credentials
   class MockConfig:
@@ -124,8 +124,8 @@ def test_fetch_profile_not_found(combined_handler, monkeypatch):
     def load(self):
       pass
 
-  zdatafetch.auth.httpx.Client = mock_client
-  zdatafetch.profile.httpx.Client = mock_client
+  zdatafetch.auth.httpx2.Client = mock_client
+  zdatafetch.profile.httpx2.Client = mock_client
   monkeypatch.setattr(zdatafetch.profile, 'Config', MockConfig)
 
   try:
@@ -135,8 +135,8 @@ def test_fetch_profile_not_found(combined_handler, monkeypatch):
       profile.fetch(999999)
 
   finally:
-    zdatafetch.auth.httpx.Client = original_client
-    zdatafetch.profile.httpx.Client = original_client
+    zdatafetch.auth.httpx2.Client = original_client
+    zdatafetch.profile.httpx2.Client = original_client
 
 
 def test_fetch_without_credentials(monkeypatch):
@@ -169,13 +169,13 @@ def test_fetch_network_error(auth_handler, monkeypatch):
     if 'auth/realms/zwift' in str(request.url):
       return auth_handler(request)
     if '/api/profiles/' in str(request.url):
-      raise httpx.ConnectError('Connection failed')
-    return httpx.Response(404)
+      raise httpx2.ConnectError('Connection failed')
+    return httpx2.Response(404)
 
-  original_client = httpx.Client
+  original_client = httpx2.Client
 
   def mock_client(*args, **kwargs):
-    return original_client(transport=httpx.MockTransport(handler))
+    return original_client(transport=httpx2.MockTransport(handler))
 
   # Mock the config to return credentials
   class MockConfig:
@@ -185,8 +185,8 @@ def test_fetch_network_error(auth_handler, monkeypatch):
     def load(self):
       pass
 
-  zdatafetch.auth.httpx.Client = mock_client
-  zdatafetch.profile.httpx.Client = mock_client
+  zdatafetch.auth.httpx2.Client = mock_client
+  zdatafetch.profile.httpx2.Client = mock_client
   monkeypatch.setattr(zdatafetch.profile, 'Config', MockConfig)
 
   try:
@@ -196,8 +196,8 @@ def test_fetch_network_error(auth_handler, monkeypatch):
       profile.fetch(550564)
 
   finally:
-    zdatafetch.auth.httpx.Client = original_client
-    zdatafetch.profile.httpx.Client = original_client
+    zdatafetch.auth.httpx2.Client = original_client
+    zdatafetch.profile.httpx2.Client = original_client
 
 
 def test_fetch_timeout(auth_handler, monkeypatch):
@@ -210,13 +210,13 @@ def test_fetch_timeout(auth_handler, monkeypatch):
     if 'auth/realms/zwift' in str(request.url):
       return auth_handler(request)
     if '/api/profiles/' in str(request.url):
-      raise httpx.TimeoutException('Request timed out')
-    return httpx.Response(404)
+      raise httpx2.TimeoutException('Request timed out')
+    return httpx2.Response(404)
 
-  original_client = httpx.Client
+  original_client = httpx2.Client
 
   def mock_client(*args, **kwargs):
-    return original_client(transport=httpx.MockTransport(handler))
+    return original_client(transport=httpx2.MockTransport(handler))
 
   # Mock the config to return credentials
   class MockConfig:
@@ -226,8 +226,8 @@ def test_fetch_timeout(auth_handler, monkeypatch):
     def load(self):
       pass
 
-  zdatafetch.auth.httpx.Client = mock_client
-  zdatafetch.profile.httpx.Client = mock_client
+  zdatafetch.auth.httpx2.Client = mock_client
+  zdatafetch.profile.httpx2.Client = mock_client
   monkeypatch.setattr(zdatafetch.profile, 'Config', MockConfig)
 
   try:
@@ -237,8 +237,8 @@ def test_fetch_timeout(auth_handler, monkeypatch):
       profile.fetch(550564)
 
   finally:
-    zdatafetch.auth.httpx.Client = original_client
-    zdatafetch.profile.httpx.Client = original_client
+    zdatafetch.auth.httpx2.Client = original_client
+    zdatafetch.profile.httpx2.Client = original_client
 
 
 def test_attribute_access(combined_handler, monkeypatch):
@@ -247,10 +247,10 @@ def test_attribute_access(combined_handler, monkeypatch):
   import zdatafetch.config
   import zdatafetch.profile
 
-  original_client = httpx.Client
+  original_client = httpx2.Client
 
   def mock_client(*args, **kwargs):
-    return original_client(transport=httpx.MockTransport(combined_handler))
+    return original_client(transport=httpx2.MockTransport(combined_handler))
 
   # Mock the config to return credentials
   class MockConfig:
@@ -260,8 +260,8 @@ def test_attribute_access(combined_handler, monkeypatch):
     def load(self):
       pass
 
-  zdatafetch.auth.httpx.Client = mock_client
-  zdatafetch.profile.httpx.Client = mock_client
+  zdatafetch.auth.httpx2.Client = mock_client
+  zdatafetch.profile.httpx2.Client = mock_client
   monkeypatch.setattr(zdatafetch.profile, 'Config', MockConfig)
 
   try:
@@ -278,8 +278,8 @@ def test_attribute_access(combined_handler, monkeypatch):
     assert profile.countryAlpha3 == 'USA'
 
   finally:
-    zdatafetch.auth.httpx.Client = original_client
-    zdatafetch.profile.httpx.Client = original_client
+    zdatafetch.auth.httpx2.Client = original_client
+    zdatafetch.profile.httpx2.Client = original_client
 
 
 def test_dictionary_access(combined_handler, monkeypatch):
@@ -288,10 +288,10 @@ def test_dictionary_access(combined_handler, monkeypatch):
   import zdatafetch.config
   import zdatafetch.profile
 
-  original_client = httpx.Client
+  original_client = httpx2.Client
 
   def mock_client(*args, **kwargs):
-    return original_client(transport=httpx.MockTransport(combined_handler))
+    return original_client(transport=httpx2.MockTransport(combined_handler))
 
   # Mock the config to return credentials
   class MockConfig:
@@ -301,8 +301,8 @@ def test_dictionary_access(combined_handler, monkeypatch):
     def load(self):
       pass
 
-  zdatafetch.auth.httpx.Client = mock_client
-  zdatafetch.profile.httpx.Client = mock_client
+  zdatafetch.auth.httpx2.Client = mock_client
+  zdatafetch.profile.httpx2.Client = mock_client
   monkeypatch.setattr(zdatafetch.profile, 'Config', MockConfig)
 
   try:
@@ -315,8 +315,8 @@ def test_dictionary_access(combined_handler, monkeypatch):
     assert profile['ftp'] == 278
 
   finally:
-    zdatafetch.auth.httpx.Client = original_client
-    zdatafetch.profile.httpx.Client = original_client
+    zdatafetch.auth.httpx2.Client = original_client
+    zdatafetch.profile.httpx2.Client = original_client
 
 
 def test_json_output(combined_handler, monkeypatch):
@@ -325,10 +325,10 @@ def test_json_output(combined_handler, monkeypatch):
   import zdatafetch.config
   import zdatafetch.profile
 
-  original_client = httpx.Client
+  original_client = httpx2.Client
 
   def mock_client(*args, **kwargs):
-    return original_client(transport=httpx.MockTransport(combined_handler))
+    return original_client(transport=httpx2.MockTransport(combined_handler))
 
   # Mock the config to return credentials
   class MockConfig:
@@ -338,8 +338,8 @@ def test_json_output(combined_handler, monkeypatch):
     def load(self):
       pass
 
-  zdatafetch.auth.httpx.Client = mock_client
-  zdatafetch.profile.httpx.Client = mock_client
+  zdatafetch.auth.httpx2.Client = mock_client
+  zdatafetch.profile.httpx2.Client = mock_client
   monkeypatch.setattr(zdatafetch.profile, 'Config', MockConfig)
 
   try:
@@ -354,8 +354,8 @@ def test_json_output(combined_handler, monkeypatch):
     assert parsed['id'] == 550564
 
   finally:
-    zdatafetch.auth.httpx.Client = original_client
-    zdatafetch.profile.httpx.Client = original_client
+    zdatafetch.auth.httpx2.Client = original_client
+    zdatafetch.profile.httpx2.Client = original_client
 
 
 def test_raw_output(combined_handler, monkeypatch):
@@ -364,10 +364,10 @@ def test_raw_output(combined_handler, monkeypatch):
   import zdatafetch.config
   import zdatafetch.profile
 
-  original_client = httpx.Client
+  original_client = httpx2.Client
 
   def mock_client(*args, **kwargs):
-    return original_client(transport=httpx.MockTransport(combined_handler))
+    return original_client(transport=httpx2.MockTransport(combined_handler))
 
   # Mock the config to return credentials
   class MockConfig:
@@ -377,8 +377,8 @@ def test_raw_output(combined_handler, monkeypatch):
     def load(self):
       pass
 
-  zdatafetch.auth.httpx.Client = mock_client
-  zdatafetch.profile.httpx.Client = mock_client
+  zdatafetch.auth.httpx2.Client = mock_client
+  zdatafetch.profile.httpx2.Client = mock_client
   monkeypatch.setattr(zdatafetch.profile, 'Config', MockConfig)
 
   try:
@@ -393,8 +393,8 @@ def test_raw_output(combined_handler, monkeypatch):
     assert parsed['id'] == 550564
 
   finally:
-    zdatafetch.auth.httpx.Client = original_client
-    zdatafetch.profile.httpx.Client = original_client
+    zdatafetch.auth.httpx2.Client = original_client
+    zdatafetch.profile.httpx2.Client = original_client
 
 
 def test_asdict_output(combined_handler, monkeypatch):
@@ -403,10 +403,10 @@ def test_asdict_output(combined_handler, monkeypatch):
   import zdatafetch.config
   import zdatafetch.profile
 
-  original_client = httpx.Client
+  original_client = httpx2.Client
 
   def mock_client(*args, **kwargs):
-    return original_client(transport=httpx.MockTransport(combined_handler))
+    return original_client(transport=httpx2.MockTransport(combined_handler))
 
   # Mock the config to return credentials
   class MockConfig:
@@ -416,8 +416,8 @@ def test_asdict_output(combined_handler, monkeypatch):
     def load(self):
       pass
 
-  zdatafetch.auth.httpx.Client = mock_client
-  zdatafetch.profile.httpx.Client = mock_client
+  zdatafetch.auth.httpx2.Client = mock_client
+  zdatafetch.profile.httpx2.Client = mock_client
   monkeypatch.setattr(zdatafetch.profile, 'Config', MockConfig)
 
   try:
@@ -429,8 +429,8 @@ def test_asdict_output(combined_handler, monkeypatch):
     assert dict_data['id'] == 550564
 
   finally:
-    zdatafetch.auth.httpx.Client = original_client
-    zdatafetch.profile.httpx.Client = original_client
+    zdatafetch.auth.httpx2.Client = original_client
+    zdatafetch.profile.httpx2.Client = original_client
 
 
 def test_str_representation(combined_handler, monkeypatch):
@@ -439,10 +439,10 @@ def test_str_representation(combined_handler, monkeypatch):
   import zdatafetch.config
   import zdatafetch.profile
 
-  original_client = httpx.Client
+  original_client = httpx2.Client
 
   def mock_client(*args, **kwargs):
-    return original_client(transport=httpx.MockTransport(combined_handler))
+    return original_client(transport=httpx2.MockTransport(combined_handler))
 
   # Mock the config to return credentials
   class MockConfig:
@@ -452,8 +452,8 @@ def test_str_representation(combined_handler, monkeypatch):
     def load(self):
       pass
 
-  zdatafetch.auth.httpx.Client = mock_client
-  zdatafetch.profile.httpx.Client = mock_client
+  zdatafetch.auth.httpx2.Client = mock_client
+  zdatafetch.profile.httpx2.Client = mock_client
   monkeypatch.setattr(zdatafetch.profile, 'Config', MockConfig)
 
   try:
@@ -467,5 +467,5 @@ def test_str_representation(combined_handler, monkeypatch):
     assert 'Rider' in str_output
 
   finally:
-    zdatafetch.auth.httpx.Client = original_client
-    zdatafetch.profile.httpx.Client = original_client
+    zdatafetch.auth.httpx2.Client = original_client
+    zdatafetch.profile.httpx2.Client = original_client

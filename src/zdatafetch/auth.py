@@ -7,7 +7,7 @@ token acquisition, storage, and automatic refresh.
 import time
 from typing import Any
 
-import httpx
+import httpx2
 
 from shared.exceptions import AuthenticationError, NetworkError
 from zdatafetch.logging_config import get_logger
@@ -75,7 +75,7 @@ class ZwiftAuth:
     }
 
     try:
-      with httpx.Client() as client:
+      with httpx2.Client() as client:
         response = client.post(self.AUTH_URL, data=data, timeout=30.0)
 
         if response.status_code == 401:
@@ -91,9 +91,9 @@ class ZwiftAuth:
         f'Authentication successful (token expires in {self.expires_in}s)',
       )
 
-    except httpx.TimeoutException as e:
+    except httpx2.TimeoutException as e:
       raise NetworkError(f'Authentication request timed out: {e}') from e
-    except httpx.HTTPError as e:
+    except httpx2.HTTPError as e:
       raise NetworkError(f'Authentication request failed: {e}') from e
 
   def _parse_token_response(self, token_data: dict[str, Any]) -> None:
@@ -162,7 +162,7 @@ class ZwiftAuth:
     }
 
     try:
-      with httpx.Client() as client:
+      with httpx2.Client() as client:
         response = client.post(self.AUTH_URL, data=data, timeout=30.0)
 
         if response.status_code == 401:
@@ -178,9 +178,9 @@ class ZwiftAuth:
 
       logger.debug('Token refreshed successfully')
 
-    except httpx.TimeoutException as e:
+    except httpx2.TimeoutException as e:
       raise NetworkError(f'Token refresh request timed out: {e}') from e
-    except httpx.HTTPError as e:
+    except httpx2.HTTPError as e:
       raise NetworkError(f'Token refresh request failed: {e}') from e
 
   def is_authenticated(self) -> bool:

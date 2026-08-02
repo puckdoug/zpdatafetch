@@ -7,7 +7,7 @@ HTTP client management, error handling, and JSON serialization.
 import json
 from unittest.mock import MagicMock, patch
 
-import httpx
+import httpx2
 import pytest
 
 from shared.exceptions import NetworkError
@@ -19,12 +19,12 @@ class TestZR_objClientManagement:
   """Test HTTP client management and pooling."""
 
   def test_get_client_creates_client(self):
-    """Test that get_client creates an httpx.Client instance."""
+    """Test that get_client creates an httpx2.Client instance."""
     # Clean up any existing client
     ZR_obj._client = None
 
-    # Mock httpx.Client to prevent real connections
-    with patch('httpx.Client') as mock_client_class:
+    # Mock httpx2.Client to prevent real connections
+    with patch('httpx2.Client') as mock_client_class:
       mock_client = MagicMock()
       mock_client.base_url = 'https://api.zwiftracing.app/api'
       mock_client_class.return_value = mock_client
@@ -39,7 +39,7 @@ class TestZR_objClientManagement:
     # Clean up and create a fresh client
     ZR_obj._client = None
 
-    with patch('httpx.Client') as mock_client_class:
+    with patch('httpx2.Client') as mock_client_class:
       mock_client = MagicMock()
       mock_client_class.return_value = mock_client
 
@@ -54,7 +54,7 @@ class TestZR_objClientManagement:
     """Test that close_client properly closes the connection."""
     ZR_obj._client = None
 
-    with patch('httpx.Client') as mock_client_class:
+    with patch('httpx2.Client') as mock_client_class:
       mock_client = MagicMock()
       mock_client_class.return_value = mock_client
 
@@ -102,7 +102,7 @@ class TestZR_objFetchJson:
     response = MagicMock()
     response.status_code = 404
     response.reason_phrase = 'Not Found'
-    http_error = httpx.HTTPStatusError(
+    http_error = httpx2.HTTPStatusError(
       '404 Not Found', request=None, response=response
     )
 
@@ -119,7 +119,7 @@ class TestZR_objFetchJson:
     obj = ZR_obj()
 
     # Create a mock network error
-    network_error = httpx.RequestError('Connection failed')
+    network_error = httpx2.RequestError('Connection failed')
 
     with patch.object(ZR_obj, 'get_client') as mock_get_client:
       mock_client = MagicMock()
@@ -189,7 +189,7 @@ class TestZR_objIntegration:
     """Test that multiple instances share the same HTTP client."""
     ZR_obj._client = None
 
-    with patch('httpx.Client') as mock_client_class:
+    with patch('httpx2.Client') as mock_client_class:
       mock_client = MagicMock()
       mock_client_class.return_value = mock_client
 
@@ -207,7 +207,7 @@ class TestZR_objIntegration:
     """Test complete client lifecycle."""
     ZR_obj._client = None
 
-    with patch('httpx.Client') as mock_client_class:
+    with patch('httpx2.Client') as mock_client_class:
       mock_client1 = MagicMock()
       mock_client3 = MagicMock()
       mock_client_class.side_effect = [mock_client1, mock_client3]
