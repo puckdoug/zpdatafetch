@@ -2,7 +2,7 @@
 
 import json
 
-import httpx
+import httpx2
 import pytest
 
 from shared.validation import ValidationError
@@ -36,20 +36,20 @@ def test_league_init():
 def test_league_fetch_single_id(league, league_ok, login_page, logged_in_page):
   def handler(request):
     if 'login' in str(request.url) and request.method == 'GET':
-      return httpx.Response(200, text=login_page)
+      return httpx2.Response(200, text=login_page)
     if request.method == 'POST':
-      return httpx.Response(200, text=logged_in_page)
+      return httpx2.Response(200, text=logged_in_page)
     if 'league_standings' in str(request.url) and '.json' in str(request.url):
-      return httpx.Response(200, text=json.dumps(league_ok))
-    return httpx.Response(404)
+      return httpx2.Response(200, text=json.dumps(league_ok))
+    return httpx2.Response(404)
 
   original_init = AsyncZP.__init__
 
   def mock_init(self, skip_credential_check=False):
     original_init(self, skip_credential_check=True)
-    self._client = httpx.AsyncClient(
+    self._client = httpx2.AsyncClient(
       follow_redirects=True,
-      transport=httpx.MockTransport(handler),
+      transport=httpx2.MockTransport(handler),
     )
 
   AsyncZP.__init__ = mock_init
@@ -83,20 +83,20 @@ async def test_league_afetch(league_ok, login_page, logged_in_page):
 
   def handler(request):
     if request.method == 'GET' and 'login' in str(request.url):
-      return httpx.Response(200, text=login_page)
+      return httpx2.Response(200, text=login_page)
     if request.method == 'POST':
-      return httpx.Response(200, text=logged_in_page)
+      return httpx2.Response(200, text=logged_in_page)
     if 'league_standings_2780.json' in str(request.url):
-      return httpx.Response(200, text=json.dumps(league_ok))
-    return httpx.Response(404)
+      return httpx2.Response(200, text=json.dumps(league_ok))
+    return httpx2.Response(404)
 
   async with AsyncZP(skip_credential_check=True) as zp:
     zp.username = 'testuser'
     zp.password = 'testpass'
     await zp.init_client(
-      httpx.AsyncClient(
+      httpx2.AsyncClient(
         follow_redirects=True,
-        transport=httpx.MockTransport(handler),
+        transport=httpx2.MockTransport(handler),
       ),
     )
 

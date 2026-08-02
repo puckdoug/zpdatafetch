@@ -1,6 +1,6 @@
 """Tests for ZSIncidentFetch."""
 
-import httpx
+import httpx2
 import pytest
 
 from zsdatafetch.models.incident import ZSIncident
@@ -23,12 +23,14 @@ class TestZSIncidentFetch:
     def handler(request):
       assert '/incidents.json' in str(request.url)
       assert 'unresolved' not in str(request.url)
-      return httpx.Response(
-        200, text=incidents_json, request=request,
+      return httpx2.Response(
+        200,
+        text=incidents_json,
+        request=request,
       )
 
-    ZS_obj._client = httpx.Client(
-      transport=httpx.MockTransport(handler),
+    ZS_obj._client = httpx2.Client(
+      transport=httpx2.MockTransport(handler),
     )
     fetcher = ZSIncidentFetch()
     result = fetcher.fetch()
@@ -39,14 +41,14 @@ class TestZSIncidentFetch:
   def test_fetch_unresolved(self, incidents_unresolved_json):
     def handler(request):
       assert '/incidents/unresolved.json' in str(request.url)
-      return httpx.Response(
+      return httpx2.Response(
         200,
         text=incidents_unresolved_json,
         request=request,
       )
 
-    ZS_obj._client = httpx.Client(
-      transport=httpx.MockTransport(handler),
+    ZS_obj._client = httpx2.Client(
+      transport=httpx2.MockTransport(handler),
     )
     fetcher = ZSIncidentFetch()
     result = fetcher.fetch(unresolved_only=True)
@@ -54,15 +56,18 @@ class TestZSIncidentFetch:
 
   def test_empty_incidents(self):
     import json
+
     empty = json.dumps({'page': {}, 'incidents': []})
 
     def handler(request):
-      return httpx.Response(
-        200, text=empty, request=request,
+      return httpx2.Response(
+        200,
+        text=empty,
+        request=request,
       )
 
-    ZS_obj._client = httpx.Client(
-      transport=httpx.MockTransport(handler),
+    ZS_obj._client = httpx2.Client(
+      transport=httpx2.MockTransport(handler),
     )
     fetcher = ZSIncidentFetch()
     result = fetcher.fetch()
@@ -70,12 +75,14 @@ class TestZSIncidentFetch:
 
   def test_raw(self, incidents_json):
     def handler(request):
-      return httpx.Response(
-        200, text=incidents_json, request=request,
+      return httpx2.Response(
+        200,
+        text=incidents_json,
+        request=request,
       )
 
-    ZS_obj._client = httpx.Client(
-      transport=httpx.MockTransport(handler),
+    ZS_obj._client = httpx2.Client(
+      transport=httpx2.MockTransport(handler),
     )
     fetcher = ZSIncidentFetch()
     fetcher.fetch()
@@ -83,12 +90,14 @@ class TestZSIncidentFetch:
 
   def test_fetched(self, incidents_json):
     def handler(request):
-      return httpx.Response(
-        200, text=incidents_json, request=request,
+      return httpx2.Response(
+        200,
+        text=incidents_json,
+        request=request,
       )
 
-    ZS_obj._client = httpx.Client(
-      transport=httpx.MockTransport(handler),
+    ZS_obj._client = httpx2.Client(
+      transport=httpx2.MockTransport(handler),
     )
     fetcher = ZSIncidentFetch()
     assert fetcher.fetched() == []
@@ -98,14 +107,17 @@ class TestZSIncidentFetch:
   @pytest.mark.anyio
   async def test_afetch_incidents(self, incidents_json):
     async def handler(request):
-      return httpx.Response(
-        200, text=incidents_json, request=request,
+      return httpx2.Response(
+        200,
+        text=incidents_json,
+        request=request,
       )
 
     from zsdatafetch.async_zs import AsyncZS_obj
+
     zs = AsyncZS_obj()
-    zs._client = httpx.AsyncClient(
-      transport=httpx.MockTransport(handler),
+    zs._client = httpx2.AsyncClient(
+      transport=httpx2.MockTransport(handler),
     )
     fetcher = ZSIncidentFetch()
     fetcher.set_session(zs)

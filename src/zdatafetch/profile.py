@@ -7,7 +7,7 @@ including demographics, statistics, and connected services.
 import json
 from typing import Any
 
-import httpx
+import httpx2
 
 from shared.exceptions import ConfigError, NetworkError
 from shared.json_helpers import parse_json_safe
@@ -199,7 +199,7 @@ class ZwiftProfile:
     headers = {'Authorization': f'Bearer {token}', 'Accept': 'application/json'}
 
     try:
-      with httpx.Client() as client:
+      with httpx2.Client() as client:
         response = client.get(url, headers=headers, timeout=30.0)
 
         if response.status_code == 404:
@@ -217,11 +217,11 @@ class ZwiftProfile:
         self._parse_response()
         logger.info(f'Successfully fetched profile for rider {rider_id}')
 
-    except httpx.TimeoutException as e:
+    except httpx2.TimeoutException as e:
       raise NetworkError(
         f'Request timed out fetching profile for rider {rider_id}: {e}',
       ) from e
-    except httpx.HTTPError as e:
+    except httpx2.HTTPError as e:
       raise NetworkError(
         f'Network error fetching profile for rider {rider_id}: {e}',
       ) from e
@@ -268,7 +268,7 @@ class ZwiftProfile:
 
     # Fetch all profiles
     results = {}
-    with httpx.Client() as client:
+    with httpx2.Client() as client:
       for rider_id in rider_ids:
         try:
           url = f'{cls.BASE_URL}/api/profiles/{rider_id}'

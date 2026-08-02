@@ -20,11 +20,9 @@ dependencies = [
   "anyio>=4.4.0",
   "beautifulsoup4>=4.12.3",
   "cryptography>=46.0.7",
-  # Note: httpx 0.28.0 depends on httpcore 1.1.x which has a compatibility
-  # issue with Python 3.14's typing.Union. This causes test failures on 3.14.
-  # Workaround: test_shared_client_connection_pooling is marked as xfail on 3.14.
-  # This will be resolved when httpx 0.29.0+ is released (depends on httpcore 1.2.0+).
-  "httpx>=0.28.0",
+  # httpx2: Pydantic's maintained continuation of httpx, built on httpcore2,
+  # which resolves the httpcore 1.1.x / Python 3.14 typing.Union issue.
+  "httpx2>=2.9.1",
   "idna>=3.16",
   "keyring>=25.2.0",
   "keyrings-alt",

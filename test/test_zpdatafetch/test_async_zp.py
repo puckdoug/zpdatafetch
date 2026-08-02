@@ -1,9 +1,8 @@
 """Tests for the async ZP API."""
 
 import json
-import sys
 
-import httpx
+import httpx2
 import pytest
 
 from shared.exceptions import (
@@ -62,17 +61,17 @@ async def test_async_login_success(login_page, logged_in_page):
   def handler(request):
     match request.method:
       case 'GET':
-        return httpx.Response(200, text=login_page)
+        return httpx2.Response(200, text=login_page)
       case 'POST':
-        return httpx.Response(200, text=logged_in_page)
+        return httpx2.Response(200, text=logged_in_page)
 
   async with AsyncZP(skip_credential_check=True) as zp:
     zp.username = 'testuser'
     zp.password = 'testpass'
     await zp.init_client(
-      httpx.AsyncClient(
+      httpx2.AsyncClient(
         follow_redirects=True,
-        transport=httpx.MockTransport(handler),
+        transport=httpx2.MockTransport(handler),
       ),
     )
     await zp.login()
@@ -85,15 +84,15 @@ async def test_async_login_missing_form():
   """Test login fails when form is missing."""
 
   def handler(request):
-    return httpx.Response(200, text='<html><body>No form here</body></html>')
+    return httpx2.Response(200, text='<html><body>No form here</body></html>')
 
   async with AsyncZP(skip_credential_check=True) as zp:
     zp.username = 'testuser'
     zp.password = 'testpass'
     await zp.init_client(
-      httpx.AsyncClient(
+      httpx2.AsyncClient(
         follow_redirects=True,
-        transport=httpx.MockTransport(handler),
+        transport=httpx2.MockTransport(handler),
       ),
     )
     with pytest.raises(AuthenticationError, match='Failed to parse login form'):
@@ -105,15 +104,15 @@ async def test_async_login_network_error():
   """Test login handles network errors."""
 
   def handler(request):
-    raise httpx.ConnectError('Connection failed')
+    raise httpx2.ConnectError('Connection failed')
 
   async with AsyncZP(skip_credential_check=True) as zp:
     zp.username = 'testuser'
     zp.password = 'testpass'
     await zp.init_client(
-      httpx.AsyncClient(
+      httpx2.AsyncClient(
         follow_redirects=True,
-        transport=httpx.MockTransport(handler),
+        transport=httpx2.MockTransport(handler),
       ),
     )
     with pytest.raises(NetworkError, match='Failed to fetch login page'):
@@ -127,19 +126,19 @@ async def test_async_fetch_json_success():
 
   def handler(request):
     if 'login' in str(request.url):
-      return httpx.Response(
+      return httpx2.Response(
         200,
         text='<html><form action="/login"></form></html>',
       )
-    return httpx.Response(200, text=json.dumps(test_data))
+    return httpx2.Response(200, text=json.dumps(test_data))
 
   async with AsyncZP(skip_credential_check=True) as zp:
     zp.username = 'testuser'
     zp.password = 'testpass'
     await zp.init_client(
-      httpx.AsyncClient(
+      httpx2.AsyncClient(
         follow_redirects=True,
-        transport=httpx.MockTransport(handler),
+        transport=httpx2.MockTransport(handler),
       ),
     )
     result = await zp.fetch_json('https://zwiftpower.com/api/test')
@@ -152,19 +151,19 @@ async def test_async_fetch_json_invalid_json():
 
   def handler(request):
     if 'login' in str(request.url):
-      return httpx.Response(
+      return httpx2.Response(
         200,
         text='<html><form action="/login"></form></html>',
       )
-    return httpx.Response(200, text='This is not JSON')
+    return httpx2.Response(200, text='This is not JSON')
 
   async with AsyncZP(skip_credential_check=True) as zp:
     zp.username = 'testuser'
     zp.password = 'testpass'
     await zp.init_client(
-      httpx.AsyncClient(
+      httpx2.AsyncClient(
         follow_redirects=True,
-        transport=httpx.MockTransport(handler),
+        transport=httpx2.MockTransport(handler),
       ),
     )
     result = await zp.fetch_json('https://zwiftpower.com/api/test')
@@ -178,19 +177,19 @@ async def test_async_fetch_page_success():
 
   def handler(request):
     if 'login' in str(request.url):
-      return httpx.Response(
+      return httpx2.Response(
         200,
         text='<html><form action="/login"></form></html>',
       )
-    return httpx.Response(200, text=test_html)
+    return httpx2.Response(200, text=test_html)
 
   async with AsyncZP(skip_credential_check=True) as zp:
     zp.username = 'testuser'
     zp.password = 'testpass'
     await zp.init_client(
-      httpx.AsyncClient(
+      httpx2.AsyncClient(
         follow_redirects=True,
-        transport=httpx.MockTransport(handler),
+        transport=httpx2.MockTransport(handler),
       ),
     )
     result = await zp.fetch_page('https://zwiftpower.com/page/test')
@@ -205,7 +204,7 @@ async def test_async_retry_on_transient_error():
   def handler(request):
     nonlocal call_count
     if 'login' in str(request.url):
-      return httpx.Response(
+      return httpx2.Response(
         200,
         text='<html><form action="/login"></form></html>',
       )
@@ -213,17 +212,17 @@ async def test_async_retry_on_transient_error():
     call_count += 1
     if call_count == 1:
       # First call fails
-      return httpx.Response(500, text='Server Error')
+      return httpx2.Response(500, text='Server Error')
     # Second call succeeds
-    return httpx.Response(200, text=json.dumps({'status': 'ok'}))
+    return httpx2.Response(200, text=json.dumps({'status': 'ok'}))
 
   async with AsyncZP(skip_credential_check=True) as zp:
     zp.username = 'testuser'
     zp.password = 'testpass'
     await zp.init_client(
-      httpx.AsyncClient(
+      httpx2.AsyncClient(
         follow_redirects=True,
-        transport=httpx.MockTransport(handler),
+        transport=httpx2.MockTransport(handler),
       ),
     )
     result = await zp.fetch_json(
@@ -276,12 +275,6 @@ async def test_async_login_url():
     assert zp.login_url() == new_url
 
 
-@pytest.mark.xfail(
-  sys.version_info >= (3, 14),
-  reason='httpcore 1.1.x incompatible with Python 3.14 typing.Union - '
-  'upstream issue encode/httpcore, fixed in 1.2.0+',
-  strict=False,
-)
 @pytest.mark.anyio
 async def test_async_shared_client():
   """Test shared client functionality."""

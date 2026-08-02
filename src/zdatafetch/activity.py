@@ -6,7 +6,7 @@ Provides access to activity history from Zwift's unofficial API.
 import json
 from typing import Any
 
-import httpx
+import httpx2
 
 from shared.exceptions import ConfigError, NetworkError
 from shared.json_helpers import parse_json_safe
@@ -110,7 +110,7 @@ class ZwiftActivity:
     params = {'start': start, 'limit': limit}
 
     try:
-      with httpx.Client() as client:
+      with httpx2.Client() as client:
         response = client.get(url, headers=headers, params=params, timeout=30.0)
 
         if response.status_code == 404:
@@ -130,11 +130,11 @@ class ZwiftActivity:
           f'Successfully fetched {len(self.activities)} activities for rider {rider_id}',
         )
 
-    except httpx.TimeoutException as e:
+    except httpx2.TimeoutException as e:
       raise NetworkError(
         f'Request timed out fetching activities for rider {rider_id}: {e}',
       ) from e
-    except httpx.HTTPError as e:
+    except httpx2.HTTPError as e:
       raise NetworkError(
         f'Network error fetching activities for rider {rider_id}: {e}',
       ) from e
@@ -188,7 +188,7 @@ class ZwiftActivity:
 
     # Fetch all activities
     results = {}
-    with httpx.Client() as client:
+    with httpx2.Client() as client:
       for rider_id in rider_ids:
         try:
           url = f'{cls.BASE_URL}/api/profiles/{rider_id}/activities/'

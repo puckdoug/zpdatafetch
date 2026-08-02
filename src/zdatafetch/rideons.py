@@ -7,7 +7,7 @@ fetching RideOns received on activities and giving RideOns.
 import json
 from typing import Any
 
-import httpx
+import httpx2
 
 from shared.exceptions import ConfigError, NetworkError
 from shared.json_helpers import parse_json_safe
@@ -109,7 +109,7 @@ class ZwiftRideOns:
     url = f'{self.BASE_URL}/api/profiles/{rider_id}/activities/{activity_id}/rideons'
 
     try:
-      with httpx.Client() as client:
+      with httpx2.Client() as client:
         response = client.get(url, headers=headers, timeout=30.0)
 
         if response.status_code == 404:
@@ -131,11 +131,11 @@ class ZwiftRideOns:
           f'Successfully fetched RideOns for activity {activity_id} (rider {rider_id})',
         )
 
-    except httpx.TimeoutException as e:
+    except httpx2.TimeoutException as e:
       raise NetworkError(
         f'Request timed out fetching RideOns for activity {activity_id}: {e}',
       ) from e
-    except httpx.HTTPError as e:
+    except httpx2.HTTPError as e:
       raise NetworkError(
         f'Network error fetching RideOns for activity {activity_id}: {e}',
       ) from e
@@ -187,7 +187,7 @@ class ZwiftRideOns:
 
     # Fetch all RideOns
     results = {}
-    with httpx.Client() as client:
+    with httpx2.Client() as client:
       for rider_id, activity_id in activity_tuples:
         try:
           url = f'{cls.BASE_URL}/api/profiles/{rider_id}/activities/{activity_id}/rideons'
@@ -261,7 +261,7 @@ class ZwiftRideOns:
     url = f'{ZwiftRideOns.BASE_URL}/api/profiles/{rider_id}/activities/{activity_id}/rideon'
 
     try:
-      with httpx.Client() as client:
+      with httpx2.Client() as client:
         response = client.post(url, headers=headers, timeout=30.0)
 
         if response.status_code in (200, 201, 204):
@@ -280,12 +280,12 @@ class ZwiftRideOns:
         )
         return False
 
-    except httpx.TimeoutException as e:
+    except httpx2.TimeoutException as e:
       logger.error(
         f'Request timed out giving RideOn to activity {activity_id}: {e}',
       )
       return False
-    except httpx.HTTPError as e:
+    except httpx2.HTTPError as e:
       logger.error(
         f'Network error giving RideOn to activity {activity_id}: {e}',
       )

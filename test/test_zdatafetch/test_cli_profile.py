@@ -2,7 +2,7 @@
 
 import sys
 
-import httpx
+import httpx2
 
 from zdatafetch.cli import main
 
@@ -12,10 +12,10 @@ def test_cli_single_profile_output(combined_handler, monkeypatch, capsys):
   import zdatafetch.auth
   import zdatafetch.profile
 
-  original_client = httpx.Client
+  original_client = httpx2.Client
 
   def mock_client(*args, **kwargs):
-    return original_client(transport=httpx.MockTransport(combined_handler))
+    return original_client(transport=httpx2.MockTransport(combined_handler))
 
   # Mock the config to return credentials
   class MockConfig:
@@ -25,8 +25,8 @@ def test_cli_single_profile_output(combined_handler, monkeypatch, capsys):
     def load(self):
       pass
 
-  zdatafetch.auth.httpx.Client = mock_client
-  zdatafetch.profile.httpx.Client = mock_client
+  zdatafetch.auth.httpx2.Client = mock_client
+  zdatafetch.profile.httpx2.Client = mock_client
   monkeypatch.setattr(zdatafetch.profile, 'Config', MockConfig)
   monkeypatch.setattr('zdatafetch.cli.Config', MockConfig)
 
@@ -54,8 +54,8 @@ def test_cli_single_profile_output(combined_handler, monkeypatch, capsys):
     assert 'countryAlpha3:' in output
 
   finally:
-    zdatafetch.auth.httpx.Client = original_client
-    zdatafetch.profile.httpx.Client = original_client
+    zdatafetch.auth.httpx2.Client = original_client
+    zdatafetch.profile.httpx2.Client = original_client
 
 
 def test_cli_multiple_profiles_output(combined_handler, monkeypatch, capsys):
@@ -63,10 +63,10 @@ def test_cli_multiple_profiles_output(combined_handler, monkeypatch, capsys):
   import zdatafetch.auth
   import zdatafetch.profile
 
-  original_client = httpx.Client
+  original_client = httpx2.Client
 
   def mock_client(*args, **kwargs):
-    return original_client(transport=httpx.MockTransport(combined_handler))
+    return original_client(transport=httpx2.MockTransport(combined_handler))
 
   # Mock the config to return credentials
   class MockConfig:
@@ -76,8 +76,8 @@ def test_cli_multiple_profiles_output(combined_handler, monkeypatch, capsys):
     def load(self):
       pass
 
-  zdatafetch.auth.httpx.Client = mock_client
-  zdatafetch.profile.httpx.Client = mock_client
+  zdatafetch.auth.httpx2.Client = mock_client
+  zdatafetch.profile.httpx2.Client = mock_client
   monkeypatch.setattr(zdatafetch.profile, 'Config', MockConfig)
   monkeypatch.setattr('zdatafetch.cli.Config', MockConfig)
 
@@ -108,8 +108,8 @@ def test_cli_multiple_profiles_output(combined_handler, monkeypatch, capsys):
     assert output.count('ZwiftProfile(') == 2
 
   finally:
-    zdatafetch.auth.httpx.Client = original_client
-    zdatafetch.profile.httpx.Client = original_client
+    zdatafetch.auth.httpx2.Client = original_client
+    zdatafetch.profile.httpx2.Client = original_client
 
 
 def test_cli_single_profile_raw_output(combined_handler, monkeypatch, capsys):
@@ -117,10 +117,10 @@ def test_cli_single_profile_raw_output(combined_handler, monkeypatch, capsys):
   import zdatafetch.auth
   import zdatafetch.profile
 
-  original_client = httpx.Client
+  original_client = httpx2.Client
 
   def mock_client(*args, **kwargs):
-    return original_client(transport=httpx.MockTransport(combined_handler))
+    return original_client(transport=httpx2.MockTransport(combined_handler))
 
   # Mock the config to return credentials
   class MockConfig:
@@ -130,8 +130,8 @@ def test_cli_single_profile_raw_output(combined_handler, monkeypatch, capsys):
     def load(self):
       pass
 
-  zdatafetch.auth.httpx.Client = mock_client
-  zdatafetch.profile.httpx.Client = mock_client
+  zdatafetch.auth.httpx2.Client = mock_client
+  zdatafetch.profile.httpx2.Client = mock_client
   monkeypatch.setattr(zdatafetch.profile, 'Config', MockConfig)
   monkeypatch.setattr('zdatafetch.cli.Config', MockConfig)
 
@@ -153,8 +153,8 @@ def test_cli_single_profile_raw_output(combined_handler, monkeypatch, capsys):
     assert '"firstName"' in output
 
   finally:
-    zdatafetch.auth.httpx.Client = original_client
-    zdatafetch.profile.httpx.Client = original_client
+    zdatafetch.auth.httpx2.Client = original_client
+    zdatafetch.profile.httpx2.Client = original_client
 
 
 def test_cli_multiple_profiles_raw_output(
@@ -164,10 +164,10 @@ def test_cli_multiple_profiles_raw_output(
   import zdatafetch.auth
   import zdatafetch.profile
 
-  original_client = httpx.Client
+  original_client = httpx2.Client
 
   def mock_client(*args, **kwargs):
-    return original_client(transport=httpx.MockTransport(combined_handler))
+    return original_client(transport=httpx2.MockTransport(combined_handler))
 
   # Mock the config to return credentials
   class MockConfig:
@@ -177,8 +177,8 @@ def test_cli_multiple_profiles_raw_output(
     def load(self):
       pass
 
-  zdatafetch.auth.httpx.Client = mock_client
-  zdatafetch.profile.httpx.Client = mock_client
+  zdatafetch.auth.httpx2.Client = mock_client
+  zdatafetch.profile.httpx2.Client = mock_client
   monkeypatch.setattr(zdatafetch.profile, 'Config', MockConfig)
   monkeypatch.setattr('zdatafetch.cli.Config', MockConfig)
 
@@ -202,8 +202,8 @@ def test_cli_multiple_profiles_raw_output(
     assert '"firstName"' in output
 
   finally:
-    zdatafetch.auth.httpx.Client = original_client
-    zdatafetch.profile.httpx.Client = original_client
+    zdatafetch.auth.httpx2.Client = original_client
+    zdatafetch.profile.httpx2.Client = original_client
 
 
 def test_cli_profile_missing_credentials(monkeypatch, capsys):

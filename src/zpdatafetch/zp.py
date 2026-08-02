@@ -1,6 +1,6 @@
 from typing import Any
 
-import httpx
+import httpx2
 from bs4 import BeautifulSoup
 
 from shared.error_helpers import format_auth_error, format_network_error
@@ -29,11 +29,9 @@ class ZP(BaseHTTPClient):
     login_response: Response from the login POST request
   """
 
-  _client: httpx.Client | None = None
-  _login_url: str = (
-    'https://zwiftpower.com/ucp.php?mode=login&login=external&oauth_service=oauthzpsso'
-  )
-  _shared_client: httpx.Client | None = None
+  _client: httpx2.Client | None = None
+  _login_url: str = 'https://zwiftpower.com/ucp.php?mode=login&login=external&oauth_service=oauthzpsso'
+  _shared_client: httpx2.Client | None = None
   _owns_client: bool = False
 
   # ----------------------------------------------------------------------------
@@ -56,7 +54,7 @@ class ZP(BaseHTTPClient):
     self.config.load()
     self.username: str = self.config.username
     self.password: str = self.config.password
-    self.login_response: httpx.Response | None = None
+    self.login_response: httpx2.Response | None = None
 
     if not skip_credential_check and (not self.username or not self.password):
       raise ConfigError(
@@ -109,7 +107,7 @@ class ZP(BaseHTTPClient):
       logger.debug(f'Fetching url: {self._login_url}')
       page = self._client.get(self._login_url)
       page.raise_for_status()
-    except httpx.HTTPStatusError as e:
+    except httpx2.HTTPStatusError as e:
       logger.error(f'Failed to fetch login page: {e}')
       raise NetworkError(
         format_network_error(
@@ -119,7 +117,7 @@ class ZP(BaseHTTPClient):
           status_code=e.response.status_code,
         ),
       ) from e
-    except httpx.RequestError as e:
+    except httpx2.RequestError as e:
       logger.error(f'Network error during login: {e}')
       raise NetworkError(
         format_network_error('fetch login page', self._login_url, e),
@@ -183,7 +181,7 @@ class ZP(BaseHTTPClient):
           ),
         )
       logger.info('Successfully authenticated with Zwiftpower')
-    except httpx.HTTPStatusError as e:
+    except httpx2.HTTPStatusError as e:
       logger.error(f'HTTP error during authentication: {e}')
       raise NetworkError(
         format_network_error(
@@ -193,7 +191,7 @@ class ZP(BaseHTTPClient):
           status_code=e.response.status_code,
         ),
       ) from e
-    except httpx.RequestError as e:
+    except httpx2.RequestError as e:
       logger.error(f'Network error during authentication: {e}')
       raise NetworkError(
         format_network_error(
@@ -204,20 +202,20 @@ class ZP(BaseHTTPClient):
       ) from e
 
   # ----------------------------------------------------------------------------
-  def _create_client(self) -> httpx.Client:
+  def _create_client(self) -> httpx2.Client:
     """Create and configure an HTTP client.
 
     SECURITY: All connections use HTTPS with certificate verification enabled.
     This protects against man-in-the-middle attacks.
 
     Returns:
-      Configured httpx.Client instance
+      Configured httpx2.Client instance
     """
     logger.debug(
       'Creating new httpx client with HTTPS certificate verification',
     )
     # SECURITY: Explicitly enable certificate verification for HTTPS connections
-    return httpx.Client(follow_redirects=True, verify=True)
+    return httpx2.Client(follow_redirects=True, verify=True)
 
   # ----------------------------------------------------------------------------
   def _before_request(
@@ -283,7 +281,7 @@ class ZP(BaseHTTPClient):
       return res
     except NetworkError:
       raise
-    except httpx.HTTPStatusError as e:
+    except httpx2.HTTPStatusError as e:
       logger.error(f'HTTP error fetching {endpoint}: {e}')
       raise NetworkError(
         format_network_error(
@@ -293,7 +291,7 @@ class ZP(BaseHTTPClient):
           status_code=e.response.status_code,
         ),
       ) from e
-    except httpx.RequestError as e:
+    except httpx2.RequestError as e:
       logger.error(f'Network error fetching {endpoint}: {e}')
       raise NetworkError(
         format_network_error('fetch JSON data', endpoint, e),
@@ -334,7 +332,7 @@ class ZP(BaseHTTPClient):
       return res
     except NetworkError:
       raise
-    except httpx.HTTPStatusError as e:
+    except httpx2.HTTPStatusError as e:
       logger.error(f'HTTP error fetching {endpoint}: {e}')
       raise NetworkError(
         format_network_error(
@@ -344,7 +342,7 @@ class ZP(BaseHTTPClient):
           status_code=e.response.status_code,
         ),
       ) from e
-    except httpx.RequestError as e:
+    except httpx2.RequestError as e:
       logger.error(f'Network error fetching {endpoint}: {e}')
       raise NetworkError(
         format_network_error('fetch page', endpoint, e),
@@ -387,7 +385,7 @@ class ZP(BaseHTTPClient):
     max_retries: int = 3,
     backoff_factor: float = 1.0,
     **kwargs: Any,
-  ) -> httpx.Response:
+  ) -> httpx2.Response:
     """Compatibility wrapper for fetch_with_retry_sync.
 
     Deprecated: Use fetch_with_retry_sync() directly. This method exists

@@ -6,7 +6,7 @@ This API is public and unauthenticated.
 
 from typing import ClassVar
 
-import httpx
+import httpx2
 
 from shared.error_helpers import format_network_error
 from shared.exceptions import NetworkError
@@ -31,19 +31,19 @@ class ZS_obj:
     _base_url: Base URL for all API requests
   """
 
-  _client: ClassVar[httpx.Client | None] = None
+  _client: ClassVar[httpx2.Client | None] = None
   _base_url: ClassVar[str] = 'https://status.zwift.com/api/v2'
 
   @classmethod
-  def get_client(cls) -> httpx.Client:
+  def get_client(cls) -> httpx2.Client:
     """Get or create a shared HTTP client.
 
     Returns:
-      httpx.Client configured for Zwift Status API
+      httpx2.Client configured for Zwift Status API
     """
     if cls._client is None:
       logger.debug('Creating shared HTTP client for Zwift Status')
-      cls._client = httpx.Client(
+      cls._client = httpx2.Client(
         timeout=30.0,
         follow_redirects=True,
       )
@@ -74,20 +74,24 @@ class ZS_obj:
 
     try:
       response = fetch_with_retry_sync(
-        client, url, logger=logger,
+        client,
+        url,
+        logger=logger,
       )
       return response.text
-    except httpx.HTTPStatusError as e:
+    except httpx2.HTTPStatusError as e:
       logger.error(
         f'HTTP error GET {endpoint}: {e.response.status_code}',
       )
       raise NetworkError(
         format_network_error(
-          'get request', endpoint, e,
+          'get request',
+          endpoint,
+          e,
           status_code=e.response.status_code,
         ),
       ) from e
-    except httpx.RequestError as e:
+    except httpx2.RequestError as e:
       logger.error(f'Network error GET {endpoint}: {e}')
       raise NetworkError(
         format_network_error('get request', endpoint, e),
