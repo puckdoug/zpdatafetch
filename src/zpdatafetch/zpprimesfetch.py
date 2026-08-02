@@ -203,8 +203,8 @@ class ZPPrimesFetch(ZP_obj):
 
       # Fetch all URLs in parallel using anyio for cross-backend compatibility
       logger.info(f'Sending {len(fetch_tasks)} requests in parallel')
-      results_raw = [None] * len(fetch_tasks)
-      results_parsed = [None] * len(fetch_tasks)
+      results_raw: list[str | Exception | None] = [None] * len(fetch_tasks)
+      results_parsed: list[dict | Exception | None] = [None] * len(fetch_tasks)
 
       async def fetch_and_store(
         idx: int,
@@ -260,7 +260,7 @@ class ZPPrimesFetch(ZP_obj):
           p_raw[race][cat][primetype] = raw_result
           p_fetched_dict[race][cat][primetype] = parsed_result
 
-          if 'data' not in parsed_result or len(parsed_result.get('data', [])) == 0:
+          if not isinstance(parsed_result, dict) or 'data' not in parsed_result or len(parsed_result.get('data', [])) == 0:
             logger.debug(f'No results for {primetype} in category {cat}')
           else:
             logger.debug(f'Results found for {primetype} in category {cat}')
