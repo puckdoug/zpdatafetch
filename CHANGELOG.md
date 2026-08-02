@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.3.0]
+
+- Integrated PR from [@vincentdavis](https://github.com/vincentdavis) to update from httpx to httpx2
+- Updated libraries to current versions (cryptography again)
+- Fixed minor issues with ty and logging coming from the update
+
 ## [2.2.6]
 
 - Updated package versions to address security alerts (inculding cryptography, again)
