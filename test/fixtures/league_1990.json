@@ -1,0 +1,2704 @@
+{
+  "1990": {
+    "league_id": 1990,
+    "teams": {
+      "791": {
+        "team_id": "791",
+        "name": "Race3R",
+        "color_background": "2bc3f4",
+        "color_border": "ffffff",
+        "color_text": "000000"
+      },
+      "13005": {
+        "team_id": "13005",
+        "name": "R3R Dev",
+        "color_background": "3bb4e6",
+        "color_border": "e30613",
+        "color_text": "ffffff"
+      },
+      "3106": {
+        "team_id": "3106",
+        "name": "#MDM",
+        "color_background": "0073b7",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "6725": {
+        "team_id": "6725",
+        "name": "NoPinz - R3R",
+        "color_background": "003286",
+        "color_border": "ff009a",
+        "color_text": "ff009a"
+      },
+      "18013": {
+        "team_id": "18013",
+        "name": "eSRT",
+        "color_background": "000000",
+        "color_border": "ff00d4",
+        "color_text": "40bad1"
+      },
+      "2003": {
+        "team_id": "2003",
+        "name": "L\u2019Equipe Provence",
+        "color_background": "b1d9b8",
+        "color_border": "63c0a6",
+        "color_text": "231d68"
+      },
+      "2823": {
+        "team_id": "2823",
+        "name": "BoTCC",
+        "color_background": "120000",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "0": {
+        "team_id": "0",
+        "name": "None",
+        "color_background": "None",
+        "color_border": "None",
+        "color_text": "00dd00"
+      },
+      "5582": {
+        "team_id": "5582",
+        "name": "Team HDR",
+        "color_background": "000000",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "1986": {
+        "team_id": "1986",
+        "name": "DBR",
+        "color_background": "213ed6",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "17056": {
+        "team_id": "17056",
+        "name": "Burrito",
+        "color_background": "0073b7",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "15785": {
+        "team_id": "15785",
+        "name": "TZP",
+        "color_background": "000508",
+        "color_border": "ada4a4",
+        "color_text": "ffffff"
+      },
+      "1965": {
+        "team_id": "1965",
+        "name": "BIKES-FR",
+        "color_background": "f2ad00",
+        "color_border": "000000",
+        "color_text": "000000"
+      },
+      "2854": {
+        "team_id": "2854",
+        "name": "FUSION COLOQUICK",
+        "color_background": "000000",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "3624": {
+        "team_id": "3624",
+        "name": "SHARKZ",
+        "color_background": "0073b7",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "963": {
+        "team_id": "963",
+        "name": "CHOCK",
+        "color_background": "000000",
+        "color_border": "575757",
+        "color_text": "ffffff"
+      },
+      "13275": {
+        "team_id": "13275",
+        "name": "RENDEZVOUS CC",
+        "color_background": "dcdcdc",
+        "color_border": "fff4eb",
+        "color_text": "2e0e0e"
+      },
+      "14342": {
+        "team_id": "14342",
+        "name": "\ud83c\uddeb\ud83c\uddf7 LFT \ud83d\udc13",
+        "color_background": "0073b7",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "6706": {
+        "team_id": "6706",
+        "name": "DBS",
+        "color_background": "ff0000",
+        "color_border": "080000",
+        "color_text": "120202"
+      },
+      "8991": {
+        "team_id": "8991",
+        "name": "FASTTRIATLON",
+        "color_background": "0073b7",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "11939": {
+        "team_id": "11939",
+        "name": "DZR",
+        "color_background": "ff0000",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "2528": {
+        "team_id": "2528",
+        "name": "BEAT",
+        "color_background": "28bebe",
+        "color_border": "000000",
+        "color_text": "000000"
+      },
+      "2707": {
+        "team_id": "2707",
+        "name": "DIRT",
+        "color_background": "211208",
+        "color_border": "df6a0d",
+        "color_text": "29ec34"
+      },
+      "3128": {
+        "team_id": "3128",
+        "name": "3 Cycles [3CY]",
+        "color_background": "0073b7",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "975": {
+        "team_id": "975",
+        "name": "Innovation",
+        "color_background": "52ff33",
+        "color_border": "000000",
+        "color_text": "000000"
+      },
+      "6870": {
+        "team_id": "6870",
+        "name": "Sportsolid",
+        "color_background": "000000",
+        "color_border": "f1640b",
+        "color_text": "f6a70b"
+      },
+      "13273": {
+        "team_id": "13273",
+        "name": "LHTC",
+        "color_background": "02b353",
+        "color_border": "000202",
+        "color_text": "ffffff"
+      },
+      "588": {
+        "team_id": "588",
+        "name": "Team Italy",
+        "color_background": "ffffff",
+        "color_border": "00a65a",
+        "color_text": "dd4b39"
+      },
+      "3469": {
+        "team_id": "3469",
+        "name": "HCK",
+        "color_background": "f8dae5",
+        "color_border": "111e6c",
+        "color_text": "111e6c"
+      },
+      "21245": {
+        "team_id": "21245",
+        "name": "iSparta NC",
+        "color_background": "0073b7",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "3052": {
+        "team_id": "3052",
+        "name": "KST",
+        "color_background": "030000",
+        "color_border": "7d7474",
+        "color_text": "ffffff"
+      },
+      "14791": {
+        "team_id": "14791",
+        "name": "TEAM MELLADO",
+        "color_background": "0073b7",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "19923": {
+        "team_id": "19923",
+        "name": "ZCRC",
+        "color_background": "ff0000",
+        "color_border": "2e0000",
+        "color_text": "ffffff"
+      },
+      "4742": {
+        "team_id": "4742",
+        "name": "EVOLUTION ",
+        "color_background": "2e1c1c",
+        "color_border": "ff09ff",
+        "color_text": "ff09ff"
+      },
+      "2834": {
+        "team_id": "2834",
+        "name": "FZR",
+        "color_background": "ffffff",
+        "color_border": "0000ff",
+        "color_text": "0000ff"
+      },
+      "13901": {
+        "team_id": "13901",
+        "name": "SNOOZE",
+        "color_background": "cf2b2b",
+        "color_border": "ffffff",
+        "color_text": "fcfcfc"
+      },
+      "7637": {
+        "team_id": "7637",
+        "name": "NCT",
+        "color_background": "ff4545",
+        "color_border": "fdff45",
+        "color_text": "ffffff"
+      },
+      "9037": {
+        "team_id": "9037",
+        "name": "SpeedFreaks",
+        "color_background": "ff5c00",
+        "color_border": "000000",
+        "color_text": "ffffff"
+      },
+      "25": {
+        "team_id": "25",
+        "name": "ZTPL.CC",
+        "color_background": "ff1800",
+        "color_border": "ff0000",
+        "color_text": "ffffff"
+      },
+      "1845": {
+        "team_id": "1845",
+        "name": " Team Vegan",
+        "color_background": "00a65a",
+        "color_border": "0adb2c",
+        "color_text": "ffffff"
+      },
+      "6352": {
+        "team_id": "6352",
+        "name": "Team JOYRIDE",
+        "color_background": "a30c0c",
+        "color_border": "000000",
+        "color_text": "ffffff"
+      },
+      "5302": {
+        "team_id": "5302",
+        "name": "CCA",
+        "color_background": "0073b7",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "32": {
+        "team_id": "32",
+        "name": "SZ",
+        "color_background": "285697",
+        "color_border": "ffd700",
+        "color_text": "ffffff"
+      },
+      "16176": {
+        "team_id": "16176",
+        "name": "Sparrows",
+        "color_background": "0073b7",
+        "color_border": "030101",
+        "color_text": "fa6565"
+      },
+      "4976": {
+        "team_id": "4976",
+        "name": "NICO OZ",
+        "color_background": "00a7ff",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "5032": {
+        "team_id": "5032",
+        "name": "VCRT",
+        "color_background": "2d009e",
+        "color_border": "f521f5",
+        "color_text": "fccb5a"
+      },
+      "36": {
+        "team_id": "36",
+        "name": "KISS RT",
+        "color_background": "012350",
+        "color_border": "84b7ca",
+        "color_text": "f56600"
+      },
+      "8520": {
+        "team_id": "8520",
+        "name": "G!RO ATQ",
+        "color_background": "0073b7",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "20196": {
+        "team_id": "20196",
+        "name": "NORRA",
+        "color_background": "961963",
+        "color_border": "f546ac",
+        "color_text": "ffffff"
+      },
+      "7535": {
+        "team_id": "7535",
+        "name": "MDV | IG",
+        "color_background": "0073b7",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "2740": {
+        "team_id": "2740",
+        "name": "Team CRYO-GEN",
+        "color_background": "009fe3",
+        "color_border": "0c1e4f",
+        "color_text": "ffffff"
+      },
+      "21142": {
+        "team_id": "21142",
+        "name": "CC95",
+        "color_background": "0073b7",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "19089": {
+        "team_id": "19089",
+        "name": "RTR",
+        "color_background": "000000",
+        "color_border": "eb00ff",
+        "color_text": "eb04b8"
+      },
+      "11789": {
+        "team_id": "11789",
+        "name": "S R T",
+        "color_background": "1c30e8",
+        "color_border": "faff00",
+        "color_text": "f7f700"
+      },
+      "4585": {
+        "team_id": "4585",
+        "name": "TeamFRL",
+        "color_background": "ff0000",
+        "color_border": "318ce7",
+        "color_text": "ffffff"
+      },
+      "4516": {
+        "team_id": "4516",
+        "name": "Wahoo Le Col ",
+        "color_background": "c6007e",
+        "color_border": "0095c8",
+        "color_text": "ffffff"
+      },
+      "2672": {
+        "team_id": "2672",
+        "name": "REVO",
+        "color_background": "000000",
+        "color_border": "fc00e3",
+        "color_text": "fc00e3"
+      },
+      "6635": {
+        "team_id": "6635",
+        "name": "MCL",
+        "color_background": "0073b7",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "6197": {
+        "team_id": "6197",
+        "name": "CICC",
+        "color_background": "0073b7",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "4929": {
+        "team_id": "4929",
+        "name": "Team BSG",
+        "color_background": "08344a",
+        "color_border": "a60808",
+        "color_text": "ffffff"
+      },
+      "4779": {
+        "team_id": "4779",
+        "name": "MNCC",
+        "color_background": "0073b7",
+        "color_border": "dedede",
+        "color_text": "000000"
+      },
+      "9737": {
+        "team_id": "9737",
+        "name": "Scannellatori",
+        "color_background": "0073b7",
+        "color_border": "ff0000",
+        "color_text": "f2f2f2"
+      },
+      "12367": {
+        "team_id": "12367",
+        "name": "TCA",
+        "color_background": "0073b7",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "15357": {
+        "team_id": "15357",
+        "name": "RolSto",
+        "color_background": "0073b7",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "3233": {
+        "team_id": "3233",
+        "name": "Fr\u00f8y eSport ",
+        "color_background": "227829",
+        "color_border": "e84141",
+        "color_text": "ffffff"
+      }
+    },
+    "standings": [
+      {
+        "position": 1,
+        "zwift_id": 58978,
+        "aid": 58978,
+        "name": "Barry Pope (R3R Nirvana)",
+        "points": 96,
+        "events": 5,
+        "category": "C",
+        "team_id": 791,
+        "team_name": "Race3R",
+        "age": "60+",
+        "flag": "gb",
+        "history": [
+          "1",
+          "1",
+          "3",
+          "1",
+          "1"
+        ]
+      },
+      {
+        "position": 1,
+        "zwift_id": 1898646,
+        "aid": 1898646,
+        "name": "Antoine [3R/TV]",
+        "points": 86,
+        "events": 5,
+        "category": "A",
+        "team_id": 791,
+        "team_name": "Race3R",
+        "age": "Vet",
+        "flag": "fr",
+        "history": [
+          "3",
+          "1",
+          "1",
+          "1"
+        ]
+      },
+      {
+        "position": 1,
+        "zwift_id": 1159690,
+        "aid": 1159690,
+        "name": "Dean Neale",
+        "points": 79,
+        "events": 5,
+        "category": "B",
+        "team_id": 791,
+        "team_name": "Race3R",
+        "age": "50+",
+        "flag": "gb-wls",
+        "history": [
+          "1",
+          "2",
+          "2"
+        ]
+      },
+      {
+        "position": 2,
+        "zwift_id": 745686,
+        "aid": 745686,
+        "name": "Stevie Carson (Race3R)",
+        "points": 74,
+        "events": 5,
+        "category": "B",
+        "team_id": 791,
+        "team_name": "Race3R",
+        "age": "Vet",
+        "flag": "gb-sct",
+        "history": [
+          "1",
+          "3",
+          "3"
+        ]
+      },
+      {
+        "position": 3,
+        "zwift_id": 1994679,
+        "aid": 1994679,
+        "name": "T  Keeble (R3R Dev)",
+        "points": 63,
+        "events": 5,
+        "category": "B",
+        "team_id": 13005,
+        "team_name": "R3R Dev",
+        "age": "Vet",
+        "flag": "gb-eng",
+        "history": [
+          "3",
+          "2",
+          "1"
+        ]
+      },
+      {
+        "position": 2,
+        "zwift_id": 2303648,
+        "aid": 2303648,
+        "name": "Warwick Stockdale (R3R Dev)",
+        "points": 59,
+        "events": 5,
+        "category": "A",
+        "team_id": 13005,
+        "team_name": "R3R Dev",
+        "age": "Mas",
+        "flag": "ua",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 4,
+        "zwift_id": 152708,
+        "aid": 152708,
+        "name": "MP (R3R DEV)",
+        "points": 50,
+        "events": 4,
+        "category": "B",
+        "team_id": 3106,
+        "team_name": "#MDM",
+        "age": "Vet",
+        "flag": "gb",
+        "history": [
+          "3"
+        ]
+      },
+      {
+        "position": 2,
+        "zwift_id": 1622480,
+        "aid": 1622480,
+        "name": "Kris Spin  (Race3R",
+        "points": 46,
+        "events": 3,
+        "category": "C",
+        "team_id": 791,
+        "team_name": "Race3R",
+        "age": "50+",
+        "flag": "ua",
+        "history": [
+          "3",
+          "3"
+        ]
+      },
+      {
+        "position": 3,
+        "zwift_id": 113389,
+        "aid": 113389,
+        "name": "Mark Ley (Race3R)",
+        "points": 38,
+        "events": 3,
+        "category": "C",
+        "team_id": 791,
+        "team_name": "Race3R",
+        "age": "Vet",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 5,
+        "zwift_id": 1222542,
+        "aid": 1222542,
+        "name": "Hayley GI Johnson (Race3R)",
+        "points": 33,
+        "events": 5,
+        "category": "B",
+        "team_id": 6725,
+        "team_name": "NoPinz - R3R",
+        "age": "Vet",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 3,
+        "zwift_id": 43160,
+        "aid": 43160,
+        "name": "Steven Brierley (Nopinz R3R)",
+        "points": 30,
+        "events": 3,
+        "category": "A",
+        "team_id": 6725,
+        "team_name": "NoPinz - R3R",
+        "age": "Vet",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 4,
+        "zwift_id": 1317063,
+        "aid": 1317063,
+        "name": "Mike Ellington [eSRT]",
+        "points": 28,
+        "events": 2,
+        "category": "A",
+        "team_id": 18013,
+        "team_name": "eSRT",
+        "age": "Mas",
+        "flag": "gb",
+        "history": [
+          "1"
+        ]
+      },
+      {
+        "position": 6,
+        "zwift_id": 164215,
+        "aid": 164215,
+        "name": "Marc Swatton (NoPinzR3R)",
+        "points": 26,
+        "events": 2,
+        "category": "B",
+        "team_id": 6725,
+        "team_name": "NoPinz - R3R",
+        "age": "50+",
+        "flag": "gb",
+        "history": [
+          "1"
+        ]
+      },
+      {
+        "position": 7,
+        "zwift_id": 119672,
+        "aid": 119672,
+        "name": "Gareth Bancroft",
+        "points": 24,
+        "events": 3,
+        "category": "B",
+        "team_id": 2003,
+        "team_name": "L\u2019Equipe Provence",
+        "age": "Vet",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 4,
+        "zwift_id": 1550001,
+        "aid": 1550001,
+        "name": "Rino Reuvekamp (Race3R)",
+        "points": 24,
+        "events": 2,
+        "category": "C",
+        "team_id": 791,
+        "team_name": "Race3R",
+        "age": "Vet",
+        "flag": "nl",
+        "history": []
+      },
+      {
+        "position": 8,
+        "zwift_id": 114936,
+        "aid": 114936,
+        "name": "Tim Burdon tzfc.co.uk",
+        "points": 22,
+        "events": 3,
+        "category": "B",
+        "team_id": 791,
+        "team_name": "Race3R",
+        "age": "Vet",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 5,
+        "zwift_id": 593346,
+        "aid": 593346,
+        "name": "Jono Martin (Nopinz R3R)",
+        "points": 22,
+        "events": 2,
+        "category": "A",
+        "team_id": 6725,
+        "team_name": "NoPinz - R3R",
+        "age": "Vet",
+        "flag": "gb-wls",
+        "history": []
+      },
+      {
+        "position": 1,
+        "zwift_id": 48318,
+        "aid": 48318,
+        "name": "Scott Thorpe - Back On Track CC",
+        "points": 20,
+        "events": 1,
+        "category": "D",
+        "team_id": 2823,
+        "team_name": "BoTCC",
+        "age": "Vet",
+        "flag": "gb",
+        "history": [
+          "1"
+        ]
+      },
+      {
+        "position": 9,
+        "zwift_id": 390505,
+        "aid": 390505,
+        "name": "Danno (R3R DEV)",
+        "points": 20,
+        "events": 4,
+        "category": "B",
+        "team_id": 13005,
+        "team_name": "R3R Dev",
+        "age": "Mas",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 1,
+        "zwift_id": 564150,
+        "aid": 564150,
+        "name": ". Conrad John - Swansea Vale Tri",
+        "points": 20,
+        "events": 1,
+        "category": "D",
+        "team_id": 0,
+        "team_name": "",
+        "age": "50+",
+        "flag": "gb-wls",
+        "history": [
+          "1"
+        ]
+      },
+      {
+        "position": 6,
+        "zwift_id": 927458,
+        "aid": 927458,
+        "name": "Stef Suijkerbuijk",
+        "points": 20,
+        "events": 1,
+        "category": "A",
+        "team_id": 5582,
+        "team_name": "Team HDR",
+        "age": "Vet",
+        "flag": "nl",
+        "history": [
+          "1"
+        ]
+      },
+      {
+        "position": 5,
+        "zwift_id": 987462,
+        "aid": 987462,
+        "name": "Bo Hangaard [DBR] ",
+        "points": 20,
+        "events": 1,
+        "category": "C",
+        "team_id": 1986,
+        "team_name": "DBR",
+        "age": "Mas",
+        "flag": "dk",
+        "history": [
+          "1"
+        ]
+      },
+      {
+        "position": 5,
+        "zwift_id": 1109545,
+        "aid": 1109545,
+        "name": "Morten Lau Baek",
+        "points": 20,
+        "events": 1,
+        "category": "C",
+        "team_id": 1986,
+        "team_name": "DBR",
+        "age": "Vet",
+        "flag": "dk",
+        "history": [
+          "1"
+        ]
+      },
+      {
+        "position": 9,
+        "zwift_id": 1113492,
+        "aid": 1113492,
+        "name": "David Raynham ",
+        "points": 20,
+        "events": 1,
+        "category": "B",
+        "team_id": 17056,
+        "team_name": "Burrito",
+        "age": "Mas",
+        "flag": "gb",
+        "history": [
+          "1"
+        ]
+      },
+      {
+        "position": 9,
+        "zwift_id": 2704916,
+        "aid": 2704916,
+        "name": "Jose Jr de Jesus",
+        "points": 20,
+        "events": 1,
+        "category": "B",
+        "team_id": 15785,
+        "team_name": "TZP",
+        "age": "Vet",
+        "flag": "ph",
+        "history": [
+          "1"
+        ]
+      },
+      {
+        "position": 1,
+        "zwift_id": 3056670,
+        "aid": 3056670,
+        "name": "Duonporn Daffner [Race3R] ",
+        "points": 20,
+        "events": 1,
+        "category": "D",
+        "team_id": 791,
+        "team_name": "Race3R",
+        "age": "50+",
+        "flag": "de",
+        "history": [
+          "1"
+        ]
+      },
+      {
+        "position": 1,
+        "zwift_id": 3394156,
+        "aid": 3394156,
+        "name": "Boris Keller (BIKES-FR)",
+        "points": 20,
+        "events": 1,
+        "category": "D",
+        "team_id": 1965,
+        "team_name": "BIKES-FR",
+        "age": "70+",
+        "flag": "fr",
+        "history": [
+          "1"
+        ]
+      },
+      {
+        "position": 6,
+        "zwift_id": 3551740,
+        "aid": 3551740,
+        "name": "Nils Lau Nyborg Broge [FUSN]",
+        "points": 20,
+        "events": 1,
+        "category": "A",
+        "team_id": 2854,
+        "team_name": "FUSION COLOQUICK",
+        "age": "Mas",
+        "flag": "dk",
+        "history": [
+          "1"
+        ]
+      },
+      {
+        "position": 7,
+        "zwift_id": 38399,
+        "aid": 38399,
+        "name": "lindon clowes (R3R Queen)",
+        "points": 18,
+        "events": 1,
+        "category": "C",
+        "team_id": 791,
+        "team_name": "Race3R",
+        "age": "Vet",
+        "flag": "gb",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 7,
+        "zwift_id": 45456,
+        "aid": 45456,
+        "name": "Jeppe Bjerring",
+        "points": 18,
+        "events": 1,
+        "category": "C",
+        "team_id": 3624,
+        "team_name": "SHARKZ",
+        "age": "Vet",
+        "flag": "dk",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 12,
+        "zwift_id": 74618,
+        "aid": 74618,
+        "name": "Emil Eriksson",
+        "points": 18,
+        "events": 1,
+        "category": "B",
+        "team_id": 963,
+        "team_name": "CHOCK",
+        "age": "Mas",
+        "flag": "se",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 8,
+        "zwift_id": 157730,
+        "aid": 157730,
+        "name": "LIM [TOP]Keon Yeob[1134]",
+        "points": 18,
+        "events": 1,
+        "category": "A",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Mas",
+        "flag": "kr",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 8,
+        "zwift_id": 493330,
+        "aid": 493330,
+        "name": "Robin Liljeros [RDZ]",
+        "points": 18,
+        "events": 1,
+        "category": "A",
+        "team_id": 13275,
+        "team_name": "RENDEZVOUS CC",
+        "age": "Vet",
+        "flag": "se",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 12,
+        "zwift_id": 704962,
+        "aid": 704962,
+        "name": "Chris Lomas (Ride3R)",
+        "points": 18,
+        "events": 2,
+        "category": "B",
+        "team_id": 791,
+        "team_name": "Race3R",
+        "age": "Vet",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 8,
+        "zwift_id": 1032214,
+        "aid": 1032214,
+        "name": "Firmin Zocchetto (La French Tech)",
+        "points": 18,
+        "events": 1,
+        "category": "A",
+        "team_id": 14342,
+        "team_name": "\ud83c\uddeb\ud83c\uddf7 LFT \ud83d\udc13",
+        "age": "Mas",
+        "flag": "fr",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 7,
+        "zwift_id": 1312063,
+        "aid": 1312063,
+        "name": "Ralph Kaiser",
+        "points": 18,
+        "events": 1,
+        "category": "C",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Vet",
+        "flag": "us",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 7,
+        "zwift_id": 1409524,
+        "aid": 1409524,
+        "name": "Anthony ROTGER",
+        "points": 18,
+        "events": 1,
+        "category": "C",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Mas",
+        "flag": "fr",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 12,
+        "zwift_id": 1967426,
+        "aid": 1967426,
+        "name": "James Meegan (VCV)",
+        "points": 18,
+        "events": 1,
+        "category": "B",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Mas",
+        "flag": "ch",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 5,
+        "zwift_id": 2105411,
+        "aid": 2105411,
+        "name": "F ee (DBS RunGirls 2)",
+        "points": 18,
+        "events": 1,
+        "category": "D",
+        "team_id": 6706,
+        "team_name": "DBS",
+        "age": "50+",
+        "flag": "gb",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 5,
+        "zwift_id": 2461008,
+        "aid": 2461008,
+        "name": "(W) maria davila (T3 Team)",
+        "points": 18,
+        "events": 1,
+        "category": "D",
+        "team_id": 8991,
+        "team_name": "FASTTRIATLON",
+        "age": "60+",
+        "flag": "es",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 5,
+        "zwift_id": 2611592,
+        "aid": 2611592,
+        "name": "Peter  Bundgaard [DZR]",
+        "points": 18,
+        "events": 1,
+        "category": "D",
+        "team_id": 11939,
+        "team_name": "DZR",
+        "age": "50+",
+        "flag": "dk",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 8,
+        "zwift_id": 2878144,
+        "aid": 2878144,
+        "name": "Robert van Zijp [BEAT]",
+        "points": 18,
+        "events": 1,
+        "category": "A",
+        "team_id": 2528,
+        "team_name": "BEAT",
+        "age": "Vet",
+        "flag": "nl",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 12,
+        "zwift_id": 2981906,
+        "aid": 2981906,
+        "name": "Alex Norris",
+        "points": 18,
+        "events": 1,
+        "category": "B",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "Mas",
+        "flag": "gb",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 7,
+        "zwift_id": 3270771,
+        "aid": 3270771,
+        "name": "Stephen Read (Race3R)",
+        "points": 18,
+        "events": 1,
+        "category": "C",
+        "team_id": 791,
+        "team_name": "Race3R",
+        "age": "Mas",
+        "flag": "gb",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 8,
+        "zwift_id": 4865109,
+        "aid": 4865109,
+        "name": "Ryo Nakajima[CAP]",
+        "points": 18,
+        "events": 1,
+        "category": "A",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Vet",
+        "flag": "jp",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 7,
+        "zwift_id": 6115276,
+        "aid": 6115276,
+        "name": "Fabre Btn",
+        "points": 18,
+        "events": 1,
+        "category": "C",
+        "team_id": 3128,
+        "team_name": "3 Cycles [3CY]",
+        "age": "60+",
+        "flag": "fr",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 13,
+        "zwift_id": 54517,
+        "aid": 54517,
+        "name": "Ashley Wainwright(Race3R)",
+        "points": 17,
+        "events": 2,
+        "category": "C",
+        "team_id": 791,
+        "team_name": "Race3R",
+        "age": "Vet",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 13,
+        "zwift_id": 60153,
+        "aid": 60153,
+        "name": "Edmund Bradbury",
+        "points": 16,
+        "events": 1,
+        "category": "A",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Mas",
+        "flag": "gb",
+        "history": [
+          "3"
+        ]
+      },
+      {
+        "position": 13,
+        "zwift_id": 129911,
+        "aid": 129911,
+        "name": "Bob McGlue\ud83d\udc09 (INC)",
+        "points": 16,
+        "events": 1,
+        "category": "A",
+        "team_id": 975,
+        "team_name": "Innovation",
+        "age": "Vet",
+        "flag": "gb-eng",
+        "history": [
+          "3"
+        ]
+      },
+      {
+        "position": 13,
+        "zwift_id": 263480,
+        "aid": 263480,
+        "name": "Christoph Verkruysse (SPSD)",
+        "points": 16,
+        "events": 1,
+        "category": "A",
+        "team_id": 6870,
+        "team_name": "Sportsolid",
+        "age": "Vet",
+        "flag": "be",
+        "history": [
+          "3"
+        ]
+      },
+      {
+        "position": 13,
+        "zwift_id": 788674,
+        "aid": 788674,
+        "name": "James Budge",
+        "points": 16,
+        "events": 1,
+        "category": "A",
+        "team_id": 13273,
+        "team_name": "LHTC",
+        "age": "Mas",
+        "flag": "gb",
+        "history": [
+          "3"
+        ]
+      },
+      {
+        "position": 16,
+        "zwift_id": 1424998,
+        "aid": 1424998,
+        "name": "Tom Wewer",
+        "points": 16,
+        "events": 1,
+        "category": "B",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Vet",
+        "flag": "gb",
+        "history": [
+          "3"
+        ]
+      },
+      {
+        "position": 14,
+        "zwift_id": 1492667,
+        "aid": 1492667,
+        "name": "David DE JESUS",
+        "points": 16,
+        "events": 1,
+        "category": "C",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Vet",
+        "flag": "fr",
+        "history": [
+          "3"
+        ]
+      },
+      {
+        "position": 8,
+        "zwift_id": 1698179,
+        "aid": 1698179,
+        "name": "Anders Pettersson",
+        "points": 16,
+        "events": 1,
+        "category": "D",
+        "team_id": 0,
+        "team_name": "",
+        "age": "50+",
+        "flag": "se",
+        "history": [
+          "3"
+        ]
+      },
+      {
+        "position": 14,
+        "zwift_id": 2055268,
+        "aid": 2055268,
+        "name": "Gabriele Mombelli",
+        "points": 16,
+        "events": 1,
+        "category": "C",
+        "team_id": 588,
+        "team_name": "Team Italy",
+        "age": "50+",
+        "flag": "it",
+        "history": [
+          "3"
+        ]
+      },
+      {
+        "position": 8,
+        "zwift_id": 2740526,
+        "aid": 2740526,
+        "name": "Ross Dev (Race 3R)",
+        "points": 16,
+        "events": 1,
+        "category": "D",
+        "team_id": 791,
+        "team_name": "Race3R",
+        "age": "50+",
+        "flag": "au",
+        "history": [
+          "3"
+        ]
+      },
+      {
+        "position": 16,
+        "zwift_id": 3846754,
+        "aid": 3846754,
+        "name": "Max Bastin",
+        "points": 16,
+        "events": 1,
+        "category": "B",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Mas",
+        "flag": "fr",
+        "history": [
+          "3"
+        ]
+      },
+      {
+        "position": 14,
+        "zwift_id": 5135051,
+        "aid": 5135051,
+        "name": "junhyeon Park",
+        "points": 16,
+        "events": 1,
+        "category": "C",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Mas",
+        "flag": "kr",
+        "history": [
+          "3"
+        ]
+      },
+      {
+        "position": 13,
+        "zwift_id": 6096218,
+        "aid": 6096218,
+        "name": "Dejan Vidakovic",
+        "points": 16,
+        "events": 1,
+        "category": "A",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Vet",
+        "flag": "rs",
+        "history": [
+          "3"
+        ]
+      },
+      {
+        "position": 18,
+        "zwift_id": 64684,
+        "aid": 64684,
+        "name": "Trond Haug (Holmenkollen CK)",
+        "points": 14,
+        "events": 1,
+        "category": "B",
+        "team_id": 3469,
+        "team_name": "HCK",
+        "age": "Vet",
+        "flag": "no",
+        "history": []
+      },
+      {
+        "position": 17,
+        "zwift_id": 371075,
+        "aid": 371075,
+        "name": "Sergey Ilyin",
+        "points": 14,
+        "events": 1,
+        "category": "C",
+        "team_id": 21245,
+        "team_name": "iSparta NC",
+        "age": "Mas",
+        "flag": "ru",
+        "history": []
+      },
+      {
+        "position": 18,
+        "zwift_id": 509396,
+        "aid": 509396,
+        "name": "Peter Urban Kragh | KST",
+        "points": 14,
+        "events": 1,
+        "category": "B",
+        "team_id": 3052,
+        "team_name": "KST",
+        "age": "Vet",
+        "flag": "dk",
+        "history": []
+      },
+      {
+        "position": 18,
+        "zwift_id": 699567,
+        "aid": 699567,
+        "name": "jose mellado(Team Mellado)",
+        "points": 14,
+        "events": 1,
+        "category": "B",
+        "team_id": 14791,
+        "team_name": "TEAM MELLADO",
+        "age": "60+",
+        "flag": "es",
+        "history": []
+      },
+      {
+        "position": 10,
+        "zwift_id": 747757,
+        "aid": 747757,
+        "name": "brett andrews",
+        "points": 14,
+        "events": 1,
+        "category": "D",
+        "team_id": 0,
+        "team_name": "",
+        "age": "50+",
+        "flag": "au",
+        "history": []
+      },
+      {
+        "position": 18,
+        "zwift_id": 884256,
+        "aid": 884256,
+        "name": "\u9634\u6c9f\u5954\u884c\u8001\u9f20\u4eba ",
+        "points": 14,
+        "events": 1,
+        "category": "A",
+        "team_id": 19923,
+        "team_name": "ZCRC",
+        "age": "Snr",
+        "flag": "cn",
+        "history": []
+      },
+      {
+        "position": 17,
+        "zwift_id": 1001818,
+        "aid": 1001818,
+        "name": "Mark Fletcher (FWP)",
+        "points": 14,
+        "events": 1,
+        "category": "C",
+        "team_id": 0,
+        "team_name": "",
+        "age": "50+",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 18,
+        "zwift_id": 1360468,
+        "aid": 1360468,
+        "name": "Neil Turner (R3R Dev)",
+        "points": 14,
+        "events": 1,
+        "category": "A",
+        "team_id": 13005,
+        "team_name": "R3R Dev",
+        "age": "Vet",
+        "flag": "ua",
+        "history": []
+      },
+      {
+        "position": 18,
+        "zwift_id": 1467031,
+        "aid": 1467031,
+        "name": "Marc Cox",
+        "points": 14,
+        "events": 1,
+        "category": "A",
+        "team_id": 4742,
+        "team_name": "EVOLUTION ",
+        "age": "Mas",
+        "flag": "gg",
+        "history": []
+      },
+      {
+        "position": 10,
+        "zwift_id": 2309174,
+        "aid": 2309174,
+        "name": "(W) Virgi Pomar (FASTTRIATLON)",
+        "points": 14,
+        "events": 1,
+        "category": "D",
+        "team_id": 8991,
+        "team_name": "FASTTRIATLON",
+        "age": "Vet",
+        "flag": "es",
+        "history": []
+      },
+      {
+        "position": 17,
+        "zwift_id": 2881908,
+        "aid": 2881908,
+        "name": "Riccardo Viozzi",
+        "points": 14,
+        "events": 1,
+        "category": "C",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Mas",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 18,
+        "zwift_id": 5948019,
+        "aid": 5948019,
+        "name": "Helge Lempi\u00e4inen",
+        "points": 14,
+        "events": 1,
+        "category": "A",
+        "team_id": 2834,
+        "team_name": "FZR",
+        "age": "Vet",
+        "flag": "fi",
+        "history": []
+      },
+      {
+        "position": 18,
+        "zwift_id": 6096137,
+        "aid": 6096137,
+        "name": "Cyril Bastin",
+        "points": 14,
+        "events": 1,
+        "category": "B",
+        "team_id": 14342,
+        "team_name": "\ud83c\uddeb\ud83c\uddf7 LFT \ud83d\udc13",
+        "age": "Mas",
+        "flag": "fr",
+        "history": []
+      },
+      {
+        "position": 22,
+        "zwift_id": 4149706,
+        "aid": 4149706,
+        "name": "Vanessa Armstrong(Race3R)",
+        "points": 13,
+        "events": 2,
+        "category": "B",
+        "team_id": 791,
+        "team_name": "Race3R",
+        "age": "Vet",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 22,
+        "zwift_id": 43157,
+        "aid": 43157,
+        "name": "Oleksiy Mishchenko \ud83c\uddfa\ud83c\udde6",
+        "points": 12,
+        "events": 1,
+        "category": "A",
+        "team_id": 13901,
+        "team_name": "SNOOZE",
+        "age": "Vet",
+        "flag": "ua",
+        "history": []
+      },
+      {
+        "position": 23,
+        "zwift_id": 921783,
+        "aid": 921783,
+        "name": "Col Cuckoo",
+        "points": 12,
+        "events": 1,
+        "category": "B",
+        "team_id": 4742,
+        "team_name": "EVOLUTION ",
+        "age": "Vet",
+        "flag": "pl",
+        "history": []
+      },
+      {
+        "position": 23,
+        "zwift_id": 1121015,
+        "aid": 1121015,
+        "name": "Oka Mori \ud83c\uddfa\ud83c\udde6\ud83c\uddef\ud83c\uddf5",
+        "points": 12,
+        "events": 1,
+        "category": "B",
+        "team_id": 0,
+        "team_name": "",
+        "age": "60+",
+        "flag": "jp",
+        "history": []
+      },
+      {
+        "position": 20,
+        "zwift_id": 1132342,
+        "aid": 1132342,
+        "name": "SeungWoo Son",
+        "points": 12,
+        "events": 1,
+        "category": "C",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Mas",
+        "flag": "kr",
+        "history": []
+      },
+      {
+        "position": 23,
+        "zwift_id": 1561386,
+        "aid": 1561386,
+        "name": "Henrik  Kirk - pronghorn.dk",
+        "points": 12,
+        "events": 1,
+        "category": "B",
+        "team_id": 0,
+        "team_name": "",
+        "age": "50+",
+        "flag": "dk",
+        "history": []
+      },
+      {
+        "position": 20,
+        "zwift_id": 2866115,
+        "aid": 2866115,
+        "name": "R\u00e9mi Fromaget",
+        "points": 12,
+        "events": 1,
+        "category": "C",
+        "team_id": 7637,
+        "team_name": "NCT",
+        "age": "50+",
+        "flag": "fr",
+        "history": []
+      },
+      {
+        "position": 20,
+        "zwift_id": 5463873,
+        "aid": 5463873,
+        "name": "Austin Luher",
+        "points": 12,
+        "events": 1,
+        "category": "C",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Vet",
+        "flag": "us",
+        "history": []
+      },
+      {
+        "position": 23,
+        "zwift_id": 59517,
+        "aid": 59517,
+        "name": "Markus Gr",
+        "points": 10,
+        "events": 1,
+        "category": "C",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Mas",
+        "flag": "at",
+        "history": []
+      },
+      {
+        "position": 26,
+        "zwift_id": 426302,
+        "aid": 426302,
+        "name": "Alvaro Gonzalo",
+        "points": 10,
+        "events": 1,
+        "category": "B",
+        "team_id": 14791,
+        "team_name": "TEAM MELLADO",
+        "age": "Vet",
+        "flag": "es",
+        "history": []
+      },
+      {
+        "position": 26,
+        "zwift_id": 1465916,
+        "aid": 1465916,
+        "name": "Tjeerd Van Aurich (SpeedFreaks)",
+        "points": 10,
+        "events": 1,
+        "category": "B",
+        "team_id": 9037,
+        "team_name": "SpeedFreaks",
+        "age": "Mas",
+        "flag": "nl",
+        "history": []
+      },
+      {
+        "position": 23,
+        "zwift_id": 4834697,
+        "aid": 4834697,
+        "name": "Simone Cianferoni",
+        "points": 10,
+        "events": 1,
+        "category": "C",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Vet",
+        "flag": "it",
+        "history": []
+      },
+      {
+        "position": 23,
+        "zwift_id": 6109848,
+        "aid": 6109848,
+        "name": "Rob Hoskin",
+        "points": 10,
+        "events": 1,
+        "category": "C",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Mas",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 23,
+        "zwift_id": 894675,
+        "aid": 894675,
+        "name": "Thomas Perrot [TV][Mjolnir]",
+        "points": 9,
+        "events": 1,
+        "category": "A",
+        "team_id": 2003,
+        "team_name": "L\u2019Equipe Provence",
+        "age": "Vet",
+        "flag": "fr",
+        "history": []
+      },
+      {
+        "position": 28,
+        "zwift_id": 897334,
+        "aid": 897334,
+        "name": "Yu Hasebe",
+        "points": 9,
+        "events": 1,
+        "category": "B",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Mas",
+        "flag": "jp",
+        "history": []
+      },
+      {
+        "position": 28,
+        "zwift_id": 925093,
+        "aid": 925093,
+        "name": "Tommie Ewers",
+        "points": 9,
+        "events": 2,
+        "category": "B",
+        "team_id": 0,
+        "team_name": "",
+        "age": "50+",
+        "flag": "se",
+        "history": []
+      },
+      {
+        "position": 26,
+        "zwift_id": 1182659,
+        "aid": 1182659,
+        "name": "n noguchi(ARCC/APS)",
+        "points": 9,
+        "events": 1,
+        "category": "C",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Vet",
+        "flag": "jp",
+        "history": []
+      },
+      {
+        "position": 26,
+        "zwift_id": 1402299,
+        "aid": 1402299,
+        "name": "Emil C",
+        "points": 9,
+        "events": 1,
+        "category": "C",
+        "team_id": 25,
+        "team_name": "ZTPL.CC",
+        "age": "Vet",
+        "flag": "pl",
+        "history": []
+      },
+      {
+        "position": 28,
+        "zwift_id": 1411465,
+        "aid": 1411465,
+        "name": "justin coyne (Vegan Spartans)",
+        "points": 9,
+        "events": 1,
+        "category": "B",
+        "team_id": 1845,
+        "team_name": " Team Vegan",
+        "age": "Vet",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 26,
+        "zwift_id": 2204929,
+        "aid": 2204929,
+        "name": "tebis3 tebis37631",
+        "points": 9,
+        "events": 1,
+        "category": "C",
+        "team_id": 0,
+        "team_name": "",
+        "age": "50+",
+        "flag": "it",
+        "history": []
+      },
+      {
+        "position": 28,
+        "zwift_id": 2291490,
+        "aid": 2291490,
+        "name": "Daryl Dampney",
+        "points": 9,
+        "events": 1,
+        "category": "B",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Mas",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 28,
+        "zwift_id": 2871272,
+        "aid": 2871272,
+        "name": "K jy [T.B]",
+        "points": 9,
+        "events": 1,
+        "category": "B",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Vet",
+        "flag": "kr",
+        "history": []
+      },
+      {
+        "position": 26,
+        "zwift_id": 3527377,
+        "aid": 3527377,
+        "name": "Shaun Waring (QN2Racing)\ud83c\uddec\ud83c\udde7",
+        "points": 9,
+        "events": 1,
+        "category": "C",
+        "team_id": 0,
+        "team_name": "",
+        "age": "60+",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 23,
+        "zwift_id": 4918471,
+        "aid": 4918471,
+        "name": "Hector Olmo",
+        "points": 9,
+        "events": 2,
+        "category": "A",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Mas",
+        "flag": "es",
+        "history": []
+      },
+      {
+        "position": 33,
+        "zwift_id": 367272,
+        "aid": 367272,
+        "name": "\uff39 osawa(Allegro)",
+        "points": 8,
+        "events": 1,
+        "category": "B",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Mas",
+        "flag": "jp",
+        "history": []
+      },
+      {
+        "position": 30,
+        "zwift_id": 421759,
+        "aid": 421759,
+        "name": "Miro M. [ZTPL.CC]",
+        "points": 8,
+        "events": 1,
+        "category": "C",
+        "team_id": 25,
+        "team_name": "ZTPL.CC",
+        "age": "60+",
+        "flag": "pl",
+        "history": []
+      },
+      {
+        "position": 30,
+        "zwift_id": 423843,
+        "aid": 423843,
+        "name": "KIM Jung-Hyuk",
+        "points": 8,
+        "events": 1,
+        "category": "C",
+        "team_id": 6352,
+        "team_name": "Team JOYRIDE",
+        "age": "Vet",
+        "flag": "kr",
+        "history": []
+      },
+      {
+        "position": 25,
+        "zwift_id": 819639,
+        "aid": 819639,
+        "name": "Matthew Palmer (CCA)",
+        "points": 8,
+        "events": 1,
+        "category": "A",
+        "team_id": 5302,
+        "team_name": "CCA",
+        "age": "Vet",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 33,
+        "zwift_id": 2373155,
+        "aid": 2373155,
+        "name": "YOSHIKAZU YAGI",
+        "points": 8,
+        "events": 1,
+        "category": "B",
+        "team_id": 0,
+        "team_name": "",
+        "age": "50+",
+        "flag": "jp",
+        "history": []
+      },
+      {
+        "position": 30,
+        "zwift_id": 4258265,
+        "aid": 4258265,
+        "name": "Clint Slomp",
+        "points": 8,
+        "events": 1,
+        "category": "C",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Vet",
+        "flag": "au",
+        "history": []
+      },
+      {
+        "position": 33,
+        "zwift_id": 4606018,
+        "aid": 4606018,
+        "name": "John Lindestig [SZ]",
+        "points": 8,
+        "events": 1,
+        "category": "B",
+        "team_id": 32,
+        "team_name": "SZ",
+        "age": "Mas",
+        "flag": "se",
+        "history": []
+      },
+      {
+        "position": 26,
+        "zwift_id": 130738,
+        "aid": 130738,
+        "name": "\u963f\u6e6f\u54e5 SH-60",
+        "points": 7,
+        "events": 1,
+        "category": "A",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Vet",
+        "flag": "tw",
+        "history": []
+      },
+      {
+        "position": 36,
+        "zwift_id": 320052,
+        "aid": 320052,
+        "name": "Debs Stockley (Race3R)",
+        "points": 7,
+        "events": 3,
+        "category": "B",
+        "team_id": 791,
+        "team_name": "Race3R",
+        "age": "50+",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 36,
+        "zwift_id": 730255,
+        "aid": 730255,
+        "name": "Huiyun Yang",
+        "points": 7,
+        "events": 1,
+        "category": "B",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Vet",
+        "flag": "cn",
+        "history": []
+      },
+      {
+        "position": 36,
+        "zwift_id": 879426,
+        "aid": 879426,
+        "name": "Mark Suret (R3R Dev)",
+        "points": 7,
+        "events": 2,
+        "category": "B",
+        "team_id": 13005,
+        "team_name": "R3R Dev",
+        "age": "Vet",
+        "flag": "gb-wls",
+        "history": []
+      },
+      {
+        "position": 26,
+        "zwift_id": 1776962,
+        "aid": 1776962,
+        "name": "Shota Katsuyama",
+        "points": 7,
+        "events": 1,
+        "category": "A",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Snr",
+        "flag": "jp",
+        "history": []
+      },
+      {
+        "position": 39,
+        "zwift_id": 1625240,
+        "aid": 1625240,
+        "name": "Patrick Kos",
+        "points": 6,
+        "events": 2,
+        "category": "B",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Mas",
+        "flag": "nl",
+        "history": []
+      },
+      {
+        "position": 28,
+        "zwift_id": 1716032,
+        "aid": 1716032,
+        "name": "Nate Evans [sparrows]",
+        "points": 6,
+        "events": 1,
+        "category": "A",
+        "team_id": 16176,
+        "team_name": "Sparrows",
+        "age": "Mas",
+        "flag": "au",
+        "history": []
+      },
+      {
+        "position": 39,
+        "zwift_id": 3246995,
+        "aid": 3246995,
+        "name": "Jani Bizjak",
+        "points": 6,
+        "events": 1,
+        "category": "B",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Mas",
+        "flag": "si",
+        "history": []
+      },
+      {
+        "position": 39,
+        "zwift_id": 3270771,
+        "aid": 3270771,
+        "name": "Stephen Read (Race3R)",
+        "points": 6,
+        "events": 3,
+        "category": "B",
+        "team_id": 791,
+        "team_name": "Race3R",
+        "age": "Mas",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 28,
+        "zwift_id": 4004603,
+        "aid": 4004603,
+        "name": "D Aki",
+        "points": 6,
+        "events": 1,
+        "category": "A",
+        "team_id": 4976,
+        "team_name": "NICO OZ",
+        "age": "Snr",
+        "flag": "jp",
+        "history": []
+      },
+      {
+        "position": 30,
+        "zwift_id": 1407832,
+        "aid": 1407832,
+        "name": "\ud83d\udcaa\ud83c\udffb GTR-Bill (NopinzR3R)",
+        "points": 5,
+        "events": 1,
+        "category": "A",
+        "team_id": 6725,
+        "team_name": "NoPinz - R3R",
+        "age": "Mas",
+        "flag": "gb-sct",
+        "history": []
+      },
+      {
+        "position": 42,
+        "zwift_id": 1606107,
+        "aid": 1606107,
+        "name": "Paul Howarth",
+        "points": 5,
+        "events": 1,
+        "category": "B",
+        "team_id": 0,
+        "team_name": "",
+        "age": "50+",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 43,
+        "zwift_id": 179180,
+        "aid": 179180,
+        "name": "O Tannenbaum",
+        "points": 4,
+        "events": 1,
+        "category": "B",
+        "team_id": 0,
+        "team_name": "",
+        "age": "50+",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 43,
+        "zwift_id": 290682,
+        "aid": 290682,
+        "name": "Neil Everett",
+        "points": 4,
+        "events": 1,
+        "category": "B",
+        "team_id": 5032,
+        "team_name": "VCRT",
+        "age": "Vet",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 43,
+        "zwift_id": 415493,
+        "aid": 415493,
+        "name": "Kristin Moat (Race 3R)",
+        "points": 4,
+        "events": 2,
+        "category": "B",
+        "team_id": 791,
+        "team_name": "Race3R",
+        "age": "50+",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 43,
+        "zwift_id": 807244,
+        "aid": 807244,
+        "name": "Phil Read",
+        "points": 4,
+        "events": 1,
+        "category": "B",
+        "team_id": 0,
+        "team_name": "",
+        "age": "50+",
+        "flag": "gb-eng",
+        "history": []
+      },
+      {
+        "position": 31,
+        "zwift_id": 4362246,
+        "aid": 4362246,
+        "name": "F Crossman",
+        "points": 4,
+        "events": 1,
+        "category": "A",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Jnr",
+        "flag": "au",
+        "history": []
+      },
+      {
+        "position": 47,
+        "zwift_id": 11338,
+        "aid": 11338,
+        "name": "Tristan Whitehead (KRT B - Big Timbers)",
+        "points": 3,
+        "events": 1,
+        "category": "B",
+        "team_id": 36,
+        "team_name": "KISS RT",
+        "age": "50+",
+        "flag": "za",
+        "history": []
+      },
+      {
+        "position": 47,
+        "zwift_id": 257349,
+        "aid": 257349,
+        "name": "Henrygw | ROCA ",
+        "points": 3,
+        "events": 1,
+        "category": "B",
+        "team_id": 8520,
+        "team_name": "G!RO ATQ",
+        "age": "Vet",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 47,
+        "zwift_id": 396670,
+        "aid": 396670,
+        "name": "David Akesson [NORRA]",
+        "points": 3,
+        "events": 1,
+        "category": "B",
+        "team_id": 20196,
+        "team_name": "NORRA",
+        "age": "Vet",
+        "flag": "se",
+        "history": []
+      },
+      {
+        "position": 47,
+        "zwift_id": 552907,
+        "aid": 552907,
+        "name": "Kang Kyung6[ROSA]",
+        "points": 3,
+        "events": 1,
+        "category": "B",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Vet",
+        "flag": "kr",
+        "history": []
+      },
+      {
+        "position": 51,
+        "zwift_id": 4400,
+        "aid": 4400,
+        "name": "Matt Watkins (Race3R)",
+        "points": 2,
+        "events": 2,
+        "category": "B",
+        "team_id": 791,
+        "team_name": "Race3R",
+        "age": "Vet",
+        "flag": "gb-eng",
+        "history": []
+      },
+      {
+        "position": 51,
+        "zwift_id": 1083625,
+        "aid": 1083625,
+        "name": "Carolyn Pfalzgraf (Race3R)",
+        "points": 2,
+        "events": 2,
+        "category": "B",
+        "team_id": 791,
+        "team_name": "Race3R",
+        "age": "Mas",
+        "flag": "us",
+        "history": []
+      },
+      {
+        "position": 51,
+        "zwift_id": 1653514,
+        "aid": 1653514,
+        "name": "Tim Robinson (MDVIG | BCSE)",
+        "points": 2,
+        "events": 1,
+        "category": "B",
+        "team_id": 7535,
+        "team_name": "MDV | IG",
+        "age": "Vet",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 51,
+        "zwift_id": 2291008,
+        "aid": 2291008,
+        "name": "Andrew Heppell (CRYO-GEN GROSSGLOCKNER) ",
+        "points": 2,
+        "events": 1,
+        "category": "B",
+        "team_id": 2740,
+        "team_name": "Team CRYO-GEN",
+        "age": "Vet",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 51,
+        "zwift_id": 3046027,
+        "aid": 3046027,
+        "name": "Peer J\u00f8nson",
+        "points": 2,
+        "events": 1,
+        "category": "B",
+        "team_id": 21142,
+        "team_name": "CC95",
+        "age": "Vet",
+        "flag": "dk",
+        "history": []
+      },
+      {
+        "position": 51,
+        "zwift_id": 4526477,
+        "aid": 4526477,
+        "name": "Richard Duce",
+        "points": 2,
+        "events": 1,
+        "category": "B",
+        "team_id": 19089,
+        "team_name": "RTR",
+        "age": "Vet",
+        "flag": "gb-eng",
+        "history": []
+      },
+      {
+        "position": 51,
+        "zwift_id": 5206228,
+        "aid": 5206228,
+        "name": "Jakey Jake",
+        "points": 2,
+        "events": 2,
+        "category": "B",
+        "team_id": 11789,
+        "team_name": "S R T",
+        "age": "Snr",
+        "flag": "gb-eng",
+        "history": []
+      },
+      {
+        "position": 51,
+        "zwift_id": 5689324,
+        "aid": 5689324,
+        "name": "Titus van der Woude",
+        "points": 2,
+        "events": 2,
+        "category": "B",
+        "team_id": 4585,
+        "team_name": "TeamFRL",
+        "age": "Mas",
+        "flag": "nl",
+        "history": []
+      },
+      {
+        "position": 59,
+        "zwift_id": 58978,
+        "aid": 58978,
+        "name": "Barry Pope (R3R Nirvana)",
+        "points": 1,
+        "events": 1,
+        "category": "B",
+        "team_id": 791,
+        "team_name": "Race3R",
+        "age": "60+",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 59,
+        "zwift_id": 91996,
+        "aid": 91996,
+        "name": "Mark Tiffany (Wahoo Le Col)",
+        "points": 1,
+        "events": 1,
+        "category": "B",
+        "team_id": 4516,
+        "team_name": "Wahoo Le Col ",
+        "age": "Vet",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 59,
+        "zwift_id": 210691,
+        "aid": 210691,
+        "name": "James T Lowe (Race 3R)",
+        "points": 1,
+        "events": 1,
+        "category": "B",
+        "team_id": 791,
+        "team_name": "Race3R",
+        "age": "Vet",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 59,
+        "zwift_id": 254591,
+        "aid": 254591,
+        "name": "Steph.Waring (REVO] (BON)",
+        "points": 1,
+        "events": 1,
+        "category": "B",
+        "team_id": 2672,
+        "team_name": "REVO",
+        "age": "50+",
+        "flag": "gb-wls",
+        "history": []
+      },
+      {
+        "position": 59,
+        "zwift_id": 276798,
+        "aid": 276798,
+        "name": "Michael van Son",
+        "points": 1,
+        "events": 1,
+        "category": "B",
+        "team_id": 0,
+        "team_name": "",
+        "age": "50+",
+        "flag": "nl",
+        "history": []
+      },
+      {
+        "position": 59,
+        "zwift_id": 358030,
+        "aid": 358030,
+        "name": "FANG ZHUO",
+        "points": 1,
+        "events": 1,
+        "category": "B",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Mas",
+        "flag": "cn",
+        "history": []
+      },
+      {
+        "position": 59,
+        "zwift_id": 411187,
+        "aid": 411187,
+        "name": "Dave Coleman (CVCL)",
+        "points": 1,
+        "events": 1,
+        "category": "B",
+        "team_id": 6635,
+        "team_name": "MCL",
+        "age": "Vet",
+        "flag": "ie",
+        "history": []
+      },
+      {
+        "position": 59,
+        "zwift_id": 1003047,
+        "aid": 1003047,
+        "name": "Steve Robinson ",
+        "points": 1,
+        "events": 1,
+        "category": "B",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Vet",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 59,
+        "zwift_id": 1028730,
+        "aid": 1028730,
+        "name": "Ben Rawlinson (CICC vAmos)",
+        "points": 1,
+        "events": 1,
+        "category": "B",
+        "team_id": 6197,
+        "team_name": "CICC",
+        "age": "Vet",
+        "flag": "de",
+        "history": []
+      },
+      {
+        "position": 59,
+        "zwift_id": 1272746,
+        "aid": 1272746,
+        "name": "Peter  Holm Nielsen",
+        "points": 1,
+        "events": 1,
+        "category": "B",
+        "team_id": 0,
+        "team_name": "",
+        "age": "50+",
+        "flag": "dk",
+        "history": []
+      },
+      {
+        "position": 59,
+        "zwift_id": 1284455,
+        "aid": 1284455,
+        "name": "Calum Buchan",
+        "points": 1,
+        "events": 1,
+        "category": "B",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Jnr",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 59,
+        "zwift_id": 1430902,
+        "aid": 1430902,
+        "name": "Thomas Haug ",
+        "points": 1,
+        "events": 1,
+        "category": "B",
+        "team_id": 4929,
+        "team_name": "Team BSG",
+        "age": "50+",
+        "flag": "no",
+        "history": []
+      },
+      {
+        "position": 59,
+        "zwift_id": 1522556,
+        "aid": 1522556,
+        "name": "Chris Hollis(MNCC)",
+        "points": 1,
+        "events": 1,
+        "category": "B",
+        "team_id": 4779,
+        "team_name": "MNCC",
+        "age": "50+",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 59,
+        "zwift_id": 1555566,
+        "aid": 1555566,
+        "name": "Jo Earrey",
+        "points": 1,
+        "events": 1,
+        "category": "B",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Vet",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 59,
+        "zwift_id": 1585397,
+        "aid": 1585397,
+        "name": "Luca Gozzoli (ITA)",
+        "points": 1,
+        "events": 1,
+        "category": "B",
+        "team_id": 9737,
+        "team_name": "Scannellatori",
+        "age": "50+",
+        "flag": "it",
+        "history": []
+      },
+      {
+        "position": 59,
+        "zwift_id": 1900552,
+        "aid": 1900552,
+        "name": "Thomas Gesse [TCA]",
+        "points": 1,
+        "events": 1,
+        "category": "B",
+        "team_id": 12367,
+        "team_name": "TCA",
+        "age": "Vet",
+        "flag": "fr",
+        "history": []
+      },
+      {
+        "position": 59,
+        "zwift_id": 3070447,
+        "aid": 3070447,
+        "name": "M (The Chip) Williams ",
+        "points": 1,
+        "events": 1,
+        "category": "B",
+        "team_id": 15357,
+        "team_name": "RolSto",
+        "age": "Mas",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 59,
+        "zwift_id": 3600062,
+        "aid": 3600062,
+        "name": "Sigurd Karlstad (IF Fr\u00f8y)",
+        "points": 1,
+        "events": 1,
+        "category": "B",
+        "team_id": 3233,
+        "team_name": "Fr\u00f8y eSport ",
+        "age": "Vet",
+        "flag": "no",
+        "history": []
+      },
+      {
+        "position": 59,
+        "zwift_id": 3641989,
+        "aid": 3641989,
+        "name": "Stuart Cook",
+        "points": 1,
+        "events": 1,
+        "category": "B",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Vet",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 59,
+        "zwift_id": 6012838,
+        "aid": 6012838,
+        "name": "Andrew Vane",
+        "points": 1,
+        "events": 1,
+        "category": "B",
+        "team_id": 0,
+        "team_name": "",
+        "age": "50+",
+        "flag": "gb",
+        "history": []
+      }
+    ]
+  }
+}
