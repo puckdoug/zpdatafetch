@@ -30,12 +30,12 @@ jobs:
           echo "Head branch: ${{ github.event.workflow_run.head_branch }}"
           echo "Head SHA: ${{ github.event.workflow_run.head_sha }}"
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Check windows-test and macos-test workflow status
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const headSha = '${{ github.event.workflow_run.head_sha }}';
@@ -134,7 +134,7 @@ jobs:
         run: uv build
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: dist-packages-${{ github.event.workflow_run.head_branch }}
           path: ./dist/
@@ -150,7 +150,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: dist-packages-${{ github.event.workflow_run.head_branch }}
           path: ./dist/
