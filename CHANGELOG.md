@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.1]
+
+- Fixed issue with rideons url (wrong syntax!) - Thanks @andrzejbluszcz for finding this and providing the fix!
+- Updated all libraries to current versions
+- Corrected live test issues - missing fixtures - in case anyone decides to run the full live test suite, it should work now
+- Added better justfile default target and test targets for live and all
+
 ## [2.3.0]
 
 - Integrated PR from [@vincentdavis](https://github.com/vincentdavis) to update from httpx to httpx2

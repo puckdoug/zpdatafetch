@@ -16,8 +16,8 @@ def test_live_zrteam_fetch_single_id(valid_team_id):
 
   # Verify parsed data
   assert team.team_id == valid_team_id
-  assert team.name is not None
-  assert isinstance(team.name, str)
+  assert team.team_name is not None
+  assert isinstance(team.team_name, str)
   assert len(team) >= 0
 
 
@@ -33,6 +33,6 @@ async def test_live_zrteam_afetch_single_id(valid_team_id):
 
   # Verify parsed data
   assert team.team_id == valid_team_id
-  assert team.name is not None
-  assert isinstance(team.name, str)
+  assert team.team_name is not None
+  assert isinstance(team.team_name, str)
   assert len(team) >= 0

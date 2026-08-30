@@ -1,0 +1,2399 @@
+{
+  "3017": {
+    "league_id": 3017,
+    "teams": {
+      "2707": {
+        "team_id": "2707",
+        "name": "DIRT",
+        "color_background": "211208",
+        "color_border": "df6a0d",
+        "color_text": "29ec34"
+      },
+      "16553": {
+        "team_id": "16553",
+        "name": "[GALAXY]",
+        "color_background": "7014f2",
+        "color_border": "090000",
+        "color_text": "ffffff"
+      },
+      "17763": {
+        "team_id": "17763",
+        "name": "HISP",
+        "color_background": "00ffc3",
+        "color_border": "ff0055",
+        "color_text": "ff0055"
+      },
+      "1942": {
+        "team_id": "1942",
+        "name": "ZRG",
+        "color_background": "3d3d3d",
+        "color_border": "1bc1f1",
+        "color_text": "1bc1f1"
+      },
+      "0": {
+        "team_id": "0",
+        "name": "None",
+        "color_background": "None",
+        "color_border": "None",
+        "color_text": "00dd00"
+      },
+      "14178": {
+        "team_id": "14178",
+        "name": "Corona Zwifters",
+        "color_background": "0073b7",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "1634": {
+        "team_id": "1634",
+        "name": "[DRAFT]",
+        "color_background": "f70707",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "15692": {
+        "team_id": "15692",
+        "name": "HTLT",
+        "color_background": "000000",
+        "color_border": "ffffff",
+        "color_text": "f3f300"
+      },
+      "4409": {
+        "team_id": "4409",
+        "name": "NBCK",
+        "color_background": "0073b7",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "142": {
+        "team_id": "142",
+        "name": "FK Team",
+        "color_background": "0073b7",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "13096": {
+        "team_id": "13096",
+        "name": "Fluffy Bunnies",
+        "color_background": "0073b7",
+        "color_border": "00d6aa",
+        "color_text": "ffffff"
+      },
+      "19928": {
+        "team_id": "19928",
+        "name": "WBC",
+        "color_background": "0073b7",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "17621": {
+        "team_id": "17621",
+        "name": "DIRTY MITTEN",
+        "color_background": "ef1a06",
+        "color_border": "4112f1",
+        "color_text": "f1f163"
+      },
+      "2705": {
+        "team_id": "2705",
+        "name": "NYU",
+        "color_background": "0073b7",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "4299": {
+        "team_id": "4299",
+        "name": "ABR Cycle Team",
+        "color_background": "0073b7",
+        "color_border": "f2fa7f",
+        "color_text": "f2fa7f"
+      },
+      "2639": {
+        "team_id": "2639",
+        "name": "HERD",
+        "color_background": "fc6719",
+        "color_border": "383c3d",
+        "color_text": "383c3d"
+      },
+      "20564": {
+        "team_id": "20564",
+        "name": "SYN",
+        "color_background": "000000",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "10238": {
+        "team_id": "10238",
+        "name": "TF ",
+        "color_background": "0073b7",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "1330": {
+        "team_id": "1330",
+        "name": "teamWKG",
+        "color_background": "3f4c54",
+        "color_border": "3f4c54",
+        "color_text": "fa5e06"
+      },
+      "4982": {
+        "team_id": "4982",
+        "name": "CCNS ",
+        "color_background": "ffff00",
+        "color_border": "190000",
+        "color_text": "190404"
+      },
+      "2898": {
+        "team_id": "2898",
+        "name": "\u26a1\ufe0fFoudre\u26a1\ufe0f",
+        "color_background": "81ddfe",
+        "color_border": "00009f",
+        "color_text": "00009f"
+      },
+      "16219": {
+        "team_id": "16219",
+        "name": "SISU Racing",
+        "color_background": "1f1582",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "10607": {
+        "team_id": "10607",
+        "name": "ZiMA",
+        "color_background": "056e8c",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "21005": {
+        "team_id": "21005",
+        "name": "CC ",
+        "color_background": "ffffff",
+        "color_border": "0025ff",
+        "color_text": "0025ff"
+      },
+      "1426": {
+        "team_id": "1426",
+        "name": "Team CLS",
+        "color_background": "ffffff",
+        "color_border": "f36820",
+        "color_text": "04a941"
+      },
+      "15078": {
+        "team_id": "15078",
+        "name": "Rapha_RCC",
+        "color_background": "081678",
+        "color_border": "081678",
+        "color_text": "e51bb4"
+      },
+      "5256": {
+        "team_id": "5256",
+        "name": "#VDoT",
+        "color_background": "0073b7",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "32": {
+        "team_id": "32",
+        "name": "SZ",
+        "color_background": "285697",
+        "color_border": "ffd700",
+        "color_text": "ffffff"
+      },
+      "4638": {
+        "team_id": "4638",
+        "name": "WLRCC",
+        "color_background": "000000",
+        "color_border": "1f51ff",
+        "color_text": "c0392b"
+      },
+      "23445": {
+        "team_id": "23445",
+        "name": "RV Sulz",
+        "color_background": "0073b7",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "20685": {
+        "team_id": "20685",
+        "name": "Kaboom!",
+        "color_background": "0093d1",
+        "color_border": "0093d1",
+        "color_text": "ffffff"
+      },
+      "90": {
+        "team_id": "90",
+        "name": "Vikings",
+        "color_background": "0073b7",
+        "color_border": "ee6331",
+        "color_text": "c2c2c2"
+      },
+      "17788": {
+        "team_id": "17788",
+        "name": "Robot",
+        "color_background": "0073b7",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "11991": {
+        "team_id": "11991",
+        "name": "COALITION",
+        "color_background": "ff00ff",
+        "color_border": "ff00ff",
+        "color_text": "ffffff"
+      },
+      "25": {
+        "team_id": "25",
+        "name": "ZTPL.CC",
+        "color_background": "ff1800",
+        "color_border": "ff0000",
+        "color_text": "ffffff"
+      },
+      "21062": {
+        "team_id": "21062",
+        "name": "MERP",
+        "color_background": "0073b7",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "15009": {
+        "team_id": "15009",
+        "name": "BC\u26a1BC",
+        "color_background": "000000",
+        "color_border": "000000",
+        "color_text": "ffffff"
+      },
+      "5484": {
+        "team_id": "5484",
+        "name": "KIT",
+        "color_background": "0073b7",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "11452": {
+        "team_id": "11452",
+        "name": "Sexy Walrus ",
+        "color_background": "5555ff",
+        "color_border": "ffff6f",
+        "color_text": "ffffff"
+      },
+      "10": {
+        "team_id": "10",
+        "name": "TFC",
+        "color_background": "f3f300",
+        "color_border": "111111",
+        "color_text": "111111"
+      },
+      "5835": {
+        "team_id": "5835",
+        "name": "DolceVita",
+        "color_background": "0073b7",
+        "color_border": "000000",
+        "color_text": "cfcf13"
+      },
+      "17642": {
+        "team_id": "17642",
+        "name": "SNCANVY",
+        "color_background": "0073b7",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "7930": {
+        "team_id": "7930",
+        "name": "ANTHM ",
+        "color_background": "0073b7",
+        "color_border": "ffffff",
+        "color_text": "ffffff"
+      },
+      "1": {
+        "team_id": "1",
+        "name": "PTz",
+        "color_background": "ffffff",
+        "color_border": "00bb31",
+        "color_text": "dc3513"
+      },
+      "791": {
+        "team_id": "791",
+        "name": "Race3R",
+        "color_background": "2bc3f4",
+        "color_border": "ffffff",
+        "color_text": "000000"
+      },
+      "19667": {
+        "team_id": "19667",
+        "name": "GTR",
+        "color_background": "6c9be3",
+        "color_border": "ea9b19",
+        "color_text": "ffffff"
+      },
+      "22262": {
+        "team_id": "22262",
+        "name": "TSE",
+        "color_background": "f5fc72",
+        "color_border": "312c2c",
+        "color_text": "c32323"
+      },
+      "10683": {
+        "team_id": "10683",
+        "name": "PETA-Z",
+        "color_background": "ffff00",
+        "color_border": "000000",
+        "color_text": "ff0000"
+      }
+    },
+    "standings": [
+      {
+        "position": 1,
+        "zwift_id": 787706,
+        "aid": 787706,
+        "name": "kirk hawks (DIRT)",
+        "points": 354,
+        "events": 3,
+        "category": "E",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "60+",
+        "flag": "zw",
+        "history": [
+          "2",
+          "1",
+          "1"
+        ]
+      },
+      {
+        "position": 1,
+        "zwift_id": 7364132,
+        "aid": 7364132,
+        "name": "Eddie Adams",
+        "points": 338,
+        "events": 3,
+        "category": "C",
+        "team_id": 16553,
+        "team_name": "[GALAXY]",
+        "age": "50+",
+        "flag": "au",
+        "history": [
+          "1",
+          "1"
+        ]
+      },
+      {
+        "position": 2,
+        "zwift_id": 2497831,
+        "aid": 2497831,
+        "name": "B. Reiffer",
+        "points": 301,
+        "events": 3,
+        "category": "C",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "Vet",
+        "flag": "de",
+        "history": []
+      },
+      {
+        "position": 2,
+        "zwift_id": 2747074,
+        "aid": 2747074,
+        "name": "Christopher   Campbell",
+        "points": 295,
+        "events": 3,
+        "category": "E",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "50+",
+        "flag": "us",
+        "history": [
+          "3"
+        ]
+      },
+      {
+        "position": 1,
+        "zwift_id": 1950150,
+        "aid": 1950150,
+        "name": "Mark Brothers (DIRT)",
+        "points": 292,
+        "events": 3,
+        "category": "D",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "50+",
+        "flag": "us",
+        "history": []
+      },
+      {
+        "position": 3,
+        "zwift_id": 486643,
+        "aid": 486643,
+        "name": "Thomas Nordtomme[DIRT]",
+        "points": 291,
+        "events": 3,
+        "category": "E",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "50+",
+        "flag": "no",
+        "history": []
+      },
+      {
+        "position": 3,
+        "zwift_id": 550564,
+        "aid": 550564,
+        "name": "Doug Morris [TeamDIRT.racing]",
+        "points": 291,
+        "events": 3,
+        "category": "E",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "50+",
+        "flag": "ch",
+        "history": []
+      },
+      {
+        "position": 5,
+        "zwift_id": 1537979,
+        "aid": 1537979,
+        "name": "Greg Morrow (DIRT)",
+        "points": 288,
+        "events": 3,
+        "category": "E",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "60+",
+        "flag": "ca",
+        "history": []
+      },
+      {
+        "position": 3,
+        "zwift_id": 3832397,
+        "aid": 3832397,
+        "name": "Jeff Kitto [Amethyst \ud83d\udc9c EMEA]",
+        "points": 286,
+        "events": 3,
+        "category": "C",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "Vet",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 2,
+        "zwift_id": 2974731,
+        "aid": 2974731,
+        "name": "Kurt Stueber [DIRT]",
+        "points": 270,
+        "events": 3,
+        "category": "D",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "70+",
+        "flag": "us",
+        "history": []
+      },
+      {
+        "position": 3,
+        "zwift_id": 1685615,
+        "aid": 1685615,
+        "name": "Pablo L",
+        "points": 234,
+        "events": 2,
+        "category": "D",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "Vet",
+        "flag": "ar",
+        "history": [
+          "2",
+          "1"
+        ]
+      },
+      {
+        "position": 6,
+        "zwift_id": 1825946,
+        "aid": 1825946,
+        "name": "Phil Smith (DIRT) \ud83d\udde1\ufe0f",
+        "points": 222,
+        "events": 2,
+        "category": "E",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "60+",
+        "flag": "gb-eng",
+        "history": [
+          "1"
+        ]
+      },
+      {
+        "position": 4,
+        "zwift_id": 2382582,
+        "aid": 2382582,
+        "name": "Martin Cote (Down n DIRTy)",
+        "points": 222,
+        "events": 2,
+        "category": "D",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "50+",
+        "flag": "ca",
+        "history": [
+          "1"
+        ]
+      },
+      {
+        "position": 7,
+        "zwift_id": 2026045,
+        "aid": 2026045,
+        "name": "Ignacio Flamarique (Hisp)",
+        "points": 205,
+        "events": 2,
+        "category": "E",
+        "team_id": 17763,
+        "team_name": "HISP",
+        "age": "60+",
+        "flag": "es",
+        "history": [
+          "3"
+        ]
+      },
+      {
+        "position": 8,
+        "zwift_id": 1084786,
+        "aid": 1084786,
+        "name": "Bryan Hilbert [DIRT]",
+        "points": 204,
+        "events": 2,
+        "category": "E",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "Vet",
+        "flag": "ua",
+        "history": [
+          "3"
+        ]
+      },
+      {
+        "position": 4,
+        "zwift_id": 2382582,
+        "aid": 2382582,
+        "name": "Martin Cote (Down n DIRTy)",
+        "points": 202,
+        "events": 2,
+        "category": "C",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "50+",
+        "flag": "ca",
+        "history": []
+      },
+      {
+        "position": 5,
+        "zwift_id": 486314,
+        "aid": 486314,
+        "name": "Svenja Scheller\u26a1(D/MIRT)",
+        "points": 195,
+        "events": 2,
+        "category": "D",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "50+",
+        "flag": "de",
+        "history": []
+      },
+      {
+        "position": 5,
+        "zwift_id": 207319,
+        "aid": 207319,
+        "name": "d starr ",
+        "points": 190,
+        "events": 2,
+        "category": "C",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "60+",
+        "flag": "us",
+        "history": []
+      },
+      {
+        "position": 6,
+        "zwift_id": 30452,
+        "aid": 30452,
+        "name": "Stefan Beckmann",
+        "points": 186,
+        "events": 2,
+        "category": "C",
+        "team_id": 1942,
+        "team_name": "ZRG",
+        "age": "50+",
+        "flag": "de",
+        "history": []
+      },
+      {
+        "position": 6,
+        "zwift_id": 257264,
+        "aid": 257264,
+        "name": "Tobi Scheller \u26a1\ud83d\udc0a (DIRT)",
+        "points": 174,
+        "events": 2,
+        "category": "D",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "50+",
+        "flag": "de",
+        "history": []
+      },
+      {
+        "position": 7,
+        "zwift_id": 174154,
+        "aid": 174154,
+        "name": "Mark Goodman",
+        "points": 120,
+        "events": 1,
+        "category": "D",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Vet",
+        "flag": "us",
+        "history": [
+          "1"
+        ]
+      },
+      {
+        "position": 1,
+        "zwift_id": 399027,
+        "aid": 399027,
+        "name": "Rob Wainwright  (Corona Zwifters)",
+        "points": 120,
+        "events": 1,
+        "category": "B",
+        "team_id": 14178,
+        "team_name": "Corona Zwifters",
+        "age": "60+",
+        "flag": "ua",
+        "history": [
+          "1"
+        ]
+      },
+      {
+        "position": 1,
+        "zwift_id": 551676,
+        "aid": 551676,
+        "name": "Sean Dailey _[DRAFT]",
+        "points": 120,
+        "events": 1,
+        "category": "A",
+        "team_id": 1634,
+        "team_name": "[DRAFT]",
+        "age": "Vet",
+        "flag": "us",
+        "history": [
+          "1"
+        ]
+      },
+      {
+        "position": 1,
+        "zwift_id": 616484,
+        "aid": 616484,
+        "name": "Greg Doucette bodybuilder",
+        "points": 120,
+        "events": 1,
+        "category": "B",
+        "team_id": 15692,
+        "team_name": "HTLT",
+        "age": "50+",
+        "flag": "ca",
+        "history": [
+          "1"
+        ]
+      },
+      {
+        "position": 1,
+        "zwift_id": 1354178,
+        "aid": 1354178,
+        "name": "To\u00f1o S\u00e1daba1354178",
+        "points": 120,
+        "events": 1,
+        "category": "A",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Vet",
+        "flag": "es",
+        "history": [
+          "1"
+        ]
+      },
+      {
+        "position": 1,
+        "zwift_id": 1654032,
+        "aid": 1654032,
+        "name": "Marek Sadovsky",
+        "points": 120,
+        "events": 1,
+        "category": "A",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Mas",
+        "flag": "cz",
+        "history": [
+          "1"
+        ]
+      },
+      {
+        "position": 7,
+        "zwift_id": 2027019,
+        "aid": 2027019,
+        "name": "Frederik Lundberg",
+        "points": 120,
+        "events": 1,
+        "category": "C",
+        "team_id": 4409,
+        "team_name": "NBCK",
+        "age": "Mas",
+        "flag": "dk",
+        "history": [
+          "1"
+        ]
+      },
+      {
+        "position": 1,
+        "zwift_id": 3077472,
+        "aid": 3077472,
+        "name": "V\u00e4in\u00f6 Hakkarainen [SISU Naakka]",
+        "points": 120,
+        "events": 1,
+        "category": "B",
+        "team_id": 142,
+        "team_name": "FK Team",
+        "age": "Vet",
+        "flag": "fi",
+        "history": [
+          "1"
+        ]
+      },
+      {
+        "position": 7,
+        "zwift_id": 3275246,
+        "aid": 3275246,
+        "name": "Gee Wilikers",
+        "points": 120,
+        "events": 1,
+        "category": "D",
+        "team_id": 0,
+        "team_name": "",
+        "age": "50+",
+        "flag": "us",
+        "history": [
+          "1"
+        ]
+      },
+      {
+        "position": 1,
+        "zwift_id": 3626769,
+        "aid": 3626769,
+        "name": "Guy Dorschner",
+        "points": 120,
+        "events": 1,
+        "category": "B",
+        "team_id": 0,
+        "team_name": "",
+        "age": "U23",
+        "flag": "ch",
+        "history": [
+          "1"
+        ]
+      },
+      {
+        "position": 7,
+        "zwift_id": 5518064,
+        "aid": 5518064,
+        "name": "Adam Cronin",
+        "points": 120,
+        "events": 1,
+        "category": "C",
+        "team_id": 13096,
+        "team_name": "Fluffy Bunnies",
+        "age": "Snr",
+        "flag": "us",
+        "history": [
+          "1"
+        ]
+      },
+      {
+        "position": 9,
+        "zwift_id": 6149355,
+        "aid": 6149355,
+        "name": "Jesus Garcia",
+        "points": 120,
+        "events": 1,
+        "category": "E",
+        "team_id": 0,
+        "team_name": "",
+        "age": "",
+        "flag": "es",
+        "history": [
+          "1"
+        ]
+      },
+      {
+        "position": 10,
+        "zwift_id": 220740,
+        "aid": 220740,
+        "name": "SERGEY MATVEEV",
+        "points": 114,
+        "events": 1,
+        "category": "E",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Vet",
+        "flag": "ru",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 5,
+        "zwift_id": 265633,
+        "aid": 265633,
+        "name": "Jono Hornblow",
+        "points": 114,
+        "events": 1,
+        "category": "B",
+        "team_id": 19928,
+        "team_name": "WBC",
+        "age": "Mas",
+        "flag": "gb",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 10,
+        "zwift_id": 430044,
+        "aid": 430044,
+        "name": "jon kiessel  [OREO]",
+        "points": 114,
+        "events": 1,
+        "category": "E",
+        "team_id": 17621,
+        "team_name": "DIRTY MITTEN",
+        "age": "50+",
+        "flag": "us",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 4,
+        "zwift_id": 433669,
+        "aid": 433669,
+        "name": "Eugene Kanshin",
+        "points": 114,
+        "events": 1,
+        "category": "A",
+        "team_id": 2705,
+        "team_name": "NYU",
+        "age": "Vet",
+        "flag": "ca",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 9,
+        "zwift_id": 752797,
+        "aid": 752797,
+        "name": "Robert Orr ",
+        "points": 114,
+        "events": 1,
+        "category": "C",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Mas",
+        "flag": "us",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 5,
+        "zwift_id": 1131172,
+        "aid": 1131172,
+        "name": "T im (DIRTy Sea \u2620\ufe0f Dogs)",
+        "points": 114,
+        "events": 1,
+        "category": "B",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "50+",
+        "flag": "gb",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 4,
+        "zwift_id": 1267806,
+        "aid": 1267806,
+        "name": "Joe Senn",
+        "points": 114,
+        "events": 1,
+        "category": "A",
+        "team_id": 4299,
+        "team_name": "ABR Cycle Team",
+        "age": "Vet",
+        "flag": "us",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 9,
+        "zwift_id": 1945802,
+        "aid": 1945802,
+        "name": "savoyad (Eat DIRT)",
+        "points": 114,
+        "events": 1,
+        "category": "D",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "Vet",
+        "flag": "gb",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 9,
+        "zwift_id": 1967971,
+        "aid": 1967971,
+        "name": "Jacques Greeff (Dirt) \ud83c\uddff\ud83c\udde6",
+        "points": 114,
+        "events": 1,
+        "category": "C",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "Vet",
+        "flag": "za",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 9,
+        "zwift_id": 2210503,
+        "aid": 2210503,
+        "name": "Mathieu Demarne",
+        "points": 114,
+        "events": 1,
+        "category": "D",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Mas",
+        "flag": "ch",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 4,
+        "zwift_id": 2566619,
+        "aid": 2566619,
+        "name": "Kev Fowler ACU VTTA 15352",
+        "points": 114,
+        "events": 1,
+        "category": "A",
+        "team_id": 2639,
+        "team_name": "HERD",
+        "age": "60+",
+        "flag": "gb-eng",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 9,
+        "zwift_id": 2594118,
+        "aid": 2594118,
+        "name": "Robert Leiter",
+        "points": 114,
+        "events": 1,
+        "category": "C",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Mas",
+        "flag": "de",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 5,
+        "zwift_id": 2667600,
+        "aid": 2667600,
+        "name": "Hegson Rapozo [LUBE]",
+        "points": 114,
+        "events": 1,
+        "category": "B",
+        "team_id": 20564,
+        "team_name": "SYN",
+        "age": "Mas",
+        "flag": "do",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 5,
+        "zwift_id": 3089937,
+        "aid": 3089937,
+        "name": "Kyrill Visser",
+        "points": 114,
+        "events": 1,
+        "category": "B",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Mas",
+        "flag": "nl",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 9,
+        "zwift_id": 3234068,
+        "aid": 3234068,
+        "name": "Santi Seti\u00e9n",
+        "points": 114,
+        "events": 1,
+        "category": "D",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Vet",
+        "flag": "es",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 10,
+        "zwift_id": 3935289,
+        "aid": 3935289,
+        "name": "Bob gallagher",
+        "points": 114,
+        "events": 1,
+        "category": "E",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "50+",
+        "flag": "gb",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 9,
+        "zwift_id": 6973391,
+        "aid": 6973391,
+        "name": "Alex \ud83d\ude03daphlex",
+        "points": 114,
+        "events": 1,
+        "category": "C",
+        "team_id": 0,
+        "team_name": "",
+        "age": "50+",
+        "flag": "be",
+        "history": [
+          "2"
+        ]
+      },
+      {
+        "position": 9,
+        "zwift_id": 8582,
+        "aid": 8582,
+        "name": "Bearded Wizard",
+        "points": 108,
+        "events": 1,
+        "category": "B",
+        "team_id": 10238,
+        "team_name": "TF ",
+        "age": "Vet",
+        "flag": "us",
+        "history": [
+          "3"
+        ]
+      },
+      {
+        "position": 9,
+        "zwift_id": 36723,
+        "aid": 36723,
+        "name": "Thomas Ervik",
+        "points": 108,
+        "events": 1,
+        "category": "B",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "Vet",
+        "flag": "no",
+        "history": [
+          "3"
+        ]
+      },
+      {
+        "position": 7,
+        "zwift_id": 53428,
+        "aid": 53428,
+        "name": "Jonny Winward (WKG)",
+        "points": 108,
+        "events": 1,
+        "category": "A",
+        "team_id": 1330,
+        "team_name": "teamWKG",
+        "age": "Vet",
+        "flag": "gb",
+        "history": [
+          "3"
+        ]
+      },
+      {
+        "position": 7,
+        "zwift_id": 222519,
+        "aid": 222519,
+        "name": "Hunter Pronovost (CCNS Coach)",
+        "points": 108,
+        "events": 1,
+        "category": "A",
+        "team_id": 4982,
+        "team_name": "CCNS ",
+        "age": "Vet",
+        "flag": "us",
+        "history": [
+          "3"
+        ]
+      },
+      {
+        "position": 12,
+        "zwift_id": 859436,
+        "aid": 859436,
+        "name": "Kyle Thatcher",
+        "points": 108,
+        "events": 1,
+        "category": "D",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Mas",
+        "flag": "us",
+        "history": [
+          "3"
+        ]
+      },
+      {
+        "position": 12,
+        "zwift_id": 1003565,
+        "aid": 1003565,
+        "name": "Yannick Ferrier",
+        "points": 108,
+        "events": 1,
+        "category": "D",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Vet",
+        "flag": "fr",
+        "history": [
+          "3"
+        ]
+      },
+      {
+        "position": 12,
+        "zwift_id": 1244965,
+        "aid": 1244965,
+        "name": "Sully (Eat DIRT Too)",
+        "points": 108,
+        "events": 1,
+        "category": "D",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "Vet",
+        "flag": "us",
+        "history": [
+          "3"
+        ]
+      },
+      {
+        "position": 13,
+        "zwift_id": 1393009,
+        "aid": 1393009,
+        "name": "Kevin Hamer [Team DIRT Racing]",
+        "points": 108,
+        "events": 1,
+        "category": "C",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "Mas",
+        "flag": "nl",
+        "history": [
+          "3"
+        ]
+      },
+      {
+        "position": 9,
+        "zwift_id": 2322498,
+        "aid": 2322498,
+        "name": "Kevin Thomas \u26a1\ufe0f [FOUDRE] ",
+        "points": 108,
+        "events": 1,
+        "category": "B",
+        "team_id": 2898,
+        "team_name": "\u26a1\ufe0fFoudre\u26a1\ufe0f",
+        "age": "Mas",
+        "flag": "fr",
+        "history": [
+          "3"
+        ]
+      },
+      {
+        "position": 9,
+        "zwift_id": 3036997,
+        "aid": 3036997,
+        "name": "Robert Laporte ECC/SISU",
+        "points": 108,
+        "events": 1,
+        "category": "B",
+        "team_id": 16219,
+        "team_name": "SISU Racing",
+        "age": "50+",
+        "flag": "ca",
+        "history": [
+          "3"
+        ]
+      },
+      {
+        "position": 13,
+        "zwift_id": 5139836,
+        "aid": 5139836,
+        "name": "Ferret Franck",
+        "points": 108,
+        "events": 1,
+        "category": "C",
+        "team_id": 0,
+        "team_name": "",
+        "age": "60+",
+        "flag": "fr",
+        "history": [
+          "3"
+        ]
+      },
+      {
+        "position": 12,
+        "zwift_id": 6002357,
+        "aid": 6002357,
+        "name": "Shef Osborn",
+        "points": 108,
+        "events": 1,
+        "category": "D",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Mas",
+        "flag": "ua",
+        "history": [
+          "3"
+        ]
+      },
+      {
+        "position": 13,
+        "zwift_id": 6138545,
+        "aid": 6138545,
+        "name": "Valdemar Jensen",
+        "points": 108,
+        "events": 1,
+        "category": "C",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Jnr",
+        "flag": "dk",
+        "history": [
+          "3"
+        ]
+      },
+      {
+        "position": 13,
+        "zwift_id": 6746307,
+        "aid": 6746307,
+        "name": "Aaron Stevens",
+        "points": 108,
+        "events": 1,
+        "category": "C",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Snr",
+        "flag": "be",
+        "history": [
+          "3"
+        ]
+      },
+      {
+        "position": 13,
+        "zwift_id": 6877648,
+        "aid": 6877648,
+        "name": "Fenton Ingram",
+        "points": 108,
+        "events": 1,
+        "category": "E",
+        "team_id": 2639,
+        "team_name": "HERD",
+        "age": "50+",
+        "flag": "ca",
+        "history": [
+          "3"
+        ]
+      },
+      {
+        "position": 9,
+        "zwift_id": 274051,
+        "aid": 274051,
+        "name": "Kent  Hartmoyer",
+        "points": 102,
+        "events": 1,
+        "category": "A",
+        "team_id": 10607,
+        "team_name": "ZiMA",
+        "age": "Vet",
+        "flag": "us",
+        "history": []
+      },
+      {
+        "position": 13,
+        "zwift_id": 401831,
+        "aid": 401831,
+        "name": "Francois Gobeil",
+        "points": 102,
+        "events": 1,
+        "category": "B",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Mas",
+        "flag": "ca",
+        "history": []
+      },
+      {
+        "position": 13,
+        "zwift_id": 756900,
+        "aid": 756900,
+        "name": "Erik MILLER [CC]",
+        "points": 102,
+        "events": 1,
+        "category": "B",
+        "team_id": 21005,
+        "team_name": "CC ",
+        "age": "50+",
+        "flag": "us",
+        "history": []
+      },
+      {
+        "position": 16,
+        "zwift_id": 2095834,
+        "aid": 2095834,
+        "name": "Hai Nguyen",
+        "points": 102,
+        "events": 1,
+        "category": "D",
+        "team_id": 0,
+        "team_name": "",
+        "age": "50+",
+        "flag": "ca",
+        "history": []
+      },
+      {
+        "position": 13,
+        "zwift_id": 2524186,
+        "aid": 2524186,
+        "name": "Alex Watts (WKG)",
+        "points": 102,
+        "events": 1,
+        "category": "B",
+        "team_id": 1330,
+        "team_name": "teamWKG",
+        "age": "Mas",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 16,
+        "zwift_id": 3022380,
+        "aid": 3022380,
+        "name": "Ethan Keyes (Zwift Elk)",
+        "points": 102,
+        "events": 1,
+        "category": "D",
+        "team_id": 0,
+        "team_name": "",
+        "age": "50+",
+        "flag": "us",
+        "history": []
+      },
+      {
+        "position": 16,
+        "zwift_id": 3985758,
+        "aid": 3985758,
+        "name": "James Chadburn [Team CLS]",
+        "points": 102,
+        "events": 1,
+        "category": "D",
+        "team_id": 1426,
+        "team_name": "Team CLS",
+        "age": "50+",
+        "flag": "us",
+        "history": []
+      },
+      {
+        "position": 17,
+        "zwift_id": 5522732,
+        "aid": 5522732,
+        "name": "Martin Sahlertz",
+        "points": 102,
+        "events": 1,
+        "category": "C",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Mas",
+        "flag": "dk",
+        "history": []
+      },
+      {
+        "position": 19,
+        "zwift_id": 15407,
+        "aid": 15407,
+        "name": "myles webster WWCC",
+        "points": 101,
+        "events": 1,
+        "category": "D",
+        "team_id": 0,
+        "team_name": "",
+        "age": "50+",
+        "flag": "us",
+        "history": []
+      },
+      {
+        "position": 14,
+        "zwift_id": 257264,
+        "aid": 257264,
+        "name": "Tobi Scheller \u26a1\ud83d\udc0a (DIRT)",
+        "points": 101,
+        "events": 1,
+        "category": "E",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "50+",
+        "flag": "de",
+        "history": []
+      },
+      {
+        "position": 14,
+        "zwift_id": 421252,
+        "aid": 421252,
+        "name": "David Finkelstein",
+        "points": 101,
+        "events": 1,
+        "category": "E",
+        "team_id": 15078,
+        "team_name": "Rapha_RCC",
+        "age": "50+",
+        "flag": "us",
+        "history": []
+      },
+      {
+        "position": 18,
+        "zwift_id": 1211819,
+        "aid": 1211819,
+        "name": "Hans Wurst",
+        "points": 101,
+        "events": 1,
+        "category": "C",
+        "team_id": 5256,
+        "team_name": "#VDoT",
+        "age": "Mas",
+        "flag": "ch",
+        "history": []
+      },
+      {
+        "position": 18,
+        "zwift_id": 2806732,
+        "aid": 2806732,
+        "name": "Christopher Perkins",
+        "points": 101,
+        "events": 1,
+        "category": "C",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Mas",
+        "flag": "us",
+        "history": []
+      },
+      {
+        "position": 16,
+        "zwift_id": 2850530,
+        "aid": 2850530,
+        "name": "Micke  (SZ)",
+        "points": 101,
+        "events": 1,
+        "category": "B",
+        "team_id": 32,
+        "team_name": "SZ",
+        "age": "50+",
+        "flag": "se",
+        "history": []
+      },
+      {
+        "position": 10,
+        "zwift_id": 4492827,
+        "aid": 4492827,
+        "name": "Julius Demuynck",
+        "points": 101,
+        "events": 1,
+        "category": "A",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Snr",
+        "flag": "be",
+        "history": []
+      },
+      {
+        "position": 19,
+        "zwift_id": 6279960,
+        "aid": 6279960,
+        "name": "Joan Abdennebi (WLRCC)",
+        "points": 101,
+        "events": 1,
+        "category": "D",
+        "team_id": 4638,
+        "team_name": "WLRCC",
+        "age": "Mas",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 19,
+        "zwift_id": 7702974,
+        "aid": 7702974,
+        "name": "Reto St\u00e4uble",
+        "points": 101,
+        "events": 1,
+        "category": "D",
+        "team_id": 23445,
+        "team_name": "RV Sulz",
+        "age": "Mas",
+        "flag": "ch",
+        "history": []
+      },
+      {
+        "position": 20,
+        "zwift_id": 6998,
+        "aid": 6998,
+        "name": "Paul Young",
+        "points": 100,
+        "events": 1,
+        "category": "C",
+        "team_id": 20685,
+        "team_name": "Kaboom!",
+        "age": "50+",
+        "flag": "us",
+        "history": []
+      },
+      {
+        "position": 22,
+        "zwift_id": 8237,
+        "aid": 8237,
+        "name": "Brad Jackson",
+        "points": 100,
+        "events": 1,
+        "category": "D",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Vet",
+        "flag": "us",
+        "history": []
+      },
+      {
+        "position": 22,
+        "zwift_id": 36050,
+        "aid": 36050,
+        "name": "Vegard Thomassen [V] ",
+        "points": 100,
+        "events": 1,
+        "category": "D",
+        "team_id": 90,
+        "team_name": "Vikings",
+        "age": "Vet",
+        "flag": "no",
+        "history": []
+      },
+      {
+        "position": 16,
+        "zwift_id": 147511,
+        "aid": 147511,
+        "name": "Reyno La Cock",
+        "points": 100,
+        "events": 1,
+        "category": "E",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Vet",
+        "flag": "ca",
+        "history": []
+      },
+      {
+        "position": 11,
+        "zwift_id": 579296,
+        "aid": 579296,
+        "name": "Jochem Koolhaas  ",
+        "points": 100,
+        "events": 1,
+        "category": "A",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "Mas",
+        "flag": "nl",
+        "history": []
+      },
+      {
+        "position": 16,
+        "zwift_id": 1625804,
+        "aid": 1625804,
+        "name": "\u00d6zg\u00fcr Basak*Robot Cycl\u0131sts Team*",
+        "points": 100,
+        "events": 1,
+        "category": "E",
+        "team_id": 17788,
+        "team_name": "Robot",
+        "age": "Vet",
+        "flag": "tr",
+        "history": []
+      },
+      {
+        "position": 16,
+        "zwift_id": 1950150,
+        "aid": 1950150,
+        "name": "Mark Brothers (DIRT)",
+        "points": 100,
+        "events": 1,
+        "category": "E",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "50+",
+        "flag": "us",
+        "history": []
+      },
+      {
+        "position": 20,
+        "zwift_id": 2829308,
+        "aid": 2829308,
+        "name": "Tom Lynch",
+        "points": 100,
+        "events": 1,
+        "category": "C",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Snr",
+        "flag": "us",
+        "history": []
+      },
+      {
+        "position": 16,
+        "zwift_id": 2974731,
+        "aid": 2974731,
+        "name": "Kurt Stueber [DIRT]",
+        "points": 100,
+        "events": 1,
+        "category": "E",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "70+",
+        "flag": "us",
+        "history": []
+      },
+      {
+        "position": 22,
+        "zwift_id": 3838554,
+        "aid": 3838554,
+        "name": "R. Jensen",
+        "points": 100,
+        "events": 1,
+        "category": "D",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "50+",
+        "flag": "us",
+        "history": []
+      },
+      {
+        "position": 17,
+        "zwift_id": 4487779,
+        "aid": 4487779,
+        "name": "Jon Alligators ",
+        "points": 100,
+        "events": 1,
+        "category": "B",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "Mas",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 22,
+        "zwift_id": 5951220,
+        "aid": 5951220,
+        "name": "Gabriel Garcia [LUBE]",
+        "points": 100,
+        "events": 1,
+        "category": "D",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Mas",
+        "flag": "co",
+        "history": []
+      },
+      {
+        "position": 26,
+        "zwift_id": 83907,
+        "aid": 83907,
+        "name": "Kenton Harmer",
+        "points": 98,
+        "events": 1,
+        "category": "D",
+        "team_id": 11991,
+        "team_name": "COALITION",
+        "age": "50+",
+        "flag": "ca",
+        "history": []
+      },
+      {
+        "position": 22,
+        "zwift_id": 120142,
+        "aid": 120142,
+        "name": "Nicolai Clausen",
+        "points": 98,
+        "events": 1,
+        "category": "C",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Snr",
+        "flag": "dk",
+        "history": []
+      },
+      {
+        "position": 22,
+        "zwift_id": 188969,
+        "aid": 188969,
+        "name": "Jaroslaw Oworuszko",
+        "points": 98,
+        "events": 1,
+        "category": "C",
+        "team_id": 25,
+        "team_name": "ZTPL.CC",
+        "age": "50+",
+        "flag": "pl",
+        "history": []
+      },
+      {
+        "position": 26,
+        "zwift_id": 1084786,
+        "aid": 1084786,
+        "name": "Bryan Hilbert [DIRT]",
+        "points": 98,
+        "events": 1,
+        "category": "D",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "Vet",
+        "flag": "ua",
+        "history": []
+      },
+      {
+        "position": 18,
+        "zwift_id": 3589708,
+        "aid": 3589708,
+        "name": "Alex Caskanette [MERP]",
+        "points": 98,
+        "events": 1,
+        "category": "B",
+        "team_id": 21062,
+        "team_name": "MERP",
+        "age": "Mas",
+        "flag": "ca",
+        "history": []
+      },
+      {
+        "position": 12,
+        "zwift_id": 6988335,
+        "aid": 6988335,
+        "name": "Lian Cardona [VCM]",
+        "points": 98,
+        "events": 1,
+        "category": "A",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Jnr",
+        "flag": "ca",
+        "history": []
+      },
+      {
+        "position": 20,
+        "zwift_id": 7815751,
+        "aid": 7815751,
+        "name": "E Eriksson",
+        "points": 98,
+        "events": 1,
+        "category": "E",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Mas",
+        "flag": "se",
+        "history": []
+      },
+      {
+        "position": 21,
+        "zwift_id": 209656,
+        "aid": 209656,
+        "name": "Ben Scruton (Brixton CC)",
+        "points": 97,
+        "events": 1,
+        "category": "E",
+        "team_id": 15009,
+        "team_name": "BC\u26a1BC",
+        "age": "Vet",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 19,
+        "zwift_id": 415526,
+        "aid": 415526,
+        "name": "Richard Wooles ",
+        "points": 97,
+        "events": 1,
+        "category": "B",
+        "team_id": 0,
+        "team_name": "",
+        "age": "50+",
+        "flag": "ca",
+        "history": []
+      },
+      {
+        "position": 24,
+        "zwift_id": 532481,
+        "aid": 532481,
+        "name": "Michael Roper [GXY]",
+        "points": 97,
+        "events": 1,
+        "category": "C",
+        "team_id": 5484,
+        "team_name": "KIT",
+        "age": "50+",
+        "flag": "us",
+        "history": []
+      },
+      {
+        "position": 28,
+        "zwift_id": 560630,
+        "aid": 560630,
+        "name": "Lee Read",
+        "points": 97,
+        "events": 1,
+        "category": "D",
+        "team_id": 1426,
+        "team_name": "Team CLS",
+        "age": "Vet",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 24,
+        "zwift_id": 1016934,
+        "aid": 1016934,
+        "name": "Bryan Hall (DIRTy Wattz)",
+        "points": 97,
+        "events": 1,
+        "category": "C",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "Vet",
+        "flag": "us",
+        "history": []
+      },
+      {
+        "position": 21,
+        "zwift_id": 3177755,
+        "aid": 3177755,
+        "name": "Henrik Andreasen-Melby",
+        "points": 97,
+        "events": 1,
+        "category": "E",
+        "team_id": 0,
+        "team_name": "",
+        "age": "60+",
+        "flag": "dk",
+        "history": []
+      },
+      {
+        "position": 28,
+        "zwift_id": 5512895,
+        "aid": 5512895,
+        "name": "First D#V\u20ac(DIRT)",
+        "points": 97,
+        "events": 1,
+        "category": "D",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "50+",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 23,
+        "zwift_id": 72409,
+        "aid": 72409,
+        "name": "Sarah G",
+        "points": 96,
+        "events": 1,
+        "category": "E",
+        "team_id": 0,
+        "team_name": "",
+        "age": "50+",
+        "flag": "us",
+        "history": []
+      },
+      {
+        "position": 30,
+        "zwift_id": 201894,
+        "aid": 201894,
+        "name": "Tom W.(TaylorZwiftRacing)",
+        "points": 96,
+        "events": 1,
+        "category": "D",
+        "team_id": 0,
+        "team_name": "",
+        "age": "50+",
+        "flag": "it",
+        "history": []
+      },
+      {
+        "position": 26,
+        "zwift_id": 205545,
+        "aid": 205545,
+        "name": "Wojciech Giez",
+        "points": 96,
+        "events": 1,
+        "category": "C",
+        "team_id": 25,
+        "team_name": "ZTPL.CC",
+        "age": "Vet",
+        "flag": "pl",
+        "history": []
+      },
+      {
+        "position": 30,
+        "zwift_id": 1656323,
+        "aid": 1656323,
+        "name": "Andrew Hall",
+        "points": 96,
+        "events": 1,
+        "category": "D",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Vet",
+        "flag": "za",
+        "history": []
+      },
+      {
+        "position": 20,
+        "zwift_id": 2755916,
+        "aid": 2755916,
+        "name": "Ollie\u26a1\ufe0f\ud83d\ude82\ud83e\udd9b (DIRT)",
+        "points": 96,
+        "events": 1,
+        "category": "B",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "Vet",
+        "flag": "hk",
+        "history": []
+      },
+      {
+        "position": 26,
+        "zwift_id": 4338564,
+        "aid": 4338564,
+        "name": "Henry Humphreys",
+        "points": 96,
+        "events": 1,
+        "category": "C",
+        "team_id": 11452,
+        "team_name": "Sexy Walrus ",
+        "age": "Vet",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 23,
+        "zwift_id": 5665921,
+        "aid": 5665921,
+        "name": "Bryan Bugslag (TFC)",
+        "points": 96,
+        "events": 1,
+        "category": "E",
+        "team_id": 10,
+        "team_name": "TFC",
+        "age": "60+",
+        "flag": "ca",
+        "history": []
+      },
+      {
+        "position": 28,
+        "zwift_id": 716680,
+        "aid": 716680,
+        "name": "J Nau",
+        "points": 95,
+        "events": 1,
+        "category": "C",
+        "team_id": 5835,
+        "team_name": "DolceVita",
+        "age": "Mas",
+        "flag": "us",
+        "history": []
+      },
+      {
+        "position": 32,
+        "zwift_id": 2820209,
+        "aid": 2820209,
+        "name": "Steve Hodgson",
+        "points": 95,
+        "events": 1,
+        "category": "D",
+        "team_id": 0,
+        "team_name": "",
+        "age": "50+",
+        "flag": "gb",
+        "history": []
+      },
+      {
+        "position": 21,
+        "zwift_id": 3465682,
+        "aid": 3465682,
+        "name": "christopher thomas",
+        "points": 95,
+        "events": 1,
+        "category": "B",
+        "team_id": 2898,
+        "team_name": "\u26a1\ufe0fFoudre\u26a1\ufe0f",
+        "age": "Mas",
+        "flag": "fr",
+        "history": []
+      },
+      {
+        "position": 25,
+        "zwift_id": 4763037,
+        "aid": 4763037,
+        "name": "Chris DePaola",
+        "points": 95,
+        "events": 1,
+        "category": "E",
+        "team_id": 17642,
+        "team_name": "SNCANVY",
+        "age": "Mas",
+        "flag": "us",
+        "history": []
+      },
+      {
+        "position": 28,
+        "zwift_id": 6824142,
+        "aid": 6824142,
+        "name": "Stephen Guyon",
+        "points": 95,
+        "events": 1,
+        "category": "C",
+        "team_id": 0,
+        "team_name": "",
+        "age": "50+",
+        "flag": "us",
+        "history": []
+      },
+      {
+        "position": 25,
+        "zwift_id": 7840956,
+        "aid": 7840956,
+        "name": "Leon (PDX) Stamatis",
+        "points": 95,
+        "events": 1,
+        "category": "E",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "Vet",
+        "flag": "us",
+        "history": []
+      },
+      {
+        "position": 33,
+        "zwift_id": 1523197,
+        "aid": 1523197,
+        "name": "Esteban Seguin",
+        "points": 89,
+        "events": 1,
+        "category": "D",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Vet",
+        "flag": "ca",
+        "history": []
+      },
+      {
+        "position": 22,
+        "zwift_id": 2260841,
+        "aid": 2260841,
+        "name": "joe reynolds [ANTHM]",
+        "points": 89,
+        "events": 1,
+        "category": "B",
+        "team_id": 7930,
+        "team_name": "ANTHM ",
+        "age": "Vet",
+        "flag": "",
+        "history": []
+      },
+      {
+        "position": 33,
+        "zwift_id": 4640383,
+        "aid": 4640383,
+        "name": "Carsten Bech",
+        "points": 89,
+        "events": 1,
+        "category": "D",
+        "team_id": 2639,
+        "team_name": "HERD",
+        "age": "50+",
+        "flag": "dk",
+        "history": []
+      },
+      {
+        "position": 30,
+        "zwift_id": 5828470,
+        "aid": 5828470,
+        "name": "Nuno Pires",
+        "points": 89,
+        "events": 1,
+        "category": "C",
+        "team_id": 1,
+        "team_name": "PTz",
+        "age": "Vet",
+        "flag": "pt",
+        "history": []
+      },
+      {
+        "position": 27,
+        "zwift_id": 7795429,
+        "aid": 7795429,
+        "name": "Miroljub Mihailovic",
+        "points": 89,
+        "events": 1,
+        "category": "E",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Snr",
+        "flag": "it",
+        "history": []
+      },
+      {
+        "position": 31,
+        "zwift_id": 2243937,
+        "aid": 2243937,
+        "name": "Domenico Spano ",
+        "points": 88,
+        "events": 1,
+        "category": "C",
+        "team_id": 791,
+        "team_name": "Race3R",
+        "age": "Vet",
+        "flag": "be",
+        "history": []
+      },
+      {
+        "position": 28,
+        "zwift_id": 6656659,
+        "aid": 6656659,
+        "name": "Jeroen Zegers [GTR]",
+        "points": 88,
+        "events": 1,
+        "category": "E",
+        "team_id": 19667,
+        "team_name": "GTR",
+        "age": "Mas",
+        "flag": "be",
+        "history": []
+      },
+      {
+        "position": 32,
+        "zwift_id": 3403032,
+        "aid": 3403032,
+        "name": "Wilhelm Bonato(TSE)",
+        "points": 87,
+        "events": 1,
+        "category": "C",
+        "team_id": 22262,
+        "team_name": "TSE",
+        "age": "60+",
+        "flag": "it",
+        "history": []
+      },
+      {
+        "position": 35,
+        "zwift_id": 3971839,
+        "aid": 3971839,
+        "name": "corey s",
+        "points": 87,
+        "events": 1,
+        "category": "D",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Mas",
+        "flag": "us",
+        "history": []
+      },
+      {
+        "position": 32,
+        "zwift_id": 4358669,
+        "aid": 4358669,
+        "name": "Dan Coley (RRAZ)",
+        "points": 87,
+        "events": 1,
+        "category": "C",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Vet",
+        "flag": "us",
+        "history": []
+      },
+      {
+        "position": 29,
+        "zwift_id": 6924283,
+        "aid": 6924283,
+        "name": "[HCK] Albin Otterh\u00e4ll",
+        "points": 87,
+        "events": 1,
+        "category": "E",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Mas",
+        "flag": "se",
+        "history": []
+      },
+      {
+        "position": 34,
+        "zwift_id": 486314,
+        "aid": 486314,
+        "name": "Svenja Scheller\u26a1(D/MIRT)",
+        "points": 86,
+        "events": 1,
+        "category": "C",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "50+",
+        "flag": "de",
+        "history": []
+      },
+      {
+        "position": 34,
+        "zwift_id": 1038056,
+        "aid": 1038056,
+        "name": "Norberto Pena Nunez3501 ",
+        "points": 86,
+        "events": 1,
+        "category": "C",
+        "team_id": 10683,
+        "team_name": "PETA-Z",
+        "age": "Vet",
+        "flag": "es",
+        "history": []
+      },
+      {
+        "position": 30,
+        "zwift_id": 6842518,
+        "aid": 6842518,
+        "name": "Carl Pennington",
+        "points": 86,
+        "events": 1,
+        "category": "E",
+        "team_id": 0,
+        "team_name": "",
+        "age": "60+",
+        "flag": "us",
+        "history": []
+      },
+      {
+        "position": 36,
+        "zwift_id": 5374840,
+        "aid": 5374840,
+        "name": "Nikolai Nordsborg",
+        "points": 85,
+        "events": 1,
+        "category": "C",
+        "team_id": 0,
+        "team_name": "",
+        "age": "50+",
+        "flag": "dk",
+        "history": []
+      },
+      {
+        "position": 37,
+        "zwift_id": 560232,
+        "aid": 560232,
+        "name": "Wynn Legon",
+        "points": 84,
+        "events": 1,
+        "category": "C",
+        "team_id": 2707,
+        "team_name": "DIRT",
+        "age": "50+",
+        "flag": "ca",
+        "history": []
+      },
+      {
+        "position": 31,
+        "zwift_id": 5260408,
+        "aid": 5260408,
+        "name": "Line Grann\u00e6s (YNBA)",
+        "points": 84,
+        "events": 1,
+        "category": "E",
+        "team_id": 90,
+        "team_name": "Vikings",
+        "age": "Vet",
+        "flag": "no",
+        "history": []
+      },
+      {
+        "position": 38,
+        "zwift_id": 3367790,
+        "aid": 3367790,
+        "name": "klaas stynen",
+        "points": 83,
+        "events": 1,
+        "category": "C",
+        "team_id": 0,
+        "team_name": "",
+        "age": "Vet",
+        "flag": "be",
+        "history": []
+      },
+      {
+        "position": 39,
+        "zwift_id": 82679,
+        "aid": 82679,
+        "name": "Chris Nakahara []Follow On Spotify",
+        "points": 82,
+        "events": 1,
+        "category": "C",
+        "team_id": 0,
+        "team_name": "",
+        "age": "50+",
+        "flag": "ca",
+        "history": []
+      }
+    ]
+  }
+}

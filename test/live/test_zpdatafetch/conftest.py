@@ -52,14 +52,14 @@ def valid_league_ids():
 
 @pytest.fixture
 def league_fixtures():
-  """Load league fixture data from tmp/ directory.
+  """Load league fixture data from test/fixtures/ directory.
 
   The fixture files contain the processed format: {"id": {data}}
   We extract the data dict for each ID.
   """
   fixtures = {}
   for league_id in [1990, 2678, 3017]:
-    with open(f'tmp/league_{league_id}.json', encoding='utf8') as f:
+    with open(f'test/fixtures/league_{league_id}.json', encoding='utf8') as f:
       data = json.load(f)
       # data is {"1990": {...}} - extract the value for the string key
       fixtures[league_id] = data[str(league_id)]
