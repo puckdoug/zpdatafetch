@@ -25,7 +25,7 @@ class ZwiftRideOns:
   Also supports giving RideOns to activities.
 
   API Endpoints:
-      GET https://us-or-rly101.zwift.com/api/profiles/{riderId}/activities/{activityId}/rideons
+      GET https://us-or-rly101.zwift.com/api/profiles/{riderId}/activities/{activityId}/rideon
       POST https://us-or-rly101.zwift.com/api/profiles/{riderId}/activities/{activityId}/rideon
 
   Documentation: https://github.com/strukturunion-mmw/zwift-api-documentation
@@ -106,7 +106,7 @@ class ZwiftRideOns:
     self.rider_id = rider_id
     self.activity_id = activity_id
 
-    url = f'{self.BASE_URL}/api/profiles/{rider_id}/activities/{activity_id}/rideons'
+    url = f'{self.BASE_URL}/api/profiles/{rider_id}/activities/{activity_id}/rideon'
 
     try:
       with httpx2.Client() as client:
@@ -190,7 +190,7 @@ class ZwiftRideOns:
     with httpx2.Client() as client:
       for rider_id, activity_id in activity_tuples:
         try:
-          url = f'{cls.BASE_URL}/api/profiles/{rider_id}/activities/{activity_id}/rideons'
+          url = f'{cls.BASE_URL}/api/profiles/{rider_id}/activities/{activity_id}/rideon'
           response = client.get(url, headers=headers, timeout=30.0)
 
           if response.status_code == 200:
