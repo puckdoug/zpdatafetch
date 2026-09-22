@@ -630,6 +630,183 @@ class ZPLeagueTeamEventResult:
 
 
 @dataclass(slots=True)
+class ZPLeagueInfo:
+  """Represents a league's metadata from the league catalog API.
+
+
+  Contains league name, contact, info, categories, active status, counts,
+  and display colors from a league_list row.
+  """
+
+
+  # Core identification
+  league_id: int =0 # League ID
+  name: str = ''  # League name (league_name)
+
+
+  # League description
+  active: int =0 # Active flag (0/1)
+
+
+  info: str = ''  # League info/description
+  contact: str = ''  # Contact email/string
+
+
+  # Schedule
+  start: int =0 # Start week/round (start)
+  end: int =0 # End week/round (end)
+  categories: str = ''  # Category letters (cats)
+  category_names: str = ''  # Category display names (cats_names)
+
+
+  # Activity counts
+  races: int =0 # Race count (races)
+  efforts: int =0 # Effort count (efforts)
+
+
+  # Display info
+  image: str = ''  # Image ID/path
+  color_background: str = ''  # Background color hex (lidbc)
+  color_border: str = ''  # Border color hex (lidbd)
+  color_text: str = ''  # Text color hex (lidc)
+  latest_race_id: str = ''  # Latest league race id (lrace_id)
+  race_id: str = ''  # Open race id (race_id, maybe empty)
+  latest_race_title: str = ''  # Latest league race title (lrace_title)
+
+
+  # Excluded fields - recognized but not explicitly handled
+  _excluded: dict[str, Any] = field(default_factory=dict, repr=False)
+
+
+
+  # Catch-all for unknown/new fields from API
+  _extra: dict[str, Any] = field(default_factory=dict, repr=False)
+
+
+
+  @classmethod
+  def from_dict(cls, data: dict[str, Any]) -> 'ZPLeagueInfo':
+    """Create instance from API response dict.
+
+
+
+    Args:
+      data: Dictionary containing a league_list row
+
+
+
+    Returns:
+      ZPLeagueInfo instance with parsed fields
+    """
+    known_fields = {
+      'league_id',
+      'league_name',
+      'active',
+      'info',
+      'contact',
+      'start',
+      'end',
+      'cats',
+      'cats_names',
+      'races',
+      'efforts',
+      'image',
+      'lidbc',
+      'lidbd',
+      'lidc',
+      'lrace_id',
+      'race_id',
+      'lrace_title',
+    }
+
+
+
+    # Fields recognized from API but not explicitly handled as typed fields
+    recognized_but_excluded = {
+      'ridc',
+      'ridbd',
+      'ridbc',
+    }
+
+
+
+    # Classify remaining fields
+    excluded = {}
+    extra = {}
+
+
+
+    for key, value in data.items():
+      if key not in known_fields:
+        if key in recognized_but_excluded:
+          excluded[key] = value
+        else:
+          extra[key] = value
+
+
+
+    return cls(
+      league_id=extract_numeric(data.get('league_id'), int, 0),
+      name=str(data.get('league_name', '')),
+      active=extract_numeric(data.get('active'), int, 0),
+      info=str(data.get('info', '')),
+      contact=str(data.get('contact', '')),
+      start=extract_numeric(data.get('start'), int, 0),
+      end=extract_numeric(data.get('end'), int, 0),
+      categories=str(data.get('cats', '')),
+      category_names=str(data.get('cats_names', '')),
+      races=extract_numeric(data.get('races'), int, 0),
+      efforts=extract_numeric(data.get('efforts'), int, 0),
+      image=str(data.get('image', '')),
+      color_background=str(data.get('lidbc', '')),
+      color_border=str(data.get('lidbd', '')),
+      color_text=str(data.get('lidc', '')),
+      latest_race_id=str(data.get('lrace_id', '')),
+      race_id=str(data.get('race_id', '')),
+      latest_race_title=str(data.get('lrace_title', '')),
+      _excluded=excluded,
+      _extra=extra,
+    )
+
+
+
+  def excluded(self) -> dict[str, Any]:
+    """Return recognized-but-not-explicit fields."""
+    return dict(self._excluded)
+
+
+
+  def extras(self) -> dict[str, Any]:
+    """Return truly unknown/new fields from API response."""
+    return dict(self._extra)
+
+
+
+  def asdict(self) -> dict[str, Any]:
+    """Return league info as dictionary with typed field values."""
+    return {
+      'league_id': self.league_id,
+      'name': self.name,
+      'active': self.active,
+      'info': self.info,
+      'contact': self.contact,
+      'start': self.start,
+      'end': self.end,
+      'categories': self.categories,
+      'category_names': self.category_names,
+      'races': self.races,
+      'efforts': self.efforts,
+      'image': self.image,
+      'color_background': self.color_background,
+      'color_border': self.color_border,
+      'color_text': self.color_text,
+      'latest_race_id': self.latest_race_id,
+      'race_id': self.race_id,
+      'latest_race_title': self.latest_race_title,
+    }
+
+
+@dataclass(slots=True)
 class ZPLeague(Sequence):
   """Represents league standings data.
 
