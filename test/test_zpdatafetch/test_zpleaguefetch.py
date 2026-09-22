@@ -10,6 +10,7 @@ from zpdatafetch.async_zp import AsyncZP
 from zpdatafetch.zpleague import (
   ZPLeague,
   ZPLeagueEvent,
+  ZPLeagueInfo,
   ZPLeagueTeamEventResult,
   ZPLeagueTeamStanding,
 )
@@ -88,6 +89,35 @@ def test_zpleague_team_event_results_parse_fixture():
 
   # Recognized-but-untyped fields land in excluded
   assert 'topen' in rows[0].excluded()
+
+
+def test_zpleague_info_parse_fixture():
+  """Parse league metadata rows from the real league catalog fixture."""
+
+  with open('test/fixtures/league_list.json', encoding='utf-8') as f:
+    rows = json.load(f)['data']
+  assert len(rows) == 3379
+
+
+  row = next(r for r in rows if r['league_id'] == '3379')
+  info = ZPLeagueInfo.from_dict(row)
+
+
+  assert info.league_id == 3379
+  assert info.name == ' #DURA-ACE | Standard'
+  assert info.active == 1
+  assert info.categories == 'A,B,C,D,E'
+  assert info.races == 530
+  assert info.efforts == 24994
+  assert info.color_background == 'f95b0f'
+
+
+  row2 = next(r for r in rows if r['league_id'] == '3388')
+  info2 = ZPLeagueInfo.from_dict(row2)
+  assert info2.name == 'Pain Cave Ultra'
+
+  # Race display colors are recognized-but-untyped
+  assert 'ridc' in info.excluded()
 
 
 def test_zpleague_event_parse_no_results_fixture():
