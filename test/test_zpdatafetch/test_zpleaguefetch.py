@@ -7,7 +7,7 @@ import pytest
 
 from shared.validation import ValidationError
 from zpdatafetch.async_zp import AsyncZP
-from zpdatafetch.zpleague import ZPLeague
+from zpdatafetch.zpleague import ZPLeague, ZPLeagueEvent
 from zpdatafetch.zpleaguefetch import ZPLeagueFetch
 
 
@@ -16,6 +16,47 @@ def test_zpleague_empty_instantiation():
   obj = ZPLeague()
   assert obj is not None
   assert obj.asdict() == {'league_id': 0}
+
+
+def test_zpleague_event_parse_full_fixture():
+  """Parse all events from the real league-3379 fixture."""
+
+  with open('test/fixtures/league_event_results_3379.json', encoding='utf-8') as f:
+    data = json.load(f)
+  events = [ZPLeagueEvent.from_dict(e) for e in data['data']]
+  assert len(events) == 530
+
+# Typed fields - first event is the Women variant of the named stage
+  assert events[0].event_id == 5695925
+  assert events[0].title == 'Stage 3 - ZRacing - DURA-ACE - Electric Break | Women'
+
+  # Find an exact (non-Women) match for the named event
+  exact = next(e for e in events if e.title == 'Stage 3 - ZRacing - DURA-ACE - Electric Break')
+  assert exact.event_id == 5695126
+
+  start = exact.start_datetime
+  assert isinstance(start, int) and start == 1790032200
+
+  # Extras capture untyped fields
+  assert exact.extras()['km'] == 19599
+
+  # Excluded holds recognized-but-untyped fields
+  assert 'DT_RowId' in exact.excluded()
+
+
+def test_zpleague_event_parse_no_results_fixture():
+  """Parse the events-only league-3388 fixture (no results arrays)."""
+
+  with open('test/fixtures/league_event_results_3388.json', encoding='utf-8') as f:
+    data = json.load(f)
+  events = [ZPLeagueEvent.from_dict(e) for e in data['data']]
+  assert len(events) == 12
+  assert events[0].title.startswith('Sykkelkomponenter Pain Cave Ultra by 5071 Cykleklubb - Round ')  # whitespace-robust
+  assert '12/12' in events[0].title
+
+  # No results key - excluded stays empty, extras has the rest
+  assert 'results' not in events[0].excluded()
+  assert events[0].extras()['km'] == 23670
 
 
 def test_league(league):
