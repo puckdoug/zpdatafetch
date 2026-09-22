@@ -7,7 +7,12 @@ import pytest
 
 from shared.validation import ValidationError
 from zpdatafetch.async_zp import AsyncZP
-from zpdatafetch.zpleague import ZPLeague, ZPLeagueEvent, ZPLeagueTeamStanding
+from zpdatafetch.zpleague import (
+  ZPLeague,
+  ZPLeagueEvent,
+  ZPLeagueTeamEventResult,
+  ZPLeagueTeamStanding,
+)
 from zpdatafetch.zpleaguefetch import ZPLeagueFetch
 
 
@@ -62,6 +67,27 @@ def test_zpleague_team_standings_parse_fixture():
 
   # league_id is duplicate of league - excluded, not typed
   assert 'league_id' in rows[0].excluded()
+
+
+def test_zpleague_team_event_results_parse_fixture():
+  """Parse team-event standings rows from the real league-3379 fixture."""
+
+  with open('test/fixtures/league_team_event_standings_3379.json', encoding='utf-8') as f:
+    data = json.load(f)
+  rows = [ZPLeagueTeamEventResult.from_dict(r) for r in data['data']]
+  assert len(rows) == 20
+
+  # Typed fields on the top row
+  assert rows[0].position == 1
+  assert rows[0].category == 'A'
+  assert rows[0].zwift_id == 8325416
+  assert rows[0].name == 'PedroJ. López (TEZH)'
+  assert rows[0].team_id == 20380
+  assert rows[0].team_name == 'TEZH Racing'
+  assert rows[0].rank == '100.00%'
+
+  # Recognized-but-untyped fields land in excluded
+  assert 'topen' in rows[0].excluded()
 
 
 def test_zpleague_event_parse_no_results_fixture():
