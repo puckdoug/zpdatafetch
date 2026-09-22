@@ -269,6 +269,92 @@ class ZPLeagueResult:
 
 
 @dataclass(slots=True)
+class ZPLeagueEvent:
+  """Represents a race event in a league's calendar.
+
+  Contains the event id, title, and start timefrom the league_event_results
+  API. Uses explicit typed fields for known API data with _excluded and _extra
+  dicts to capture unhandled and unexpected fields for forward compatibility.
+  """
+
+  # Core identification
+  event_id: int = 0  # Event ID (zid/DT_RowId)
+  title: str = ''  # Event title (t)
+
+  # Event timing
+  start_datetime: int = 0  # Start time (tm), Unix epoch seconds
+
+  # Excluded fields - recognized but not explicitly handled
+  _excluded: dict[str, Any] = field(default_factory=dict, repr=False)
+
+  # Catch-all for unknown/new fields from API
+  _extra: dict[str, Any] = field(default_factory=dict, repr=False)
+
+
+
+  @classmethod
+  def from_dict(cls, data: dict[str, Any]) -> 'ZPLeagueEvent':
+    """Create instance from API response dict.
+
+
+
+    Args:
+      data: Dictionary containing event data
+
+
+
+    Returns:
+      ZPLeagueEvent instance with parsed fields
+    """
+    known_fields = {
+      'zid',
+      't',
+      'tm',
+    }
+
+    # Fields recognized from API but not explicitly handled as typed fields
+    recognized_but_excluded = {
+      'DT_RowId',  # Duplicate of zid (DataTables row id)
+      'results',  # Per-category result rows; not typed in this change
+    }
+
+    # Classify remaining fields
+    excluded = {}
+    extra = {}
+
+    for key, value in data.items():
+      if key not in known_fields:
+        if key in recognized_but_excluded:
+          excluded[key] = value
+        else:
+          extra[key] = value
+
+    return cls(
+      event_id=extract_numeric(data.get('zid'), int, 0),
+      title=str(data.get('t', '')),
+      start_datetime=extract_numeric(data.get('tm'), int, 0),
+      _excluded=excluded,
+      _extra=extra,
+    )
+
+  def excluded(self) -> dict[str, Any]:
+    """Return recognized-but-not-explicit fields."""
+    return dict(self._excluded)
+
+  def extras(self) -> dict[str, Any]:
+    """Return truly unknown/new fields from API response."""
+    return dict(self._extra)
+
+  def asdict(self) -> dict[str, Any]:
+    """Return event data as dictionary with typed field values."""
+    return {
+      'event_id': self.event_id,
+      'title': self.title,
+      'start_datetime': self.start_datetime,
+    }
+
+
+@dataclass(slots=True)
 class ZPLeague(Sequence):
   """Represents league standings data.
 
