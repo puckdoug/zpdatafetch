@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__acp__Edit",
+      "mcp__acp__Bash",
+      "mcp__acp__Write",
+      "Bash(source .venv/bin/activate)",
+      "Bash(python -m pytest test/test_shared/test_validation.py test/test_zrdatafetch/cli/test_cli_zr.py -v)",
+      "Bash(ruff check src/shared/validation.py src/zrdatafetch/cli.py test/test_shared/test_validation.py test/test_zrdatafetch/cli/test_cli_zr.py)",
+      "Bash(ty check src/shared/validation.py src/zrdatafetch/cli.py)",
+      "Bash(python -m pytest)",
+      "Bash(ruff check src test)",
+      "Bash(ty check src test)",
+      "Bash(python -m pytest test/test_shared/test_validation.py::TestParseDatetimeToEpoch -v)"
+    ]
+  }
+}

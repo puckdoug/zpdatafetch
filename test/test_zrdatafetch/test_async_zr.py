@@ -7,6 +7,14 @@ import pytest
 from zrdatafetch.async_zr import AsyncZR_obj
 
 
+@pytest.fixture(autouse=True)
+def reset_async_premium_mode():
+  """Reset AsyncZR_obj class-level premium mode between tests."""
+  AsyncZR_obj._premium_mode = False
+  yield
+  AsyncZR_obj._premium_mode = False
+
+
 # ===============================================================================
 class TestAsyncZRObjInitialization:
   """Test AsyncZR_obj initialization."""
@@ -314,3 +322,76 @@ class TestAsyncZRObjSharedSession:
       mock_client_class.assert_called_once()
 
       await AsyncZR_obj.close_shared_session()
+
+
+# ===============================================================================
+class TestAsyncZRObjPremiumMode:
+  """Test AsyncZR_obj premium tier mode (parity with sync ZR_obj)."""
+
+  def test_get_premium_mode_default(self):
+    """Premium mode defaults to False (standard tier)."""
+    assert AsyncZR_obj.get_premium_mode() is False
+
+  def test_set_premium_mode_true(self):
+    """set_premium_mode(True) is reflected by get_premium_mode."""
+    AsyncZR_obj.set_premium_mode(True)
+    assert AsyncZR_obj.get_premium_mode() is True
+
+  def test_set_premium_mode_false(self):
+    """set_premium_mode(False) resets to standard tier."""
+    AsyncZR_obj.set_premium_mode(True)
+    AsyncZR_obj.set_premium_mode(False)
+    assert AsyncZR_obj.get_premium_mode() is False
+
+  def test_init_premium_true(self):
+    """Constructor premium=True selects the premium limiter."""
+    zr = AsyncZR_obj(premium=True)
+    try:
+      assert zr.rate_limiter.tier == 'premium'
+    finally:
+      zr._owns_client = False
+
+  def test_init_inherits_class_mode(self):
+    """Instances created after set_premium_mode(True) start premium."""
+    AsyncZR_obj.set_premium_mode(True)
+    zr = AsyncZR_obj()
+    try:
+      assert zr.rate_limiter.tier == 'premium'
+    finally:
+      zr._owns_client = False
+
+  @pytest.mark.anyio
+  async def test_existing_instance_honours_class_mode(self):
+    """A later set_premium_mode(True) applies to an existing instance."""
+    zr = AsyncZR_obj()
+    assert zr.rate_limiter.tier == 'standard'
+
+    AsyncZR_obj.set_premium_mode(True)
+
+    with patch('httpx2.AsyncClient') as mock_client_class:
+      mock_client = AsyncMock()
+      mock_response = MagicMock()
+      mock_response.text = '{"id": 12345}'
+      mock_client.request.return_value = mock_response
+      mock_client_class.return_value = mock_client
+
+      await zr.fetch_json('/public/riders/12345')
+
+    assert zr.rate_limiter.tier == 'premium'
+
+  @pytest.mark.anyio
+  async def test_per_call_premium_override(self):
+    """Per-call premium=True upgrades a standard instance for that request."""
+    zr = AsyncZR_obj()
+    assert zr.rate_limiter.tier == 'standard'
+
+    with patch('httpx2.AsyncClient') as mock_client_class:
+      mock_client = AsyncMock()
+      mock_response = MagicMock()
+      mock_response.text = '{"id": 12345}'
+      mock_client.request.return_value = mock_response
+      mock_client_class.return_value = mock_client
+
+      await zr.fetch_json('/public/riders/12345', premium=True)
+
+    assert zr.rate_limiter.tier == 'premium'

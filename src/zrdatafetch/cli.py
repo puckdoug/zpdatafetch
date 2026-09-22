@@ -25,6 +25,7 @@ from shared.cli import (
 )
 from shared.validation import ValidationError, parse_datetime_to_epoch
 from zrdatafetch import (
+  AsyncZR_obj,
   Config,
   ZRResultFetch,
   ZRRiderFetch,
@@ -112,6 +113,7 @@ Module for fetching Zwiftracing data using the Zwiftracing API
   # Set premium tier mode if requested
   if args.premium:
     ZR_obj.set_premium_mode(True)
+    AsyncZR_obj.set_premium_mode(True)
 
   # Handle --sync flag (enable synchronous mode)
   if args.sync:
