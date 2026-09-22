@@ -7,7 +7,7 @@ import pytest
 
 from shared.validation import ValidationError
 from zpdatafetch.async_zp import AsyncZP
-from zpdatafetch.zpleague import ZPLeague, ZPLeagueEvent
+from zpdatafetch.zpleague import ZPLeague, ZPLeagueEvent, ZPLeagueTeamStanding
 from zpdatafetch.zpleaguefetch import ZPLeagueFetch
 
 
@@ -42,6 +42,26 @@ def test_zpleague_event_parse_full_fixture():
 
   # Excluded holds recognized-but-untyped fields
   assert 'DT_RowId' in exact.excluded()
+
+
+def test_zpleague_team_standings_parse_fixture():
+  """Parse team standings from the real league-3379 fixture."""
+
+  with open('test/fixtures/league_team_standings_3379.json', encoding='utf-8') as f:
+    data = json.load(f)
+  rows = [ZPLeagueTeamStanding.from_dict(r) for r in data['data']]
+  assert len(rows) == 2685
+
+  # Typed fields on the top row
+  assert rows[0].team_id == 16219
+  assert rows[0].team_name == 'SISU Racing'
+  assert rows[0].position == 1
+  assert rows[0].rank == '100.00%'
+  assert rows[0].points == 26390291
+  assert rows[0].history == ['1', '1', '1']
+
+  # league_id is duplicate of league - excluded, not typed
+  assert 'league_id' in rows[0].excluded()
 
 
 def test_zpleague_event_parse_no_results_fixture():
