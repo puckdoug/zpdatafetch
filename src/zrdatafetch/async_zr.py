@@ -4,7 +4,7 @@ This module provides async/await compatible interfaces for the Zwiftracing API,
 allowing for concurrent requests and better performance in async applications.
 """
 
-from typing import Any
+from typing import Any, ClassVar
 
 import anyio
 import httpx2
@@ -36,11 +36,38 @@ class AsyncZR_obj:
   Attributes:
     _base_url: Base URL for Zwiftracing API
     _client: httpx2.AsyncClient instance
+    _premium_mode: Class-level setting for premium tier rate limits
   """
 
   _base_url: str = 'https://api.zwiftracing.app/api'
   _shared_client: httpx2.AsyncClient | None = None
   _owns_client: bool = False
+  _premium_mode: ClassVar[bool] = False  # Default to standard tier
+
+  # ----------------------------------------------------------------------------
+  @classmethod
+  def set_premium_mode(cls, premium: bool) -> None:
+    """Set the global premium tier rate limit mode.
+
+    Applies to all async instances, including ones already created: the
+    effective tier is recomputed on each request.
+
+    Args:
+      premium: True for premium tier (higher limits), False for standard tier
+    """
+    cls._premium_mode = premium
+    tier = 'premium' if premium else 'standard'
+    logger.info(f'Rate limit tier set to: {tier}')
+
+  # ----------------------------------------------------------------------------
+  @classmethod
+  def get_premium_mode(cls) -> bool:
+    """Get the current premium tier mode setting.
+
+    Returns:
+      True if premium tier is enabled, False for standard tier
+    """
+    return cls._premium_mode
 
   # ----------------------------------------------------------------------------
   def __init__(
@@ -59,7 +86,11 @@ class AsyncZR_obj:
     """
     self._client: httpx2.AsyncClient | None = None
     self._owns_client = not shared_client
-    self.rate_limiter = RateLimiter(tier='premium' if premium else 'standard')
+    self._premium = premium
+    use_premium = premium or self._premium_mode
+    self.rate_limiter = RateLimiter(
+      tier='premium' if use_premium else 'standard',
+    )
 
     if shared_client and AsyncZR_obj._shared_client is None:
       logger.debug('Creating shared async HTTP client for connection pooling')
@@ -107,6 +138,7 @@ class AsyncZR_obj:
     method: str = 'GET',
     max_retries: int = 3,
     backoff_factor: float = 1.0,
+    premium: bool = False,
     **kwargs: Any,
   ) -> httpx2.Response:
     """Fetch endpoint with exponential backoff retry logic (async).
@@ -120,6 +152,7 @@ class AsyncZR_obj:
       method: HTTP method (default: 'GET')
       max_retries: Maximum number of retry attempts (default: 3)
       backoff_factor: Multiplier for exponential backoff (default: 1.0)
+      premium: Force premium tier for this request (default: False)
       **kwargs: Additional arguments to pass to httpx client method
 
     Returns:
@@ -131,6 +164,12 @@ class AsyncZR_obj:
     if self._client is None:
       await self.init_client()
     assert self._client is not None
+
+    # Resolve effective tier: per-call, per-instance, then class-level mode
+    use_premium = premium or self._premium or self._premium_mode
+    desired_tier = 'premium' if use_premium else 'standard'
+    if self.rate_limiter.tier != desired_tier:
+      self.rate_limiter.set_tier(desired_tier)
 
     # Check rate limits before attempting request
     endpoint_type = RateLimiter.get_endpoint_type(method, endpoint)
@@ -222,6 +261,7 @@ class AsyncZR_obj:
     endpoint: str,
     method: str = 'GET',
     max_retries: int = 3,
+    premium: bool = False,
     **kwargs: Any,
   ) -> str:
     """Fetch JSON data from Zwiftracing endpoint, return raw string (async).
@@ -234,6 +274,9 @@ class AsyncZR_obj:
       endpoint: API endpoint path (e.g., '/public/riders/123')
       method: HTTP method ('GET' or 'POST'). Default: 'GET'
       max_retries: Maximum number of retry attempts for transient errors
+      premium: Force premium tier rate limits for this request
+        (default: False). The effective tier is also taken from the instance
+        and the class-level mode set by set_premium_mode().
       **kwargs: Additional arguments passed to httpx request method
         (e.g., headers, params, json, etc.)
 
@@ -264,6 +307,7 @@ class AsyncZR_obj:
         endpoint,
         method=method,
         max_retries=max_retries,
+        premium=premium,
         **kwargs,
       )
 

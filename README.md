@@ -675,7 +675,8 @@ status = ZRRider().rate_limiter.get_status() if hasattr(ZRRider(), 'rate_limiter
 
 #### Async Rate Limiting
 
-Async operations also respect rate limits with automatic throttling:
+Async operations also respect rate limits with automatic throttling. As with
+the sync API, the tier can be set globally and per call:
 
 ```python
 import anyio
@@ -688,11 +689,22 @@ async def main():
         rider.set_session(zr)
         await rider.fetch(12345)  # Auto-throttled to standard limits
 
-    # Premium tier
-    async with AsyncZR_obj(premium=True) as zr:
+    # Premium tier - set globally (applies to existing and new instances)
+    AsyncZR_obj.set_premium_mode(True)
+    async with AsyncZR_obj() as zr:
         rider = AsyncZRRider()
         rider.set_session(zr)
         await rider.fetch(12345)  # Auto-throttled to premium limits
+
+    # Premium tier - per call
+    async with AsyncZR_obj() as zr:
+        await zr.fetch_json('/public/riders/12345', premium=True)
+
+    # Premium tier - per instance
+    async with AsyncZR_obj(premium=True) as zr:
+        rider = AsyncZRRider()
+        rider.set_session(zr)
+        await rider.fetch(12345)
 
 anyio.run(main)
 ```

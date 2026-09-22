@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.3.2]
+
+- `zrdata` / `zrdatafetch`: async API now supports the premium rate limit tier
+  at the same level as sync
+  - `AsyncZR_obj.set_premium_mode()` / `get_premium_mode()` class methods
+  - `AsyncZR_obj.fetch_json(..., premium=True)` per-call override
+  - `zrdata --premium` now also applies to async fetches
+
 ## [2.3.1]
 
 - Fixed issue with rideons url (wrong syntax!) - Thanks @andrzejbluszcz for finding this and providing the fix!
