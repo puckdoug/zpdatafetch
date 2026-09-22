@@ -355,6 +355,136 @@ class ZPLeagueEvent:
 
 
 @dataclass(slots=True)
+class ZPLeagueTeamStanding:
+  """Represents a team's standing in a league's team standings.
+
+    Contains team position, points, event count, history, colors, and rank.
+  """
+
+  # Core identification
+  team_id: int = 0  # Team ID (tid)
+  team_name: str = ''  # Team name (tname)
+
+  # Standings metrics
+  position: int = 0  # Position in team standings (pos)
+  points: int = 0  # Total team points
+  events: int = 0  # Events participated
+  rank: str = ''  # Rank fraction (e.g. "100.00%")
+  history: list[str] = field(default_factory=list, repr=False)  # Past positions
+
+  # Category
+  category: str = ''  # Category (A, B, C, D)
+
+  # Display colors
+  color_background: str = ''  # Background color hex (tbc)
+  color_border: str = ''  # Border color hex (tbd)
+  color_text: str = ''  # Text color hex (tc)
+
+  # Excluded fields - recognized but not explicitly handled
+  _excluded: dict[str, Any] = field(default_factory=dict, repr=False)
+
+
+
+  # Catch-all for unknown/new fields from API
+  _extra: dict[str, Any] = field(default_factory=dict, repr=False)
+
+
+
+  @classmethod
+  def from_dict(cls, data: dict[str, Any]) -> 'ZPLeagueTeamStanding':
+    """Create instance from API response dict.
+
+
+
+    Args:
+      data: Dictionary containing team standing data
+
+
+
+    Returns:
+      ZPLeagueTeamStanding instance with parsed fields
+    """
+    known_fields = {
+      'tid',
+      'tname',
+      'pos',
+      'points',
+      'events',
+      'rank',
+      'history',
+      'category',
+      'tbc',
+      'tbd',
+      'tc',
+    }
+
+    # Fields recognized from API but not explicitly handled as typed fields
+    recognized_but_excluded = {
+      'league_id',   # Duplicate of league id
+    }
+
+    # Extract history
+    history = data.get('history', [])
+    if not isinstance(history, list):
+      history = []
+
+    # Classify remaining fields
+    excluded = {}
+    extra = {}
+
+    for key, value in data.items():
+      if key not in known_fields:
+        if key in recognized_but_excluded:
+          excluded[key] = value
+        else:
+          extra[key] = value
+
+    return cls(
+      team_id=extract_numeric(data.get('tid'), int, 0),
+      team_name=str(data.get('tname', '')),
+      position=extract_numeric(data.get('pos'), int, 0),
+      points=extract_numeric(data.get('points'), int, 0),
+      events=extract_numeric(data.get('events'), int, 0),
+      rank=str(data.get('rank', '')),
+      history=history,
+      category=str(data.get('category', '')),
+      color_background=str(data.get('tbc', '')),
+      color_border=str(data.get('tbd', '')),
+      color_text=str(data.get('tc', '')),
+      _excluded=excluded,
+      _extra=extra,
+    )
+
+  def excluded(self) -> dict[str, Any]:
+    """Return recognized-but-not-explicit fields."""
+    return dict(self._excluded)
+
+
+
+  def extras(self) -> dict[str, Any]:
+    """Return truly unknown/new fields from API response."""
+    return dict(self._extra)
+
+
+
+  def asdict(self) -> dict[str, Any]:
+    """Return team standing data as dictionary with typed field values."""
+    return {
+      'team_id': self.team_id,
+      'team_name': self.team_name,
+      'position': self.position,
+      'points': self.points,
+      'events': self.events,
+      'rank': self.rank,
+      'history': self.history,
+      'category': self.category,
+      'color_background': self.color_background,
+      'color_border': self.color_border,
+      'color_text': self.color_text,
+    }
+
+
+@dataclass(slots=True)
 class ZPLeague(Sequence):
   """Represents league standings data.
 
