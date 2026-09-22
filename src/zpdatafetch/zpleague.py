@@ -97,18 +97,18 @@ class ZPLeagueResult:
   """
 
   # Core identification
-  position: int = 0  # Position in standings
-  zwift_id: int = 0  # Zwift user ID (zwid)
-  aid: int = 0  # Alternative ID
+  position: int =0 # Position in standings
+  zwift_id: int =0 # Zwift user ID (zwid)
+  aid: int =0 # Alternative ID
   name: str = ''  # Rider name
 
   # League metrics
-  points: int = 0  # League points total
-  events: int = 0  # Number of events participated
+  points: int =0 # League points total
+  events: int =0 # Number of events participated
   category: str = ''  # Category (A, B, C, D)
 
   # Team and location
-  team_id: int = 0  # Team ID (tid)
+  team_id: int =0 # Team ID (tid)
   team_name: str = ''  # Team name (resolved from teams mapping)
   age: str = ''  # Age group (e.g., "60+", "Vet")
   flag: str = ''  # Country flag code
@@ -278,11 +278,11 @@ class ZPLeagueEvent:
   """
 
   # Core identification
-  event_id: int = 0  # Event ID (zid/DT_RowId)
+  event_id: int =0 # Event ID (zid/DT_RowId)
   title: str = ''  # Event title (t)
 
   # Event timing
-  start_datetime: int = 0  # Start time (tm), Unix epoch seconds
+  start_datetime: int =0 # Start time (tm), Unix epoch seconds
 
   # Excluded fields - recognized but not explicitly handled
   _excluded: dict[str, Any] = field(default_factory=dict, repr=False)
@@ -362,13 +362,13 @@ class ZPLeagueTeamStanding:
   """
 
   # Core identification
-  team_id: int = 0  # Team ID (tid)
+  team_id: int =0 # Team ID (tid)
   team_name: str = ''  # Team name (tname)
 
   # Standings metrics
-  position: int = 0  # Position in team standings (pos)
-  points: int = 0  # Total team points
-  events: int = 0  # Events participated
+  position: int =0 # Position in team standings (pos)
+  points: int =0 # Total team points
+  events: int =0 # Events participated
   rank: str = ''  # Rank fraction (e.g. "100.00%")
   history: list[str] = field(default_factory=list, repr=False)  # Past positions
 
@@ -485,6 +485,151 @@ class ZPLeagueTeamStanding:
 
 
 @dataclass(slots=True)
+class ZPLeagueTeamEventResult:
+  """Represents a rider's row in a league's team-event standings.
+
+  Contains rider position, category, team, points, and rank from the
+  league_team_event_standings API for one event view.
+  """
+
+  # Core identification
+  zwift_id: int =0 # Zwift user ID (zwid)
+  name: str = ''  # Rider name
+  category: str = ''  # Category (A, B, C, D)
+
+  # Team
+  team_id: int =0 # Team ID (tid)
+  team_name: str = ''  # Team name (tname)
+  color_background: str = ''  # Background color hex (tbc)
+  color_border: str = ''  # Border color hex (tbd)
+  color_text: str = ''  # Text color hex (tc)
+
+  # Standings metrics
+  position: int =0 # Position (pos)
+  points: int =0 # Points
+  events: int =0 # Events participated
+  rank: str = ''  # Rank fraction (e.g. "100.00%")
+  reg: int =0 # Region ID (reg)
+  flag: str = ''  # Country flag code
+
+  # Excluded fields - recognized but not explicitly handled
+  _excluded: dict[str, Any] = field(default_factory=dict, repr=False)
+
+
+
+  # Catch-all for unknown/new fields from API
+  _extra: dict[str, Any] = field(default_factory=dict, repr=False)
+
+
+
+  @classmethod
+  def from_dict(cls, data: dict[str, Any]) -> 'ZPLeagueTeamEventResult':
+    """Create instance from API response dict.
+
+
+
+    Args:
+      data: Dictionary containing team-event standing data
+
+
+
+    Returns:
+      ZPLeagueTeamEventResult instance with parsed fields
+    """
+    known_fields = {
+      'zwid',
+      'name',
+      'category',
+      'tid',
+      'tname',
+      'tbc',
+      'tbd',
+      'tc',
+      'pos',
+      'points',
+      'events',
+      'rank',
+      'reg',
+      'flag',
+    }
+
+
+
+    # Fields recognized from API but not explicitly handled as typed fields
+    recognized_but_excluded = {
+      'topen',
+      'fem',
+    }
+
+
+
+    # Classify remaining fields
+    excluded = {}
+    extra = {}
+
+    for key, value in data.items():
+      if key not in known_fields:
+        if key in recognized_but_excluded:
+          excluded[key] = value
+        else:
+          extra[key] = value
+
+
+
+    return cls(
+      zwift_id=extract_numeric(data.get('zwid'), int, 0),
+      name=str(data.get('name', '')),
+      category=str(data.get('category', '')),
+      team_id=extract_numeric(data.get('tid'), int, 0),
+      team_name=str(data.get('tname', '')),
+      color_background=str(data.get('tbc', '')),
+      color_border=str(data.get('tbd', '')),
+      color_text=str(data.get('tc', '')),
+      position=extract_numeric(data.get('pos'), int, 0),
+      points=extract_numeric(data.get('points'), int, 0),
+      events=extract_numeric(data.get('events'), int, 0),
+      rank=str(data.get('rank', '')),
+      reg=extract_numeric(data.get('reg'), int, 0),
+      flag=str(data.get('flag', '')),
+      _excluded=excluded,
+      _extra=extra,
+    )
+
+
+
+  def excluded(self) -> dict[str, Any]:
+    """Return recognized-but-not-explicit fields."""
+    return dict(self._excluded)
+
+
+
+  def extras(self) -> dict[str, Any]:
+    """Return truly unknown/new fields from API response."""
+    return dict(self._extra)
+
+
+
+  def asdict(self) -> dict[str, Any]:
+    """Return rider row as dictionary with typed field values."""
+    return {
+      'zwift_id': self.zwift_id,
+      'name': self.name,
+      'category': self.category,
+      'team_id': self.team_id,
+      'team_name': self.team_name,
+      'color_background': self.color_background,
+      'color_border': self.color_border,
+      'color_text': self.color_text,
+      'position': self.position,
+      'points': self.points,
+      'events': self.events,
+      'rank': self.rank,
+      'reg': self.reg,
+      'flag': self.flag,
+    }
+
+
+@dataclass(slots=True)
 class ZPLeague(Sequence):
   """Represents league standings data.
 
@@ -499,7 +644,7 @@ class ZPLeague(Sequence):
   """
 
   # League metadata
-  league_id: int = 0  # League ID (injected by fetcher)
+  league_id: int =0 # League ID (injected by fetcher)
 
   # Nested data structures
   _teams: dict[str, ZPLeagueTeam] = field(
