@@ -10,13 +10,25 @@ globs:
 
 ## Planning before implementation
 - Never start implementation until explicitly told to do so. Always iterate over a plan until it is ready, then explicitly agree to implement.
-- Write implementation plans into `./docs/planning/` and maintain them while making changes.
+- GitHub issues are the tracker. Work existing issues only — pull them with `gh issue view <N>`; never plan an issue from memory or recreate it locally.
+- Write the implementation plan into `./docs/planning/issue_<N>_<slug>.md` and maintain it while making changes.
+- Record `GitHub issue: #N` in the plan file header so the local plan and the GitHub issue reference each other.
 - Always create a checklist at the top of the implementation plan file and maintain it as you progress.
 - If it is ever unclear whether to plan or implement, ask.
 
 ## Issue handling
 - Never ignore an issue (errors or warnings). Never blame issues as "pre-existing".
-- When you identify an issue, either resolve it immediately or log it in `./docs/planning/` and propose a solution.
+- GitHub issues are the source of truth for bugs and feature requests. Never create a GitHub issue from local work; work only issues that already exist.
+- New problems found while working are resolved immediately or logged in `./docs/planning/` with a proposed solution, never filed as new GitHub issues.
+- Working an issue follows this flow:
+  1. Pull it from GitHub: `gh issue view <N>`.
+  2. Plan locally: create `./docs/planning/issue_<N>_<slug>.md` with `GitHub issue: #N` in the header and a checklist at the top.
+  3. Work the plan locally and keep the checklist current. No GitHub writes while work is in progress.
+  4. Complete the issue in one tight step — deferring any part of this to a later prompt is not allowed:
+     - `just test` and `just check` pass
+     - plan file finalized: every checklist item checked and `Status: DONE` in the header
+     - post the final update with `gh issue comment <N>`: what changed, validation results, and the deep-dive link to the plan file
+     - close the issue
 
 ## Git
 - Use git commands to rename (`git mv`), remove (`git rm`), or add (`git add`) to ensure change history is tracked.

@@ -45,6 +45,7 @@ just check     # ruff check src test && ty check src test
 ## Workflow
 - Never start implementation without an explicit go-ahead. Write plans to `docs/planning/` with a checklist at the top and maintain it while working.
 - Never ignore an issue or warning — fix it immediately or log it in `docs/planning/` with a proposed solution.
+- GitHub issue workflow: work only existing issues. Pull with `gh issue view <N>`, plan in `docs/planning/issue_<N>_<slug>.md`, and complete by validating, marking the plan `DONE`, posting the final update via `gh issue comment <N>`, and closing the issue. Never create GitHub issues.
 - Do not run `git commit`, `merge`, `rebase`, or `push`. Use `git add` / `git mv` / `git rm` so change history is tracked.
 - Update `CHANGELOG.md` and `README.md` whenever functionality is added or changed.
 
