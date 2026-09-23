@@ -24,11 +24,15 @@ globs:
   1. Pull it from GitHub: `gh issue view <N>`.
   2. Plan locally: create `./docs/planning/issue_<N>_<slug>.md` with `GitHub issue: #N` in the header and a checklist at the top.
   3. Work the plan locally and keep the checklist current. No GitHub writes while work is in progress.
-  4. Complete the issue in one tight step — deferring any part of this to a later prompt is not allowed:
+  4. Complete the issue, and only once the work is actually verified working:
      - `just test` and `just check` pass
+     - the change has been exercised end to end against the real system where
+       feasible (run the CLI / library path on live data), not only against
+       mocks. Mocked tests alone do not prove the feature works.
      - plan file finalized: every checklist item checked and `Status: DONE` in the header
      - post the final update with `gh issue comment <N>`: what changed, validation results, and the deep-dive link to the plan file
-     - close the issue
+- NEVER close a GitHub issue. Closing is the maintainer's action and is done only on explicit request. Do not close, reopen, or otherwise change issue state on your own.
+- Do not claim an issue is complete, mark its plan `DONE`, or post a completion update until the implementation is verified. If any doubt remains, say so and keep the issue/plan open.
 
 ## Git
 - Use git commands to rename (`git mv`), remove (`git rm`), or add (`git add`) to ensure change history is tracked.
