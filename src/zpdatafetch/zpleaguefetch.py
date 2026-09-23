@@ -3,7 +3,6 @@
 import asyncio
 import json
 from argparse import ArgumentParser
-from collections.abc import Coroutine
 from typing import Any
 
 import anyio
@@ -14,9 +13,28 @@ from zpdatafetch.async_zp import AsyncZP
 from zpdatafetch.logging_config import get_logger, setup_logging
 from zpdatafetch.zp import ZP
 from zpdatafetch.zp_obj import ZP_obj
+from zpdatafetch.zp_utils import extract_numeric
 from zpdatafetch.zpleague import ZPLeague
 
 logger = get_logger(__name__)
+
+
+# ==============================================================================
+def _data_list(raw: str, context: str) -> list[Any]:
+  """Parse a raw JSON response and return its data list.
+
+  Args:
+    raw: Raw JSON response text
+    context: Context string for error messages
+
+  Returns:
+    The response's data list, or an empty list when absent/invalid
+  """
+  parsed = parse_json_safe(raw, context=context)
+  if isinstance(parsed, dict):
+    data = parsed.get('data', [])
+    return data if isinstance(data, list) else []
+  return []
 
 
 # ==============================================================================
@@ -48,12 +66,30 @@ class ZPLeagueFetch(ZP_obj):
   _url_end: str = '.json'
   _sync_mode: bool = False  # Class-level sync mode flag
 
+  # Additional league data sources
+  _team_standings_url: str = (
+    'https://zwiftpower.com/cache3/global/league_team_standings_'
+  )
+  _events_url: str = (
+    'https://zwiftpower.com/api3.php?do=league_event_results&id='
+  )
+  _team_event_standings_url: str = (
+    'https://zwiftpower.com/api3.php?do=league_team_event_standings&id='
+  )
+  _league_list_url: str = 'https://zwiftpower.com/api3.php?do=league_list'
+
   def __init__(self) -> None:
     """Initialize a new League instance."""
     super().__init__()
     self._fetched: dict[int, ZPLeague] = {}  # Override type to use ZPLeague
     self._zp: AsyncZP | None = None  # Async session
     self._zp_sync: ZP | None = None  # Sync session (for reference only)
+
+    # Raw responses for the non-standings league sources
+    self._team_standings_raw: dict[int, str] = {}
+    self._team_event_results_raw: dict[int, str] = {}
+    self._events_raw: dict[int, str] = {}
+    self._league_list_raw: str = ''
 
   # ----------------------------------------------------------------------------
   def set_session(self, zp: AsyncZP) -> None:
@@ -121,6 +157,11 @@ class ZPLeagueFetch(ZP_obj):
   async def _fetch_parallel(self, *league_id: int) -> dict[int, ZPLeague]:
     """Fetch league data in parallel using async requests.
 
+    Fetches rider standings, team standings, team-event standings, and
+    events for each league, plus the league catalog once for metadata.
+    Sources are independent: a failure in one logs a warning and leaves
+    that collection empty. Raises only if every per-league source fails.
+
     Args:
       *league_id: One or more league ID integers to fetch
 
@@ -140,42 +181,107 @@ class ZPLeagueFetch(ZP_obj):
     try:
       logger.info(f'Fetching league data for {len(league_id)} ID(s)')
 
-      # Build list of fetch tasks
-      fetch_tasks = []
-      for lid in validated_ids:
-        url = f'{self._url}{self._url_prefix}{lid}{self._url_end}'
-        fetch_tasks.append(session.fetch_json(url))
+      # League catalog (global) - fetched once, filtered per league
+      league_info_map: dict[int, dict[str, Any]] = {}
+      self._league_list_raw = ''
+      try:
+        raw_list = await session.fetch_json(self._league_list_url)
+        self._league_list_raw = raw_list
+        parsed_list = parse_json_safe(raw_list, context='league list')
+        catalog_rows = (
+          parsed_list.get('data', []) if isinstance(parsed_list, dict) else []
+        )
+        for row in catalog_rows:
+          if isinstance(row, dict):
+            lid = extract_numeric(row.get('league_id'), int, 0)
+            if lid:
+              league_info_map[lid] = row
+      except Exception as e:
+        logger.warning(f'League catalog fetch failed (metadata skipped): {e}')
 
-      # Execute all fetches in parallel
       results_raw: dict[int, str] = {}
       results_fetched: dict[int, ZPLeague] = {}
+      self._team_standings_raw = {}
+      self._team_event_results_raw = {}
+      self._events_raw = {}
 
-      async def fetch_and_store(
-        idx: int,
-        task: Coroutine[Any, Any, str],
-      ) -> None:
-        """Helper to fetch and store result."""
-        try:
-          raw_json = await task
-          league_id = validated_ids[idx]
-          results_raw[league_id] = raw_json
+      async def fetch_league(idx: int) -> None:
+        """Fetch all sources for one league; raise only if all fail."""
+        lid = validated_ids[idx]
+        sources: list[tuple[str, str]] = [
+          (
+            'standings',
+            f'{self._url}{self._url_prefix}{lid}{self._url_end}',
+          ),
+          (
+            'team_standings',
+            f'{self._team_standings_url}{lid}{self._url_end}',
+          ),
+          (
+            'team_event_results',
+            f'{self._team_event_standings_url}{lid}&zwift_event_id=',
+          ),
+          (
+            'events',
+            f'{self._events_url}{lid}',
+          ),
+        ]
 
-          # Parse for fetched dict and wrap in ZPLeague
-          parsed = parse_json_safe(raw_json, context=f'league {league_id}')
-          league_dict = parsed if isinstance(parsed, dict) else {}
-          results_fetched[league_id] = ZPLeague.from_dict(
-            league_dict,
-            league_id=league_id,
-          )
+        raws: dict[str, str] = {}
+        errors: list[tuple[str, Exception]] = []
+        for name, url in sources:
+          try:
+            raws[name] = await session.fetch_json(url)
+          except Exception as e:
+            errors.append((name, e))
+            logger.warning(f'League {lid}: {name} fetch failed: {e}')
 
-          logger.debug(f'Successfully fetched league ID: {league_id}')
-        except Exception as e:
-          logger.error(f'Failed to fetch league ID {validated_ids[idx]}: {e}')
-          raise
+        if len(errors) == len(sources):
+          logger.error(f'League {lid}: all sources failed')
+          raise errors[0][1]
+
+        # Parse what succeeded
+        standings_dict: dict[str, Any] = {}
+        if 'standings' in raws:
+          results_raw[lid] = raws['standings']
+          parsed = parse_json_safe(raws['standings'], context=f'league {lid}')
+          standings_dict = parsed if isinstance(parsed, dict) else {}
+
+        if 'team_standings' in raws:
+          self._team_standings_raw[lid] = raws['team_standings']
+        if 'team_event_results' in raws:
+          self._team_event_results_raw[lid] = raws['team_event_results']
+        if 'events' in raws:
+          self._events_raw[lid] = raws['events']
+
+        results_fetched[lid] = ZPLeague.from_dict(
+          standings_dict,
+          league_id=lid,
+          events=(
+            _data_list(raws['events'], f'league events {lid}')
+            if 'events' in raws
+            else None
+          ),
+          team_standings=(
+            _data_list(raws['team_standings'], f'league team standings {lid}')
+            if 'team_standings' in raws
+            else None
+          ),
+          team_event_results=(
+            _data_list(
+              raws['team_event_results'],
+              f'league team event standings {lid}',
+            )
+            if 'team_event_results' in raws
+            else None
+          ),
+          league_info=league_info_map.get(lid),
+        )
+        logger.debug(f'Successfully fetched league ID: {lid}')
 
       async with anyio.create_task_group() as tg:
-        for idx, task in enumerate(fetch_tasks):
-          tg.start_soon(fetch_and_store, idx, task)
+        for idx in range(len(validated_ids)):
+          tg.start_soon(fetch_league, idx)
 
       self._raw = results_raw
       self._fetched = results_fetched
@@ -196,6 +302,8 @@ class ZPLeagueFetch(ZP_obj):
 
     This method provides a clear, separate execution path for debugging.
     All requests are made synchronously in sequence, with no parallelization.
+    Sources are independent: a failure in one logs a warning and leaves
+    that collection empty. Raises only if every per-league source fails.
 
     Args:
       *league_id: One or more league ID integers to fetch
@@ -222,24 +330,101 @@ class ZPLeagueFetch(ZP_obj):
     # Create synchronous ZP session
     zp = ZP()
 
+    # League catalog (global) - fetched once, filtered per league
+    league_info_map: dict[int, dict[str, Any]] = {}
+    self._league_list_raw = ''
+    try:
+      raw_list = zp.fetch_json(self._league_list_url)
+      self._league_list_raw = raw_list
+      parsed_list = parse_json_safe(raw_list, context='league list')
+      catalog_rows = (
+        parsed_list.get('data', []) if isinstance(parsed_list, dict) else []
+      )
+      for row in catalog_rows:
+        if isinstance(row, dict):
+          lid = extract_numeric(row.get('league_id'), int, 0)
+          if lid:
+            league_info_map[lid] = row
+    except Exception as e:
+      logger.warning(f'League catalog fetch failed (metadata skipped): {e}')
+
     results_raw: dict[int, str] = {}
     results_fetched: dict[int, ZPLeague] = {}
+    self._team_standings_raw = {}
+    self._team_event_results_raw = {}
+    self._events_raw = {}
 
     # Fetch each ID sequentially
     for id_val in validated_ids:
       logger.debug(f'Fetching league data for league ID: {id_val}')
-      url = f'{self._url}{self._url_prefix}{id_val}{self._url_end}'
+      sources: list[tuple[str, str]] = [
+        (
+          'standings',
+          f'{self._url}{self._url_prefix}{id_val}{self._url_end}',
+        ),
+        (
+          'team_standings',
+          f'{self._team_standings_url}{id_val}{self._url_end}',
+        ),
+        (
+          'team_event_results',
+          f'{self._team_event_standings_url}{id_val}&zwift_event_id=',
+        ),
+        (
+          'events',
+          f'{self._events_url}{id_val}',
+        ),
+      ]
 
-      # Synchronous blocking call
-      raw_json = zp.fetch_json(url)
-      results_raw[id_val] = raw_json
+      raws: dict[str, str] = {}
+      errors: list[tuple[str, Exception]] = []
+      for name, url in sources:
+        try:
+          raws[name] = zp.fetch_json(url)
+        except Exception as e:
+          errors.append((name, e))
+          logger.warning(f'League {id_val}: {name} fetch failed: {e}')
 
-      # Parse immediately (no parallel parsing) and wrap in ZPLeague
-      parsed = parse_json_safe(raw_json, context=f'league {id_val}')
-      league_dict = parsed if isinstance(parsed, dict) else {}
+      if len(errors) == len(sources):
+        logger.error(f'League {id_val}: all sources failed')
+        raise errors[0][1]
+
+      # Parse what succeeded
+      standings_dict: dict[str, Any] = {}
+      if 'standings' in raws:
+        results_raw[id_val] = raws['standings']
+        parsed = parse_json_safe(raws['standings'], context=f'league {id_val}')
+        standings_dict = parsed if isinstance(parsed, dict) else {}
+
+      if 'team_standings' in raws:
+        self._team_standings_raw[id_val] = raws['team_standings']
+      if 'team_event_results' in raws:
+        self._team_event_results_raw[id_val] = raws['team_event_results']
+      if 'events' in raws:
+        self._events_raw[id_val] = raws['events']
+
       results_fetched[id_val] = ZPLeague.from_dict(
-        league_dict,
+        standings_dict,
         league_id=id_val,
+        events=(
+          _data_list(raws['events'], f'league events {id_val}')
+          if 'events' in raws
+          else None
+        ),
+        team_standings=(
+          _data_list(raws['team_standings'], f'league team standings {id_val}')
+          if 'team_standings' in raws
+          else None
+        ),
+        team_event_results=(
+          _data_list(
+            raws['team_event_results'],
+            f'league team event standings {id_val}',
+          )
+          if 'team_event_results' in raws
+          else None
+        ),
+        league_info=league_info_map.get(id_val),
       )
 
       logger.debug(f'Successfully fetched league data for league ID: {id_val}')

@@ -7,6 +7,7 @@ import pytest
 
 from shared.validation import ValidationError
 from zpdatafetch.async_zp import AsyncZP
+from zpdatafetch.zp import ZP
 from zpdatafetch.zpleague import (
   ZPLeague,
   ZPLeagueEvent,
@@ -217,6 +218,169 @@ def test_zpleague_event_parse_no_results_fixture():
   # No results key - excluded stays empty, extras has the rest
   assert 'results' not in events[0].excluded()
   assert events[0].extras()['km'] == 23670
+
+
+def _load_fixture(name):
+  with open(f'test/fixtures/{name}', encoding='utf-8') as f:
+    return json.load(f)
+
+
+def _all_sources_handler(login_page, logged_in_page, league_ok):
+  """Handler answering every league source with real fixture rows."""
+  team_rows = _load_fixture('league_team_standings_3379.json')['data'][:3]
+  tes_rows = _load_fixture('league_team_event_standings_3379.json')['data'][:3]
+  event_rows = _load_fixture('league_event_results_3388.json')['data'][:5]
+  catalog = _load_fixture('league_list.json')['data']
+  catalog_row = next(r for r in catalog if r['league_id'] == '3379').copy()
+  catalog_row['league_id'] = '2780'
+
+  def handler(request):
+    url = str(request.url)
+    if request.method == 'GET' and 'login' in url:
+      return httpx2.Response(200, text=login_page)
+    if request.method == 'POST':
+      return httpx2.Response(200, text=logged_in_page)
+    if 'league_team_standings_2780.json' in url:
+      return httpx2.Response(200, text=json.dumps({'data': team_rows}))
+    if 'league_team_event_standings' in url:
+      return httpx2.Response(200, text=json.dumps({'data': tes_rows}))
+    if 'league_event_results&id=2780' in url:
+      return httpx2.Response(200, text=json.dumps({'data': event_rows}))
+    if 'do=league_list' in url:
+      return httpx2.Response(200, text=json.dumps({'data': [catalog_row]}))
+    if 'league_standings_2780.json' in url:
+      return httpx2.Response(200, text=json.dumps(league_ok))
+    return httpx2.Response(404)
+
+  return handler
+
+
+def _async_client(handler):
+  return httpx2.AsyncClient(
+    follow_redirects=True,
+    transport=httpx2.MockTransport(handler),
+  )
+
+
+@pytest.mark.anyio
+async def test_league_afetch_all_sources(
+  league_ok,
+  login_page,
+  logged_in_page,
+):
+  """Async fetch populates all five league collections."""
+  handler = _all_sources_handler(login_page, logged_in_page, league_ok)
+
+  async with AsyncZP(skip_credential_check=True) as zp:
+    zp.username = 'testuser'
+    zp.password = 'testpass'
+    await zp.init_client(_async_client(handler))
+
+    league = ZPLeagueFetch()
+    league.set_session(zp)
+
+    result = await league.afetch(2780)
+
+  obj = result[2780]
+  assert obj.events()[0].title.startswith('Sykkelkomponenter')
+  assert obj.team_standings()[0].team_name == 'SISU Racing'
+  assert obj.team_event_results()[0].team_name == 'TEZH Racing'
+  assert obj.info() is not None
+  assert obj.info().name == ' #DURA-ACE | Standard'
+  assert obj.standings()[0].name == 'Rider One'
+
+  # asdict exposes everything
+  d = obj.asdict()
+  assert 'events' in d and 'team_standings' in d
+  assert 'team_event_results' in d and 'league_info' in d
+
+
+@pytest.mark.anyio
+async def test_league_afetch_events_only_when_standings_fail(
+  login_page,
+  logged_in_page,
+):
+  """Standings 403 but events present -> league returned with events only."""
+  events = _load_fixture('league_event_results_3388.json')['data']
+
+  def handler(request):
+    url = str(request.url)
+    if request.method == 'GET' and 'login' in url:
+      return httpx2.Response(200, text=login_page)
+    if request.method == 'POST':
+      return httpx2.Response(200, text=logged_in_page)
+    if 'league_event_results&id=3388' in url:
+      return httpx2.Response(200, text=json.dumps({'data': events}))
+    return httpx2.Response(403)
+
+  async with AsyncZP(skip_credential_check=True) as zp:
+    zp.username = 'testuser'
+    zp.password = 'testpass'
+    await zp.init_client(_async_client(handler))
+
+    league = ZPLeagueFetch()
+    league.set_session(zp)
+
+    result = await league.afetch(3388)
+
+  obj = result[3388]
+  assert len(obj.events()) == 12
+  d = obj.asdict()
+  assert 'events' in d
+  assert 'standings' not in d
+  assert 'team_standings' not in d
+
+
+@pytest.mark.anyio
+async def test_league_afetch_all_sources_fail(login_page, logged_in_page):
+  """All per-league sources failing raises."""
+
+  def handler(request):
+    return httpx2.Response(403)
+
+  async with AsyncZP(skip_credential_check=True) as zp:
+    zp.username = 'testuser'
+    zp.password = 'testpass'
+    await zp.init_client(_async_client(handler))
+
+    league = ZPLeagueFetch()
+    league.set_session(zp)
+
+    with pytest.raises(Exception):
+      await league.afetch(3388)
+
+
+def test_league_fetch_sequential_all_sources(
+  league_ok,
+  login_page,
+  logged_in_page,
+):
+  """Synchronous mode populates all five collections."""
+  handler = _all_sources_handler(login_page, logged_in_page, league_ok)
+
+  original_init = ZP.__init__
+
+  def mock_init(self, skip_credential_check=False):
+    original_init(self, skip_credential_check=True)
+    self._client = httpx2.Client(
+      follow_redirects=True,
+      transport=httpx2.MockTransport(handler),
+    )
+
+  ZP.__init__ = mock_init
+  ZPLeagueFetch.set_sync_mode(True)
+  try:
+    league = ZPLeagueFetch()
+    result = league.fetch(2780)
+  finally:
+    ZPLeagueFetch.set_sync_mode(False)
+    ZP.__init__ = original_init
+
+  obj = result[2780]
+  assert obj.events()
+  assert obj.team_standings()
+  assert obj.team_event_results()
+  assert obj.info() is not None
 
 
 def test_league(league):
