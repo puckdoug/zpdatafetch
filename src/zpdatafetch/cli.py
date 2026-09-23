@@ -431,6 +431,27 @@ Module for fetching zwiftpower data using the Zwifpower API
         # Not a collection, print on same line
         print(f' {value!r}')
 
+      # Structured objects (e.g. ZPLeague) with nested collections that are
+      # not part of their Sequence iteration.
+      league_info = (
+        getattr(value, 'info')() if hasattr(value, 'info') else None
+      )
+      if league_info is not None:
+        print(f'  league_info: {league_info!r}')
+      for label, accessor in (
+        ('team_standings', 'team_standings'),
+        ('team_event_results', 'team_event_results'),
+        ('events', 'events'),
+      ):
+        if not hasattr(value, accessor):
+          continue
+        nested_items = getattr(value, accessor)()
+        if not nested_items:
+          continue
+        print(f'  {label}:')
+        for nested_item in nested_items:
+          print_collection(nested_item, indent=2)
+
   return None
 
 

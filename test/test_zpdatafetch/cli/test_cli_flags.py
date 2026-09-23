@@ -141,3 +141,42 @@ def test_cli_league_excluded_walks_nested_collections(monkeypatch, capsys):
   out = capsys.readouterr().out
   assert 'excluded:' in out
   assert 'DT_RowId' in out
+
+
+def test_cli_league_default_shows_events(monkeypatch, capsys):
+  """Default league output shows events (no --json), even with no standings."""
+  import sys
+
+  from zpdatafetch import cli as cli_mod
+  from zpdatafetch.zpleague import ZPLeague
+
+  class FakeLeagueFetch:
+    def __init__(self) -> None:
+      self._fetched = {}
+      self._raw = {}
+
+    def fetch(self, *ids):
+      self._fetched = {
+        3388: ZPLeague.from_dict(
+          {},
+          league_id=3388,
+          events=[
+            {
+              'zid': '5703587',
+              't': 'Pain Cave Ultra - Round 12/12',
+              'tm': 1794686400,
+            },
+          ],
+          league_info={'league_id': '3388', 'league_name': 'Pain Cave Ultra'},
+        )
+      }
+
+  monkeypatch.setattr(cli_mod, 'ZPLeagueFetch', FakeLeagueFetch)
+  monkeypatch.setattr(sys, 'argv', ['zpdata', 'league', '3388'])
+
+  assert cli_mod.main() is None
+
+  out = capsys.readouterr().out
+  assert 'events:' in out
+  assert 'Pain Cave Ultra - Round 12/12' in out
+  assert 'league_info:' in out
