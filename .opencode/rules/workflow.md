@@ -37,6 +37,8 @@ globs:
 ## Git
 - Use git commands to rename (`git mv`), remove (`git rm`), or add (`git add`) to ensure change history is tracked.
 - Do not make changes to the git repository. Do not use `git commit`, `merge`, `rebase`, or `push`.
+- EXCEPTION: only when the maintainer explicitly asks for commits, and only on the branch they name. Before every commit run `git branch --show-current` and confirm it is that branch. NEVER commit on `main` (or `master`). If the current branch is not the authorised one, stop and report instead of committing.
+- Never `merge`, `rebase`, or `push` unless explicitly told to.
 
 ## Deployment
 - At the end of implementation, always summarize steps required to finish deployment in dev and prod (restart granian, run migrations, etc.).
