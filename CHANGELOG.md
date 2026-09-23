@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [2.4.0]
 
 - League data expanded to cover everything the ZwiftPower league page exposes
   (issue #5):
