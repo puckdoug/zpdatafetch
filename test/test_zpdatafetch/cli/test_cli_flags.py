@@ -180,3 +180,30 @@ def test_cli_league_default_shows_events(monkeypatch, capsys):
   assert 'events:' in out
   assert 'Pain Cave Ultra - Round 12/12' in out
   assert 'league_info:' in out
+
+
+def test_cli_league_raw_includes_all_sources(monkeypatch, capsys):
+  """--raw prints every fetched league source, not just standings."""
+  import sys
+
+  from zpdatafetch import cli as cli_mod
+
+  class FakeLeagueFetch:
+    def __init__(self) -> None:
+      self._fetched = {3388: object()}
+      self._raw = {}
+      self._team_standings_raw = {}
+      self._team_event_results_raw = {}
+      self._events_raw = {3388: '{"data":[{"zid":"1"}]}'}
+
+    def fetch(self, *ids):
+      return self._fetched
+
+  monkeypatch.setattr(cli_mod, 'ZPLeagueFetch', FakeLeagueFetch)
+  monkeypatch.setattr(sys, 'argv', ['zpdata', 'league', '--raw', '3388'])
+
+  assert cli_mod.main() is None
+
+  out = capsys.readouterr().out
+  assert 'events:' in out
+  assert '{"data":[{"zid":"1"}]}' in out

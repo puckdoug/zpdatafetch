@@ -33,6 +33,35 @@ from zpdatafetch.logging_config import setup_logging
 
 
 # ==============================================================================
+def _league_raw_sources(obj: object) -> list[tuple[int, str, str]]:
+  """Return (league_id, source_label, raw_text) for a league fetch.
+
+  Empty for non-league fetches. Lets `--raw` print every fetched league
+  source instead of only the standings raw text.
+
+  Args:
+    obj: A fetched data object
+
+  Returns:
+    List of tuples, one per available source per league
+  """
+  if not hasattr(obj, '_events_raw'):
+    return []
+  sources = (
+    ('standings', getattr(obj, '_raw', {})),
+    ('team_standings', getattr(obj, '_team_standings_raw', {})),
+    ('team_event_results', getattr(obj, '_team_event_results_raw', {})),
+    ('events', getattr(obj, '_events_raw', {})),
+  )
+  out: list[tuple[int, str, str]] = []
+  for lid in getattr(obj, '_fetched', {}):
+    for label, raws in sources:
+      if isinstance(raws, dict) and lid in raws:
+        out.append((lid, label, raws[lid]))
+  return out
+
+
+# ==============================================================================
 def main() -> int | None:
   """Main entry point for the zpdatafetch CLI.
 
@@ -292,7 +321,12 @@ Module for fetching zwiftpower data using the Zwifpower API
 
   if args.raw:
     # Output raw response text
-    if len(x._raw) == 1:
+    league_raw_sources = _league_raw_sources(x)
+    if league_raw_sources:
+      # League: print the raw text of every source that was fetched
+      for lid, label, raw_text in league_raw_sources:
+        print(f'{lid} {label}: {raw_text}')
+    elif len(x._raw) == 1:
       # Single ID: print just the raw string
       print(list(x._raw.values())[0])
     else:
