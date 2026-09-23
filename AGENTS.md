@@ -55,7 +55,7 @@ just check     # ruff check src test && ty check src test
 - Never start implementation without an explicit go-ahead. Write plans to `docs/planning/` with a checklist at the top and maintain it while working.
 - Never ignore an issue or warning — fix it immediately or log it in `docs/planning/` with a proposed solution.
 - GitHub issue workflow: work only existing issues. Pull with `gh issue view <N>`, plan in `docs/planning/issue_<N>_<slug>.md`, and complete (validate against the real system, not just mocks) by marking the plan `DONE` and posting the final update via `gh issue comment <N>`. Never create, close, or reopen GitHub issues — state changes are the maintainer's call.
-- Do not run `git commit`, `merge`, `rebase`, or `push` unless explicitly told to. When commits are authorised, commit only to the named feature branch — run `git branch --show-current` first and never commit on `main`. Use `git add` / `git mv` / `git rm` so change history is tracked.
+- These git restrictions apply to you (the agent), not Doug. Do not run `git commit`, `merge`, `rebase`, or `push` unless explicitly told to. When commits are authorised, commit only to the named feature branch — run `git branch --show-current` first and never commit on `main`. Never install hooks or change git config to enforce this; it is your discipline. Use `git add` / `git mv` / `git rm` so change history is tracked.
 - Update `CHANGELOG.md` and `README.md` whenever functionality is added or changed.
 
 ## Release
