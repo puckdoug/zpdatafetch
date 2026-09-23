@@ -48,7 +48,7 @@ required).
 - **Primes** - Prime results for Fastest Through Segment (FTS) and First Across the Line (FAL)
 - **Sprints** - Sprint data including sprint details and positions
 - **Team data** - Team rosters and member information
-- **League data** - League standings and Zwift Racing Score (ZRS) information
+- **League data** - League standings, events, team standings, and league metadata (name, categories, contact)
 
 ### For zrdata (Zwiftracing)
 
@@ -283,7 +283,25 @@ available classes are as follows:
 - Signup: fetch signups for a particular event by event id
 - Sprints: fetch sprints from one or more races using event id
 - Team: fetch team data by team id
-- League: fetch league standings by league id
+- League: fetch league standings, events, team standings, team-event results and metadata by league id
+
+**League data example:**
+
+```python
+from zpdatafetch import ZPLeagueFetch
+
+lf = ZPLeagueFetch()
+league = lf.fetch(3379)[3379]
+
+league.info()                 # ZPLeagueInfo: name, contact, categories, ...
+league.events()               # list[ZPLeagueEvent]: event_id, title, start_datetime
+league.team_standings()       # list[ZPLeagueTeamStanding]
+league.team_event_results()   # list[ZPLeagueTeamEventResult]
+print(league.json())          # all collections as JSON (keys omitted when empty)
+```
+
+Each source is fetched independently: a league without a standings file (e.g.
+3388) still returns its events and metadata, and vice versa.
 
 ## Zwiftracing Data (zrdata)
 
