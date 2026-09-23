@@ -383,6 +383,104 @@ def test_league_fetch_sequential_all_sources(
   assert obj.info() is not None
 
 
+@pytest.mark.anyio
+async def test_league_afetch_non_json_source_is_skipped(
+  login_page,
+  logged_in_page,
+):
+  """A non-JSON (HTML) source is treated as a failure, not empty success."""
+  team_rows = _load_fixture('league_team_standings_3379.json')['data'][:2]
+  catalog = _load_fixture('league_list.json')['data']
+  catalog_row = next(r for r in catalog if r['league_id'] == '3379').copy()
+  catalog_row['league_id'] = '2780'
+
+  def handler(request):
+    url = str(request.url)
+    if request.method == 'GET' and 'login' in url:
+      return httpx2.Response(200, text=login_page)
+    if request.method == 'POST':
+      return httpx2.Response(200, text=logged_in_page)
+    if 'league_team_standings_2780.json' in url:
+      return httpx2.Response(200, text=json.dumps({'data': team_rows}))
+    if 'do=league_list' in url:
+      return httpx2.Response(200, text=json.dumps({'data': [catalog_row]}))
+    # standings, events, team_event return the login page HTML with 200
+    return httpx2.Response(200, text='<html><body>login</body></html>')
+
+  async with AsyncZP(skip_credential_check=True) as zp:
+    zp.username = 'testuser'
+    zp.password = 'testpass'
+    await zp.init_client(_async_client(handler))
+
+    league = ZPLeagueFetch()
+    league.set_session(zp)
+    result = await league.afetch(2780)
+
+  obj = result[2780]
+  assert obj.standings() == []
+  assert obj.events() == []
+  assert obj.team_event_results() == []
+  assert len(obj.team_standings()) == 2
+  assert obj.info() is not None
+
+
+@pytest.mark.anyio
+async def test_league_afetch_all_non_json_raises(login_page, logged_in_page):
+  """All sources returning non-JSON raises."""
+
+  def handler(request):
+    if request.method == 'GET' and 'login' in str(request.url):
+      return httpx2.Response(200, text=login_page)
+    if request.method == 'POST':
+      return httpx2.Response(200, text=logged_in_page)
+    return httpx2.Response(200, text='<html><body>login</body></html>')
+
+  async with AsyncZP(skip_credential_check=True) as zp:
+    zp.username = 'testuser'
+    zp.password = 'testpass'
+    await zp.init_client(_async_client(handler))
+
+    league = ZPLeagueFetch()
+    league.set_session(zp)
+
+    with pytest.raises(Exception):
+      await league.afetch(2780)
+
+
+def test_league_fetch_sequential_logs_in(login_page, logged_in_page, league_ok):
+  """Sequential mode authenticates the sync session before fetching."""
+  handler = _all_sources_handler(login_page, logged_in_page, league_ok)
+  logged_in = {'called': False}
+
+  original_init = ZP.__init__
+  original_login = ZP.login
+
+  def mock_init(self, skip_credential_check=False):
+    original_init(self, skip_credential_check=True)
+    self._client = httpx2.Client(
+      follow_redirects=True,
+      transport=httpx2.MockTransport(handler),
+    )
+
+  def mock_login(self):
+    logged_in['called'] = True
+    original_login(self)
+
+  ZP.__init__ = mock_init
+  ZP.login = mock_login
+  ZPLeagueFetch.set_sync_mode(True)
+  try:
+    league = ZPLeagueFetch()
+    result = league.fetch(2780)
+  finally:
+    ZPLeagueFetch.set_sync_mode(False)
+    ZP.__init__ = original_init
+    ZP.login = original_login
+
+  assert logged_in['called'] is True
+  assert result[2780].events()
+
+
 def test_league(league):
   assert league is not None
 
