@@ -545,6 +545,106 @@ flowchart LR
 
 ---
 
+#### League Events (`ZPLeagueEvent`)
+
+**Source:** `api3.php?do=league_event_results&id=<league_id>` →
+`{"data": [ ... ]}`. Exposed as `ZPLeague.events()` / `asdict()['events']`.
+
+| Raw API Field | Python Attribute | Type | Transformation             | Lineage  |
+| ------------- | ---------------- | ---- | -------------------------- | -------- |
+| `zid`         | `event_id`       | int  | Field renamed, numeric     | Mastered |
+| `t`           | `title`          | str  | Field renamed              | Mastered |
+| `tm`          | `start_datetime` | int  | Field renamed, Unix epoch  | Mastered |
+
+**Excluded Fields:** `DT_RowId` (duplicate of `zid`), `results` (per-category
+result rows, not yet typed).
+**Extra Fields:** all other event fields (`km`, `laps`, `cats`, `w`, `dur`,
+`rtype`, `rules`, `fin`, `r`, `rid`, `f`, `rt`, `dir`, `cul`, `eid`).
+
+---
+
+#### League Team Standings (`ZPLeagueTeamStanding`)
+
+**Source:** `cache3/global/league_team_standings_<league_id>.json` →
+`{"data": [ ... ]}`. Exposed as `ZPLeague.team_standings()`.
+
+| Raw API Field | Python Attribute   | Type | Transformation | Lineage  |
+| ------------- | ------------------ | ---- | -------------- | -------- |
+| `tid`         | `team_id`          | int  | Field renamed  | Mastered |
+| `tname`       | `team_name`        | str  | Field renamed  | Mastered |
+| `pos`         | `position`         | int  | Field renamed  | Mastered |
+| `points`      | `points`           | int  | Numeric        | Mastered |
+| `events`      | `events`           | int  | Numeric        | Mastered |
+| `rank`        | `rank`             | str  | None           | Mastered |
+| `history`     | `history`          | list | None           | Mastered |
+| `category`    | `category`         | str  | None           | Mastered |
+| `tbc`         | `color_background` | str  | Field renamed  | Mastered |
+| `tbd`         | `color_border`     | str  | Field renamed  | Mastered |
+| `tc`          | `color_text`       | str  | Field renamed  | Mastered |
+
+**Excluded Fields:** `league_id` (duplicate of the league).
+
+---
+
+#### League Team-Event Standings (`ZPLeagueTeamEventResult`)
+
+**Source:** `api3.php?do=league_team_event_standings&id=<league_id>&zwift_event_id=`
+(empty `zwift_event_id` = default view) → `{"data": [ ... ]}`. Exposed as
+`ZPLeague.team_event_results()`.
+
+| Raw API Field | Python Attribute   | Type | Transformation | Lineage  |
+| ------------- | ------------------ | ---- | -------------- | -------- |
+| `zwid`        | `zwift_id`         | int  | Field renamed  | Mastered |
+| `name`        | `name`             | str  | None           | Mastered |
+| `category`    | `category`         | str  | None           | Mastered |
+| `tid`         | `team_id`          | int  | Field renamed  | Mastered |
+| `tname`       | `team_name`        | str  | Field renamed  | Mastered |
+| `tbc`         | `color_background` | str  | Field renamed  | Mastered |
+| `tbd`         | `color_border`     | str  | Field renamed  | Mastered |
+| `tc`          | `color_text`       | str  | Field renamed  | Mastered |
+| `pos`         | `position`         | int  | Field renamed  | Mastered |
+| `points`      | `points`           | int  | Numeric        | Mastered |
+| `events`      | `events`           | int  | Numeric        | Mastered |
+| `rank`        | `rank`             | str  | None           | Mastered |
+| `reg`         | `reg`              | int  | Numeric        | Mastered |
+| `flag`        | `flag`             | str  | None           | Mastered |
+
+**Excluded Fields:** `topen`, `fem`.
+**Extra Fields:** `aid` and any unknown fields.
+
+---
+
+#### League Info (`ZPLeagueInfo`)
+
+**Source:** `api3.php?do=league_list` (all leagues in one response; filtered to
+the requested league id) → a single catalog row. Exposed as `ZPLeague.info()` /
+`asdict()['league_info']`.
+
+| Raw API Field  | Python Attribute    | Type | Transformation            | Lineage  |
+| -------------- | ------------------- | ---- | ------------------------- | -------- |
+| `league_id`    | `league_id`         | int  | Numeric                   | Mastered |
+| `league_name`  | `name`              | str  | Field renamed             | Mastered |
+| `active`       | `active`            | int  | Numeric (0/1)             | Mastered |
+| `info`         | `info`              | str  | None                      | Mastered |
+| `contact`      | `contact`           | str  | None                      | Mastered |
+| `start`        | `start`             | int  | Numeric                   | Mastered |
+| `end`          | `end`               | int  | Numeric                   | Mastered |
+| `cats`         | `categories`        | str  | Field renamed             | Mastered |
+| `cats_names`   | `category_names`    | str  | Field renamed             | Mastered |
+| `races`        | `races`             | int  | Numeric                   | Mastered |
+| `efforts`      | `efforts`           | int  | Numeric                   | Mastered |
+| `image`        | `image`             | str  | None                      | Mastered |
+| `lidbc`        | `color_background`  | str  | Field renamed             | Mastered |
+| `lidbd`        | `color_border`      | str  | Field renamed             | Mastered |
+| `lidc`         | `color_text`        | str  | Field renamed             | Mastered |
+| `lrace_id`     | `latest_race_id`    | str  | Field renamed             | Mastered |
+| `race_id`      | `race_id`           | str  | None                      | Mastered |
+| `lrace_title`  | `latest_race_title` | str  | Field renamed             | Mastered |
+
+**Excluded Fields:** `ridc`, `ridbd`, `ridbc` (race display colors).
+
+---
+
 ### Primes
 
 **Purpose:** Race prime/sprint segment data organized by category and timing type.

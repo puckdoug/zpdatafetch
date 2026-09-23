@@ -1,5 +1,23 @@
 # Changelog
 
+## [Unreleased]
+
+- League data expanded to cover everything the ZwiftPower league page exposes
+  (issue #5):
+  - **Events** (`ZPLeagueEvent`) from `league_event_results` — event id, title,
+    start time.
+  - **Team standings** (`ZPLeagueTeamStanding`) from `league_team_standings`.
+  - **Team-event standings** (`ZPLeagueTeamEventResult`) from
+    `league_team_event_standings`.
+  - **League metadata** (`ZPLeagueInfo`) from the league catalog (`league_list`)
+    — name, contact, categories, race/effort counts, colors.
+  - `ZPLeague` gains `info()`, `team_standings()`, `team_event_results()`, and
+    `events()` accessors plus matching `asdict()`/JSON keys (omitted when empty).
+  - League fetching is now resilient: each source is fetched independently, so a
+    league missing its standings file (e.g. 3388) still returns its events and
+    metadata. The fetch raises only when every per-league source fails.
+  - CLI `--excluded`/`--extras` report the new nested collections.
+
 ## [2.3.2]
 
 - `zrdata` / `zrdatafetch`: async API now supports the premium rate limit tier
