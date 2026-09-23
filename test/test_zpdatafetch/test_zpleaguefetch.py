@@ -120,6 +120,90 @@ def test_zpleague_info_parse_fixture():
   assert 'ridc' in info.excluded()
 
 
+def test_zpleague_all_collections():
+  """ZPLeague carries all five collections through asdict/accessors."""
+
+  league = ZPLeague.from_dict(
+    {
+      'teams': {
+        '1': {'tname': 'Team A', 'tbc': 'a', 'tbd': 'b', 'tc': 'c'},
+      },
+      'data': [
+        {'pos': 1, 'zwid': 2, 'name': 'Rider One'},
+      ],
+    },
+    league_id=2780,
+    events=[{'zid': '10', 't': 'Event One', 'tm': 111}],
+    team_standings=[
+      {
+        'tid': '9',
+        'tname': 'SISU Racing',
+        'pos': 1,
+        'category': 'A',
+        'rank': '100.00%',
+        'points': '26390291',
+      },
+    ],
+    team_event_results=[
+      {
+        'zwid': '8325416',
+        'name': 'PedroJ. López (TEZH)',
+        'tid': '20380',
+        'tname': 'TEZH Racing',
+        'pos': 1,
+        'category': 'A',
+      },
+    ],
+    league_info={
+      'league_id': '2780',
+      'league_name': ' #DURA-ACE | Standard',
+      'cats': 'A,E',
+      'races': '530',
+      'efforts': '24994',
+      'active': 1,
+    },
+  )
+
+  d = league.asdict()
+  assert d['league_id'] == 2780
+  assert d['league_info']['name'] == ' #DURA-ACE | Standard'
+  assert d['teams']['1']['name'] == 'Team A'
+  assert d['standings'][0]['name'] == 'Rider One'
+  assert d['team_standings'][0]['team_name'] == 'SISU Racing'
+  assert d['team_event_results'][0]['team_name'] == 'TEZH Racing'
+  assert d['events'][0]['event_id'] == 10
+
+  # Accessors
+  assert league.events()[0].event_id == 10
+  assert league.team_standings()[0].points == 26390291
+  assert league.team_event_results()[0].zwift_id == 8325416
+  assert league.info().races == 530
+
+  # Dict-style access
+  assert league['events'][0].event_id == 10
+  assert league['league_info'].name == ' #DURA-ACE | Standard'
+  assert league['team_standings'][0].team_id == 9
+  assert league['team_event_results'][0].team_id == 20380
+
+  # json() output includes everything
+  json_str = league.json()
+  assert 'team_standings' in json_str
+  assert 'team_event_results' in json_str
+  assert 'events' in json_str
+  assert 'league_info' in json_str
+
+
+def test_zpleague_empty_collections_omitted():
+  """Empty collections are omitted from asdict (existing contract)."""
+
+  league = ZPLeague.from_dict({}, league_id=5)
+  assert league.asdict() == {'league_id': 5}
+  assert league.events() == []
+  assert league.team_standings() == []
+  assert league.team_event_results() == []
+  assert league.info() is None
+
+
 def test_zpleague_event_parse_no_results_fixture():
   """Parse the events-only league-3388 fixture (no results arrays)."""
 

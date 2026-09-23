@@ -832,6 +832,19 @@ class ZPLeague(Sequence):
     default_factory=list,
     repr=False,
   )  # Rider standings
+  _team_standings: list[ZPLeagueTeamStanding] = field(
+    default_factory=list,
+    repr=False,
+  )  # Team standings rows
+  _team_event_results: list[ZPLeagueTeamEventResult] = field(
+    default_factory=list,
+    repr=False,
+  )  # Team-event standings rows
+  _events: list[ZPLeagueEvent] = field(
+    default_factory=list,
+    repr=False,
+  )  # League events
+  _info: ZPLeagueInfo | None = field(default=None, repr=False)  # League catalog metadata
 
   # Excluded fields - recognized but not explicitly handled
   _excluded: dict[str, Any] = field(default_factory=dict, repr=False)
@@ -846,6 +859,10 @@ class ZPLeague(Sequence):
     league_id: int = 0,
     _teams: dict[str, ZPLeagueTeam] | None = None,
     _standings: list[ZPLeagueResult] | None = None,
+    _team_standings: list[ZPLeagueTeamStanding] | None = None,
+    _team_event_results: list[ZPLeagueTeamEventResult] | None = None,
+    _events: list[ZPLeagueEvent] | None = None,
+    _info: ZPLeagueInfo | None = None,
     _excluded: dict[str, Any] | None = None,
     _extra: dict[str, Any] | None = None,
   ) -> None:
@@ -860,6 +877,10 @@ class ZPLeague(Sequence):
       league_id: League ID (from from_dict)
       _teams: Teams dict (from from_dict)
       _standings: Standings list (from from_dict)
+      _team_standings: Team standings list (from from_dict)
+      _team_event_results: Team-event standings list (from from_dict)
+      _events: Events list (from from_dict)
+      _info: League catalog metadata (from from_dict)
       _excluded: Excluded fields dict (from from_dict)
       _extra: Extra fields dict (from from_dict)
     """
@@ -869,6 +890,10 @@ class ZPLeague(Sequence):
       self.league_id = temp.league_id
       self._teams = temp._teams
       self._standings = temp._standings
+      self._team_standings = temp._team_standings
+      self._team_event_results = temp._team_event_results
+      self._events = temp._events
+      self._info = temp._info
       self._excluded = temp._excluded
       self._extra = temp._extra
     else:
@@ -876,11 +901,24 @@ class ZPLeague(Sequence):
       self.league_id = league_id
       self._teams = _teams or {}
       self._standings = _standings or []
+      self._team_standings = _team_standings or []
+      self._team_event_results = _team_event_results or []
+      self._events = _events or []
+      self._info = _info
       self._excluded = _excluded or {}
       self._extra = _extra or {}
 
   @classmethod
-  def from_dict(cls, data: dict[str, Any], league_id: int = 0) -> 'ZPLeague':
+  def from_dict(
+    cls,
+    data: dict[str, Any],
+    league_id: int = 0,
+    *,
+    events: list[dict[str, Any]] | None = None,
+    team_standings: list[dict[str, Any]] | None = None,
+    team_event_results: list[dict[str, Any]] | None = None,
+    league_info: dict[str, Any] | ZPLeagueInfo | None = None,
+  ) -> 'ZPLeague':
     """Create instance from API response dict.
 
     Args:
@@ -919,6 +957,33 @@ class ZPLeague(Sequence):
         if isinstance(result_info, dict):
           standings.append(ZPLeagueResult.from_dict(result_info, teams=teams))
 
+    # Parse league events
+    events_parsed: list[ZPLeagueEvent] = []
+    if isinstance(events, list):
+      for e in events:
+        if isinstance(e, dict):
+          events_parsed.append(ZPLeagueEvent.from_dict(e))
+
+    # Parse team standings
+    team_standings_parsed: list[ZPLeagueTeamStanding] = []
+    if isinstance(team_standings, list):
+      for r in team_standings:
+        if isinstance(r, dict):
+          team_standings_parsed.append(ZPLeagueTeamStanding.from_dict(r))
+
+    # Parse team-event standings
+    team_event_results_parsed: list[ZPLeagueTeamEventResult] = []
+    if isinstance(team_event_results, list):
+      for r in team_event_results:
+        if isinstance(r, dict):
+          team_event_results_parsed.append(ZPLeagueTeamEventResult.from_dict(r))
+    # Parse league info (dict or already-built object)
+    info_parsed = None
+    if isinstance(league_info, ZPLeagueInfo):
+      info_parsed = league_info
+    elif isinstance(league_info, dict):
+      info_parsed = ZPLeagueInfo.from_dict(league_info)
+
     # Classify remaining fields
     excluded = {}
     extra = {}
@@ -934,6 +999,10 @@ class ZPLeague(Sequence):
       league_id=league_id,
       _teams=teams,
       _standings=standings,
+      _team_standings=team_standings_parsed,
+      _team_event_results=team_event_results_parsed,
+      _events=events_parsed,
+      _info=info_parsed,
       _excluded=excluded,
       _extra=extra,
     )
@@ -981,6 +1050,14 @@ class ZPLeague(Sequence):
         return self._standings
       if index == 'teams':
         return {tid: team.asdict() for tid, team in self._teams.items()}
+      if index == 'team_standings':
+        return self._team_standings
+      if index == 'team_event_results':
+        return self._team_event_results
+      if index == 'events':
+        return self._events
+      if index == 'league_info':
+        return self._info
       if index == 'league_id':
         return self.league_id
       raise KeyError(index)
@@ -1007,14 +1084,44 @@ class ZPLeague(Sequence):
     """
     return list(self._standings)
 
+  def team_standings(self) -> list[ZPLeagueTeamStanding]:
+    """Return team standings rows.
+
+    Returns:
+      List of ZPLeagueTeamStanding objects
+    """
+    return list(self._team_standings)
+
+  def team_event_results(self) -> list[ZPLeagueTeamEventResult]:
+    """Return team-event standings rows.
+
+    Returns:
+      List of ZPLeagueTeamEventResult objects
+    """
+    return list(self._team_event_results)
+
+  def events(self) -> list[ZPLeagueEvent]:
+    """Return league events.
+
+    Returns:
+      List of ZPLeagueEvent objects
+    """
+    return list(self._events)
+
+  def info(self) -> ZPLeagueInfo | None:
+    """Return league catalog metadata."""
+    return self._info
+
   def asdict(self) -> dict[str, Any]:
     """Return the league data as a dictionary with typed field values.
 
     Returns:
-      Dictionary containing league standings data with nested teams and standings.
-      Empty if league has no teams or standings.
+      Dictionary containing league data with nested league info, teams,
+      standings, team standings, team-event results, and events.
     """
     result: dict[str, Any] = {'league_id': self.league_id}
+    if self._info:
+      result['league_info'] = self._info.asdict()
     if self._teams:
       result['teams'] = {
         tid: team.asdict() for tid, team in self._teams.items()
@@ -1022,6 +1129,18 @@ class ZPLeague(Sequence):
     if self._standings:
       result['standings'] = [
         result_obj.asdict() for result_obj in self._standings
+      ]
+    if self._team_standings:
+      result['team_standings'] = [
+        row.asdict() for row in self._team_standings
+      ]
+    if self._team_event_results:
+      result['team_event_results'] = [
+        row.asdict() for row in self._team_event_results
+      ]
+    if self._events:
+      result['events'] = [
+        event.asdict() for event in self._events
       ]
     return result
 
