@@ -108,3 +108,36 @@ def test_flag_combination_logic():
   assert get_no_data_message(True, False) == 'No excluded'
   assert get_no_data_message(False, True) == 'No extras'
   assert get_no_data_message(True, True) == 'No excluded or extras'
+
+
+def test_cli_league_excluded_walks_nested_collections(monkeypatch, capsys):
+  """--excluded on a league reports excluded fields from nested collections."""
+  import sys
+
+  from zpdatafetch import cli as cli_mod
+  from zpdatafetch.zpleague import ZPLeague
+
+  class FakeLeagueFetch:
+    def __init__(self) -> None:
+      self._fetched = {}
+      self._raw = {}
+
+    def fetch(self, *ids):
+      self._fetched = {
+        3379: ZPLeague.from_dict(
+          {},
+          league_id=3379,
+          events=[
+            {'zid': '10', 'DT_RowId': '10', 't': 'Event One', 'tm': 111},
+          ],
+        )
+      }
+
+  monkeypatch.setattr(cli_mod, 'ZPLeagueFetch', FakeLeagueFetch)
+  monkeypatch.setattr(sys, 'argv', ['zpdata', 'league', '--excluded', '3379'])
+
+  assert cli_mod.main() is None
+
+  out = capsys.readouterr().out
+  assert 'excluded:' in out
+  assert 'DT_RowId' in out

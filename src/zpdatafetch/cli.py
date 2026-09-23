@@ -358,6 +358,30 @@ Module for fetching zwiftpower data using the Zwifpower API
           except (TypeError, AttributeError):
             pass
 
+      # Nested collections on structured objects (e.g. ZPLeague)
+      nested: list[Any] = []
+      if hasattr(value, 'info'):
+        nested_info = getattr(value, 'info')()
+        if nested_info is not None:
+          nested.append(nested_info)
+      for accessor in ('team_standings', 'team_event_results', 'events'):
+        if hasattr(value, accessor):
+          nested.extend(getattr(value, accessor)())
+
+      for nested_item in nested:
+        if args.excluded and hasattr(nested_item, 'excluded'):
+          nested_excluded = nested_item.excluded()
+          if nested_excluded:
+            print(f'  {nested_item!r}')
+            print(f'    excluded: {nested_excluded}')
+            has_excluded = True
+        if args.extras and hasattr(nested_item, 'extras'):
+          nested_extras = nested_item.extras()
+          if nested_extras:
+            print(f'  {nested_item!r}')
+            print(f'    extras: {nested_extras}')
+            has_extras = True
+
       # Show appropriate "no data" messages for each requested flag
       if args.excluded and not has_excluded:
         print('  No excluded')
