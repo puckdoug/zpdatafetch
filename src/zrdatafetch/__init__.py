@@ -27,7 +27,7 @@ from zrdatafetch.async_zr import AsyncZR_obj
 from zrdatafetch.config import Config
 from zrdatafetch.logging_config import setup_logging
 from zrdatafetch.zr import ZR_obj
-from zrdatafetch.zrcategories import ZRCategories, ZRCategoriesEntry
+from zrdatafetch.zrcategories import ZRCategories, ZRvELOCategory
 from zrdatafetch.zrcategoriesfetch import ZRCategoriesFetch
 from zrdatafetch.zrraceresult import ZRRaceResult, ZRRiderResult
 from zrdatafetch.zrresultfetch import ZRResultFetch
@@ -53,7 +53,7 @@ __all__ = [
   'ZRTeamFetch',
   # Pure dataclasses (no fetch logic)
   'ZRCategories',
-  'ZRCategoriesEntry',
+  'ZRvELOCategory',
   'ZRRider',
   'ZRRaceResult',
   'ZRRiderResult',
