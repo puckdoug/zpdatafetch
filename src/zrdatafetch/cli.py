@@ -7,6 +7,7 @@ The CLI matches the zpdata interface:
   zrdata rider <id>        Fetch rider rating
   zrdata result <id>       Fetch race results
   zrdata team <id>         Fetch team roster
+  zrdata categories        Fetch vELO2 category ranges
 """
 
 import json
@@ -27,6 +28,7 @@ from shared.validation import ValidationError, parse_datetime_to_epoch
 from zrdatafetch import (
   AsyncZR_obj,
   Config,
+  ZRCategoriesFetch,
   ZRResultFetch,
   ZRRiderFetch,
   ZRTeamFetch,
@@ -43,6 +45,7 @@ def main() -> int | None:
     - rider: Fetch rider rating/ranking data by Zwift ID
     - result: Fetch race results by event ID
     - team: Fetch team/club roster data by team ID
+    - categories: Fetch vELO2 category ranges (no IDs)
 
   Returns:
     None on success, or exit code on error
@@ -54,7 +57,7 @@ Module for fetching Zwiftracing data using the Zwiftracing API
   # Create parser with common arguments
   p = create_base_parser(
     description=desc,
-    command_metavar='{config,rider,result,team}',
+    command_metavar='{config,rider,result,team,categories}',
   )
 
   # zrdatafetch-specific output options
@@ -120,6 +123,7 @@ Module for fetching Zwiftracing data using the Zwiftracing API
     ZRRiderFetch.set_sync_mode(True)
     ZRResultFetch.set_sync_mode(True)
     ZRTeamFetch.set_sync_mode(True)
+    ZRCategoriesFetch.set_sync_mode(True)
 
   # Handle no command
   if not validate_command_provided(args.cmd, p):
@@ -237,9 +241,51 @@ Module for fetching Zwiftracing data using the Zwiftracing API
         print(f'Error fetching team: {e}', file=sys.stderr)
         return 1
 
+    case 'categories':
+      if args.noaction:
+        msg = 'Would fetch vELO2 category ranges'
+        if args.raw:
+          msg += ' (raw output format)'
+        print(msg)
+        return None
+
+      try:
+        fetcher = ZRCategoriesFetch()
+        categories = fetcher.fetch()
+
+        if args.raw:
+          # Output raw response text (keyed 0, no IDs)
+          print(fetcher.raw().get(0, ''))
+        elif args.json or args.v1fetch:
+          # Output asdict() JSON (--json or legacy --v1fetch)
+          print(json.dumps(categories.asdict(), indent=2))
+        elif args.excluded or args.extras:
+          # Report object-level excluded/extras fields
+          if args.excluded:
+            obj_excluded = categories.excluded()
+            if obj_excluded:
+              print(f'object excluded: {obj_excluded}')
+            else:
+              print('No excluded')
+          if args.extras:
+            obj_extras = categories.extras()
+            if obj_extras:
+              print(f'object extras: {obj_extras}')
+            else:
+              print('No extras')
+        else:
+          # Default: object repr (single object, no IDs)
+          print(categories)
+
+      except Exception as e:
+        print(f'Error fetching categories: {e}', file=sys.stderr)
+        return 1
+
     case _:
       # Invalid command
-      if not validate_command_name(args.cmd, ('rider', 'result', 'team')):
+      if not validate_command_name(
+        args.cmd, ('rider', 'result', 'team', 'categories'),
+      ):
         return 1
 
   return None
