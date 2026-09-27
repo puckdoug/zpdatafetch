@@ -1,0 +1,205 @@
+"""Pure dataclasses for Zwiftracing vELO2 category ranges.
+
+This module provides dataclasses for representing the vELO2 category
+ranges without any fetch logic. Fetching is handled by ZRCategoriesFetch.
+"""
+
+from dataclasses import asdict, dataclass, field
+from typing import Any
+
+from zrdatafetch.logging_config import get_logger
+from zrdatafetch.zr_utils import safe_int, safe_str
+
+logger = get_logger(__name__)
+
+
+@dataclass(slots=True)
+class ZRCategoriesEntry:
+  """Single vELO2 category range.
+
+  Attributes:
+    number: Category number (1 = highest)
+    name: Category name (e.g. 'Diamond', 'Copper')
+    min: Minimum vELO2 rating for this category (inclusive)
+    max: Maximum vELO2 rating for this category (inclusive);
+      None for the top category (no upper bound)
+    _excluded: Recognized but not explicitly handled fields
+    _extra: Unknown/new fields from API changes
+  """
+
+  number: int = 0
+  name: str = ''
+  min: int = 0
+  max: int | None = None
+
+  # Field classification
+  _excluded: dict[str, Any] = field(default_factory=dict, repr=False)
+  _extra: dict[str, Any] = field(default_factory=dict, repr=False)
+
+  @classmethod
+  def from_dict(cls, data: dict[str, Any]) -> 'ZRCategoriesEntry':
+    """Create instance from API response dict.
+
+    Args:
+      data: Dictionary containing category data
+
+    Returns:
+      ZRCategoriesEntry instance with parsed fields
+    """
+    known_fields = {'number', 'name', 'min', 'max'}
+    recognized_but_excluded: set[str] = set()
+
+    try:
+      raw_max = data.get('max')
+      max_value: int | None = None if raw_max is None else safe_int(raw_max)
+
+      excluded = {}
+      extra = {}
+      for key, value in data.items():
+        if key not in known_fields:
+          if key in recognized_but_excluded:
+            excluded[key] = value
+          else:
+            extra[key] = value
+
+      return cls(
+        number=safe_int(data.get('number')),
+        name=safe_str(data.get('name')),
+        min=safe_int(data.get('min')),
+        max=max_value,
+        _excluded=excluded,
+        _extra=extra,
+      )
+    except (KeyError, TypeError, ValueError) as e:
+      logger.warning(f'Error parsing category entry data: {e}')
+      return cls()
+
+  def asdict(self) -> dict[str, Any]:
+    """Return dictionary representation excluding private attributes.
+
+    Returns:
+      Dictionary with all public attributes
+    """
+    result = asdict(self)
+    result.pop('_extra', None)
+    result.pop('_excluded', None)
+    return result
+
+  def excluded(self) -> dict[str, Any]:
+    """Return all excluded fields.
+
+    Returns:
+      Dictionary of excluded fields
+    """
+    return dict(self._excluded)
+
+  def extras(self) -> dict[str, Any]:
+    """Return all unknown fields.
+
+    Returns:
+      Dictionary of unknown fields
+    """
+    return dict(self._extra)
+
+
+@dataclass(slots=True)
+class ZRCategories:
+  """vELO2 category ranges from the Zwiftracing API.
+
+  Attributes:
+    scale: Human-readable rating scale label (e.g. '1-1000')
+    categories: Ordered list of category ranges (1 = highest)
+    _excluded: Recognized but not explicitly handled fields
+    _extra: Unknown/new fields from API changes
+  """
+
+  scale: str = ''
+  categories: list[ZRCategoriesEntry] = field(default_factory=list)
+
+  # Field classification
+  _excluded: dict[str, Any] = field(default_factory=dict, repr=False)
+  _extra: dict[str, Any] = field(default_factory=dict, repr=False)
+
+  @classmethod
+  def from_dict(cls, data: dict[str, Any]) -> 'ZRCategories':
+    """Create instance from API response dict.
+
+    Args:
+      data: Dictionary containing the categories response
+
+    Returns:
+      ZRCategories instance with parsed fields and entries
+    """
+    known_fields = {'scale', 'categories'}
+    recognized_but_excluded: set[str] = set()
+
+    entries: list[ZRCategoriesEntry] = []
+    raw_entries = data.get('categories') or []
+    if not isinstance(raw_entries, list):
+      logger.warning(
+        f'Expected list for categories, got {type(raw_entries).__name__}',
+      )
+      raw_entries = []
+    for entry_data in raw_entries:
+      if not isinstance(entry_data, dict):
+        logger.warning('Skipping malformed category entry (not a dict)')
+        continue
+      try:
+        entries.append(ZRCategoriesEntry.from_dict(entry_data))
+      except (KeyError, TypeError, ValueError) as e:
+        logger.warning(f'Skipping malformed category entry: {e}')
+        continue
+
+    excluded = {}
+    extra = {}
+    for key, value in data.items():
+      if key not in known_fields:
+        if key in recognized_but_excluded:
+          excluded[key] = value
+        else:
+          extra[key] = value
+
+    return cls(
+      scale=safe_str(data.get('scale')),
+      categories=entries,
+      _excluded=excluded,
+      _extra=extra,
+    )
+
+  def asdict(self) -> dict[str, Any]:
+    """Return dictionary representation excluding private attributes.
+
+    Returns:
+      Dictionary with scale and category entries
+    """
+    return {
+      'scale': self.scale,
+      'categories': [entry.asdict() for entry in self.categories],
+    }
+
+  def excluded(self) -> dict[str, Any]:
+    """Return all excluded fields.
+
+    Returns:
+      Dictionary of excluded fields
+    """
+    return dict(self._excluded)
+
+  def extras(self) -> dict[str, Any]:
+    """Return all unknown fields.
+
+    Returns:
+      Dictionary of unknown fields
+    """
+    return dict(self._extra)
+
+  def __repr__(self) -> str:
+    """Return detailed representation.
+
+    Returns:
+      String showing scale and category count
+    """
+    return (
+      f'ZRCategories(scale={self.scale!r}, '
+      f'categories={len(self.categories)})'
+    )
