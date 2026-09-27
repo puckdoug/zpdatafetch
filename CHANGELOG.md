@@ -7,6 +7,10 @@
   - Adds `ZRCategories`, `ZRCategoriesEntry`, and `ZRCategoriesFetch` to
     `zrdatafetch`
   - Supports `--raw`, `--json`, `--v1fetch`, `--noaction`, `--sync`
+  - `ZRCategories` shows full data in its default repr (count-only summary
+    removed) and supports iteration, exact-name lookup
+    (`categories['Silver']`), membership (`in`), `len()`, and positional
+    indexing (review feedback)
 
 ## [2.4.0]
 

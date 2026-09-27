@@ -385,7 +385,10 @@ Fetch the vELO2 category ranges used to bucket riders by rating:
 
 ```sh
 zrdata categories
-# Output: ZRCategories(scale='1-1000', categories=10)
+# Output: the full repr — every entry with number, name, and range:
+# ZRCategories(scale='1-1000', categories=[ZRCategoriesEntry(
+# number=1, name='Diamond', min=920, max=None), ZRCategoriesEntry(
+# number=2, name='Ruby', min=840, max=919), ...])
 ```
 
 Use `--json` for the full mapping:
@@ -411,8 +414,13 @@ zrdata categories --json
 from zrdatafetch import ZRCategoriesFetch
 
 categories = ZRCategoriesFetch().fetch()
-for entry in categories.categories:
+for entry in categories:            # iterate in API order (0 = Diamond)
     print(f"{entry.number}: {entry.name} {entry.min}-{entry.max}")
+
+silver = categories['Silver']       # lookup by exact name
+diamond = categories[0]             # positional access
+'Silver' in categories              # membership -> True
+len(categories)                     # 10
 ```
 
 ### Historical Ratings
