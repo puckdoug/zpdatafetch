@@ -386,8 +386,8 @@ Fetch the vELO2 category ranges used to bucket riders by rating:
 ```sh
 zrdata categories
 # Output: the full repr — every entry with number, name, and range:
-# ZRCategories(scale='1-1000', categories=[ZRCategoriesEntry(
-# number=1, name='Diamond', min=920, max=None), ZRCategoriesEntry(
+# ZRCategories(scale='1-1000', categories=[ZRvELOCategory(
+# number=1, name='Diamond', min=920, max=None), ZRvELOCategory(
 # number=2, name='Ruby', min=840, max=919), ...])
 ```
 

@@ -4,7 +4,7 @@
 
 - `zrdata categories`: new subcommand fetching vELO2 category ranges from
   `/api/v2/public/categories` (issue #12)
-  - Adds `ZRCategories`, `ZRCategoriesEntry`, and `ZRCategoriesFetch` to
+  - Adds `ZRCategories`, `ZRvELOCategory`, and `ZRCategoriesFetch` to
     `zrdatafetch`
   - Supports `--raw`, `--json`, `--v1fetch`, `--noaction`, `--sync`
   - `ZRCategories` shows full data in its default repr (count-only summary

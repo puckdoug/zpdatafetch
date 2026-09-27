@@ -4164,11 +4164,11 @@ flowchart LR
 
 | Raw API Field | Python Attribute | Type | Transformation                                | Lineage |
 | ------------- | ---------------- | ---- | --------------------------------------------- | ------- |
-| `categories`  | `categories`     | list | Converted to list of ZRCategoriesEntry objects |         |
+| `categories`  | `categories`     | list | Converted to list of ZRvELOCategory objects |         |
 
 Ordered list of category ranges (1 = highest).
 
-**ZRCategoriesEntry structure:**
+**ZRvELOCategory structure:**
 
 #### Number
 
