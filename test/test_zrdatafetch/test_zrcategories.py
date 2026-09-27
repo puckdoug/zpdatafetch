@@ -153,10 +153,68 @@ class TestZRCategoriesAsDict:
 
 
 class TestZRCategoriesRepr:
-  """Test repr."""
+  """Test repr shows full category data, not a count."""
 
-  def test_repr_summary(self, categories: ZRCategories) -> None:
+  def test_repr_shows_entries(self, categories: ZRCategories) -> None:
     r = repr(categories)
     assert r.startswith('ZRCategories(')
     assert "'1-1000'" in r
-    assert 'categories=10' in r
+    assert 'ZRCategoriesEntry(' in r
+    assert "'Silver'" in r
+    assert 'min=420' in r
+    assert 'max=479' in r
+    assert 'max=None' in r
+    assert 'categories=10' not in r
+
+  def test_repr_hides_private(self, categories: ZRCategories) -> None:
+    r = repr(categories)
+    assert '_extra' not in r
+    assert '_excluded' not in r
+
+
+class TestZRCategoriesContainerProtocol:
+  """Test iteration, name lookup, membership, len, and indexing."""
+
+  def test_iter_yields_entries_in_api_order(
+    self, categories: ZRCategories,
+  ) -> None:
+    entries = list(categories)
+    assert entries == categories.categories
+    assert entries[0].name == 'Diamond'
+    assert entries[-1].name == 'Copper'
+
+  def test_getitem_by_name(self, categories: ZRCategories) -> None:
+    silver = categories['Silver']
+    assert silver.number == 8
+    assert silver.min == 420
+    assert silver.max == 479
+
+  def test_getitem_by_name_case_sensitive(
+    self, categories: ZRCategories,
+  ) -> None:
+    with pytest.raises(KeyError):
+      categories['silver']
+
+  def test_getitem_unknown_name_raises(
+    self, categories: ZRCategories,
+  ) -> None:
+    with pytest.raises(KeyError):
+      categories['Goldish']
+
+  def test_contains_by_name(self, categories: ZRCategories) -> None:
+    assert 'Silver' in categories
+    assert 'Goldish' not in categories
+
+  def test_len(self, categories: ZRCategories) -> None:
+    assert len(categories) == 10
+
+  def test_getitem_int_returns_first_entry(
+    self, categories: ZRCategories,
+  ) -> None:
+    assert categories[0].name == 'Diamond'
+
+  def test_getitem_slice_returns_entries(
+    self, categories: ZRCategories,
+  ) -> None:
+    top_three = categories[0:3]
+    assert [e.name for e in top_three] == ['Diamond', 'Ruby', 'Emerald']
