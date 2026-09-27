@@ -15,7 +15,7 @@ logger = get_logger(__name__)
 
 
 @dataclass(slots=True)
-class ZRCategoriesEntry:
+class ZRvELOCategory:
   """Single vELO2 category range.
 
   Attributes:
@@ -38,14 +38,14 @@ class ZRCategoriesEntry:
   _extra: dict[str, Any] = field(default_factory=dict, repr=False)
 
   @classmethod
-  def from_dict(cls, data: dict[str, Any]) -> 'ZRCategoriesEntry':
+  def from_dict(cls, data: dict[str, Any]) -> 'ZRvELOCategory':
     """Create instance from API response dict.
 
     Args:
       data: Dictionary containing category data
 
     Returns:
-      ZRCategoriesEntry instance with parsed fields
+      ZRvELOCategory instance with parsed fields
     """
     known_fields = {'number', 'name', 'min', 'max'}
     recognized_but_excluded: set[str] = set()
@@ -121,7 +121,7 @@ class ZRCategories:
   """
 
   scale: str = ''
-  categories: list[ZRCategoriesEntry] = field(default_factory=list)
+  categories: list[ZRvELOCategory] = field(default_factory=list)
 
   # Field classification
   _excluded: dict[str, Any] = field(default_factory=dict, repr=False)
@@ -140,7 +140,7 @@ class ZRCategories:
     known_fields = {'scale', 'categories'}
     recognized_but_excluded: set[str] = set()
 
-    entries: list[ZRCategoriesEntry] = []
+    entries: list[ZRvELOCategory] = []
     raw_entries = data.get('categories') or []
     if not isinstance(raw_entries, list):
       logger.warning(
@@ -152,7 +152,7 @@ class ZRCategories:
         logger.warning('Skipping malformed category entry (not a dict)')
         continue
       try:
-        entries.append(ZRCategoriesEntry.from_dict(entry_data))
+        entries.append(ZRvELOCategory.from_dict(entry_data))
       except (KeyError, TypeError, ValueError) as e:
         logger.warning(f'Skipping malformed category entry: {e}')
         continue
@@ -209,22 +209,22 @@ class ZRCategories:
     return len(self.categories)
 
   @overload
-  def __getitem__(self, key: int) -> ZRCategoriesEntry: ...
+  def __getitem__(self, key: int) -> ZRvELOCategory: ...
   @overload
-  def __getitem__(self, key: slice) -> Sequence[ZRCategoriesEntry]: ...
+  def __getitem__(self, key: slice) -> Sequence[ZRvELOCategory]: ...
   @overload
-  def __getitem__(self, key: str) -> ZRCategoriesEntry: ...
+  def __getitem__(self, key: str) -> ZRvELOCategory: ...
 
   def __getitem__(
     self, key: int | slice | str,
-  ) -> ZRCategoriesEntry | Sequence[ZRCategoriesEntry]:
+  ) -> ZRvELOCategory | Sequence[ZRvELOCategory]:
     """Access a category by position or by exact name.
 
     Args:
       key: Integer index, slice, or exact case-sensitive category name
 
     Returns:
-      ZRCategoriesEntry, or a sequence of entries for a slice
+      ZRvELOCategory, or a sequence of entries for a slice
 
     Raises:
       KeyError: If a string name matches no category
@@ -237,11 +237,11 @@ class ZRCategories:
       raise KeyError(key)
     return self.categories[key]
 
-  def __iter__(self) -> Iterator[ZRCategoriesEntry]:
+  def __iter__(self) -> Iterator[ZRvELOCategory]:
     """Iterate over category entries in API order.
 
     Returns:
-      Iterator over ZRCategoriesEntry objects (index 0 = Diamond)
+      Iterator over ZRvELOCategory objects (index 0 = Diamond)
     """
     return iter(self.categories)
 
