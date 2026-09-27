@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+- `zrdata categories`: new subcommand fetching vELO2 category ranges from
+  `/api/v2/public/categories` (issue #12)
+  - Adds `ZRCategories`, `ZRCategoriesEntry`, and `ZRCategoriesFetch` to
+    `zrdatafetch`
+  - Supports `--raw`, `--json`, `--v1fetch`, `--noaction`, `--sync`
+
 ## [2.4.0]
 
 - League data expanded to cover everything the ZwiftPower league page exposes
