@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from zrdatafetch.zrcategories import ZRCategories, ZRCategoriesEntry
+from zrdatafetch.zrcategories import ZRCategories, ZRvELOCategory
 
 FIXTURE_PATH = Path(__file__).parent.parent / 'fixtures' / 'zr_categories.json'
 
@@ -62,7 +62,7 @@ class TestZRCategoriesEmpty:
     assert obj.categories == []
 
   def test_entry_empty_instantiation(self) -> None:
-    obj = ZRCategoriesEntry()
+    obj = ZRvELOCategory()
     assert obj.number == 0
     assert obj.name == ''
     assert obj.min == 0
@@ -85,21 +85,21 @@ class TestZRCategoriesEmpty:
     assert obj.categories == []
 
 
-class TestZRCategoriesEntryParsing:
+class TestZRvELOCategoryParsing:
   """Test entry-level parsing."""
 
   def test_max_missing_is_none(self) -> None:
-    entry = ZRCategoriesEntry.from_dict({'number': 1, 'name': 'X', 'min': 5})
+    entry = ZRvELOCategory.from_dict({'number': 1, 'name': 'X', 'min': 5})
     assert entry.max is None
 
   def test_max_null_is_none(self) -> None:
-    entry = ZRCategoriesEntry.from_dict(
+    entry = ZRvELOCategory.from_dict(
       {'number': 1, 'name': 'X', 'min': 5, 'max': None},
     )
     assert entry.max is None
 
   def test_string_numbers_parsed(self) -> None:
-    entry = ZRCategoriesEntry.from_dict(
+    entry = ZRvELOCategory.from_dict(
       {'number': '2', 'name': 'Y', 'min': '10', 'max': '19'},
     )
     assert entry.number == 2
@@ -107,7 +107,7 @@ class TestZRCategoriesEntryParsing:
     assert entry.max == 19
 
   def test_unknown_keys_in_extra(self) -> None:
-    entry = ZRCategoriesEntry.from_dict({'number': 1, 'colour': 'red'})
+    entry = ZRvELOCategory.from_dict({'number': 1, 'colour': 'red'})
     assert entry.extras() == {'colour': 'red'}
     assert entry.excluded() == {}
 
@@ -146,7 +146,7 @@ class TestZRCategoriesAsDict:
     assert '_excluded' not in d
 
   def test_entry_asdict_excludes_private(self) -> None:
-    entry = ZRCategoriesEntry.from_dict({'number': 1, 'zzz': 2})
+    entry = ZRvELOCategory.from_dict({'number': 1, 'zzz': 2})
     d = entry.asdict()
     assert '_extra' not in d
     assert '_excluded' not in d
@@ -159,7 +159,7 @@ class TestZRCategoriesRepr:
     r = repr(categories)
     assert r.startswith('ZRCategories(')
     assert "'1-1000'" in r
-    assert 'ZRCategoriesEntry(' in r
+    assert 'ZRvELOCategory(' in r
     assert "'Silver'" in r
     assert 'min=420' in r
     assert 'max=479' in r
