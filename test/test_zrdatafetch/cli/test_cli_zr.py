@@ -258,3 +258,100 @@ class TestCLIEntryPoint:
     with patch('sys.argv', ['zrdata']):
       result = main()
       assert result is None
+
+
+# ===============================================================================
+class TestCLICategoriesCommand:
+  """Test the categories subcommand."""
+
+  def test_categories_noaction(self, capsys):
+    """Test --noaction prints what it would fetch."""
+    with patch('sys.argv', ['zrdata', 'categories', '--noaction']):
+      result = main()
+      assert result is None
+      assert 'Would fetch' in capsys.readouterr().out
+
+  def test_categories_noaction_with_raw(self, capsys):
+    """Test --noaction --raw mentions raw output."""
+    with patch('sys.argv', ['zrdata', 'categories', '--noaction', '--raw']):
+      result = main()
+      assert result is None
+      assert 'raw' in capsys.readouterr().out
+
+  def test_categories_default_output(self, capsys):
+    """Test default output prints the object repr."""
+    from zrdatafetch.zrcategories import ZRCategories
+
+    obj = ZRCategories.from_dict(
+      {
+        'scale': '1-1000',
+        'categories': [{'number': 1, 'name': 'Diamond', 'min': 920,
+                        'max': None}],
+      },
+    )
+    with patch('zrdatafetch.cli.ZRCategoriesFetch') as mock_fetch_cls:
+      mock_fetcher = mock_fetch_cls.return_value
+      mock_fetcher.fetch.return_value = obj
+      mock_fetcher.raw.return_value = {0: '{"scale": "1-1000"}'}
+      with patch('sys.argv', ['zrdata', 'categories']):
+        result = main()
+    assert result is None
+    assert 'ZRCategories(' in capsys.readouterr().out
+
+  def test_categories_json_output(self, capsys):
+    """Test --json prints asdict() JSON."""
+    from zrdatafetch.zrcategories import ZRCategories
+
+    obj = ZRCategories.from_dict(
+      {
+        'scale': '1-1000',
+        'categories': [{'number': 1, 'name': 'Diamond', 'min': 920,
+                        'max': None}],
+      },
+    )
+    with patch('zrdatafetch.cli.ZRCategoriesFetch') as mock_fetch_cls:
+      mock_fetcher = mock_fetch_cls.return_value
+      mock_fetcher.fetch.return_value = obj
+      mock_fetcher.raw.return_value = {0: '{}'}
+      with patch('sys.argv', ['zrdata', 'categories', '--json']):
+        result = main()
+    assert result is None
+    out = capsys.readouterr().out
+    assert '"scale": "1-1000"' in out
+    assert 'Diamond' in out
+
+  def test_categories_raw_output(self, capsys):
+    """Test --raw prints the raw response text."""
+    from zrdatafetch.zrcategories import ZRCategories
+
+    with patch('zrdatafetch.cli.ZRCategoriesFetch') as mock_fetch_cls:
+      mock_fetcher = mock_fetch_cls.return_value
+      mock_fetcher.fetch.return_value = ZRCategories()
+      mock_fetcher.raw.return_value = {0: '{"scale": "1-1000"}'}
+      with patch('sys.argv', ['zrdata', 'categories', '--raw']):
+        result = main()
+    assert result is None
+    assert '{"scale": "1-1000"}' in capsys.readouterr().out
+
+  def test_categories_extras_output(self, capsys):
+    """Test --extras reports object-level extras."""
+    from zrdatafetch.zrcategories import ZRCategories
+
+    obj = ZRCategories.from_dict({'scale': 's', 'categories': [], 'zzz': 1})
+    with patch('zrdatafetch.cli.ZRCategoriesFetch') as mock_fetch_cls:
+      mock_fetcher = mock_fetch_cls.return_value
+      mock_fetcher.fetch.return_value = obj
+      mock_fetcher.raw.return_value = {0: '{}'}
+      with patch('sys.argv', ['zrdata', 'categories', '--extras']):
+        result = main()
+    assert result is None
+    assert 'zzz' in capsys.readouterr().out
+
+  def test_categories_fetch_error(self, capsys):
+    """Test a fetch error prints to stderr and returns 1."""
+    with patch('zrdatafetch.cli.ZRCategoriesFetch') as mock_fetch_cls:
+      mock_fetch_cls.return_value.fetch.side_effect = RuntimeError('boom')
+      with patch('sys.argv', ['zrdata', 'categories']):
+        result = main()
+    assert result == 1
+    assert 'boom' in capsys.readouterr().err
