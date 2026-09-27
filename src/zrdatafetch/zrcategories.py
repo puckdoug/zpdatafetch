@@ -4,8 +4,9 @@ This module provides dataclasses for representing the vELO2 category
 ranges without any fetch logic. Fetching is handled by ZRCategoriesFetch.
 """
 
+from collections.abc import Iterator, Sequence
 from dataclasses import asdict, dataclass, field
-from typing import Any
+from typing import Any, overload
 
 from zrdatafetch.logging_config import get_logger
 from zrdatafetch.zr_utils import safe_int, safe_str
@@ -106,6 +107,12 @@ class ZRCategoriesEntry:
 class ZRCategories:
   """vELO2 category ranges from the Zwiftracing API.
 
+  Container behavior:
+    iter(categories) yields entries in API order (index 0 = Diamond)
+    categories['Silver'] returns the entry with that exact name
+    'Silver' in categories, len(categories)
+    categories[0], categories[0:3] positional access
+
   Attributes:
     scale: Human-readable rating scale label (e.g. '1-1000')
     categories: Ordered list of category ranges (1 = highest)
@@ -193,13 +200,58 @@ class ZRCategories:
     """
     return dict(self._extra)
 
-  def __repr__(self) -> str:
-    """Return detailed representation.
+  def __len__(self) -> int:
+    """Return the number of category entries.
 
     Returns:
-      String showing scale and category count
+      Number of entries
     """
-    return (
-      f'ZRCategories(scale={self.scale!r}, '
-      f'categories={len(self.categories)})'
-    )
+    return len(self.categories)
+
+  @overload
+  def __getitem__(self, key: int) -> ZRCategoriesEntry: ...
+  @overload
+  def __getitem__(self, key: slice) -> Sequence[ZRCategoriesEntry]: ...
+  @overload
+  def __getitem__(self, key: str) -> ZRCategoriesEntry: ...
+
+  def __getitem__(
+    self, key: int | slice | str,
+  ) -> ZRCategoriesEntry | Sequence[ZRCategoriesEntry]:
+    """Access a category by position or by exact name.
+
+    Args:
+      key: Integer index, slice, or exact case-sensitive category name
+
+    Returns:
+      ZRCategoriesEntry, or a sequence of entries for a slice
+
+    Raises:
+      KeyError: If a string name matches no category
+      IndexError: If an integer index is out of range
+    """
+    if isinstance(key, str):
+      for entry in self.categories:
+        if entry.name == key:
+          return entry
+      raise KeyError(key)
+    return self.categories[key]
+
+  def __iter__(self) -> Iterator[ZRCategoriesEntry]:
+    """Iterate over category entries in API order.
+
+    Returns:
+      Iterator over ZRCategoriesEntry objects (index 0 = Diamond)
+    """
+    return iter(self.categories)
+
+  def __contains__(self, key: object) -> bool:
+    """Check whether a category name is present.
+
+    Args:
+      key: Category name to look for
+
+    Returns:
+      True if a category with that exact name exists
+    """
+    return any(entry.name == key for entry in self.categories)
