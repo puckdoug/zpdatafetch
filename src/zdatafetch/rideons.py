@@ -278,6 +278,12 @@ class ZwiftRideOns:
           return False
 
         me_data = parse_json_safe(me_response.text, context='rideons')
+        if not isinstance(me_data, dict):
+          logger.error(
+            'Could not determine authenticated rider id from '
+            '/api/profiles/me response',
+          )
+          return False
         try:
           me_id = int(me_data['id'])
         except (KeyError, TypeError, ValueError):
