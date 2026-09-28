@@ -4,6 +4,16 @@ mode: subagent
 permission:
   bash: allow
   edit: allow
+  read: allow
+  glob: allow
+  grep: allow
+  list: allow
+  webfetch: allow
+  websearch: allow
+  task: allow
+  todowrite: allow
+  external_directory: allow
+  question: deny
 ---
 
 You are the review stage of an automated pipeline.
