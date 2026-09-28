@@ -1,10 +1,13 @@
 """Zwift follower and followee data fetching and management.
 
 Provides access to follower/followee relationship data from Zwift's unofficial API.
+
+Both endpoints are server-paginated (200 entries per page); every page is
+collected so the complete follower/followee lists are returned.
 """
 
 import json
-from typing import Any
+from typing import Any, Literal
 
 import httpx2
 
@@ -16,6 +19,89 @@ from zdatafetch.logging_config import get_logger
 
 logger = get_logger(__name__)
 
+PAGE_SIZE = 200
+MAX_PAGES = 500
+
+
+def _fetch_paginated(
+  client: httpx2.Client,
+  url: str,
+  headers: dict[str, str],
+  rider_id: int,
+  kind: str,
+  mode: Literal['raise', 'partial'],
+) -> list[dict[str, Any]]:
+  """Fetch all pages of a followers/followees endpoint.
+
+  Zwift caps these endpoints at ``PAGE_SIZE`` entries per request. Each
+  request sends ``start``/``limit`` query parameters; pagination stops
+  when a page is empty or shorter than ``PAGE_SIZE``.
+
+  Args:
+      client: httpx2 client to request with
+      url: Endpoint URL (without start/limit parameters)
+      headers: Request headers
+      rider_id: Zwift rider ID (for logs and error messages)
+      kind: Endpoint label, 'followers' or 'followees'
+      mode: 'raise' raises NetworkError on a failed page; 'partial'
+          logs a warning and returns the pages collected so far
+
+  Returns:
+      Records merged across all fetched pages
+
+  Raises:
+      NetworkError: In 'raise' mode, if a page does not return 200
+  """
+  records: list[dict[str, Any]] = []
+  for page in range(MAX_PAGES):
+    start = page * PAGE_SIZE
+    response = client.get(
+      url,
+      headers=headers,
+      params={'start': start, 'limit': PAGE_SIZE},
+      timeout=30.0,
+    )
+
+    if response.status_code != 200:
+      if mode == 'raise':
+        if response.status_code == 404:
+          raise NetworkError(f'Rider {rider_id} not found')
+        raise NetworkError(
+          f'Failed to fetch {kind} for rider {rider_id}: '
+          f'HTTP {response.status_code} - {response.text}',
+        )
+      logger.warning(
+        f'Failed to fetch {kind} for rider {rider_id}: '
+        f'HTTP {response.status_code}',
+      )
+      break
+
+    page_records = parse_json_safe(response.text, context=kind)
+    if not isinstance(page_records, list):
+      logger.warning(
+        f'Unexpected payload for {kind} of rider {rider_id} '
+        f'at start={start}: expected list, '
+        f'got {type(page_records).__name__}',
+      )
+      break
+
+    records.extend(page_records)
+    logger.debug(
+      f'Fetched {kind} page for rider {rider_id} '
+      f'(start={start}): {len(page_records)} records',
+    )
+
+    if len(page_records) < PAGE_SIZE:
+      break
+  else:
+    logger.warning(
+      f'Pagination cap of {MAX_PAGES} pages reached for {kind} of '
+      f'rider {rider_id}: returning partial data '
+      f'({len(records)} records)',
+    )
+
+  return records
+
 
 class ZwiftFollowers:
   """Zwift follower and followee data.
@@ -26,6 +112,9 @@ class ZwiftFollowers:
   API Endpoints:
       GET https://us-or-rly101.zwift.com/api/profiles/{riderId}/followers
       GET https://us-or-rly101.zwift.com/api/profiles/{riderId}/followees
+
+  Both endpoints are server-paginated (200 entries per page); fetch() and
+  fetch_multiple() collect every page so the complete lists are returned.
 
   Documentation: https://github.com/strukturunion-mmw/zwift-api-documentation
 
@@ -74,6 +163,9 @@ class ZwiftFollowers:
     Loads credentials from Config, authenticates, fetches data,
     and populates instance attributes.
 
+    Both lists are fetched in full; the API paginates at 200 entries per
+    page and all pages are collected.
+
     Args:
         rider_id: Zwift rider ID
         include_followers: Whether to fetch followers list
@@ -113,39 +205,23 @@ class ZwiftFollowers:
 
     try:
       with httpx2.Client() as client:
-        # Fetch followers
+        # Fetch followers (all pages; failures are fatal)
         if include_followers:
           url = f'{self.BASE_URL}/api/profiles/{rider_id}/followers'
-          response = client.get(url, headers=headers, timeout=30.0)
-
-          if response.status_code == 404:
-            raise NetworkError(f'Rider {rider_id} not found')
-          if response.status_code != 200:
-            raise NetworkError(
-              f'Failed to fetch followers for rider {rider_id}: '
-              f'HTTP {response.status_code} - {response.text}',
-            )
-
-          raw_data['followers'] = response.text
+          records = _fetch_paginated(
+            client, url, headers, rider_id, 'followers', mode='raise',
+          )
+          raw_data['followers'] = json.dumps(records)
           logger.debug(f'Successfully fetched followers for rider {rider_id}')
 
-        # Fetch followees
+        # Fetch followees (all pages; failures keep collected data)
         if include_followees:
           url = f'{self.BASE_URL}/api/profiles/{rider_id}/followees'
-          response = client.get(url, headers=headers, timeout=30.0)
-
-          if response.status_code == 404:
-            raise NetworkError(f'Rider {rider_id} not found')
-          if response.status_code != 200:
-            logger.warning(
-              f'Failed to fetch followees for rider {rider_id}: '
-              f'HTTP {response.status_code}',
-            )
-            # Continue with just followers data
-            raw_data['followees'] = '[]'
-          else:
-            raw_data['followees'] = response.text
-            logger.debug(f'Successfully fetched followees for rider {rider_id}')
+          records = _fetch_paginated(
+            client, url, headers, rider_id, 'followees', mode='partial',
+          )
+          raw_data['followees'] = json.dumps(records)
+          logger.debug(f'Successfully fetched followees for rider {rider_id}')
 
         # Parse and populate attributes
         self._parse_response(raw_data)
@@ -171,6 +247,9 @@ class ZwiftFollowers:
     include_followees: bool = True,
   ) -> dict[int, 'ZwiftFollowers']:
     """Fetch multiple riders' follower data, returning dict of objects.
+
+    Both lists are fetched in full; the API paginates at 200 entries per
+    page and all pages are collected.
 
     Args:
         *rider_ids: Zwift rider IDs to fetch
@@ -223,33 +302,22 @@ class ZwiftFollowers:
         try:
           raw_data = {}
 
-          # Fetch followers
+          # Fetch followers (all pages; failure skips the rider via
+          # the except below)
           if include_followers:
             url = f'{cls.BASE_URL}/api/profiles/{rider_id}/followers'
-            response = client.get(url, headers=headers, timeout=30.0)
+            records = _fetch_paginated(
+              client, url, headers, rider_id, 'followers', mode='raise',
+            )
+            raw_data['followers'] = json.dumps(records)
 
-            if response.status_code == 200:
-              raw_data['followers'] = response.text
-            else:
-              logger.warning(
-                f'Failed to fetch followers for rider {rider_id}: '
-                f'HTTP {response.status_code}',
-              )
-              continue
-
-          # Fetch followees
+          # Fetch followees (all pages; failures keep collected data)
           if include_followees:
             url = f'{cls.BASE_URL}/api/profiles/{rider_id}/followees'
-            response = client.get(url, headers=headers, timeout=30.0)
-
-            if response.status_code == 200:
-              raw_data['followees'] = response.text
-            else:
-              logger.warning(
-                f'Failed to fetch followees for rider {rider_id}: '
-                f'HTTP {response.status_code}',
-              )
-              raw_data['followees'] = '[]'
+            records = _fetch_paginated(
+              client, url, headers, rider_id, 'followees', mode='partial',
+            )
+            raw_data['followees'] = json.dumps(records)
 
           # Create object and populate
           followers_obj = cls()

@@ -576,7 +576,7 @@ def test_fetch_multiple_followees_failure_keeps_partial(
   source = PageSource()
   source.add(rider_a, 'followers', 0, make_page(0, 3))
   source.add(rider_a, 'followees', 0, make_page(0, 200, role='followee'))
-  source.add(rider_a, 'followees', 200, make_page(200, 50, role='followee'))
+  source.add(rider_a, 'followees', 200, make_page(200, 200, role='followee'))
   source.add(rider_a, 'followees', 400, 500)
   expose_warnings(caplog, monkeypatch)
 
