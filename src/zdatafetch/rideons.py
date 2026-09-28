@@ -328,10 +328,22 @@ class ZwiftRideOns:
   def rideon_ids(self) -> list[int]:
     """Return list of rider IDs who gave RideOns.
 
+    Each rideon record carries the rideon's own ``id`` and the giving
+    rider's ID in the nested ``profile.id`` field (shape verified against
+    the live API). Records without a usable rider ID are skipped.
+
     Returns:
         List of rider IDs who gave RideOns to this activity
     """
-    return [r.get('id', 0) for r in self.rideons if 'id' in r]
+    ids: list[int] = []
+    for record in self.rideons:
+      profile = record.get('profile')
+      if not isinstance(profile, dict):
+        continue
+      rider_id = profile.get('id')
+      if isinstance(rider_id, int) and not isinstance(rider_id, bool):
+        ids.append(rider_id)
+    return ids
 
   def has_rideon_from(self, rider_id: int) -> bool:
     """Check if specific rider gave a RideOn.
