@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+- `zdata rideon`: `give_rideon()` now sends the required
+  `{"profileId": <authenticated id>}` JSON payload and resolves the
+  caller's id via `GET /api/profiles/me`, fixing HTTP 415 (issue #9)
 - `zrdata categories`: new subcommand fetching vELO2 category ranges from
   `/api/v2/public/categories` (issue #12)
   - Adds `ZRCategories`, `ZRvELOCategory`, and `ZRCategoriesFetch` to
