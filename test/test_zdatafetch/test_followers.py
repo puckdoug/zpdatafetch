@@ -89,7 +89,7 @@ class PageSource:
   request is recorded as (rider_id, endpoint, start, limit).
   """
 
-  def __init__(self):
+  def __init__(self) -> None:
     self.pages = {}
     self.requests = []
 
