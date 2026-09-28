@@ -224,3 +224,81 @@ def combined_handler(auth_handler, profile_handler):
     return httpx2.Response(404)
 
   return handler
+
+
+@pytest.fixture
+def give_rideon_handler(auth_handler):
+  """Stateful HTTP handler for give_rideon() tests (issue #9).
+
+  Records every request in `calls` (method, url, body, content-type)
+  and exposes failure modes via `state`:
+
+  - me_status / me_body: response for GET /api/profiles/me
+  - me_error: exception class raised for the /me request
+  - post_status: status returned for a well-formed rideon POST
+  - post_error: exception class raised for the rideon POST
+  - require_me_before_post: POST returns 500 until a /me GET arrives
+
+  A rideon POST is answered 415 unless it carries
+  Content-Type: application/json and the body {"profileId": 424242},
+  mirroring the real API's behavior reported in issue #9.
+
+  Access via `give_rideon_handler.calls` / `give_rideon_handler.state`.
+  """
+  import httpx2
+
+  calls = []
+  state = {
+    'me_status': 200,
+    'me_body': {'id': 424242, 'firstName': 'Caller', 'lastName': 'Rider'},
+    'me_error': None,
+    'post_status': 200,
+    'post_error': None,
+    'require_me_before_post': False,
+  }
+
+  def handler(request):
+    url = str(request.url)
+    calls.append({
+      'method': request.method,
+      'url': url,
+      'body': request.content.decode('utf-8'),
+      'content_type': request.headers.get('content-type', ''),
+    })
+
+    if 'auth/realms/zwift/tokens/access/codes' in url:
+      return auth_handler(request)
+
+    if url.endswith('/api/profiles/me') and request.method == 'GET':
+      if state['me_error'] is not None:
+        raise state['me_error']('simulated /me failure')
+      return httpx2.Response(
+        state['me_status'],
+        text=json.dumps(state['me_body']),
+      )
+
+    if request.method == 'POST' and url.endswith('/rideon'):
+      if state['post_error'] is not None:
+        raise state['post_error']('simulated rideon POST failure')
+      if state['require_me_before_post']:
+        me_seen = any(
+          c['method'] == 'GET' and c['url'].endswith('/api/profiles/me')
+          for c in calls[:-1]
+        )
+        if not me_seen:
+          return httpx2.Response(500, text='profile id not resolved')
+      try:
+        payload = json.loads(calls[-1]['body']) if calls[-1]['body'] else None
+      except json.JSONDecodeError:
+        payload = None
+      ct_ok = 'application/json' in calls[-1]['content_type']
+      body_ok = payload == {'profileId': 424242}
+      if not (ct_ok and body_ok):
+        return httpx2.Response(415, text='Unsupported Media Type')
+      return httpx2.Response(state['post_status'])
+
+    return httpx2.Response(404)
+
+  handler.calls = calls
+  handler.state = state
+  return handler
