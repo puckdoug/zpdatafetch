@@ -1299,6 +1299,12 @@ worlds.fetch()
 # rider_id = activity owner; your own id is resolved automatically
 # via GET /api/profiles/me and sent as {"profileId": <your id>}
 ZwiftRideOns.give_rideon(550564, 12345678)
+
+# Check who gave RideOns on an activity
+rideons = ZwiftRideOns()
+rideons.fetch(550564, 12345678)
+print(rideons.rideon_ids())             # rider IDs of RideOn givers
+print(rideons.has_rideon_from(766087))  # did this rider give a RideOn?
 ```
 
 ## Zwift Status Data (zsdata)
