@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+- `zdata rideons`: `ZwiftRideOns.rideon_ids()` now returns the IDs of the
+  riders who gave the RideOns (nested `profile.id`), not the rideon record
+  IDs (issue #11). `has_rideon_from()` now matches correctly. Records
+  without a usable rider ID are skipped.
 - `zrdata categories`: new subcommand fetching vELO2 category ranges from
   `/api/v2/public/categories` (issue #12)
   - Adds `ZRCategories`, `ZRvELOCategory`, and `ZRCategoriesFetch` to
