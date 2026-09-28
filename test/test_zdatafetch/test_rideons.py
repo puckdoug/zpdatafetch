@@ -173,8 +173,18 @@ def _mock_http(monkeypatch, handler):
 
 
 def _posts(recorder):
-  """Return recorded POST requests from a give_rideon_handler."""
-  return [c for c in recorder.calls if c['method'] == 'POST']
+  """Return recorded rideon POSTs (excluding the auth token POST)."""
+  return [
+    c for c in recorder.calls
+    if c['method'] == 'POST' and c['url'].endswith('/rideon')
+  ]
+
+
+def _me_gets(recorder):
+  """Return recorded /api/profiles/me GETs from a give_rideon_handler."""
+  return [
+    c for c in recorder.calls if c['url'].endswith('/api/profiles/me')
+  ]
 
 
 def test_give_rideon_sends_payload(give_rideon_handler, monkeypatch):
@@ -223,5 +233,111 @@ def test_give_rideon_resolves_me_before_post(
     post_index = next(i for i, c in enumerate(calls) if c['method'] == 'POST')
     assert me_index < post_index
     assert json.loads(calls[post_index]['body']) == {'profileId': 424242}
+  finally:
+    restore()
+
+
+def test_give_rideon_me_500_returns_false(
+  give_rideon_handler,
+  monkeypatch,
+  caplog,
+):
+  """GET /me failing with 500: return False, never POST."""
+  restore = _mock_http(monkeypatch, give_rideon_handler)
+  give_rideon_handler.state['me_status'] = 500
+
+  try:
+    assert ZwiftRideOns.give_rideon(550564, 12345678) is False
+    assert _posts(give_rideon_handler) == []
+    assert 'Failed to resolve authenticated rider id' in caplog.text
+  finally:
+    restore()
+
+
+def test_give_rideon_me_missing_id_returns_false(
+  give_rideon_handler,
+  monkeypatch,
+  caplog,
+):
+  """GET /me response without an id: return False, never POST."""
+  restore = _mock_http(monkeypatch, give_rideon_handler)
+  give_rideon_handler.state['me_body'] = {'firstName': 'X'}
+
+  try:
+    assert ZwiftRideOns.give_rideon(550564, 12345678) is False
+    assert _posts(give_rideon_handler) == []
+    assert 'authenticated rider id' in caplog.text
+  finally:
+    restore()
+
+
+def test_give_rideon_me_network_error_returns_false(
+  give_rideon_handler,
+  monkeypatch,
+  caplog,
+):
+  """GET /me raising a network error: return False, never POST."""
+  restore = _mock_http(monkeypatch, give_rideon_handler)
+  give_rideon_handler.state['me_error'] = httpx2.ConnectError
+
+  try:
+    assert ZwiftRideOns.give_rideon(550564, 12345678) is False
+    assert _posts(give_rideon_handler) == []
+    assert 'Network error' in caplog.text
+  finally:
+    restore()
+
+
+def test_give_rideon_post_404_returns_false(
+  give_rideon_handler,
+  monkeypatch,
+  caplog,
+):
+  """POST answering 404: return False, error logged."""
+  restore = _mock_http(monkeypatch, give_rideon_handler)
+  give_rideon_handler.state['post_status'] = 404
+
+  try:
+    assert ZwiftRideOns.give_rideon(550564, 12345678) is False
+    posts = _posts(give_rideon_handler)
+    assert len(posts) == 1
+    assert json.loads(posts[0]['body']) == {'profileId': 424242}
+    assert 'not found for rider 550564' in caplog.text
+  finally:
+    restore()
+
+
+def test_give_rideon_post_500_returns_false(
+  give_rideon_handler,
+  monkeypatch,
+  caplog,
+):
+  """POST answering 500: return False, error logged."""
+  restore = _mock_http(monkeypatch, give_rideon_handler)
+  give_rideon_handler.state['post_status'] = 500
+
+  try:
+    assert ZwiftRideOns.give_rideon(550564, 12345678) is False
+    posts = _posts(give_rideon_handler)
+    assert len(posts) == 1
+    assert json.loads(posts[0]['body']) == {'profileId': 424242}
+    assert 'HTTP 500' in caplog.text
+  finally:
+    restore()
+
+
+def test_give_rideon_timeout_returns_false(
+  give_rideon_handler,
+  monkeypatch,
+  caplog,
+):
+  """POST timing out: return False, error logged."""
+  restore = _mock_http(monkeypatch, give_rideon_handler)
+  give_rideon_handler.state['post_error'] = httpx2.TimeoutException
+
+  try:
+    assert ZwiftRideOns.give_rideon(550564, 12345678) is False
+    assert len(_me_gets(give_rideon_handler)) == 1
+    assert 'timed out' in caplog.text
   finally:
     restore()
