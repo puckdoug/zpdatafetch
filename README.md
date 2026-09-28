@@ -1296,6 +1296,8 @@ worlds = ZwiftWorlds()
 worlds.fetch()
 
 # Give a RideOn
+# rider_id = activity owner; your own id is resolved automatically
+# via GET /api/profiles/me and sent as {"profileId": <your id>}
 ZwiftRideOns.give_rideon(550564, 12345678)
 ```
 
