@@ -5349,9 +5349,25 @@ flowchart LR
 | ------------- | ---------------- | ---- | -------------- | -------- |
 | (array)       | `rideons`        | list | None           | Mastered |
 
-List of rider objects representing those who gave RideOns. Stored in raw form without transformation.
+List of rideon records, one per RideOn given. Stored in raw form without transformation.
 
-**Note:** Structure of individual rider objects is unknown. It's also unknown if timestamp information is included.
+**Note:** Record structure verified against the live API (2026-09-28, gh#11).
+The top-level `id` is the rideon record's own ID — not a rider ID. The giving
+rider's ID is in nested `profile.id` (equal to top-level `profileId`).
+`ZwiftRideOns.rideon_ids()` returns the rider IDs from `profile.id`;
+records without a usable rider ID are skipped.
+
+Key record fields:
+
+| Record Field                          | Type | Notes                                    |
+| ------------------------------------- | ---- | ---------------------------------------- |
+| `id`                                  | int  | Rideon record ID, not a rider ID         |
+| `profileId`                           | int  | Giving rider's ID                        |
+| `profile.id`                          | int  | Giving rider's ID, source of `rideon_ids()` |
+| `profile.firstName` / `.lastName`     | str  | Giving rider's name                      |
+| `fullName`                            | str  | Giving rider's display name              |
+| `activityId`                          | int  | Activity the RideOn was given on         |
+| `createDate`                          | str  | ISO 8601 timestamp of the RideOn         |
 
 ```mermaid
 flowchart LR
