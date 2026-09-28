@@ -437,3 +437,20 @@ class TestZRDataTeamCommand:
     )
     # Should succeed with --noaction (no conversion happens)
     assert result.returncode == 0
+
+
+# ===============================================================================
+class TestZRDataCategoriesCLI:
+  """Test zrdata categories command."""
+
+  def test_categories_noaction(self):
+    """Test categories --noaction prints what it would fetch."""
+    result = subprocess.run(
+      ['zrdata', 'categories', '--noaction'],
+      capture_output=True,
+      text=True,
+      timeout=5,
+      check=False,
+    )
+    assert result.returncode == 0
+    assert 'Would fetch' in result.stdout

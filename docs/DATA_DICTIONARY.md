@@ -4137,6 +4137,99 @@ Maximum 20-minute power output in watts per kilogram.
 
 ---
 
+### Categories
+
+**Purpose:** vELO2 category ranges from the ZwiftRacing API (`/api/v2/public/categories`).
+
+**Overview:** The Categories endpoint returns the rating ranges used to bucket riders into the ten vELO2 categories (Diamond down to Copper). Fetched with `zrdata categories` via `ZRCategoriesFetch`, which returns a single `ZRCategories` object (no IDs involved). The top category (Diamond) has `max: null` — no upper bound.
+
+---
+
+#### Scale
+
+| Raw API Field | Python Attribute | Type | Transformation | Lineage |
+| ------------- | ---------------- | ---- | -------------- | ------- |
+| `scale`       | `scale`          | str  | None           |         |
+
+Human-readable rating scale label (e.g. `1-1000`).
+
+```mermaid
+flowchart LR
+  A(Zwiftracing: scale) --> B(zrdatafetch: scale)
+```
+
+---
+
+#### Categories
+
+| Raw API Field | Python Attribute | Type | Transformation                                | Lineage |
+| ------------- | ---------------- | ---- | --------------------------------------------- | ------- |
+| `categories`  | `categories`     | list | Converted to list of ZRvELOCategory objects |         |
+
+Ordered list of category ranges (1 = highest).
+
+**ZRvELOCategory structure:**
+
+#### Number
+
+| Raw API Field | Python Attribute | Type | Transformation | Lineage |
+| ------------- | ---------------- | ---- | -------------- | ------- |
+| `number`      | `number`         | int  | None           |         |
+
+Category number, 1 = highest (Diamond) through 10 = lowest (Copper).
+
+```mermaid
+flowchart LR
+  A(Zwiftracing: categories) -- converted --> B(zrdatafetch: categories)
+```
+
+---
+
+#### Name
+
+| Raw API Field | Python Attribute | Type | Transformation | Lineage |
+| ------------- | ---------------- | ---- | -------------- | ------- |
+| `name`        | `name`           | str  | None           |         |
+
+Category name (`Diamond`, `Ruby`, `Emerald`, `Sapphire`, `Amethyst`, `Platinum`, `Gold`, `Silver`, `Bronze`, `Copper`).
+
+```mermaid
+flowchart LR
+  A(Zwiftracing: name) --> B(zrdatafetch: name)
+```
+
+---
+
+#### Min
+
+| Raw API Field | Python Attribute | Type | Transformation | Lineage |
+| ------------- | ---------------- | ---- | -------------- | ------- |
+| `min`         | `min`            | int  | None           |         |
+
+Minimum vELO2 rating for this category (inclusive).
+
+```mermaid
+flowchart LR
+  A(Zwiftracing: min) --> B(zrdatafetch: min)
+```
+
+---
+
+#### Max
+
+| Raw API Field | Python Attribute | Type        | Transformation                  | Lineage |
+| ------------- | ---------------- | ----------- | ------------------------------- | ------- |
+| `max`         | `max`            | int \| None | None when null (top category)   |         |
+
+Maximum vELO2 rating for this category (inclusive). `null` in the API for the open-ended top category (Diamond), modeled as `None` — not 0.
+
+```mermaid
+flowchart LR
+  A(Zwiftracing: max) -- null becomes None --> B(zrdatafetch: max)
+```
+
+---
+
 ## Zwift Mobile API Data
 
 ### Profile
