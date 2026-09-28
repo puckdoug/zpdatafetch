@@ -1,6 +1,9 @@
 # Changelog
 
-## [Unreleased]
+## [2.4.1]
+
+Fixes some issues with zdata fetch (Zwift Mobile API) and adds a new endpoint
+for vELO2 categories for Zwiftracing.app 
 
 - `zdata followers`: `ZwiftFollowers.fetch()` and `fetch_multiple()` now
   paginate the followers/followees endpoints (`start`/`limit`, page size
