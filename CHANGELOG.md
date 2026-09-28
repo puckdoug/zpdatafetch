@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+- `zdata followers`: `ZwiftFollowers.fetch()` and `fetch_multiple()` now
+  paginate the followers/followees endpoints (`start`/`limit`, page size
+  200) and return the complete lists instead of only the first 200
+  entries (issue #8). Pagination stops on an empty or short page and is
+  capped at 500 pages with a warning. Failed followees pages log a
+  warning and keep the pages fetched so far; failed followers pages still
+  raise (`fetch()`) or skip the rider (`fetch_multiple()`).
 - `zrdata categories`: new subcommand fetching vELO2 category ranges from
   `/api/v2/public/categories` (issue #12)
   - Adds `ZRCategories`, `ZRvELOCategory`, and `ZRCategoriesFetch` to

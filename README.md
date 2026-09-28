@@ -1282,7 +1282,7 @@ profile = ZwiftProfile()
 profile.fetch(550564)
 print(profile.json())
 
-# Fetch followers
+# Fetch followers (all pages; the API paginates at 200 entries per page)
 followers = ZwiftFollowers()
 followers.fetch(550564)
 print(f"Followers: {followers.follower_count()}")
