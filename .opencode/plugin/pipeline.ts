@@ -2,7 +2,10 @@ import { tool, type Plugin } from "@opencode-ai/plugin";
 import { readdir, readFile, writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import {
+  branchName,
+  dateStamp,
   initialState,
+  parseRetryRequest,
   parseState,
   parseStateFilename,
   serializeState,
@@ -16,7 +19,14 @@ import {
 } from "../pipeline/artifacts.ts";
 import { nextStage, STAGE_AGENT, type Facts } from "../pipeline/transitions.ts";
 import { createGh, humanReplySince } from "../pipeline/github.ts";
-import { createSessionRunner } from "../pipeline/session-io.ts";
+import { createSessionRunner, createModelProbe } from "../pipeline/session-io.ts";
+import {
+  matchModelRef,
+  normalizePinArg,
+  resolveModel,
+  unreachableModelMessage,
+  type ModelCatalog,
+} from "../pipeline/model.ts";
 import {
   formatStatus,
   mergeStartupStates,
@@ -40,12 +50,62 @@ const INTERVAL_MS = 5 * 60 * 1000;
 export const PipelinePlugin: Plugin = async ({ client, $, directory }) => {
   const gh = createGh($, LABEL);
   const runner = createSessionRunner(client, directory);
+  const prober = createModelProbe(client, directory);
   const git: Git = createGit($, directory);
   let timer: ReturnType<typeof setInterval> | null = null;
   let started = false;
   let running = false;
   let loopStartedAt: number | null = null;
   let current: { issue: number; stage: PipelineState["stage"]; startedAt: number } | null = null;
+  let activeModel: string | null = null;
+
+  async function readModelConfig(): Promise<string | null> {
+    try {
+      const raw = await readFile(join(directory, ".opencode/pipeline.config.json"), "utf8");
+      const cfg = JSON.parse(raw) as { model?: unknown };
+      return typeof cfg.model === "string" ? cfg.model : null;
+    } catch {
+      return null;
+    }
+  }
+
+  async function writeModelConfig(ref: string | null): Promise<void> {
+    const path = join(directory, ".opencode/pipeline.config.json");
+    await mkdir(join(directory, ".opencode"), { recursive: true });
+    const body = ref === null ? "{}\n" : `${JSON.stringify({ model: ref }, null, 2)}\n`;
+    await writeFile(path, body);
+  }
+
+  async function modelCatalog(): Promise<ModelCatalog> {
+    try {
+      const res = await client.config.providers({ query: { directory } });
+      const providers = res.data?.providers ?? [];
+      return {
+        models: providers.flatMap((p) =>
+          Object.entries(p.models ?? {}).map(([id, m]) => ({
+            providerID: p.id,
+            providerName: p.name,
+            id,
+            name: (m as { name?: string })?.name,
+          })),
+        ),
+      };
+    } catch {
+      return { models: [] };
+    }
+  }
+
+  async function checkRef(query: string): Promise<{ ref: string; error: string | null }> {
+    const match = matchModelRef(query, await modelCatalog());
+    if (!match.ok) {
+      const hint =
+        match.suggestions.length > 0
+          ? `\n  options:\n${match.suggestions.map((s) => `    ${s}`).join("\n")}`
+          : "";
+      return { ref: query, error: `${match.error}${hint}` };
+    }
+    return { ref: match.ref, error: null };
+  }
 
   async function log(
     level: "debug" | "info" | "warn" | "error",
@@ -141,6 +201,7 @@ export const PipelinePlugin: Plugin = async ({ client, $, directory }) => {
     await runner.runStage(
       agent,
       `Process issue #${s.issue}. Stage: ${s.stage}.`,
+      activeModel,
     );
   }
 
@@ -175,6 +236,15 @@ export const PipelinePlugin: Plugin = async ({ client, $, directory }) => {
         }
       }
       if (!state) {
+        if (await gh.prExists(branchName(issue.number))) {
+          state = {
+            ...initialState(issue.number),
+            stage: "done",
+            note: "PR already exists for this issue; skipping re-run (use /pipeline-retry to reopen)",
+          };
+          await writeState(state);
+          continue;
+        }
         state = initialState(issue.number);
         await writeState(state);
       }
@@ -300,9 +370,10 @@ export const PipelinePlugin: Plugin = async ({ client, $, directory }) => {
     return "immediate check triggered";
   }
 
-  function start(): void {
+  function start(model: string | null): void {
     if (started) return;
     started = true;
+    activeModel = model;
     loopStartedAt = Date.now();
     timer = setInterval(() => {
       if (running) return;
@@ -357,10 +428,22 @@ export const PipelinePlugin: Plugin = async ({ client, $, directory }) => {
     tool: {
       pipeline_start: tool({
         description:
-          "Start the pipeline loop: poll pipeline-labeled issues until OpenCode exits.",
+          "Start the pipeline loop: verify the model is reachable, then poll pipeline-labeled issues until OpenCode exits.",
         args: {},
         async execute() {
-          start();
+          if (started) return "pipeline loop already running";
+          let ref = resolveModel(process.env.PIPELINE_MODEL, await readModelConfig());
+          if (ref !== null) {
+            const checked = await checkRef(ref);
+            if (checked.error) return `pipeline NOT started: ${checked.error}`;
+            ref = checked.ref;
+          }
+          const err = await prober.probe(ref);
+          if (err) {
+            await log("error", "model probe failed; pipeline not started", { model: ref, err });
+            return `pipeline NOT started: ${unreachableModelMessage(ref, err)}`;
+          }
+          start(ref);
           const issueStates = await startupIssueStates();
           return formatStatus({
             loopRunning: true,
@@ -379,6 +462,67 @@ export const PipelinePlugin: Plugin = async ({ client, $, directory }) => {
         async execute() {
           stop();
           return "pipeline loop stopped";
+        },
+      }),
+      pipeline_pin_model: tool({
+        description:
+          "Pin the pipeline's model. Probes it first and refuses to save an unreachable model. Pass 'default' to clear the pin.",
+        args: {
+          model: tool.schema
+            .string()
+            .describe('provider/model to pin, or "default" to clear'),
+        },
+        async execute(args) {
+          const parsed = normalizePinArg(args.model ?? "");
+          if (!parsed.ok) return parsed.error;
+          let ref: string | null = null;
+          if (parsed.query !== null) {
+            const checked = await checkRef(parsed.query);
+            if (checked.error) return `pin not saved: ${checked.error}`;
+            ref = checked.ref;
+          }
+          const err = await prober.probe(ref);
+          if (err) return `pin not saved: ${unreachableModelMessage(ref, err)}`;
+          try {
+            await writeModelConfig(ref);
+          } catch (e) {
+            return `failed to write pipeline.config.json: ${String(e)}`;
+          }
+          if (started) activeModel = ref;
+          return ref
+            ? `pipeline model pinned to ${ref}${started ? " (applied to the running loop)" : ""}`
+            : "pipeline model pin cleared; using the workspace default";
+        },
+      }),
+      pipeline_retry: tool({
+        description:
+          "Re-queue an issue for the pipeline (default stage: review). Use when a completed issue needs more work.",
+        args: {
+          request: tool.schema
+            .string()
+            .describe('issue number, optionally followed by a stage, e.g. "12" or "12 design"'),
+        },
+        async execute(args) {
+          const parsed = parseRetryRequest(args.request ?? "");
+          if ("error" in parsed) return parsed.error;
+          const files = await listPlanning();
+          let startDate = dateStamp(new Date());
+          for (const f of files) {
+            const pf = parseStateFilename(f);
+            if (pf && pf.issue === parsed.issue) {
+              startDate = pf.startDate;
+              break;
+            }
+          }
+          const state: PipelineState = {
+            ...initialState(parsed.issue),
+            startDate,
+            stage: parsed.stage,
+            note: `re-queued at ${parsed.stage}`,
+            updated: new Date().toISOString(),
+          };
+          await writeState(state);
+          return `issue #${parsed.issue} re-queued at stage ${parsed.stage}; run /pipeline-check or wait for the next tick`;
         },
       }),
       pipeline_check: tool({
