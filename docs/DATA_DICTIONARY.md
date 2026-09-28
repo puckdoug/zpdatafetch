@@ -5305,6 +5305,12 @@ flowchart LR
 
 **Overview:** Returns a list of riders who gave RideOns to a specific activity.
 
+**Giving RideOns:** `ZwiftRideOns.give_rideon(rider_id, activity_id)` POSTs to
+`/api/profiles/{rider_id}/activities/{activity_id}/rideon` with the required
+JSON payload `{"profileId": <id>}`. `rider_id` in the URL is the activity
+owner; the payload id is the caller's own Zwift id, resolved via
+`GET /api/profiles/me`.
+
 ---
 
 #### Rider ID
