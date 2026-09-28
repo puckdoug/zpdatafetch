@@ -230,7 +230,10 @@ def test_give_rideon_resolves_me_before_post(
     me_index = next(
       i for i, c in enumerate(calls) if c['url'].endswith('/api/profiles/me')
     )
-    post_index = next(i for i, c in enumerate(calls) if c['method'] == 'POST')
+    post_index = next(
+      i for i, c in enumerate(calls)
+      if c['method'] == 'POST' and c['url'].endswith('/rideon')
+    )
     assert me_index < post_index
     assert json.loads(calls[post_index]['body']) == {'profileId': 424242}
   finally:

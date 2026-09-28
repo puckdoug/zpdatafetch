@@ -226,7 +226,10 @@ class ZwiftRideOns:
   def give_rideon(rider_id: int, activity_id: int) -> bool:
     """Give a RideOn to an activity.
 
-    Loads credentials, authenticates, and posts a RideOn.
+    Loads credentials, authenticates, resolves the authenticated
+    rider's id via GET /api/profiles/me, and posts a RideOn with the
+    JSON payload required by the API:
+    {"profileId": <authenticated rider id>}.
 
     Args:
         rider_id: Zwift rider ID who owns the activity
@@ -257,12 +260,41 @@ class ZwiftRideOns:
     token = auth.get_access_token()
     headers = {'Authorization': f'Bearer {token}', 'Accept': 'application/json'}
 
-    # POST RideOn
-    url = f'{ZwiftRideOns.BASE_URL}/api/profiles/{rider_id}/activities/{activity_id}/rideon'
-
     try:
       with httpx2.Client() as client:
-        response = client.post(url, headers=headers, timeout=30.0)
+        # Resolve the authenticated rider's id; the API requires it in
+        # the RideOn payload (issue #9).
+        me_response = client.get(
+          f'{ZwiftRideOns.BASE_URL}/api/profiles/me',
+          headers=headers,
+          timeout=30.0,
+        )
+
+        if me_response.status_code != 200:
+          logger.error(
+            f'Failed to resolve authenticated rider id: '
+            f'HTTP {me_response.status_code}',
+          )
+          return False
+
+        me_data = parse_json_safe(me_response.text, context='rideons')
+        try:
+          me_id = int(me_data['id'])
+        except (KeyError, TypeError, ValueError):
+          logger.error(
+            'Could not determine authenticated rider id from '
+            '/api/profiles/me response',
+          )
+          return False
+
+        # POST RideOn
+        url = f'{ZwiftRideOns.BASE_URL}/api/profiles/{rider_id}/activities/{activity_id}/rideon'
+        response = client.post(
+          url,
+          headers=headers,
+          json={'profileId': me_id},
+          timeout=30.0,
+        )
 
         if response.status_code in (200, 201, 204):
           logger.info(
