@@ -1,0 +1,15 @@
+{
+  "scale": "1-1000",
+  "categories": [
+    {"number": 1, "name": "Diamond", "min": 920, "max": null},
+    {"number": 2, "name": "Ruby", "min": 840, "max": 919},
+    {"number": 3, "name": "Emerald", "min": 760, "max": 839},
+    {"number": 4, "name": "Sapphire", "min": 680, "max": 759},
+    {"number": 5, "name": "Amethyst", "min": 600, "max": 679},
+    {"number": 6, "name": "Platinum", "min": 540, "max": 599},
+    {"number": 7, "name": "Gold", "min": 480, "max": 539},
+    {"number": 8, "name": "Silver", "min": 420, "max": 479},
+    {"number": 9, "name": "Bronze", "min": 360, "max": 419},
+    {"number": 10, "name": "Copper", "min": 0, "max": 359}
+  ]
+}

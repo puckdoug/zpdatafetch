@@ -29,7 +29,7 @@ This package provides four command-line tools:
 | Tool         | API          | Purpose                                    | Data Types                                                |
 | ------------ | ------------ | ------------------------------------------ | --------------------------------------------------------- |
 | **`zpdata`** | ZwiftPower   | Race rankings, signups, results            | Cyclist, Primes, Results, Signups, Sprints, Teams, League |
-| **`zrdata`** | Zwiftracing  | Rider ratings, race results, rosters       | Rider Ratings, Race Results, Team Rosters                 |
+| **`zrdata`** | Zwiftracing  | Rider ratings, race results, rosters       | Rider Ratings, Race Results, Team Rosters, Category Ranges |
 | **`zdata`**  | Zwift        | Profiles, followers, activities, worlds    | Profile, Followers, RideOns, Activity, Worlds, Riders     |
 | **`zsdata`** | Zwift Status | Service status, incidents, maintenance     | Summary, Components, Incidents, Maintenance               |
 
@@ -311,30 +311,39 @@ including rider ratings, race results, and team rosters.
 ### Command-line usage
 
 ```sh
-usage: zrdata [-h] [-v] [-vv] [--log-file PATH] [-r] [--v1fetch] [--noaction] [--sync]
+usage: zrdata [-h] [--version] [-v] [-vv] [--log-file PATH] [-r] [--json]
+              [--noaction] [--sync] [--extras] [--excluded] [--v1fetch]
               [--batch] [--batch-file FILE] [--premium] [--at DATETIME]
-              [{config,rider,result,team}] [id ...]
+              [CMD] [id ...]
 
 Module for fetching Zwiftracing data using the Zwiftracing API
 
 positional arguments:
-  {config,rider,result,team}
-                        which command to run
-  id                    the id to search for
+  CMD                command to execute: {config,rider,result,team,categories}
+  id                 ID(s) for the command
 
 options:
-  -h, --help            show this help message and exit
-  -v, --verbose         enable INFO level logging to console
-  -vv, --debug          enable DEBUG level logging to console
-  --log-file PATH       path to log file (enables file logging)
-  -r, --raw             print the raw response text from the server
-  --v1fetch             output fetched data in v1.8 format (backward compatibility)
-  --noaction            report what would be done without actually fetching data
-  --sync                use synchronous (non-parallel) requests for debugging
-  --batch               use batch POST endpoint for multiple IDs (rider command only)
-  --batch-file FILE     read IDs from file (one per line) for batch request (rider command only)
-  --premium             use premium tier rate limits (higher request quotas)
-  --at DATETIME         fetch historical ratings at a date/time in UTC (rider command only)
+  -h, --help         show this help message and exit
+  --version          show program's version number and exit
+  -v, --verbose      enable verbose output (INFO level logging)
+  -vv, --debug       enable debug output (DEBUG level logging)
+  --log-file PATH    write logging output to file
+  -r, --raw          print raw result data as received from the server
+  --json             output fetched data as JSON (default: object repr)
+  --noaction         show what would be done without actually fetching data
+  --sync             use synchronous (non-parallel) requests
+  --extras           report recently added fields not handled natively
+  --excluded         report recognized fields not yet explicitly handled
+  --v1fetch          output fetched data in v1.8 format (for backward
+                     compatibility)
+  --batch            use batch POST endpoint for multiple IDs (rider command
+                     only)
+  --batch-file FILE  read IDs from file (one per line) for batch request
+                     (rider command only)
+  --premium          use premium tier rate limits (higher request quotas)
+  --at DATETIME      fetch historical ratings at a given date/time (UTC), e.g.
+                     '2024-06-15' or '2024-06-15T14:30:00' (rider command
+                     only)
 ```
 
 **Note:** All objects support both synchronous (`fetch()`) and asynchronous (`afetch()`) methods. See the Async API section below for details.
@@ -360,11 +369,58 @@ zrdata result 3590800
 # Fetch team roster
 zrdata team 456
 
+# Fetch vELO2 category ranges
+zrdata categories
+
 # View current configuration
 zrdata config
 
 # Set up authorization
 zrdata config  # Will prompt for authorization header
+```
+
+### Category Ranges (vELO2)
+
+Fetch the vELO2 category ranges used to bucket riders by rating:
+
+```sh
+zrdata categories
+# Output: the full repr — every entry with number, name, and range:
+# ZRCategories(scale='1-1000', categories=[ZRvELOCategory(
+# number=1, name='Diamond', min=920, max=None), ZRvELOCategory(
+# number=2, name='Ruby', min=840, max=919), ...])
+```
+
+Use `--json` for the full mapping:
+
+```sh
+zrdata categories --json
+# Output:
+# {
+#   "scale": "1-1000",
+#   "categories": [
+#     {"number": 1, "name": "Diamond", "min": 920, "max": null},
+#     {"number": 2, "name": "Ruby", "min": 840, "max": 919},
+#     ...
+#     {"number": 10, "name": "Copper", "min": 0, "max": 359}
+#   ]
+# }
+```
+
+`--raw` prints the unmodified API response; `--noaction` previews the fetch.
+
+```python
+# Library usage
+from zrdatafetch import ZRCategoriesFetch
+
+categories = ZRCategoriesFetch().fetch()
+for entry in categories:            # iterate in API order (0 = Diamond)
+    print(f"{entry.number}: {entry.name} {entry.min}-{entry.max}")
+
+silver = categories['Silver']       # lookup by exact name
+diamond = categories[0]             # positional access
+'Silver' in categories              # membership -> True
+len(categories)                     # 10
 ```
 
 ### Historical Ratings

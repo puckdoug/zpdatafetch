@@ -15,7 +15,7 @@ if sys.version_info >= (3, 11):
 else:
   # For Python 3.10, anyio provides ExceptionGroup
   try:
-    from exceptiongroup import (  # type: ignore[import-untyped]
+    from exceptiongroup import (  # ty: ignore[unresolved-import]
       BaseExceptionGroup,
     )
   except ImportError:

@@ -20,12 +20,15 @@ For command-line usage:
   zrdata rider 12345
   zrdata result 3590800
   zrdata team 456
+  zrdata categories
 """
 
 from zrdatafetch.async_zr import AsyncZR_obj
 from zrdatafetch.config import Config
 from zrdatafetch.logging_config import setup_logging
 from zrdatafetch.zr import ZR_obj
+from zrdatafetch.zrcategories import ZRCategories, ZRvELOCategory
+from zrdatafetch.zrcategoriesfetch import ZRCategoriesFetch
 from zrdatafetch.zrraceresult import ZRRaceResult, ZRRiderResult
 from zrdatafetch.zrresultfetch import ZRResultFetch
 
@@ -44,10 +47,13 @@ __all__ = [
   # Configuration
   'Config',
   # Fetcher classes (return native dataclass objects)
+  'ZRCategoriesFetch',
   'ZRRiderFetch',
   'ZRResultFetch',
   'ZRTeamFetch',
   # Pure dataclasses (no fetch logic)
+  'ZRCategories',
+  'ZRvELOCategory',
   'ZRRider',
   'ZRRaceResult',
   'ZRRiderResult',
