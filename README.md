@@ -650,6 +650,10 @@ This provides a clear, separate execution path.
 - `drs_rank`: Category for DRS
 - `gender`: Rider gender (M/F)
 - `zrcs`: Zwiftracing compound score (power metric)
+- `velo_skill_*`: vELO2 skill deltas (endurance, pursuit, sprint, punch,
+  climb, time_trial)
+- `velo_category_number`: vELO2 category number
+- `velo_category_name`: vELO2 category name
 
 **ZRResult**: Race result data
 
