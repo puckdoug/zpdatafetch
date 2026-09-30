@@ -1,13 +1,21 @@
 # Changelog
 
+## [2.4.2]
+
+- `zrdata riders`: `ZRRider` now exposes the vELO2 `velo.skill.*` deltas
+  (`velo_skill_endurance`, `velo_skill_pursuit`, `velo_skill_sprint`,
+  `velo_skill_punch`, `velo_skill_climb`, `velo_skill_time_trial`) and the
+  vELO2 `velo.category` (`velo_category_number`, `velo_category_name`).
+  Previously the `velo` block was captured but these sub-objects were
+  dropped (issue #17).
+
 ## [2.4.1]
 
 Fixes some issues with zdata fetch (Zwift Mobile API) and adds a new endpoint
-for vELO2 categories for Zwiftracing.app 
+for vELO2 categories for Zwiftracing.app
 
 - `zdata followers`: `ZwiftFollowers.fetch()` and `fetch_multiple()` now
-  paginate the followers/followees endpoints (`start`/`limit`, page size
-  200) and return the complete lists instead of only the first 200
+  paginate the followers/followees endpoints (`start`/`limit`, page size 200) and return the complete lists instead of only the first 200
   entries (issue #8). Pagination stops on an empty or short page and is
   capped at 500 pages with a warning. Failed followees pages log a
   warning and keep the pages fetched so far; failed followers pages still
@@ -28,12 +36,6 @@ for vELO2 categories for Zwiftracing.app
     removed) and supports iteration, exact-name lookup
     (`categories['Silver']`), membership (`in`), `len()`, and positional
     indexing (review feedback)
-- `zrdata riders`: `ZRRider` now exposes the vELO2 `velo.skill.*` deltas
-  (`velo_skill_endurance`, `velo_skill_pursuit`, `velo_skill_sprint`,
-  `velo_skill_punch`, `velo_skill_climb`, `velo_skill_time_trial`) and the
-  vELO2 `velo.category` (`velo_category_number`, `velo_category_name`).
-  Previously the `velo` block was captured but these sub-objects were
-  dropped (issue #17).
 
 ## [2.4.0]
 
