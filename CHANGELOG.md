@@ -28,6 +28,12 @@ for vELO2 categories for Zwiftracing.app
     removed) and supports iteration, exact-name lookup
     (`categories['Silver']`), membership (`in`), `len()`, and positional
     indexing (review feedback)
+- `zrdata riders`: `ZRRider` now exposes the vELO2 `velo.skill.*` deltas
+  (`velo_skill_endurance`, `velo_skill_pursuit`, `velo_skill_sprint`,
+  `velo_skill_punch`, `velo_skill_climb`, `velo_skill_time_trial`) and the
+  vELO2 `velo.category` (`velo_category_number`, `velo_category_name`).
+  Previously the `velo` block was captured but these sub-objects were
+  dropped (issue #17).
 
 ## [2.4.0]
 

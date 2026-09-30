@@ -69,6 +69,14 @@ class ZRRider:
     velo_punch: vELO2 punch factor
     velo_climb: vELO2 climb factor
     velo_time_trial_factor: vELO2 time trial factor
+    velo_skill_endurance: vELO2 skill endurance delta
+    velo_skill_pursuit: vELO2 skill pursuit delta
+    velo_skill_sprint: vELO2 skill sprint delta
+    velo_skill_punch: vELO2 skill punch delta
+    velo_skill_climb: vELO2 skill climb delta
+    velo_skill_time_trial: vELO2 skill time trial delta
+    velo_category_number: vELO2 category number
+    velo_category_name: vELO2 category name
     _excluded: Recognized but not explicitly handled fields
     _extra: Unknown/new fields from API changes
   """
@@ -125,6 +133,18 @@ class ZRRider:
   velo_punch: float = 0.0
   velo_climb: float = 0.0
   velo_time_trial_factor: float = 0.0
+
+  # Velo skill (vELO2 skill deltas)
+  velo_skill_endurance: float = 0.0
+  velo_skill_pursuit: float = 0.0
+  velo_skill_sprint: float = 0.0
+  velo_skill_punch: float = 0.0
+  velo_skill_climb: float = 0.0
+  velo_skill_time_trial: float = 0.0
+
+  # Velo category (vELO2 category)
+  velo_category_number: int = 0
+  velo_category_name: str = ''
 
   # Field classification
   _excluded: dict[str, Any] = field(default_factory=dict, repr=False)
@@ -300,6 +320,34 @@ class ZRRider:
         extract_nested_value(data, 'velo', 'factors', 'timeTrial'),
       )
 
+      # Velo skill (vELO2 skill deltas)
+      velo_skill_endurance = safe_float(
+        extract_nested_value(data, 'velo', 'skill', 'endurance'),
+      )
+      velo_skill_pursuit = safe_float(
+        extract_nested_value(data, 'velo', 'skill', 'pursuit'),
+      )
+      velo_skill_sprint = safe_float(
+        extract_nested_value(data, 'velo', 'skill', 'sprint'),
+      )
+      velo_skill_punch = safe_float(
+        extract_nested_value(data, 'velo', 'skill', 'punch'),
+      )
+      velo_skill_climb = safe_float(
+        extract_nested_value(data, 'velo', 'skill', 'climb'),
+      )
+      velo_skill_time_trial = safe_float(
+        extract_nested_value(data, 'velo', 'skill', 'timeTrial'),
+      )
+
+      # Velo category (vELO2 category)
+      velo_category_number = safe_int(
+        extract_nested_value(data, 'velo', 'category', 'number'),
+      )
+      velo_category_name = safe_str(
+        extract_nested_value(data, 'velo', 'category', 'name'),
+      )
+
       # Classify remaining fields
       excluded = {}
       extra = {}
@@ -352,6 +400,14 @@ class ZRRider:
         velo_punch=velo_punch,
         velo_climb=velo_climb,
         velo_time_trial_factor=velo_time_trial_factor,
+        velo_skill_endurance=velo_skill_endurance,
+        velo_skill_pursuit=velo_skill_pursuit,
+        velo_skill_sprint=velo_skill_sprint,
+        velo_skill_punch=velo_skill_punch,
+        velo_skill_climb=velo_skill_climb,
+        velo_skill_time_trial=velo_skill_time_trial,
+        velo_category_number=velo_category_number,
+        velo_category_name=velo_category_name,
         _excluded=excluded,
         _extra=extra,
       )

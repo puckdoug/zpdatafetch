@@ -170,6 +170,38 @@ class TestZRRiderVelo:
     assert rider.velo_time_trial_factor == pytest.approx(479.0)
 
 
+class TestZRRiderVeloSkill:
+  """Test vELO2 skill fields (gh#17)."""
+
+  def test_velo_skill_endurance(self, rider: ZRRider) -> None:
+    assert rider.velo_skill_endurance == pytest.approx(0.0)
+
+  def test_velo_skill_pursuit(self, rider: ZRRider) -> None:
+    assert rider.velo_skill_pursuit == pytest.approx(0.0)
+
+  def test_velo_skill_sprint(self, rider: ZRRider) -> None:
+    assert rider.velo_skill_sprint == pytest.approx(0.3206484167583312)
+
+  def test_velo_skill_punch(self, rider: ZRRider) -> None:
+    assert rider.velo_skill_punch == pytest.approx(0.0)
+
+  def test_velo_skill_climb(self, rider: ZRRider) -> None:
+    assert rider.velo_skill_climb == pytest.approx(0.0)
+
+  def test_velo_skill_time_trial(self, rider: ZRRider) -> None:
+    assert rider.velo_skill_time_trial == pytest.approx(0.0)
+
+
+class TestZRRiderVeloCategory:
+  """Test vELO2 category fields (gh#17)."""
+
+  def test_velo_category_number(self, rider: ZRRider) -> None:
+    assert rider.velo_category_number == 8
+
+  def test_velo_category_name(self, rider: ZRRider) -> None:
+    assert rider.velo_category_name == 'Silver'
+
+
 class TestZRRiderExtraFields:
   """Test that unmodeled fields go to _extra."""
 
@@ -219,6 +251,28 @@ class TestZRRiderAsDict:
     d = rider.asdict()
     assert '_extra' not in d
     assert '_excluded' not in d
+
+  def test_asdict_has_new_velo_fields(self, rider: ZRRider) -> None:
+    d = rider.asdict()
+    for key in (
+      'velo_skill_endurance',
+      'velo_skill_pursuit',
+      'velo_skill_sprint',
+      'velo_skill_punch',
+      'velo_skill_climb',
+      'velo_skill_time_trial',
+      'velo_category_number',
+      'velo_category_name',
+    ):
+      assert key in d
+    assert d['velo_skill_sprint'] == pytest.approx(0.3206484167583312)
+    assert d['velo_category_number'] == 8
+    assert d['velo_category_name'] == 'Silver'
+
+  def test_repr_has_new_velo_fields(self, rider: ZRRider) -> None:
+    text = repr(rider)
+    assert 'velo_skill_sprint' in text
+    assert 'velo_category_name' in text
 
 
 class TestZRRiderMissingFields:
@@ -273,3 +327,51 @@ class TestZRRiderMissingFields:
     rider = ZRRider.from_dict(data)
     assert rider.race_finishes == 0
     assert rider.race_wins == 0
+
+  def test_missing_velo_skill(self) -> None:
+    data = {
+      'riderId': 1,
+      'name': 'Test',
+      'race': {'current': {'rating': 100, 'mixed': {'category': 'Bronze'}}},
+    }
+    rider = ZRRider.from_dict(data)
+    assert rider.velo_skill_sprint == 0.0
+    assert rider.velo_skill_endurance == 0.0
+
+  def test_missing_velo_category(self) -> None:
+    data = {
+      'riderId': 1,
+      'name': 'Test',
+      'race': {'current': {'rating': 100, 'mixed': {'category': 'Bronze'}}},
+    }
+    rider = ZRRider.from_dict(data)
+    assert rider.velo_category_number == 0
+    assert rider.velo_category_name == ''
+
+  def test_velo_without_skill_or_category(self) -> None:
+    data = {
+      'riderId': 1,
+      'name': 'Test',
+      'race': {'current': {'rating': 100, 'mixed': {'category': 'Bronze'}}},
+      'velo': {'race': 100.0, 'factors': {'sprint': 200.0}},
+    }
+    rider = ZRRider.from_dict(data)
+    assert rider.velo_race == pytest.approx(100.0)
+    assert rider.velo_skill_sprint == 0.0
+    assert rider.velo_category_number == 0
+    assert rider.velo_category_name == ''
+
+  def test_malformed_velo_skill_category(self) -> None:
+    data = {
+      'riderId': 1,
+      'name': 'Test',
+      'race': {'current': {'rating': 100, 'mixed': {'category': 'Bronze'}}},
+      'velo': {
+        'skill': {'sprint': 'not-a-number'},
+        'category': {'number': 'not-a-number', 'name': None},
+      },
+    }
+    rider = ZRRider.from_dict(data)
+    assert rider.velo_skill_sprint == 0.0
+    assert rider.velo_category_number == 0
+    assert rider.velo_category_name == ''
