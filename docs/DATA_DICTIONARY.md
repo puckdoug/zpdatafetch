@@ -3485,6 +3485,42 @@ flowchart LR
 
 ---
 
+#### vELO2 Max 30 / Max 90
+
+| Raw API Field | Python Attribute | Type  | Transformation         | Lineage  |
+| ------------- | ---------------- | ----- | ---------------------- | -------- |
+| `velo.max30`  | `velo_max30`     | float | Nested path extraction | Mastered |
+| `velo.max90`  | `velo_max90`     | float | Nested path extraction | Mastered |
+
+The rider's maximum vELO2 rating over the past 30 / 90 days. Missing or
+malformed values fall back to `0.0`.
+
+```mermaid
+flowchart LR
+  A(Zwiftracing: velo.max30/max90) -- nested extraction --> B(zrdatafetch: velo_max30/max90)
+```
+
+---
+
+#### vELO2 Max Category
+
+| Raw API Field                | Python Attribute             | Type | Transformation         | Lineage  |
+| ---------------------------- | ---------------------------- | ---- | ---------------------- | -------- |
+| `velo.max30Category.number`  | `velo_max30_category_number` | int  | Nested path extraction | Mastered |
+| `velo.max30Category.name`    | `velo_max30_category_name`   | str  | Nested path extraction | Mastered |
+| `velo.max90Category.number`  | `velo_max90_category_number` | int  | Nested path extraction | Mastered |
+| `velo.max90Category.name`    | `velo_max90_category_name`   | str  | Nested path extraction | Mastered |
+
+The vELO2 category bucket for the 30 / 90-day max rating. Missing or
+malformed values fall back to `0` and `''`.
+
+```mermaid
+flowchart LR
+  A(Zwiftracing: velo.max30Category/max90Category) -- nested extraction --> B(zrdatafetch: velo_max*_category_*)
+```
+
+---
+
 ### Results
 
 **Purpose:** Race results from ZwiftRacing API.

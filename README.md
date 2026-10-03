@@ -654,6 +654,12 @@ This provides a clear, separate execution path.
   climb, time_trial)
 - `velo_category_number`: vELO2 category number
 - `velo_category_name`: vELO2 category name
+- `velo_max30`: vELO2 30-day max rating
+- `velo_max90`: vELO2 90-day max rating
+- `velo_max30_category_number`: vELO2 30-day max category number
+- `velo_max30_category_name`: vELO2 30-day max category name
+- `velo_max90_category_number`: vELO2 90-day max category number
+- `velo_max90_category_name`: vELO2 90-day max category name
 
 **ZRResult**: Race result data
 
