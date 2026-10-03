@@ -77,6 +77,12 @@ class ZRRider:
     velo_skill_time_trial: vELO2 skill time trial delta
     velo_category_number: vELO2 category number
     velo_category_name: vELO2 category name
+    velo_max30: vELO2 30-day max rating
+    velo_max90: vELO2 90-day max rating
+    velo_max30_category_number: vELO2 30-day max category number
+    velo_max30_category_name: vELO2 30-day max category name
+    velo_max90_category_number: vELO2 90-day max category number
+    velo_max90_category_name: vELO2 90-day max category name
     _excluded: Recognized but not explicitly handled fields
     _extra: Unknown/new fields from API changes
   """
@@ -145,6 +151,16 @@ class ZRRider:
   # Velo category (vELO2 category)
   velo_category_number: int = 0
   velo_category_name: str = ''
+
+  # Velo max (vELO2 max30/max90)
+  velo_max30: float = 0.0
+  velo_max90: float = 0.0
+
+  # Velo max category (vELO2 max30Category/max90Category)
+  velo_max30_category_number: int = 0
+  velo_max30_category_name: str = ''
+  velo_max90_category_number: int = 0
+  velo_max90_category_name: str = ''
 
   # Field classification
   _excluded: dict[str, Any] = field(default_factory=dict, repr=False)
@@ -348,6 +364,22 @@ class ZRRider:
         extract_nested_value(data, 'velo', 'category', 'name'),
       )
 
+      # Velo max (vELO2 max30/max90)
+      velo_max30 = safe_float(extract_nested_value(data, 'velo', 'max30'))
+      velo_max90 = safe_float(extract_nested_value(data, 'velo', 'max90'))
+      velo_max30_category_number = safe_int(
+        extract_nested_value(data, 'velo', 'max30Category', 'number'),
+      )
+      velo_max30_category_name = safe_str(
+        extract_nested_value(data, 'velo', 'max30Category', 'name'),
+      )
+      velo_max90_category_number = safe_int(
+        extract_nested_value(data, 'velo', 'max90Category', 'number'),
+      )
+      velo_max90_category_name = safe_str(
+        extract_nested_value(data, 'velo', 'max90Category', 'name'),
+      )
+
       # Classify remaining fields
       excluded = {}
       extra = {}
@@ -408,6 +440,12 @@ class ZRRider:
         velo_skill_time_trial=velo_skill_time_trial,
         velo_category_number=velo_category_number,
         velo_category_name=velo_category_name,
+        velo_max30=velo_max30,
+        velo_max90=velo_max90,
+        velo_max30_category_number=velo_max30_category_number,
+        velo_max30_category_name=velo_max30_category_name,
+        velo_max90_category_number=velo_max90_category_number,
+        velo_max90_category_name=velo_max90_category_name,
         _excluded=excluded,
         _extra=extra,
       )
