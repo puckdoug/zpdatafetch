@@ -202,6 +202,32 @@ class TestZRRiderVeloCategory:
     assert rider.velo_category_name == 'Silver'
 
 
+class TestZRRiderVeloMax30:
+  """Test vELO2 max30 fields (gh#17)."""
+
+  def test_velo_max30(self, rider: ZRRider) -> None:
+    assert rider.velo_max30 == 434.86035000000004
+
+  def test_velo_max30_category_number(self, rider: ZRRider) -> None:
+    assert rider.velo_max30_category_number == 8
+
+  def test_velo_max30_category_name(self, rider: ZRRider) -> None:
+    assert rider.velo_max30_category_name == 'Silver'
+
+
+class TestZRRiderVeloMax90:
+  """Test vELO2 max90 fields (gh#17)."""
+
+  def test_velo_max90(self, rider: ZRRider) -> None:
+    assert rider.velo_max90 == 453.5100245027948
+
+  def test_velo_max90_category_number(self, rider: ZRRider) -> None:
+    assert rider.velo_max90_category_number == 8
+
+  def test_velo_max90_category_name(self, rider: ZRRider) -> None:
+    assert rider.velo_max90_category_name == 'Silver'
+
+
 class TestZRRiderExtraFields:
   """Test that unmodeled fields go to _extra."""
 
@@ -225,6 +251,10 @@ class TestZRRiderExtraFields:
       'velo',
     ):
       assert key not in extras
+
+  def test_velo_not_in_extras_or_excluded(self, rider: ZRRider) -> None:
+    assert 'velo' not in rider.extras()
+    assert 'velo' not in rider.excluded()
 
 
 class TestZRRiderAsDict:
@@ -273,6 +303,27 @@ class TestZRRiderAsDict:
     text = repr(rider)
     assert 'velo_skill_sprint' in text
     assert 'velo_category_name' in text
+
+  def test_asdict_has_velo_max_fields(self, rider: ZRRider) -> None:
+    d = rider.asdict()
+    for key in (
+      'velo_max30',
+      'velo_max90',
+      'velo_max30_category_number',
+      'velo_max30_category_name',
+      'velo_max90_category_number',
+      'velo_max90_category_name',
+    ):
+      assert key in d
+    assert d['velo_max30'] == 434.86035000000004
+    assert d['velo_max90'] == 453.5100245027948
+    assert d['velo_max30_category_number'] == 8
+    assert d['velo_max30_category_name'] == 'Silver'
+
+  def test_repr_has_velo_max_fields(self, rider: ZRRider) -> None:
+    text = repr(rider)
+    assert 'velo_max30' in text
+    assert 'velo_max30_category_name' in text
 
 
 class TestZRRiderMissingFields:
@@ -375,3 +426,50 @@ class TestZRRiderMissingFields:
     assert rider.velo_skill_sprint == 0.0
     assert rider.velo_category_number == 0
     assert rider.velo_category_name == ''
+
+  def test_missing_velo_max_fields(self) -> None:
+    data = {
+      'riderId': 1,
+      'name': 'Test',
+      'race': {'current': {'rating': 100, 'mixed': {'category': 'Bronze'}}},
+    }
+    rider = ZRRider.from_dict(data)
+    assert rider.velo_max30 == 0.0
+    assert rider.velo_max90 == 0.0
+    assert rider.velo_max30_category_number == 0
+    assert rider.velo_max30_category_name == ''
+    assert rider.velo_max90_category_number == 0
+    assert rider.velo_max90_category_name == ''
+
+  def test_velo_without_max_fields(self) -> None:
+    data = {
+      'riderId': 1,
+      'name': 'Test',
+      'race': {'current': {'rating': 100, 'mixed': {'category': 'Bronze'}}},
+      'velo': {'race': 100.0, 'factors': {'sprint': 200.0}},
+    }
+    rider = ZRRider.from_dict(data)
+    assert rider.velo_race == pytest.approx(100.0)
+    assert rider.velo_max30 == 0.0
+    assert rider.velo_max30_category_number == 0
+    assert rider.velo_max30_category_name == ''
+
+  def test_malformed_velo_max_fields(self) -> None:
+    data = {
+      'riderId': 1,
+      'name': 'Test',
+      'race': {'current': {'rating': 100, 'mixed': {'category': 'Bronze'}}},
+      'velo': {
+        'max30': 'not-a-number',
+        'max90': None,
+        'max30Category': {'number': 'not-a-number', 'name': None},
+        'max90Category': {'number': None, 'name': None},
+      },
+    }
+    rider = ZRRider.from_dict(data)
+    assert rider.velo_max30 == 0.0
+    assert rider.velo_max90 == 0.0
+    assert rider.velo_max30_category_number == 0
+    assert rider.velo_max30_category_name == ''
+    assert rider.velo_max90_category_number == 0
+    assert rider.velo_max90_category_name == ''
