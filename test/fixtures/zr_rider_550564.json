@@ -106,6 +106,10 @@
       "climb": 0,
       "timeTrial": 0
     },
-    "category": { "number": 8, "name": "Silver" }
+    "category": { "number": 8, "name": "Silver" },
+    "max30": 434.86035000000004,
+    "max90": 453.5100245027948,
+    "max30Category": { "number": 8, "name": "Silver" },
+    "max90Category": { "number": 8, "name": "Silver" }
   }
 }
