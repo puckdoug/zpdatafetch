@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.4.3]
+
+- `zrdata riders`: `ZRRider` also exposes the vELO2 `velo.max30` /
+  `velo.max90` ratings and their categories
+  (`velo_max30`, `velo_max90`, `velo_max30_category_number`,
+  `velo_max30_category_name`, `velo_max90_category_number`,
+  `velo_max90_category_name`) (issue #17).
+
 ## [2.4.2]
 
 - `zrdata riders`: `ZRRider` now exposes the vELO2 `velo.skill.*` deltas
@@ -8,11 +16,6 @@
   vELO2 `velo.category` (`velo_category_number`, `velo_category_name`).
   Previously the `velo` block was captured but these sub-objects were
   dropped (issue #17).
-- `zrdata riders`: `ZRRider` also exposes the vELO2 `velo.max30` /
-  `velo.max90` ratings and their categories
-  (`velo_max30`, `velo_max90`, `velo_max30_category_number`,
-  `velo_max30_category_name`, `velo_max90_category_number`,
-  `velo_max90_category_name`) (issue #17).
 
 ## [2.4.1]
 
