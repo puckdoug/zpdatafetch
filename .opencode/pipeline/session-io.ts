@@ -11,14 +11,16 @@ export function stageError(info: { error?: unknown } | undefined): string | null
 }
 
 export interface StageRunner {
-  runStage(agent: string, prompt: string, model?: string | null): Promise<void>;
+  runStage(agent: string, prompt: string, model?: string | null, directory?: string): Promise<void>;
 }
 
 export function createSessionRunner(client: Client, directory: string): StageRunner {
   return {
-    async runStage(agent: string, prompt: string, model?: string | null): Promise<void> {
+    async runStage(agent, prompt, model, target): Promise<void> {
+      const cwd = target ?? directory;
       const created = await client.session.create({
         body: { title: `pipeline: ${agent}` },
+        query: { directory: cwd },
       });
       const session = created.data;
       if (!session) throw new Error("failed to create pipeline session");
@@ -31,7 +33,7 @@ export function createSessionRunner(client: Client, directory: string): StageRun
       const result = await client.session.prompt({
         path: { id: session.id },
         body,
-        query: { directory },
+        query: { directory: cwd },
       });
       const err = stageError(result.data?.info);
       if (err) throw new Error(`stage ${agent} failed: ${err}`);

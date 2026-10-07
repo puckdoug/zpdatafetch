@@ -9,13 +9,22 @@ export interface ArchiveCandidate {
   files: string[]; // basenames inside PLANNING_DIR, sorted, includes the state file
 }
 
+/**
+ * Archive when the work is finished: `done` with a merged PR, or the issue is
+ * closed on GitHub (dead/closed issues must not sit in planning forever).
+ */
 export function selectArchiveCandidates(
   files: string[],
   states: PipelineState[],
   mergedBranches: ReadonlySet<string>,
+  closedIssues: ReadonlySet<number> = new Set<number>(),
 ): ArchiveCandidate[] {
   return states
-    .filter((s) => s.stage === "done" && mergedBranches.has(s.branch))
+    .filter(
+      (s) =>
+        (s.stage === "done" && mergedBranches.has(s.branch)) ||
+        closedIssues.has(s.issue),
+    )
     .sort((a, b) => a.issue - b.issue)
     .map((s) => ({
       issue: s.issue,

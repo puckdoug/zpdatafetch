@@ -1,12 +1,13 @@
 # Changelog
 
-## [Unreleased]
+## [2.4.4]
 
 - `zpdata` / `zdata` `ZP` and `AsyncZP`: the Zwift SSO login POST now goes
   through the shared retry helper, retrying transient connection/timeout
   errors (issue #19). Both classes accept an optional `timeout` argument
   (default `30.0` s, replacing httpx2's implicit 5 s) passed to the HTTP
   client.
+- Updated underlying libraries becuase of security issue (urllib3, virtualenv)
 
 ## [2.4.3]
 

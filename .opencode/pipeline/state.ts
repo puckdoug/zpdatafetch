@@ -21,6 +21,12 @@ export const STAGES: readonly Stage[] = [
   "blocked",
 ];
 
+export type StatusCategory = "ready" | "in-progress" | "on-hold" | "done";
+
+export function isStatusCategory(v: unknown): v is StatusCategory {
+  return v === "ready" || v === "in-progress" || v === "on-hold" || v === "done";
+}
+
 export interface PipelineState {
   issue: number;
   stage: Stage;
@@ -29,6 +35,14 @@ export interface PipelineState {
   attempts: Record<string, number>;
   updated: string;
   note: string;
+  /** Count of human comments seen; used to detect follow-ups after completion. */
+  humanComments?: number;
+  /** Last board status category applied; absent = not yet applied. */
+  boardStatus?: StatusCategory;
+  /** Signature of the issue content acknowledged at review; absent = legacy. */
+  issueSignature?: string;
+  /** Set when a change must restart this issue at the next stage boundary. */
+  pendingRestart?: boolean;
 }
 
 export function branchName(issue: number): string {
@@ -63,7 +77,19 @@ export function initialState(issue: number, now: Date = new Date()): PipelineSta
     attempts: {},
     updated: now.toISOString(),
     note: "",
+    humanComments: 0,
   };
+}
+
+/** Re-queued state, matching /pipeline-retry: attempts reset, startDate kept. */
+export function requeueState(
+  issue: number,
+  stage: Stage,
+  startDate: string,
+  note: string,
+  now: Date = new Date(),
+): PipelineState {
+  return { ...initialState(issue, now), startDate, stage, note };
 }
 
 export function dateStamp(now: Date = new Date()): string {
@@ -95,7 +121,7 @@ export function parseState(raw: string): PipelineState {
     throw new Error("invalid pipeline state");
   }
   const updated = typeof v.updated === "string" ? v.updated : new Date(0).toISOString();
-  return {
+  const out: PipelineState = {
     issue: v.issue,
     stage: v.stage as Stage,
     branch: typeof v.branch === "string" ? v.branch : branchName(v.issue),
@@ -103,5 +129,10 @@ export function parseState(raw: string): PipelineState {
     attempts: (v.attempts ?? {}) as Record<string, number>,
     updated,
     note: typeof v.note === "string" ? v.note : "",
+    humanComments: typeof v.humanComments === "number" ? v.humanComments : 0,
   };
+  if (isStatusCategory(v.boardStatus)) out.boardStatus = v.boardStatus;
+  if (typeof v.issueSignature === "string") out.issueSignature = v.issueSignature;
+  if (v.pendingRestart === true) out.pendingRestart = true;
+  return out;
 }

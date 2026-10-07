@@ -14,44 +14,161 @@ export type IssueStatusEntry = {
   issue: number;
   stage: Stage;
   archived?: boolean;
-  /** Source state file's `updated` (ISO); drives the idle report's last-completed pick. */
-  updated?: string;
+  /** Open PR URL for an unarchived done issue; null/undefined = no PR needed. */
+  prUrl?: string | null;
+  /** Issue is closed on GitHub; rendered as completed "— closed". */
+  closed?: boolean;
 };
 
-/** True when a should replace b as "last completed": later `updated`; tie or missing → higher issue number. */
-function isLaterCompleted(a: IssueStatusEntry, b: IssueStatusEntry): boolean {
-  const ta = Date.parse(a.updated ?? "");
-  const tb = Date.parse(b.updated ?? "");
-  if (Number.isFinite(ta) && Number.isFinite(tb) && ta !== tb) return ta > tb;
-  return a.issue > b.issue;
+export interface Summary {
+  notStarted: number[];
+  awaitingInput: IssueStatusEntry[];
+  inProgress: IssueStatusEntry[];
+  completed: IssueStatusEntry[];
 }
 
-export function lastCompletedIssue(
-  states: ReadonlyArray<IssueStatusEntry>,
-): IssueStatusEntry | null {
-  let best: IssueStatusEntry | null = null;
-  for (const s of states) {
-    if (s.stage !== "done") continue;
-    if (best === null || isLaterCompleted(s, best)) best = s;
+const IN_PROGRESS_ORDER: readonly Stage[] = [
+  "review",
+  "design",
+  "dev",
+  "quality",
+  "docs",
+  "finalize",
+];
+
+/** Groups known issues into the four summary sections, each ordered. */
+export function classifyIssues(input: {
+  openIssues?: readonly number[];
+  closedIssues?: readonly number[];
+  states: readonly IssueStatusEntry[];
+}): Summary {
+  const known = new Set(input.states.map((s) => s.issue));
+  const closed = new Set(input.closedIssues ?? []);
+  const notStarted = [...new Set(input.openIssues ?? [])]
+    .filter((n) => !known.has(n) && !closed.has(n))
+    .sort((a, b) => a - b);
+  const awaitingInput: IssueStatusEntry[] = [];
+  const inProgress: IssueStatusEntry[] = [];
+  const completed: IssueStatusEntry[] = [];
+  for (const s of input.states) {
+    if (closed.has(s.issue)) completed.push({ ...s, closed: true });
+    else if (s.archived || s.stage === "done") completed.push(s);
+    else if (s.stage === "review-wait" || s.stage === "blocked") awaitingInput.push(s);
+    else inProgress.push(s);
   }
-  return best;
+  awaitingInput.sort((a, b) => a.issue - b.issue);
+  completed.sort((a, b) => a.issue - b.issue);
+  inProgress.sort((a, b) => {
+    const d = IN_PROGRESS_ORDER.indexOf(a.stage) - IN_PROGRESS_ORDER.indexOf(b.stage);
+    return d !== 0 ? d : a.issue - b.issue;
+  });
+  return { notStarted, awaitingInput, inProgress, completed };
+}
+
+export interface WorkingEntry {
+  issue: number;
+  stage: Stage;
+  startedAt: number;
 }
 
 export interface StatusInput {
   loopRunning: boolean;
   loopStartedAt: number | null;
   now: number;
-  current: { issue: number; stage: Stage; startedAt: number } | null;
+  working?: WorkingEntry[];
   issueStates: IssueStatusEntry[];
-  /** "startup" renders the /pipeline-start report; default "status" is unchanged. */
-  mode?: "status" | "startup";
+  /** Labeled open issue numbers from gh.listIssues(); omitted/empty degrades. */
+  openIssues?: readonly number[];
+  /** Labeled closed issue numbers from gh.listIssues("all"); omitted/empty degrades. */
+  closedIssues?: readonly number[];
+  mode?: "status" | "startup" | "stop" | "check";
+  /** First line for mode "check" (the trigger result). */
+  checkResult?: string;
+  issueUrl?: (issue: number) => string | null;
+}
+
+function underline(label: string): string {
+  return "-".repeat(label.length);
+}
+
+/** Renders the three top-level groups; empty groups are omitted. */
+function renderGroups(
+  summary: Summary,
+  href: (issue: number) => string,
+): string[] {
+  const groups: string[][] = [];
+
+  const action: string[] = [];
+  if (summary.awaitingInput.length > 0) {
+    action.push("awaiting input:");
+    for (const e of summary.awaitingInput) action.push(`  ${href(e.issue)}`);
+  }
+  const completedPr = summary.completed.filter((e) => !e.closed && !e.archived && e.prUrl);
+  if (completedPr.length > 0) {
+    action.push("Completed, PR needed:");
+    for (const e of completedPr) action.push(`  ${href(e.issue)} -- PR (${e.prUrl})`);
+  }
+  if (action.length > 0) {
+    groups.push(["Action needed", underline("Action needed"), ...action]);
+  }
+
+  if (summary.inProgress.length > 0) {
+    groups.push([
+      "In progress",
+      underline("In progress"),
+      ...summary.inProgress.map((e) => `  ${href(e.issue)} -- ${e.stage}`),
+    ]);
+  }
+
+  const closed = summary.completed.filter((e) => e.closed);
+  if (closed.length > 0) {
+    groups.push([
+      "Completed",
+      underline("Completed"),
+      ...closed.map((e) => `  ${href(e.issue)} — closed`),
+    ]);
+  }
+
+  if (summary.notStarted.length > 0) {
+    groups.push([
+      "Pending",
+      underline("Pending"),
+      "not started:",
+      ...summary.notStarted.map((n) => `  ${href(n)}`),
+    ]);
+  }
+
+  const lines: string[] = [];
+  for (let idx = 0; idx < groups.length; idx++) {
+    if (idx > 0) lines.push("");
+    lines.push(...groups[idx]);
+  }
+  return lines;
 }
 
 export function formatStatus(i: StatusInput): string {
-  const startup = i.mode === "startup";
+  const mode = i.mode ?? "status";
+  const href = (issue: number): string => {
+    const url = i.issueUrl?.(issue);
+    return url ? `#${issue} (${url})` : `#${issue}`;
+  };
+  const summary = classifyIssues({
+    openIssues: i.openIssues,
+    closedIssues: i.closedIssues,
+    states: i.issueStates,
+  });
   const lines: string[] = [];
-  if (startup) {
-    lines.push("The pipeline loop is running.");
+
+  if (mode === "check") {
+    if (i.checkResult !== undefined) lines.push(i.checkResult);
+  } else if (mode === "startup") {
+    const active =
+      summary.notStarted.length + summary.awaitingInput.length + summary.inProgress.length;
+    lines.push(
+      active > 0
+        ? "The pipeline loop is running."
+        : "No issues require work, polling for new work.",
+    );
   } else if (i.loopRunning) {
     const since = i.loopStartedAt ?? i.now;
     lines.push(`pipeline loop: running for ${humanDuration(i.now - since)}`);
@@ -59,81 +176,19 @@ export function formatStatus(i: StatusInput): string {
     lines.push("pipeline loop: stopped");
   }
 
-  if (i.current) {
-    const agent = STAGE_AGENT[i.current.stage] ?? "none";
-    lines.push(
-      `working: issue #${i.current.issue} · stage ${i.current.stage} · agent ${agent} · ${humanDuration(i.now - i.current.startedAt)}`,
-    );
-    return lines.join("\n");
+  const working = i.working ?? [];
+  if (working.length > 0) {
+    const parts = working.map((w) => {
+      const agent = STAGE_AGENT[w.stage] ?? "none";
+      return `issue ${href(w.issue)} · stage ${w.stage} · agent ${agent} · ${humanDuration(i.now - w.startedAt)}`;
+    });
+    lines.push(`working: ${parts.join("; ")}`);
   }
 
-  const focus =
-    i.issueStates.find((s) => s.stage !== "done" && s.stage !== "blocked") ??
-    i.issueStates.find((s) => s.stage === "blocked") ??
-    i.issueStates.find((s) => s.stage === "done" && !s.archived) ??
-    i.issueStates.find((s) => s.stage === "done");
-
-  if (startup && focus?.stage === "done") {
-    const last = lastCompletedIssue(i.issueStates) ?? focus;
-    return `No issues require work, polling for new work.\nLast completed issue #${last.issue}`;
-  }
-
-  if (!focus) {
-    lines.push(startup ? "waiting for input" : "no pipeline-labeled issues found");
-    return lines.join("\n");
-  }
-
-  switch (focus.stage) {
-    case "review-wait":
-      lines.push(`waiting for input: issue #${focus.issue} (review asked questions on the issue)`);
-      break;
-    case "blocked":
-      lines.push(`failed/blocked: issue #${focus.issue} (see the note in its state file)`);
-      break;
-    case "done":
-      if (focus.archived) {
-        lines.push(`archived: issue #${focus.issue} (planning docs in docs/done)`);
-      } else {
-        lines.push(`completed: issue #${focus.issue}`);
-      }
-      break;
-    default:
-      lines.push(
-        startup
-          ? `working: issue #${focus.issue} · stage ${focus.stage} · agent ${STAGE_AGENT[focus.stage] ?? "none"} · ${humanDuration(0)}`
-          : `idle at issue #${focus.issue} · stage ${focus.stage}`,
-      );
-  }
+  const known = i.issueStates.length > 0 || (i.openIssues?.length ?? 0) > 0 ||
+    (i.closedIssues?.length ?? 0) > 0;
+  const groups = renderGroups(summary, href);
+  if (!known) lines.push("no pipeline-labeled issues found");
+  else lines.push(...groups);
   return lines.join("\n");
-}
-export function mergeStartupStates(
-  issues: ReadonlyArray<{ number: number }>,
-  planningStates: ReadonlyArray<IssueStatusEntry>,
-  doneStates: ReadonlyArray<IssueStatusEntry>,
-): IssueStatusEntry[] {
-  const planningByIssue = new Map(planningStates.map((s) => [s.issue, s]));
-  const doneByIssue = new Map<number, IssueStatusEntry>();
-  for (const s of doneStates) {
-    const prev = doneByIssue.get(s.issue);
-    if (!prev || isLaterCompleted(s, prev)) doneByIssue.set(s.issue, s);
-  }
-  const merged: IssueStatusEntry[] = issues
-    .map((it) => {
-      const local = planningByIssue.get(it.number);
-      return local
-        ? {
-            issue: it.number,
-            stage: local.stage,
-            ...(local.updated !== undefined ? { updated: local.updated } : {}),
-          }
-        : { issue: it.number, stage: "review" as Stage };
-    })
-    .sort((a, b) => a.issue - b.issue);
-  const listed = new Set(merged.map((s) => s.issue));
-  for (const [issue, s] of [...planningByIssue, ...doneByIssue].sort((a, b) => a[0] - b[0])) {
-    if (listed.has(issue)) continue;
-    merged.push(s);
-    listed.add(issue);
-  }
-  return merged;
 }
