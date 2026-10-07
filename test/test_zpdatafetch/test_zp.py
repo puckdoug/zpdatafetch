@@ -89,6 +89,82 @@ def test_login_failed_authentication(zp, login_page):
   # The full authentication flow with proper redirects is tested in test_fetch_login_page
 
 
+def test_login_retries_transient_post(
+  zp,
+  login_page,
+  logged_in_page,
+  monkeypatch,
+):
+  """Login POST is retried on a transient read timeout."""
+  import shared.http_client as http_client
+
+  monkeypatch.setattr(http_client.time, 'sleep', lambda _delay: None)
+
+  post_calls = 0
+
+  def handler(request):
+    nonlocal post_calls
+    if request.method == 'GET':
+      return httpx2.Response(200, text=login_page)
+    post_calls += 1
+    if post_calls == 1:
+      raise httpx2.ReadTimeout('timed out')
+    return httpx2.Response(200, text=logged_in_page)
+
+  zp.init_client(
+    httpx2.Client(
+      follow_redirects=True, transport=httpx2.MockTransport(handler)
+    ),
+  )
+  zp.login()
+  assert zp.login_response is not None
+  assert zp.login_response.status_code == 200
+  assert post_calls == 2
+
+
+def test_login_network_error_after_retries(zp, login_page, monkeypatch):
+  """Exhausted login retries raise the wrapped NetworkError message."""
+  import shared.http_client as http_client
+
+  monkeypatch.setattr(http_client.time, 'sleep', lambda _delay: None)
+
+  def handler(request):
+    if request.method == 'GET':
+      return httpx2.Response(200, text=login_page)
+    raise httpx2.ConnectError('Connection failed')
+
+  zp.init_client(
+    httpx2.Client(
+      follow_redirects=True, transport=httpx2.MockTransport(handler)
+    ),
+  )
+  with pytest.raises(NetworkError) as excinfo:
+    zp.login()
+  message = str(excinfo.value)
+  assert 'Failed to authenticate with Zwiftpower' in message
+  assert 'secure.zwift.com' in message
+
+
+def test_create_client_default_timeout():
+  """Default sync client timeout is 30.0 seconds."""
+  zp = ZP(skip_credential_check=True)
+  client = zp._create_client()
+  try:
+    assert client.timeout == httpx2.Timeout(30.0)
+  finally:
+    client.close()
+
+
+def test_create_client_custom_timeout():
+  """The timeout argument configures the sync client timeout."""
+  zp = ZP(skip_credential_check=True, timeout=45.0)
+  client = zp._create_client()
+  try:
+    assert client.timeout == httpx2.Timeout(45.0)
+  finally:
+    client.close()
+
+
 def test_fetch_json_success(zp):
   test_data = {'riders': [{'id': 1, 'name': 'Test Rider'}]}
 
