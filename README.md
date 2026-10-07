@@ -1000,7 +1000,7 @@ The `shared_client=True` option (enabled by default) allows multiple instances t
 
 #### Automatic Retry with Exponential Backoff
 
-The library includes built-in retry logic with exponential backoff for handling transient network failures. This is automatically applied to `fetch_json()` and `fetch_page()` methods:
+The library includes built-in retry logic with exponential backoff for handling transient network failures. This is automatically applied to the ZwiftPower SSO login POST and to the `fetch_json()` and `fetch_page()` methods:
 
 ```python
 from zpdatafetch import Cyclist
