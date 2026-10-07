@@ -56,6 +56,7 @@ class AsyncZP(AsyncBaseHTTPClient):
     self,
     skip_credential_check: bool = False,
     shared_client: bool = False,
+    timeout: float = 30.0,
   ) -> None:
     """Initialize the AsyncZP client with credentials from keyring.
 
@@ -63,6 +64,7 @@ class AsyncZP(AsyncBaseHTTPClient):
       skip_credential_check: Skip validation of credentials (used for testing)
       shared_client: Use a shared HTTP client for connection pooling (default: False).
         Useful when creating multiple AsyncZP instances for batch operations.
+      timeout: HTTP client timeout in seconds (default: 30.0)
 
     Raises:
       ConfigError: If credentials are not found in keyring
@@ -72,6 +74,7 @@ class AsyncZP(AsyncBaseHTTPClient):
     self.username: str = self.config.username
     self.password: str = self.config.password
     self.login_response: httpx2.Response | None = None
+    self.timeout: float = timeout
 
     if not skip_credential_check and (not self.username or not self.password):
       raise ConfigError(
@@ -86,6 +89,7 @@ class AsyncZP(AsyncBaseHTTPClient):
       AsyncZP._shared_client = httpx2.AsyncClient(
         follow_redirects=True,
         verify=True,
+        timeout=self.timeout,
       )
 
   # ----------------------------------------------------------------------------
@@ -181,10 +185,13 @@ class AsyncZP(AsyncBaseHTTPClient):
     logger.debug('Submitting authentication credentials to login endpoint')
 
     try:
-      self.login_response = await self._client.post(
+      self.login_response = await fetch_with_retry_async(
+        self._client,
         login_url_from_form,
+        method='POST',
         data=data,
         cookies=self._client.cookies,
+        logger=logger,
       )
       self.login_response.raise_for_status()
 
@@ -202,6 +209,15 @@ class AsyncZP(AsyncBaseHTTPClient):
           ),
         )
       logger.info('Successfully authenticated with Zwiftpower')
+    except NetworkError as e:
+      logger.error(f'Network error during authentication: {e}')
+      raise NetworkError(
+        format_network_error(
+          'authenticate with Zwiftpower',
+          login_url_from_form,
+          e,
+        ),
+      ) from e
     except httpx2.HTTPStatusError as e:
       logger.error(f'HTTP error during authentication: {e}')
       raise NetworkError(
@@ -236,7 +252,11 @@ class AsyncZP(AsyncBaseHTTPClient):
       'Creating new httpx async client with HTTPS certificate verification',
     )
     # SECURITY: Explicitly enable certificate verification for HTTPS
-    return httpx2.AsyncClient(follow_redirects=True, verify=True)
+    return httpx2.AsyncClient(
+      follow_redirects=True,
+      verify=True,
+      timeout=self.timeout,
+    )
 
   # ----------------------------------------------------------------------------
   async def _before_request(
