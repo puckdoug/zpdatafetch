@@ -120,6 +120,104 @@ async def test_async_login_network_error():
 
 
 @pytest.mark.anyio
+async def test_async_login_retries_transient_post(
+  login_page,
+  logged_in_page,
+  monkeypatch,
+):
+  """Login POST is retried on a transient read timeout."""
+  import shared.http_client as http_client
+
+  async def _noop(_delay):
+    return None
+
+  monkeypatch.setattr(http_client.anyio, 'sleep', _noop)
+
+  post_calls = 0
+
+  def handler(request):
+    nonlocal post_calls
+    if request.method == 'GET':
+      return httpx2.Response(200, text=login_page)
+    post_calls += 1
+    if post_calls == 1:
+      raise httpx2.ReadTimeout('timed out')
+    return httpx2.Response(200, text=logged_in_page)
+
+  async with AsyncZP(skip_credential_check=True) as zp:
+    zp.username = 'testuser'
+    zp.password = 'testpass'
+    await zp.init_client(
+      httpx2.AsyncClient(
+        follow_redirects=True,
+        transport=httpx2.MockTransport(handler),
+      ),
+    )
+    await zp.login()
+    assert zp.login_response is not None
+    assert zp.login_response.status_code == 200
+    assert post_calls == 2
+
+
+@pytest.mark.anyio
+async def test_async_login_network_error_after_retries(
+  login_page,
+  monkeypatch,
+):
+  """Exhausted login retries raise the wrapped NetworkError message."""
+  import shared.http_client as http_client
+
+  async def _noop(_delay):
+    return None
+
+  monkeypatch.setattr(http_client.anyio, 'sleep', _noop)
+
+  def handler(request):
+    if request.method == 'GET':
+      return httpx2.Response(200, text=login_page)
+    raise httpx2.ConnectError('Connection failed')
+
+  async with AsyncZP(skip_credential_check=True) as zp:
+    zp.username = 'testuser'
+    zp.password = 'testpass'
+    await zp.init_client(
+      httpx2.AsyncClient(
+        follow_redirects=True,
+        transport=httpx2.MockTransport(handler),
+      ),
+    )
+    with pytest.raises(NetworkError) as excinfo:
+      await zp.login()
+    message = str(excinfo.value)
+    assert 'Failed to authenticate with Zwiftpower' in message
+    assert 'secure.zwift.com' in message
+
+
+@pytest.mark.anyio
+async def test_async_create_client_default_timeout():
+  """Default async client timeout is 30.0 seconds."""
+  zp = AsyncZP(skip_credential_check=True)
+  client = await zp._create_client()
+  try:
+    assert client.timeout == httpx2.Timeout(30.0)
+  finally:
+    await client.aclose()
+    await zp.close()
+
+
+@pytest.mark.anyio
+async def test_async_create_client_custom_timeout():
+  """The timeout argument configures the async client timeout."""
+  zp = AsyncZP(skip_credential_check=True, timeout=45.0)
+  client = await zp._create_client()
+  try:
+    assert client.timeout == httpx2.Timeout(45.0)
+  finally:
+    await client.aclose()
+    await zp.close()
+
+
+@pytest.mark.anyio
 async def test_async_fetch_json_success():
   """Test successful async JSON fetch."""
   test_data = {'key': 'value', 'number': 42}
