@@ -931,6 +931,10 @@ async def main():
 anyio.run(main)
 ```
 
+Both `ZP` and `AsyncZP` accept an optional `timeout` argument (seconds,
+default `30.0`) that configures the HTTP client, e.g. `AsyncZP(timeout=60.0)`.
+The login POST is retried automatically on transient network errors.
+
 **Backwards compatibility:**
 
 For backwards compatibility, the old `AsyncCyclist`, `AsyncResult`, `AsyncSignup`, `AsyncTeam`, and `AsyncPrimes` names are still available as aliases:
