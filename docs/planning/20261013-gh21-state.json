@@ -1,12 +1,12 @@
 {
   "issue": 21,
-  "stage": "finalize",
+  "stage": "done",
   "branch": "pipeline/gh-21",
   "startDate": "20261013",
   "attempts": {
     "quality": 1
   },
-  "updated": "2026-10-13T06:18:26.702Z",
+  "updated": "2026-10-13T06:19:35.040Z",
   "note": "",
   "humanComments": 0,
   "issueSignature": "{\"title\":\"Remove dead Python 3.10 exceptiongroup compatibility shim\",\"body\":\"Now that `requires-python = \\\">=3.11\\\"` and Python 3.10 is end-of-life, the 3.10 compatibility branch in `src/zpdatafetch/zpcyclistfetch.py:12-23` is dead code:\\n\\n- The `sys.version_info >= (3, 11)` guard and the `else` branch importing the `exceptiongroup` backport (with the `# ty: ignore[unresolved-import]` suppression) can be replaced by an unconditional `from builtins import BaseExceptionGroup`.\\n- The `sys` import becomes unused and should be removed.\\n- `src/shared/validation.py:204` carries a now-stale \\\"Python 3.10 compatibility\\\" comment; Python 3.11+ `datetime.fromisoformat` accepts the `Z` suffix directly.\\n- `docs/planning/ty-exceptiongroup-unresolved-import.md` documents the suppression that would go away.\\n\\nFound while updating the documentation for the 3.11-3.15 support change.\",\"comments\":[]}"
