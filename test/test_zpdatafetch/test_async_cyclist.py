@@ -2,10 +2,12 @@
 
 import json
 import sys
+from builtins import BaseExceptionGroup
 
 import httpx2
 import pytest
 
+from shared.exceptions import NetworkError
 from zpdatafetch.async_zp import AsyncZP
 from zpdatafetch.zpcyclist import ZPCyclist
 from zpdatafetch.zpcyclistfetch import ZPCyclistFetch
@@ -136,3 +138,37 @@ async def test_async_data_class_json_output(login_page, logged_in_page):
     # Test __str__() method
     str_repr = str(cyclist)
     assert '123456' in str_repr
+
+
+@pytest.mark.anyio
+async def test_async_cyclist_network_error_propagates(monkeypatch):
+  """A NetworkError from a task surfaces with Zwift ID context added."""
+  async with AsyncZP(skip_credential_check=True) as zp:
+
+    async def boom(url):
+      raise NetworkError('Failed to fetch Zwift profile')
+
+    monkeypatch.setattr(zp, 'fetch_json', boom)
+
+    cyclist = ZPCyclistFetch()
+    cyclist.set_session(zp)
+
+    with pytest.raises(NetworkError, match='Failed to fetch Zwift ID 123456'):
+      await cyclist.afetch(123456)
+
+
+@pytest.mark.anyio
+async def test_async_cyclist_other_error_reraised(monkeypatch):
+  """A non-NetworkError task failure re-raises the exception group."""
+  async with AsyncZP(skip_credential_check=True) as zp:
+
+    async def boom(url):
+      raise RuntimeError('boom')
+
+    monkeypatch.setattr(zp, 'fetch_json', boom)
+
+    cyclist = ZPCyclistFetch()
+    cyclist.set_session(zp)
+
+    with pytest.raises(BaseExceptionGroup):
+      await cyclist.afetch(123456)
