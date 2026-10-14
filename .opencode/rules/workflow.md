@@ -18,8 +18,8 @@ globs:
 
 ## Issue handling
 - Never ignore an issue (errors or warnings). Never blame issues as "pre-existing".
-- GitHub issues are the source of truth for bugs and feature requests. Never create a GitHub issue from local work; work only issues that already exist.
-- New problems found while working are resolved immediately or logged in `./docs/planning/` with a proposed solution, never filed as new GitHub issues.
+- GitHub issues are the source of truth for bugs and feature requests. Work only issues that already exist; file new problems found during local work as new GitHub issues.
+- New problems found while working are resolved immediately or filed as new GitHub issues with a proposed solution.
 - Working an issue follows this flow:
   1. Pull it from GitHub: `gh issue view <N>`.
   2. Plan locally: create `./docs/planning/issue_<N>_<slug>.md` with `GitHub issue: #N` in the header and a checklist at the top.

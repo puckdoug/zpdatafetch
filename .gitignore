@@ -3,6 +3,7 @@ tmp/
 local/
 planning/
 .playwright-mcp/
+.python-version
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

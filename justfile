@@ -25,3 +25,7 @@ ruff:
 # type checking across src and test
 ty:
   OSTYPE=`uname` . .venv/bin/activate ; ty check src test
+
+# upgrade all locked dependencies
+upgrade:
+  @uv sync --upgrade

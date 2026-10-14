@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+- Updated documentation to reflect the supported Python versions: dropped
+  Python 3.10 (end-of-life) and added Python 3.15, giving 3.11-3.15 including
+  3.14t.
 - Removed the dead Python 3.10 `exceptiongroup` compatibility shim from
   `zpdatafetch.zpcyclistfetch`: `BaseExceptionGroup` is imported
   unconditionally from `builtins`, the unused `sys` import is gone, and the

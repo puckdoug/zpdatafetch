@@ -14,7 +14,7 @@ or
 pip install zpdatafetch
 ```
 
-This currently works with python versions 3.10 - 3.14 including 3.14t but
+This currently works with python versions 3.11 - 3.15 including 3.14t but
 excluding 3.13t. Build fails on 3.13t and I am unlikely to fix it. If you want
 free threading, use 3.14t.
 
