@@ -16,7 +16,7 @@ This document describes how to build and release zpdatafetch to PyPI.
 
 ### Required Tools
 
-- **Python**: 3.10 or higher (supports 3.10-3.14 including 3.14t, excluding 3.13t)
+- **Python**: 3.11 or higher (supports 3.11-3.15 including 3.14t, excluding 3.13t)
 - **uv**: [Astral's uv package manager](https://astral.sh/uv) (recommended) or pip
 - **build**: Python build frontend (`python -m build`)
 - **Git**: For version control and tagging
@@ -106,8 +106,8 @@ uv run pytest -xvs
 ### Platform-Specific Testing
 
 The CI/CD pipeline tests on:
-- **Linux**: Ubuntu (Python 3.10, 3.11, 3.12, 3.13, 3.14, 3.14t)
-- **Windows**: Latest (Python 3.10, 3.11, 3.12, 3.13, 3.14, 3.14t)
+- **Linux**: Ubuntu (Python 3.11, 3.12, 3.13, 3.14, 3.14t, 3.15)
+- **Windows**: Latest (Python 3.11, 3.12, 3.13, 3.14, 3.14t, 3.15)
 
 ## Creating a Release
 
@@ -165,8 +165,8 @@ The automated release uses GitHub Actions and runs when you push a tag starting 
    ```
 
 2. **Tests Run in Parallel**
-   - `linux-test`: Tests on Ubuntu with Python 3.10-3.14
-   - `windows-test`: Tests on Windows with Python 3.10-3.14
+   - `linux-test`: Tests on Ubuntu with Python 3.11-3.15
+   - `windows-test`: Tests on Windows with Python 3.11-3.15
 
 3. **Build and Release** (only if tests pass)
    - Waits for both test workflows to complete successfully

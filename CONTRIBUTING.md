@@ -6,7 +6,7 @@ Guidelines for contributing to the project.
 
 ### Prerequisites
 
-- Python 3.10 or higher
+- Python 3.11 or higher
 - Git
 - Basic familiarity with command line
 
@@ -80,7 +80,7 @@ uv run ruff check src && uv run pytest
 - Maximum line length: 80 characters
 - Use type hints for all function parameters and returns
 - Write docstrings for all public functions and classes
-- Use modern Python 3.10+ syntax
+- Use modern Python 3.11+ syntax
 - Follow the existing code patterns in the project
 
 ### Type Hints
@@ -88,7 +88,7 @@ uv run ruff check src && uv run pytest
 All functions must have complete type hints:
 
 ```python
-# Good - modern Python 3.10+ style
+# Good - modern Python 3.11+ style
 def fetch(self, endpoint: str) -> dict[str, Any]:
     """Fetch data from endpoint.
 

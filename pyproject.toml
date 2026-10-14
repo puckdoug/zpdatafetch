@@ -3,7 +3,7 @@ name = "zpdatafetch"
 version = "2.4.4"
 description = "A package for fetching data from Zwiftpower and Zwiftracing.app"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = "MIT"
 authors = [{ name = "Doug Morris", email = "doug@mhost.com" }]
 keywords = [
@@ -167,7 +167,7 @@ exclude = ["test*"]
 legacy_tox_ini = """
 [tox]
 isolated_build = True
-envlist = py310,py311,py312,py313,py314
+envlist = py311,py312,py313,py314,py315
 
 [testenv]
 commands = pytest {posargs}
@@ -179,7 +179,7 @@ deps =
 
 # Python environment configuration
 [tool.ty.environment]
-python-version = "3.10"  # Minimum supported version
+python-version = "3.11"  # Minimum supported version
 # root paths auto-detected from project structure
 
 # File discovery

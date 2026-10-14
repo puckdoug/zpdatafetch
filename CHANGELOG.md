@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+- Updated documentation to reflect the supported Python versions: dropped
+  Python 3.10 (end-of-life) and added Python 3.15, giving 3.11-3.15 including
+  3.14t.
+
 ## [2.4.4]
 
 - `zpdata` / `zdata` `ZP` and `AsyncZP`: the Zwift SSO login POST now goes
