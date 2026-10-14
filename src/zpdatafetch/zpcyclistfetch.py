@@ -2,25 +2,12 @@
 
 import asyncio
 import json
-import sys
 from argparse import ArgumentParser
+from builtins import BaseExceptionGroup
 from collections.abc import Coroutine
 from typing import Any
 
 import anyio
-
-# Python 3.10 compatibility
-if sys.version_info >= (3, 11):
-  from builtins import BaseExceptionGroup
-else:
-  # For Python 3.10, anyio provides ExceptionGroup
-  try:
-    from exceptiongroup import (  # ty: ignore[unresolved-import]
-      BaseExceptionGroup,
-    )
-  except ImportError:
-    # Fallback - catch the anyio exception type
-    BaseExceptionGroup: type[BaseException] = Exception
 
 from shared.json_helpers import parse_json_safe
 from shared.validation import ValidationError, validate_id_list
@@ -197,16 +184,9 @@ class ZPCyclistFetch(ZP_obj):
         # Extract the first NetworkError from the exception group
         from shared.exceptions import NetworkError
 
-        # BaseExceptionGroup from Python 3.11+ has exceptions attribute
-        # The exceptiongroup backport also has it
-        # But our fallback (Exception) does not
-        if hasattr(eg, 'exceptions') and callable(
-          getattr(eg, '__iter__', None),
-        ):
-          exceptions_list = getattr(eg, 'exceptions', [])
-          for exc in exceptions_list:
-            if isinstance(exc, NetworkError):
-              raise exc
+        for exc in eg.exceptions:
+          if isinstance(exc, NetworkError):
+            raise exc
         # If no NetworkError found, re-raise the exception group
         raise
 

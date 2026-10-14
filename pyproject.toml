@@ -179,7 +179,9 @@ deps =
 
 # Python environment configuration
 [tool.ty.environment]
-python-version = "3.11"  # Minimum supported version
+# 3.11 is the minimum for the codebase: `zpdatafetch.zpcyclistfetch`
+# imports `BaseExceptionGroup` from `builtins` unconditionally (gh#21).
+python-version = "3.11"
 # root paths auto-detected from project structure
 
 # File discovery

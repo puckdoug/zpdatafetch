@@ -5,6 +5,16 @@
 - Updated documentation to reflect the supported Python versions: dropped
   Python 3.10 (end-of-life) and added Python 3.15, giving 3.11-3.15 including
   3.14t.
+- Removed the dead Python 3.10 `exceptiongroup` compatibility shim from
+  `zpdatafetch.zpcyclistfetch`: `BaseExceptionGroup` is imported
+  unconditionally from `builtins`, the unused `sys` import is gone, and the
+  task-group error handler uses `eg.exceptions` directly. The old handler
+  guard was always false (`ExceptionGroup` is not iterable), so a
+  `NetworkError` raised by a child task is now surfaced as before intended
+  (issue #21).
+- `shared.validation.parse_datetime_to_epoch` now parses ISO 8601
+  `datetime.fromisoformat` input directly; the 3.10-only trailing-`Z`
+  normalization is gone (issue #21).
 
 ## [2.4.4]
 
