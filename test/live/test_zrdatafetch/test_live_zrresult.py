@@ -1,8 +1,35 @@
 """Live tests for ZRResultFetch that make real API calls to zwiftracing.app."""
 
+import time
+
 import pytest
 
 from zrdatafetch import ZRResultFetch
+
+_RESULT_REQUEST_INTERVAL = 60.0
+_last_result_request = 0.0
+
+
+@pytest.fixture(autouse=True)
+def space_live_result_requests():
+  """Wait between live result requests.
+
+  The standard Zwiftracing tier allows one /public/results request per
+  minute. Each live test makes a fresh request, so space them out rather
+  than caching data between tests.
+  """
+  global _last_result_request
+
+  if _last_result_request:
+    wait = _RESULT_REQUEST_INTERVAL - (
+      time.monotonic() - _last_result_request
+    )
+    if wait > 0:
+      time.sleep(wait)
+
+  yield
+
+  _last_result_request = time.monotonic()
 
 
 @pytest.mark.live

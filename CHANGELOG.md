@@ -1,7 +1,9 @@
 # Changelog
 
-## [Unreleased]
+## [2.4.5]
 
+- Updated all libraries to current versions - addressing virtualenv and
+  filelock alerts.
 - Updated documentation to reflect the supported Python versions: dropped
   Python 3.10 (end-of-life) and added Python 3.15, giving 3.11-3.15 including
   3.14t.
@@ -15,6 +17,15 @@
 - `shared.validation.parse_datetime_to_epoch` now parses ISO 8601
   `datetime.fromisoformat` input directly; the 3.10-only trailing-`Z`
   normalization is gone (issue #21).
+- The fast test suite no longer makes outbound network connections. Four
+  `zrdata` CLI tests now use `--noaction`, non-live tests block sockets, and
+  the `--live` option/skip hook moved to the root `test/conftest.py` so
+  live-marked tests skip in partial runs too. Live Zwiftracing result tests
+  now wait 60 seconds between requests to respect the standard-tier limit of
+  one result request per minute. Live ZwiftPower tests share one authenticated
+  session to avoid login blocks and wait 10 seconds between tests to avoid
+  rate limiting. The league fixtures include the current events, team
+  standings, team-event results, and league metadata fields.
 
 ## [2.4.4]
 

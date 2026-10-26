@@ -8,7 +8,7 @@ Provides common data conversion functions used across ZP dataclasses:
 - Array field extraction (from [value, flag] format)
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -139,7 +139,7 @@ def convert_timestamp_to_iso8601(timestamp: float | str) -> str:
     return timestamp
 
   try:
-    dt = datetime.fromtimestamp(float(timestamp), tz=timezone.utc)
+    dt = datetime.fromtimestamp(float(timestamp), tz=UTC)
     return dt.isoformat().replace('+00:00', 'Z')
   except (ValueError, OSError, TypeError):
     return ''
@@ -162,7 +162,7 @@ def convert_msec_to_iso8601(msec: int) -> str:
     seconds = msec // 1000
     microseconds = (msec % 1000) * 1000
     # Create datetime from Unix timestamp
-    dt = datetime.fromtimestamp(seconds, tz=timezone.utc)
+    dt = datetime.fromtimestamp(seconds, tz=UTC)
     # Replace microseconds and format as ISO8601 with 'Z' suffix
     dt = dt.replace(microsecond=microseconds)
     return dt.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'

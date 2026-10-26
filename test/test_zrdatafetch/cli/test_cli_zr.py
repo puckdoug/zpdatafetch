@@ -50,17 +50,19 @@ class TestCLIArgumentParsing:
       result = main()
       assert result is None
 
-  def test_main_with_result_command(self):
-    """Test main with result command (not yet implemented)."""
-    with patch('sys.argv', ['zrdata', 'result', '3590800']):
+  def test_main_with_result_command(self, capsys):
+    """Test main with result command (using --noaction to avoid network)."""
+    with patch('sys.argv', ['zrdata', 'result', '--noaction', '3590800']):
       result = main()
-      assert result == 1  # Result not implemented yet
+      assert result is None
+      assert 'Would fetch result data for: 3590800' in capsys.readouterr().out
 
-  def test_main_with_team_command(self):
-    """Test main with team command (not yet implemented)."""
-    with patch('sys.argv', ['zrdata', 'team', '456']):
+  def test_main_with_team_command(self, capsys):
+    """Test main with team command (using --noaction to avoid network)."""
+    with patch('sys.argv', ['zrdata', 'team', '--noaction', '456']):
       result = main()
-      assert result == 1  # Team not implemented yet
+      assert result is None
+      assert 'Would fetch team data for: 456' in capsys.readouterr().out
 
   def test_main_with_multiple_ids(self):
     """Test main with multiple IDs (using --noaction)."""
@@ -145,11 +147,7 @@ class TestCLILoggingConfiguration:
 
 # ===============================================================================
 class TestCLICommandRouting:
-  """Test command routing logic (placeholder tests).
-
-  These tests verify that the CLI structure is correct.
-  Actual command implementations will be added when classes are refactored.
-  """
+  """Test command routing logic."""
 
   def test_cli_handles_rider_command(self):
     """Test that CLI accepts rider command."""
@@ -159,16 +157,16 @@ class TestCLICommandRouting:
       assert result is None
 
   def test_cli_handles_result_command(self):
-    """Test that CLI accepts result command."""
-    with patch('sys.argv', ['zrdata', 'result', '3590800']):
+    """Test that CLI handles the result command without network access."""
+    with patch('sys.argv', ['zrdata', 'result', '--noaction', '12345']):
       result = main()
-      assert result == 1  # Result not implemented yet
+      assert result is None
 
   def test_cli_handles_team_command(self):
-    """Test that CLI accepts team command."""
-    with patch('sys.argv', ['zrdata', 'team', '456']):
+    """Test that CLI handles the team command without network access."""
+    with patch('sys.argv', ['zrdata', 'team', '--noaction', '12345']):
       result = main()
-      assert result == 1  # Team not implemented yet
+      assert result is None
 
   def test_cli_accepts_short_options(self):
     """Test that CLI accepts short option flags."""

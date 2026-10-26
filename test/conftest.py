@@ -1,5 +1,7 @@
 """Root conftest.py - Global fixtures for all tests."""
 
+import socket
+
 import keyring
 import pytest
 from keyrings.alt.file import PlaintextKeyring
@@ -7,6 +9,48 @@ from keyrings.alt.file import PlaintextKeyring
 from zpdatafetch import Config
 from zrdatafetch.async_zr import AsyncZR_obj
 from zrdatafetch.config import ZRConfig
+
+
+def pytest_addoption(parser):
+  """Add --live option to pytest."""
+  parser.addoption(
+    '--live',
+    action='store_true',
+    default=False,
+    help='run live tests that make real API calls',
+  )
+
+
+def pytest_collection_modifyitems(config, items):
+  """Skip live tests unless --live is passed."""
+  if config.getoption('--live'):
+    return
+
+  skip_live = pytest.mark.skip(reason='need --live option to run')
+  for item in items:
+    if 'live' in item.keywords:
+      item.add_marker(skip_live)
+
+
+@pytest.fixture(autouse=True)
+def block_network_in_fast_tests(request, monkeypatch):
+  """Fail non-live tests that attempt outbound network access."""
+  if request.config.getoption('--live') and 'live' in request.keywords:
+    yield
+    return
+
+  def blocked(*args, **kwargs):
+    msg = (
+      'Fast tests must not use the network. Mark the test with '
+      '@pytest.mark.live and run with --live.'
+    )
+    raise RuntimeError(msg)
+
+  monkeypatch.setattr(socket.socket, 'connect', blocked)
+  monkeypatch.setattr(socket.socket, 'connect_ex', blocked)
+  monkeypatch.setattr(socket, 'create_connection', blocked)
+  monkeypatch.setattr(socket, 'getaddrinfo', blocked)
+  yield
 
 
 @pytest.fixture(scope='session', params=['asyncio', 'trio'])

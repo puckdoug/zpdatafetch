@@ -17,7 +17,7 @@ API behavior.
 
 import calendar
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Literal
 
 # ID Range Constants
@@ -210,7 +210,7 @@ def parse_datetime_to_epoch(value: str) -> int:
 
   # Assume UTC if no timezone specified
   if dt.tzinfo is None:
-    dt = dt.replace(tzinfo=timezone.utc)
+    dt = dt.replace(tzinfo=UTC)
 
   epoch = calendar.timegm(dt.utctimetuple())
   return validate_epoch(epoch)

@@ -11,36 +11,6 @@ from zpdatafetch import Config
 from zrdatafetch.config import ZRConfig
 
 
-def pytest_addoption(parser):
-  """Add --live option to pytest."""
-  parser.addoption(
-    '--live',
-    action='store_true',
-    default=False,
-    help='run live tests that make real API calls',
-  )
-
-
-def pytest_configure(config):
-  """Register live marker."""
-  config.addinivalue_line(
-    'markers',
-    'live: marks tests that make real API calls (requires --live flag)',
-  )
-
-
-def pytest_collection_modifyitems(config, items):
-  """Skip live tests unless --live is passed."""
-  if config.getoption('--live'):
-    # --live given in cli: do not skip live tests
-    return
-
-  skip_live = pytest.mark.skip(reason='need --live option to run')
-  for item in items:
-    if 'live' in item.keywords:
-      item.add_marker(skip_live)
-
-
 @pytest.fixture(autouse=True)
 def use_real_credentials(request, setup_test_credentials):
   """Override test credentials to use real credentials for live tests.

@@ -1443,6 +1443,23 @@ or
 uvx --from build pyproject-build --installer uv
 ```
 
+### Testing
+
+Run the fast test suite with:
+
+```sh
+just test
+```
+
+Fast tests block outbound network access. Tests marked `@pytest.mark.live`
+are skipped unless `--live` is passed. Live tests use real keyring credentials
+and call the real APIs. They can be slow because API rate limits may require
+pauses between requests. ZwiftPower live tests wait 10 seconds between tests:
+
+```sh
+just test-live
+```
+
 ## To Do & Known Issues
 
 While useful and usable, there's a bit that can be done to improve this package.
