@@ -1,6 +1,7 @@
 """Root conftest.py - Global fixtures for all tests."""
 
 import socket
+import threading
 
 import keyring
 import pytest
@@ -9,6 +10,19 @@ from keyrings.alt.file import PlaintextKeyring
 from zpdatafetch import Config
 from zrdatafetch.async_zr import AsyncZR_obj
 from zrdatafetch.config import ZRConfig
+
+_LOCAL_HOSTS = {'127.0.0.1', '::1', 'localhost'}
+
+
+def _is_loopback_address(address):
+  """Return True when a socket address points at loopback."""
+  if not isinstance(address, tuple) or not address:
+    return False
+
+  host = address[0]
+  if isinstance(host, bytes):
+    host = host.decode(errors='ignore')
+  return isinstance(host, str) and host.lower() in _LOCAL_HOSTS
 
 
 def pytest_addoption(parser):
@@ -46,10 +60,38 @@ def block_network_in_fast_tests(request, monkeypatch):
     )
     raise RuntimeError(msg)
 
-  monkeypatch.setattr(socket.socket, 'connect', blocked)
-  monkeypatch.setattr(socket.socket, 'connect_ex', blocked)
-  monkeypatch.setattr(socket, 'create_connection', blocked)
-  monkeypatch.setattr(socket, 'getaddrinfo', blocked)
+  original_connect = socket.socket.connect
+  original_connect_ex = socket.socket.connect_ex
+  original_socketpair = socket.socketpair
+  socketpair_allow = threading.local()
+
+  def guarded_socketpair(*args, **kwargs):
+    previous = getattr(socketpair_allow, 'enabled', False)
+    socketpair_allow.enabled = True
+    try:
+      return original_socketpair(*args, **kwargs)
+    finally:
+      socketpair_allow.enabled = previous
+
+  def guarded_connect(self, address):
+    allowed = getattr(socketpair_allow, 'enabled', False)
+    if not (allowed and _is_loopback_address(address)):
+      blocked()
+    return original_connect(self, address)
+
+  def guarded_connect_ex(self, address):
+    allowed = getattr(socketpair_allow, 'enabled', False)
+    if not (allowed and _is_loopback_address(address)):
+      blocked()
+    return original_connect_ex(self, address)
+
+  def guarded_create_connection(*args, **kwargs):
+    blocked()
+
+  monkeypatch.setattr(socket, 'socketpair', guarded_socketpair)
+  monkeypatch.setattr(socket.socket, 'connect', guarded_connect)
+  monkeypatch.setattr(socket.socket, 'connect_ex', guarded_connect_ex)
+  monkeypatch.setattr(socket, 'create_connection', guarded_create_connection)
   yield
 
 

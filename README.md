@@ -1473,3 +1473,6 @@ could use help:
 ## Contributors
 
 - Emilio Garcia - [@byrd92](https://github.com/byrd92): League endpoint for Zwiftpower
+- [@psfazila02-hub](https://github.com/psfazila02-hub): Python version
+  classifiers in `pyproject.toml` ([PR
+  #23](https://github.com/puckdoug/zpdatafetch/pull/23))

@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.4.6]
+
+- Fixed `ZRRider` parsing of vELO2 30/90-day max ratings and categories
+  (issue #25). The Zwiftracing API moved the window rating under
+  `velo.max30.rating` / `velo.max90.rating` and the open category under
+  `velo.max30.open.{number,name}` / `velo.max90.open.{number,name}`; the parser
+  previously cast the whole window object to float (yielding `0.0`) and read the
+  now-removed `velo.max30Category` / `velo.max90Category` keys (yielding `0` /
+  `''`). Public field names are unchanged; safe defaults are preserved for
+  absent/null window data.
+
 ## [2.4.5]
 
 - Updated all libraries to current versions - addressing virtualenv and
@@ -26,6 +37,14 @@
   session to avoid login blocks and wait 10 seconds between tests to avoid
   rate limiting. The league fixtures include the current events, team
   standings, team-event results, and league metadata fields.
+- CI: bumped uv to 0.13.5 so the 3.15 jobs install CPython 3.15.1 instead of
+  3.15.0b1, which segfaulted on startup. The fast-test network guard now allows
+  only the loopback `socketpair()` self-pipe used by Windows asyncio; all other
+  outbound connections remain blocked.
+- Packaging: `pyproject.toml` now declares
+  `Programming Language :: Python :: 3` plus 3.11-3.15 classifiers, matching
+  the versions CI and tox test (PR #23, thanks
+  [@psfazila02-hub](https://github.com/psfazila02-hub)).
 
 ## [2.4.4]
 

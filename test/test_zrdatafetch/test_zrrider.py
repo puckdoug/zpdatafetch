@@ -460,10 +460,8 @@ class TestZRRiderMissingFields:
       'name': 'Test',
       'race': {'current': {'rating': 100, 'mixed': {'category': 'Bronze'}}},
       'velo': {
-        'max30': 'not-a-number',
-        'max90': None,
-        'max30Category': {'number': 'not-a-number', 'name': None},
-        'max90Category': {'number': None, 'name': None},
+        'max30': {'rating': 'not-a-number', 'open': {'number': 'x', 'name': None}},
+        'max90': {'rating': None, 'open': {'number': None, 'name': None}},
       },
     }
     rider = ZRRider.from_dict(data)
@@ -473,3 +471,117 @@ class TestZRRiderMissingFields:
     assert rider.velo_max30_category_name == ''
     assert rider.velo_max90_category_number == 0
     assert rider.velo_max90_category_name == ''
+
+
+class TestZRRiderVeloMaxRegression:
+  """Regression for vELO2 max30/max90 nested parse (gh#25).
+
+  The API moved the max rating under ``velo.max30.rating`` / ``velo.max90.rating``
+  and the category under ``velo.max30.open`` / ``velo.max90.open``. This uses the
+  exact production ``velo`` fragment reported for Zwift rider 338214.
+  """
+
+  # Exact production fragment from gh#25 (zwift rider 338214), wrapped with
+  # minimal name/race scaffold so from_dict does not bail out early.
+  DATA = {
+    'riderId': 338214,
+    'name': 'Regression Rider 338214',
+    'race': {
+      'current': {'rating': 545.95525, 'mixed': {'category': 'Platinum'}},
+    },
+    'velo': {
+      'category': {'number': 6, 'name': 'Platinum'},
+      'race': 545.95525,
+      'max30': {
+        'rating': 545.02875,
+        'date': 1793131200,
+        'expires': 1795723200,
+        'open': {'number': 6, 'name': 'Platinum'},
+      },
+      'max90': {
+        'rating': 545.02875,
+        'date': 1793131200,
+        'expires': 1800907200,
+        'open': {'number': 6, 'name': 'Platinum'},
+      },
+    },
+  }
+
+  def test_velo_max30_rating(self) -> None:
+    rider = ZRRider.from_dict(self.DATA)
+    assert rider.velo_max30 == pytest.approx(545.02875)
+
+  def test_velo_max90_rating(self) -> None:
+    rider = ZRRider.from_dict(self.DATA)
+    assert rider.velo_max90 == pytest.approx(545.02875)
+
+  def test_velo_max30_category_number(self) -> None:
+    rider = ZRRider.from_dict(self.DATA)
+    assert rider.velo_max30_category_number == 6
+
+  def test_velo_max30_category_name(self) -> None:
+    rider = ZRRider.from_dict(self.DATA)
+    assert rider.velo_max30_category_name == 'Platinum'
+
+  def test_velo_max90_category_number(self) -> None:
+    rider = ZRRider.from_dict(self.DATA)
+    assert rider.velo_max90_category_number == 6
+
+  def test_velo_max90_category_name(self) -> None:
+    rider = ZRRider.from_dict(self.DATA)
+    assert rider.velo_max90_category_name == 'Platinum'
+
+  def test_velo_current_category_unchanged(self) -> None:
+    rider = ZRRider.from_dict(self.DATA)
+    assert rider.velo_category_number == 6
+    assert rider.velo_category_name == 'Platinum'
+
+
+class TestZRRiderVeloMaxAbsentNull:
+  """Safe defaults when max30/max90 window data is absent or null (gh#25)."""
+
+  def _base(self) -> dict:
+    return {
+      'riderId': 1,
+      'name': 'Test',
+      'race': {'current': {'rating': 100, 'mixed': {'category': 'Bronze'}}},
+    }
+
+  def test_max30_max90_null(self) -> None:
+    data = self._base()
+    data['velo'] = {'max30': None, 'max90': None}
+    rider = ZRRider.from_dict(data)
+    assert rider.velo_max30 == 0.0
+    assert rider.velo_max90 == 0.0
+    assert rider.velo_max30_category_number == 0
+    assert rider.velo_max30_category_name == ''
+    assert rider.velo_max90_category_number == 0
+    assert rider.velo_max90_category_name == ''
+
+  def test_window_without_open(self) -> None:
+    data = self._base()
+    data['velo'] = {
+      'max30': {'rating': 500.0},
+      'max90': {'rating': 510.0},
+    }
+    rider = ZRRider.from_dict(data)
+    assert rider.velo_max30 == pytest.approx(500.0)
+    assert rider.velo_max90 == pytest.approx(510.0)
+    assert rider.velo_max30_category_number == 0
+    assert rider.velo_max30_category_name == ''
+    assert rider.velo_max90_category_number == 0
+    assert rider.velo_max90_category_name == ''
+
+  def test_window_rating_missing(self) -> None:
+    data = self._base()
+    data['velo'] = {
+      'max30': {'open': {'number': 4, 'name': 'Gold'}},
+      'max90': {'open': {'number': 4, 'name': 'Gold'}},
+    }
+    rider = ZRRider.from_dict(data)
+    assert rider.velo_max30 == 0.0
+    assert rider.velo_max90 == 0.0
+    assert rider.velo_max30_category_number == 4
+    assert rider.velo_max30_category_name == 'Gold'
+    assert rider.velo_max90_category_number == 4
+    assert rider.velo_max90_category_name == 'Gold'

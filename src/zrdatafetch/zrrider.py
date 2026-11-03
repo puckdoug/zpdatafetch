@@ -156,7 +156,7 @@ class ZRRider:
   velo_max30: float = 0.0
   velo_max90: float = 0.0
 
-  # Velo max category (vELO2 max30Category/max90Category)
+  # Velo max category (vELO2 max30/max90 open category)
   velo_max30_category_number: int = 0
   velo_max30_category_name: str = ''
   velo_max90_category_number: int = 0
@@ -364,20 +364,24 @@ class ZRRider:
         extract_nested_value(data, 'velo', 'category', 'name'),
       )
 
-      # Velo max (vELO2 max30/max90)
-      velo_max30 = safe_float(extract_nested_value(data, 'velo', 'max30'))
-      velo_max90 = safe_float(extract_nested_value(data, 'velo', 'max90'))
+      # Velo max (vELO2 max30/max90 rating + open category)
+      velo_max30 = safe_float(
+        extract_nested_value(data, 'velo', 'max30', 'rating'),
+      )
+      velo_max90 = safe_float(
+        extract_nested_value(data, 'velo', 'max90', 'rating'),
+      )
       velo_max30_category_number = safe_int(
-        extract_nested_value(data, 'velo', 'max30Category', 'number'),
+        extract_nested_value(data, 'velo', 'max30', 'open', 'number'),
       )
       velo_max30_category_name = safe_str(
-        extract_nested_value(data, 'velo', 'max30Category', 'name'),
+        extract_nested_value(data, 'velo', 'max30', 'open', 'name'),
       )
       velo_max90_category_number = safe_int(
-        extract_nested_value(data, 'velo', 'max90Category', 'number'),
+        extract_nested_value(data, 'velo', 'max90', 'open', 'number'),
       )
       velo_max90_category_name = safe_str(
-        extract_nested_value(data, 'velo', 'max90Category', 'name'),
+        extract_nested_value(data, 'velo', 'max90', 'open', 'name'),
       )
 
       # Classify remaining fields
